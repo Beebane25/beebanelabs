@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panduan Deploy IoTHub - Lengkap & Praktis</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    @media print {
+      body { font-size: 11pt; }
+      .no-print { display: none; }
+      .page-break { page-break-before: always; }
+      a { color: #000; text-decoration: none; }
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #1a1a1a;
+      line-height: 1.7;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background: #fff;
+    }
+
+    /* Print Button */
+    .print-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      z-index: 1000;
+      transition: all 0.2s;
+    }
+    .print-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.4); }
+
+    /* Cover */
+    .cover {
+      text-align: center;
+      padding: 60px 0;
+      border-bottom: 3px solid #1a1a1a;
+      margin-bottom: 40px;
+    }
+    .cover .icon { font-size: 64px; margin-bottom: 20px; }
+    .cover h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .cover .subtitle {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    .cover .version {
+      display: inline-block;
+      background: #f0f0f0;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+    }
+    .cover .date {
+      margin-top: 16px;
+      font-size: 13px;
+      color: #999;
+    }
+
+    /* Headings */
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 40px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #1a1a1a;
+      letter-spacing: -0.02em;
+    }
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 28px 0 12px;
+      color: #333;
+    }
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 20px 0 8px;
+      color: #444;
+    }
+
+    /* Paragraphs */
+    p { margin-bottom: 12px; font-size: 14px; }
+
+    /* Steps */
+    .step {
+      background: #f8f8f8;
+      border-left: 4px solid #1a1a1a;
+      padding: 16px 20px;
+      margin: 16px 0;
+      border-radius: 0 8px 8px 0;
+    }
+    .step-num {
+      display: inline-block;
+      background: #1a1a1a;
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 28px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-right: 10px;
+    }
+    .step ol { padding-left: 20px; margin-top: 8px; }
+    .step ol li { margin-bottom: 6px; font-size: 14px; }
+
+    /* Code */
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    pre {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      padding: 16px 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 12px 0;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    /* Boxes */
+    .info-box {
+      background: #e8f4fd;
+      border: 1px solid #b3d9f2;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 14px 0;
+      font-size: 13px;
+    }
+    .info-box.warning {
+      background: #fff8e1;
+      border-color: #ffe082;
+    }
+    .info-box.success {
+      background: #e8f5e9;
+      border-color: #a5d6a7;
+    }
+    .info-box.danger {
+      background: #fce4ec;
+      border-color: #ef9a9a;
+    }
+    .info-box strong { display: block; margin-bottom: 4px; }
+
+    /* Checklist */
+    .checklist {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0;
+    }
+    .checklist li {
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .checklist li::before {
+      content: '☐';
+      font-size: 16px;
+      color: #999;
+    }
+    .checklist li.done::before {
+      content: '☑';
+      color: #4caf50;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 10px 14px;
+      border: 1px solid #e0e0e0;
+      text-align: left;
+    }
+    th {
+      background: #f5f5f5;
+      font-weight: 600;
+    }
+
+    /* URL Box */
+    .url-box {
+      background: #f5f5f5;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      margin: 8px 0;
+      word-break: break-all;
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge.free { background: #e8f5e9; color: #2e7d32; }
+    .badge.paid { background: #fff3e0; color: #e65100; }
+    .badge.required { background: #fce4ec; color: #c62828; }
+
+    /* TOC */
+    .toc {
+      background: #f8f8f8;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 20px 0;
+    }
+    .toc h3 { margin-top: 0; }
+    .toc ol { padding-left: 20px; }
+    .toc li { margin-bottom: 6px; font-size: 14px; }
+    .toc a { color: #1a1a1a; text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+
+    /* Footer */
+    .footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 2px solid #1a1a1a;
+      text-align: center;
+      font-size: 12px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+
+<!-- PRINT BUTTON -->
+<button class="print-btn no-print" onclick="window.print()">📄 Cetak / Simpan PDF</button>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="icon">⚡</div>
+  <h1>Panduan Deploy IoTHub</h1>
+  <p class="subtitle">Deploy Website, Hubungkan Google AdSense & Subscribe System</p>
+  <span class="version">v1.0 — Lengkap & Praktis</span>
+  <p class="date">Juni 2026 | github.com/Beebane25/iothub</p>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <h3>📋 Daftar Isi</h3>
+  <ol>
+    <li><a href="#s1">Aktifkan GitHub Pages</a></li>
+    <li><a href="#s2">Beli & Hubungkan Domain Custom</a></li>
+    <li><a href="#s3">Submit ke Google Search Console</a></li>
+    <li><a href="#s4">Setup Google Analytics</a></li>
+    <li><a href="#s5">Naikkan Traffic (SEO & Marketing)</a></li>
+    <li><a href="#s6">Apply Google AdSense</a></li>
+    <li><a href="#s7">Pasang Kode Iklan AdSense</a></li>
+    <li><a href="#s8">Setup Subscribe Backend</a></li>
+    <li><a href="#s9">Setup Email Notification</a></li>
+    <li><a href="#s10">Checklist Akhir & Monitoring</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<!-- LANGKAH 1 -->
+<!-- ============================================ -->
+<h2 id="s1">1. Aktifkan GitHub Pages</h2>
+
+<p>GitHub Pages adalah hosting gratis yang menyediakan SSL otomatis dan bandwidth unlimited. Cocok untuk website statis seperti IoTHub.</p>
+
+<div class="step">
+  <span class="step-num">1</span> <strong>Buka GitHub Pages Settings</strong>
+  <div class="url-box">https://github.com/Beebane25/iothub/settings/pages</div>
+</div>
+
+<div class="step">
+  <span class="step-num">2</span> <strong>Konfigurasi Source</strong>
+  <ol>
+    <li>Source: pilih <strong>"Deploy from a branch"</strong></li>
+    <li>Branch: pilih <strong>"main"</strong> / <strong>"/ (root)"</strong></li>
+    <li>Klik <strong>"Save"</strong></li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">3</span> <strong>Tunggu Deployment</strong>
+  <ol>
+    <li>Tunggu 1-2 menit</li>
+    <li>Refresh halaman → lihat status "Your site is live at..."</li>
+    <li>Klik link untuk cek website</li>
+  </ol>
+</div>
+
+<div class="info-box success">
+  <strong>✅ Website Aktif!</strong>
+  URL: https://beebane25.github.io/iothub/
+  <br>SSL: otomatis (https)
+  <br>Bandwidth: unlimited
+  <br>Cost: GRATIS selamanya
+</div>
+
+<div class="info-box warning">
+  <strong>⚠️ Catatan Penting</strong>
+  Setelah deploy, ganti URL di sitemap.xml dari https://iothub.id ke URL GitHub Pages kamu (atau domain custom setelah step 2).
+</div>
+
+
+<!-- ============================================ -->
+<!-- LANGKAH 2 -->
+<!-- ============================================ -->
+<h2 id="s2">2. Beli & Hubungkan Domain Custom</h2>
+
+<p>Domain custom (contoh: iothub.id) membuat website terlihat profesional dan mudah diingat.</p>
+
+<h3>2.1 Pilih Domain Registrar</h3>
+
+<table>
+  <tr>
+    <th>Registrar</th>
+    <th>Harga (.id)</th>
+    <th>Harga (.com)</th>
+    <th>Catatan</th>
+  </tr>
+  <tr>
+    <td>Cloudflare</td>
+    <td>-</td>
+    <td>$8.57/tahun</td>
+    <td>Paling murah, SSL gratis</td>
+  </tr>
+  <tr>
+    <td>Namecheap</td>
+    <td>-</td>
+    <td>$8.88/tahun</td>
+    <td>Sering ada promo</td>
+  </tr>
+  <tr>
+    <td>Niagahoster</td>
+    <td>Rp 89.000/tahun</td>
+    <td>Rp 139.000/tahun</td>
+    <td>Support Indonesia</td>
+  </tr>
+  <tr>
+    <td>Domainesia</td>
+    <td>Rp 99.000/tahun</td>
+    <td>Rp 149.000/tahun</td>
+    <td>Support Indonesia</td>
+  </tr>
+</table>
+
+<h3>2.2 Setup Cloudflare (Recommended)</h3>
+
+<div class="step">
+  <span class="step-num">1</span> <strong>Buat Akun Cloudflare</strong>
+  <ol>
+    <li>Buka <code>https://dash.cloudflare.com</code></li>
+    <li>Daftar akun gratis</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">2</span> <strong>Tambah Domain</strong>
+  <ol>
+    <li>Klik "Add a site"</li>
+    <li>Masukkan domain (contoh: <code>iothub.id</code>)</li>
+    <li>Pilih plan Free</li>
+    <li>Cloudflare akan scan DNS record</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">3</span> <strong>Ganti Nameserver di Registrar</strong>
+  <ol>
+    <li>Cloudflare akan kasih 2 nameserver (contoh: <code>aria.ns.cloudflare.com</code>)</li>
+    <li>Login ke registrar domain (Niagahoster/Domainesia)</li>
+    <li>Menu: Domain → Nameserver / DNS</li>
+    <li>Ganti nameserver ke yang Cloudflare berikan</li>
+    <li>Simpan & tunggu propagasi (1-24 jam)</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">4</span> <strong>Tambah DNS Record di Cloudflare</strong>
+  <ol>
+    <li>Buka Cloudflare → pilih domain → DNS → Records</li>
+    <li>Klik "Add record"</li>
+    <li>Isi:
+      <ul>
+        <li>Type: <code>CNAME</code></li>
+        <li>Name: <code>@</code></li>
+        <li>Target: <code>beebane25.github.io</code></li>
+        <li>Proxy: <strong>ON</strong> (biru)</li>
+      </ul>
+    </li>
+    <li>Simpan</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">5</span> <strong>Hubungkan ke GitHub Pages</strong>
+  <ol>
+    <li>Buka <code>https://github.com/Beebane25/iothub/settings/pages</code></li>
+    <li>Custom domain: masukkan <code>iothub.id</code></li>
+    <li>Klik "Save"</li>
+    <li>Centang <strong>"Enforce HTTPS"</strong></li>
+  </ol>
+</div>
+
+<div class="info-box success">
+  <strong>✅ Domain Aktif!</strong>
+  Website sekarang di: https://iothub.id
+  <br>SSL: otomatis dari Cloudflare
+</div>
+
+
+<!-- ============================================ -->
+<!-- LANGKAH 3 -->
+<!-- ============================================ -->
+<div class="page-break"></div>
+<h2 id="s3">3. Submit ke Google Search Console</h2>
+
+<p>Google Search Console membantu Google menemukan dan meng-index halaman website kamu.</p>
+
+<div class="step">
+  <span class="step-num">1</span> <strong>Buka Google Search Console</strong>
+  <div class="url-box">https://search.google.com/search-console</div>
+</div>
+
+<div class="step">
+  <span class="step-num">2</span> <strong>Tambah Property</strong>
+  <ol>
+    <li>Login akun Google</li>
+    <li>Klik "+ Property" (kiri atas)</li>
+    <li>Pilih <strong>"Domain"</strong></li>
+    <li>Masukkan: <code>iothub.id</code></li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">3</span> <strong>Verifikasi via DNS</strong>
+  <ol>
+    <li>Google akan kasih TXT record untuk verifikasi</li>
+    <li>Buka Cloudflare → DNS → Records</li>
+    <li>Tambah record baru:
+      <ul>
+        <li>Type: <code>TXT</code></li>
+        <li>Name: <code>@</code></li>
+        <li>Content: <code>google-site-verification=XXXXX</code> (dari Google)</li>
+        <li>TTL: Auto</li>
+      </ul>
+    </li>
+    <li>Klik "Verify" di Search Console</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">4</span> <strong>Submit Sitemap</strong>
+  <ol>
+    <li>Di Search Console → Sitemaps (kiri)</li>
+    <li>Masukkan: <code>https://iothub.id/sitemap.xml</code></li>
+    <li>Klik "Submit"</li>
+    <li>Request indexing untuk homepage</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">5</span> <strong>Submit Halaman Penting</strong>
+  <ol>
+    <li>URL Inspection → masukkan URL → Request Indexing</li>
+    <li>Submit minimal 5 halaman pertama:</li>
+  </ol>
+</div>
+
+<pre><code>https://iothub.id/
+https://iothub.id/articles/esp32-fundamentals.html
+https://iothub.id/articles/mqtt-protocol.html
+https://iothub.id/articles/mikrotik-routing.html
+https://iothub.id/articles/lora-communication.html</code></pre>
+
+
+<!-- ============================================ -->
+<!-- LANGKAH 4 -->
+<!-- ============================================ -->
+<h2 id="s4">4. Setup Google Analytics</h2>
+
+<p>Google Analytics memantau pengunjung, halaman populer, dan sumber traffic.</p>
+
+<div class="step">
+  <span class="step-num">1</span> <strong>Buat Property</strong>
+  <ol>
+    <li>Buka <code>https://analytics.google.com</code></li>
+    <li>Klik "Start measuring"</li>
+    <li>Account name: <code>IoTHub</code></li>
+    <li>Property name: <code>iothub.id</code></li>
+    <li>Pilih "Web" → URL: <code>iothub.id</code></li>
+    <li>Copy <strong>Measurement ID</strong> (G-XXXXXXXXXX)</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">2</span> <strong>Tambahkan ke HTML</strong>
+  <ol>
+    <li>Buka setiap file .html dengan text editor</li>
+    <li>Tempatkan di dalam tag <code>&lt;head&gt;</code></li>
+  </ol>
+</div>
+
+<pre><code>&lt;!-- Google Analytics --&gt;
+&lt;script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"&gt;&lt;/script&gt;
+&lt;script&gt;
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+&lt;/script&gt;</code></pre>
+
+<div class="info-box warning">
+  <strong>⚠️ Penting</strong>
+  Ganti <code>G-XXXXXXXXXX</code> dengan Measurement ID dari Google Analytics. Lakukan di SEMUA file HTML.
+</div>
+
+
+<!-- ============================================ -->
+<!-- LANGKAH 5 -->
+<!-- ============================================ -->
+<div class="page-break"></div>
+<h2 id="s5">5. Naikkan Traffic (SEO & Marketing)</h2>
+
+<p>Google AdSense membutuhkan minimal traffic untuk disetujui. Target: 50-100 pengunjung/hari.</p>
+
+<h3>5.1 SEO On-Page</h3>
+
+<table>
+  <tr>
+    <th>Elemen</th>
+    <th>Yang Dilakukan</th>
+    <th>Status IoTHub</th>
+  </tr>
+  <tr>
+    <td>Title Tag</td>
+    <td>Judul mengandung keyword, max 60 char</td>
+    <td><span class="badge free">✓ Sudah</span></td>
+  </tr>
+  <tr>
+    <td>Meta Description</td>
+    <td>Deskripsi 150-160 char, mengandung keyword</td>
+    <td><span class="badge free">✓ Sudah</span></td>
+  </tr>
+  <tr>
+    <td>Heading Structure</td>
+    <td>H1 → H2 → H3 hierarkis</td>
+    <td><span class="badge free">✓ Sudah</span></td>
+  </tr>
+  <tr>
+    <td>Internal Linking</td>
+    <td>Link antar artikel</td>
+    <td><span class="badge free">✓ Sudah</span></td>
+  </tr>
+  <tr>
+    <td>Sitemap</td>
+    <td>Daftar semua URL untuk Google</td>
+    <td><span class="badge free">✓ Sudah</span></td>
+  </tr>
+  <tr>
+    <td>robots.txt</td>
+    <td>Panduan crawler</td>
+    <td><span class="badge free">✓ Sudah</span></td>
+  </tr>
+  <tr>
+    <td>Open Graph</td>
+    <td>Preview share di media sosial</td>
+    <td><span class="badge free">✓ Sudah</span></td>
+  </tr>
+  <tr>
+    <td>Structured Data</td>
+    <td>JSON-LD untuk rich results</td>
+    <td><span class="badge free">✓ Sudah</span></td>
+  </tr>
+  <tr>
+    <td>Mobile Friendly</td>
+    <td>Responsive design</td>
+    <td><span class="badge free">✓ Sudah</span></td>
+  </tr>
+  <tr>
+    <td>Page Speed</td>
+    <td>Load cepat tanpa framework berat</td>
+    <td><span class="badge free">✓ Sudah</span></td>
+  </tr>
+</table>
+
+<h3>5.2 Marketing & Promotion</h3>
+
+<table>
+  <tr>
+    <th>Platform</th>
+    <th>Cara Promosi</th>
+    <th>Target</th>
+  </tr>
+  <tr>
+    <td>Facebook</td>
+    <td>Share di grup IoT Indonesia, grup ESP32, grup MikroTik</td>
+    <td>10-20 kunjungan/hari</td>
+  </tr>
+  <tr>
+    <td>Twitter/X</td>
+    <td>Post tutorial + hashtag #IoT #ESP32 #MikroTik</td>
+    <td>5-15 kunjungan/hari</td>
+  </tr>
+  <tr>
+    <td>Reddit</td>
+    <td>Post di r/esp32, r/arduino, r/iot (jangan spam)</td>
+    <td>10-50 kunjungan/post</td>
+  </tr>
+  <tr>
+    <td>Kaskus</td>
+    <td>Post di subforum teknologi</td>
+    <td>5-20 kunjungan/hari</td>
+  </tr>
+  <tr>
+    <td>YouTube</td>
+    <td>Buat video tutorial singkat, link ke artikel</td>
+    <td>Long-term traffic</td>
+  </tr>
+  <tr>
+    <td>Discord</td>
+    <td>Join server IoT Indonesia, share saat relevan</td>
+    <td>5-10 kunjungan/hari</td>
+  </tr>
+</table>
+
+<h3>5.3 Submit ke Search Engine Lain</h3>
+
+<pre><code># Bing Webmaster
+https://www.bing.com/webmasters
+
+# Yandex Webmaster
+https://webmaster.yandex.com
+
+# DuckDuckGo (otomatis dari Bing, tidak perlu submit)</code></pre>
+
+
+<!-- ============================================ -->
+<!-- LANGKAH 6 -->
+<!-- ============================================ -->
+<h2 id="s6">6. Apply Google AdSense</h2>
+
+<p>Google AdSense membayar kamu setiap kali pengunjung mengklik iklan di website.</p>
+
+<h3>6.1 Syarat yang Sudah Terpenuhi</h3>
+
+<ul class="checklist">
+  <li class="done">21+ artikel original, 10.000+ baris konten</li>
+  <li class="done">Privacy Policy, Terms, About, Contact, Disclaimer</li>
+  <li class="done">robots.txt + sitemap.xml</li>
+  <li class="done">Responsive design (mobile-friendly)</li>
+  <li class="done">SSL/HTTPS aktif</li>
+  <li class="done">Navigasi berfungsi dengan baik</li>
+  <li class="done">Slot iklan sudah disiapkan di HTML</li>
+  <li class="done">Domain custom (setelah step 2)</li>
+</ul>
+
+<h3>6.2 Yang Perlu Dipastikan</h3>
+
+<ul class="checklist">
+  <li>Umur domain minimal 1 bulan</li>
+  <li>Minimal 50-100 pengunjung/hari</li>
+  <li>Tidak ada konten pelanggaran hak cipta</li>
+  <li>SSL aktif (https://)</li>
+</ul>
+
+<h3>6.3 Cara Apply</h3>
+
+<div class="step">
+  <span class="step-num">1</span> <strong>Buka Google AdSense</strong>
+  <div class="url-box">https://www.google.com/adsense</div>
+</div>
+
+<div class="step">
+  <span class="step-num">2</span> <strong>Isi Formulir</strong>
+  <ol>
+    <li>Login akun Google</li>
+    <li>Klik "Get started"</li>
+    <li>URL website: <code>https://iothub.id</code></li>
+    <li>Bahasa: Indonesia</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">3</span> <strong>Isi Informasi</strong>
+  <ol>
+    <li>Negara: Indonesia</li>
+    <li>Zona waktu: WIB (GMT+7)</li>
+    <li>Nama: <strong>sesuai KTP</strong></li>
+    <li>Alamat: <strong>sesuai KTP</strong></li>
+    <li>Nomor HP: aktif</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">4</span> <strong>Verifikasi</strong>
+  <ol>
+    <li>Email: otomatis terverifikasi</li>
+    <li>Telepon: via SMS atau telepon</li>
+    <li>Alamat: Google akan kirim surat berisi PIN ke alamat KTP</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">5</span> <strong>Tunggu Review</strong>
+  <ol>
+    <li>Proses review: 1-14 hari</li>
+    <li>Google akan cek: konten, traffic, kebijakan privasi</li>
+    <li>Jika disetujui: email notifikasi + dashboard aktif</li>
+    <li>Jika ditolak: perbaiki masalah yang disebutkan, apply lagi</li>
+  </ol>
+</div>
+
+
+<!-- ============================================ -->
+<!-- LANGKAH 7 -->
+<!-- ============================================ -->
+<div class="page-break"></div>
+<h2 id="s7">7. Pasang Kode Iklan AdSense</h2>
+
+<p>Setelah disetujui, pasang kode iklan di slot yang sudah disiapkan.</p>
+
+<div class="step">
+  <span class="step-num">1</span> <strong>Buat Unit Iklan</strong>
+  <ol>
+    <li>Login AdSense → Ads → By ad unit</li>
+    <li>Buat unit iklan:
+      <ul>
+        <li><strong>Display ads</strong> (banner responsif)</li>
+        <li><strong>In-article ads</strong> (antara paragraph)</li>
+        <li><strong>In-feed ads</strong> (di antara daftar artikel)</li>
+      </ul>
+    </li>
+    <li>Copy kode iklan dari setiap unit</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">2</span> <strong>Pasang di HTML</strong>
+  <ol>
+    <li>Buka file HTML dengan text editor</li>
+    <li>Cari komentar: <code>&lt;!-- AdSense: ... --&gt;</code></li>
+    <li>Ganti dengan kode iklan dari Google</li>
+  </ol>
+</div>
+
+<pre><code>&lt;!-- ADSENSE: Top Banner --&gt;
+&lt;ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+     data-ad-slot="XXXXXXXXXX"
+     data-ad-format="auto"
+     data-full-width-responsive="true"&gt;&lt;/ins&gt;
+&lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;</code></pre>
+
+<div class="info-box">
+  <strong>📍 Posisi Iklan yang Efektif</strong>
+  1. Banner atas (setelah hero section) — CTR tinggi
+  2. In-article (setiap 3-4 paragraph) — natural placement
+  3. Sidebar (jika ada) — secondary income
+  4. Banner bawah (sebelum footer) — secondary income
+</div>
+
+<div class="info-box warning">
+  <strong>⚠️ Aturan AdSense</strong>
+  - JANGAN klik iklan sendiri
+  - JANGAN suruh orang klik iklan
+  - JANGAN taruh iklan di popup
+  - JANGAN manipulasi posisi iklan
+  <br>Pelanggaran = akun dibanned permanen!
+</div>
+
+
+<!-- ============================================ -->
+<!-- LANGKAH 8 -->
+<!-- ============================================ -->
+<h2 id="s8">8. Setup Subscribe Backend</h2>
+
+<p>Sistem subscribe memungkinkan pengunjung daftar email untuk menerima update tutorial baru.</p>
+
+<h3>8.1 Opsi Hosting Backend</h3>
+
+<table>
+  <tr>
+    <th>Platform</th>
+    <th>Biaya</th>
+    <th>Cocok Untuk</th>
+    <th>Cara Setup</th>
+  </tr>
+  <tr>
+    <td><strong>Netlify</strong></td>
+    <td><span class="badge free">GRATIS</span></td>
+    <td>Serverless functions</td>
+    <td>Import dari GitHub → auto deploy</td>
+  </tr>
+  <tr>
+    <td><strong>Vercel</strong></td>
+    <td><span class="badge free">GRATIS</span></td>
+    <td>Serverless functions</td>
+    <td>Import dari GitHub → auto deploy</td>
+  </tr>
+  <tr>
+    <td><strong>Railway</strong></td>
+    <td>$5/bulan free tier</td>
+    <td>Full Python server</td>
+    <td>Deploy server.py langsung</td>
+  </tr>
+  <tr>
+    <td><strong>Render</strong></td>
+    <td><span class="badge free">GRATIS</span></td>
+    <td>Full Python server</td>
+    <td>Deploy server.py langsung</td>
+  </tr>
+  <tr>
+    <td><strong>VPS</strong></td>
+    <td>Rp 30-50rb/bulan</td>
+    <td>Full control</td>
+    <td>Install Python + jalankan</td>
+  </tr>
+</table>
+
+<h3>8.2 Deploy ke Netlify (Recommended)</h3>
+
+<div class="step">
+  <span class="step-num">1</span> <strong>Buat Akun Netlify</strong>
+  <ol>
+    <li>Buka <code>https://app.netlify.com</code></li>
+    <li>Login dengan akun GitHub</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">2</span> <strong>Import Repository</strong>
+  <ol>
+    <li>Klik "Add new site" → "Import from GitHub"</li>
+    <li>Pilih repository: <code>Beebane25/iothub</code></li>
+    <li>Build command: biarkan kosong</li>
+    <li>Publish directory: <code>.</code> (root)</li>
+    <li>Klik "Deploy site"</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">3</span> <strong>Setup Serverless Function</strong>
+  <ol>
+    <li>Buat folder <code>netlify/functions/</code></li>
+    <li>Buat file <code>subscribe.js</code> untuk handle subscribe</li>
+    <li>Netlify otomatis menjalankan function</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">4</span> <strong>Hubungkan Domain</strong>
+  <ol>
+    <li>Netlify Settings → Domain management</li>
+    <li>Add custom domain: <code>api.iothub.id</code></li>
+    <li>Atau gunakan subdomain: <code>iothub-api.netlify.app</code></li>
+  </ol>
+</div>
+
+<h3>8.3 Jalankan Lokal (Development)</h3>
+
+<pre><code># Clone & jalankan
+cd "C:\Users\user\Documents\pribadi\web adsence"
+python server.py
+
+# Buka browser
+http://localhost:8080</code></pre>
+
+
+<!-- ============================================ -->
+<!-- LANGKAH 9 -->
+<!-- ============================================ -->
+<div class="page-break"></div>
+<h2 id="s9">9. Setup Email Notification</h2>
+
+<p>Dapatkan notifikasi saat ada subscriber baru atau pembayaran masuk.</p>
+
+<h3>9.1 Opsi 1: EmailJS (Recommended)</h3>
+
+<div class="step">
+  <span class="step-num">1</span> <strong>Buat Akun EmailJS</strong>
+  <ol>
+    <li>Buka <code>https://www.emailjs.com</code></li>
+    <li>Daftar gratis</li>
+    <li>Add Email Service (pilih Gmail atau SMTP)</li>
+    <li>Create Email Template</li>
+    <li>Copy: <strong>Service ID</strong>, <strong>Template ID</strong>, <strong>Public Key</strong></li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">2</span> <strong>Tambahkan ke JavaScript</strong>
+  <ol>
+    <li>Tambahkan script EmailJS di <code>index.html</code>:</li>
+  </ol>
+</div>
+
+<pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  emailjs.init("YOUR_PUBLIC_KEY");
+
+  // Kirim notifikasi saat ada subscriber baru
+  function notifyNewSubscriber(email) {
+    emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+      to_email: "iothub@gmail.com",
+      subscriber_email: email
+    });
+  }
+&lt;/script&gt;</code></pre>
+
+<h3>9.2 Opsi 2: Telegram Bot</h3>
+
+<div class="step">
+  <span class="step-num">1</span> <strong>Buat Bot Telegram</strong>
+  <ol>
+    <li>Buka Telegram → cari <code>@BotFather</code></li>
+    <li>Kirim <code>/newbot</code></li>
+    <li>Ikuti instruksi → dapat <strong>bot token</strong></li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">2</span> <strong>Dapatkan Chat ID</strong>
+  <ol>
+    <li>Kirim pesan apapun ke bot kamu</li>
+    <li>Buka: <code>https://api.telegram.org/botYOUR_TOKEN/getUpdates</code></li>
+    <li>Cari <code>chat.id</code> → itu chat ID kamu</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">3</span> <strong>Tambahkan di server.py</strong>
+</div>
+
+<pre><code>import requests
+
+TELEGRAM_TOKEN = "YOUR_BOT_TOKEN"
+TELEGRAM_CHAT_ID = "YOUR_CHAT_ID"
+
+def notify_telegram(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    requests.post(url, json={
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message,
+        "parse_mode": "HTML"
+    })
+
+# Contoh pemanggilan:
+notify_telegram(f"🔔 Subscriber baru: {email}")</code></pre>
+
+
+<!-- ============================================ -->
+<!-- LANGKAH 10 -->
+<!-- ============================================ -->
+<h2 id="s10">10. Checklist Akhir & Monitoring</h2>
+
+<h3>10.1 Checklist Sebelum Go-Live</h3>
+
+<ul class="checklist">
+  <li>GitHub Pages aktif (https://beebane25.github.io/iothub/)</li>
+  <li>Domain custom terhubung (https://iothub.id)</li>
+  <li>SSL/HTTPS aktif</li>
+  <li>Google Search Console verified</li>
+  <li>Sitemap.xml submitted</li>
+  <li>Google Analytics aktif</li>
+  <li>Minimal 50-100 pengunjung/hari</li>
+  <li>Google AdSense di-apply</li>
+  <li>Subscribe backend aktif</li>
+  <li>Email notification aktif</li>
+</ul>
+
+<h3>10.2 Monitoring Mingguan</h3>
+
+<table>
+  <tr>
+    <th>Yang Dipantau</th>
+    <th>Tool</th>
+    <th>Target</th>
+  </tr>
+  <tr>
+    <td>Pengunjung/hari</td>
+    <td>Google Analytics</td>
+    <td>Naik 10-20% per bulan</td>
+  </tr>
+  <tr>
+    <td>Halaman terindex</td>
+    <td>Search Console</td>
+    <td>27+ halaman</td>
+  </tr>
+  <tr>
+    <td>Klik iklan</td>
+    <td>AdSense Dashboard</td>
+    <td>CTR 1-3%</td>
+  </tr>
+  <tr>
+    <td>Pendapatan</td>
+    <td>AdSense Dashboard</td>
+    <td>Naik stabil</td>
+  </tr>
+  <tr>
+    <td>Subscriber baru</td>
+    <td>Email/Telegram notif</td>
+    <td>5-10/minggu</td>
+  </tr>
+  <tr>
+    <td>Error/Broken links</td>
+    <td>Search Console</td>
+    <td>0 error</td>
+  </tr>
+</table>
+
+<h3>10.3 Estimasi Pendapatan</h3>
+
+<table>
+  <tr>
+    <th>Pengunjung/Hari</th>
+    <th>AdSense (per bulan)</th>
+    <th>Subscribe (10 user)</th>
+    <th>Total</th>
+  </tr>
+  <tr>
+    <td>100</td>
+    <td>Rp 150-400rb</td>
+    <td>Rp 490rb-3.9jt</td>
+    <td>Rp 640rb-4.3jt</td>
+  </tr>
+  <tr>
+    <td>500</td>
+    <td>Rp 750rb-2jt</td>
+    <td>Rp 490rb-3.9jt</td>
+    <td>Rp 1.2jt-5.9jt</td>
+  </tr>
+  <tr>
+    <td>1.000</td>
+    <td>Rp 1.5jt-4jt</td>
+    <td>Rp 980rb-7.8jt</td>
+    <td>Rp 2.5jt-11.8jt</td>
+  </tr>
+  <tr>
+    <td>5.000</td>
+    <td>Rp 7jt-20jt</td>
+    <td>Rp 4.9jt-39jt</td>
+    <td>Rp 11.9jt-59jt</td>
+  </tr>
+</table>
+
+<div class="info-box success">
+  <strong>🎉 Selamat!</strong>
+  Jika semua langkah di atas sudah dilakukan, website IoTHub kamu sudah siap menghasilkan uang!
+  <br><br>
+  <strong>Yang terpenting:</strong> Terus buat konten baru, tingkatkan kualitas tutorial, dan bangun komunitas.
+  <br>Konten berkualitas = traffic organik = penghasilan stabil jangka panjang.
+</div>
+
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>⚡ IoTHub — Panduan Deploy v1.0</p>
+  <p>Dibuat: Juni 2026 | github.com/Beebane25/iothub</p>
+  <p>Dokumen ini boleh didistribusikan dan dimodifikasi.</p>
+</div>
+
+</body>
+</html>
