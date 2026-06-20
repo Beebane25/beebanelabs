@@ -488,16 +488,101 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// === PAYWALL SYSTEM ===
+// === CONFIGURATION ===
+const SITE_CONFIG = {
+  FREE_ARTICLES: ['esp32-fundamentals.html', 'mqtt-protocol.html', 'mikrotik-routing.html', 'lora-communication.html', 'esp8266-nodemcu.html'],
+  FREE_VIEWS: 5,
+  API_BASE: 'https://beebane25.iothub-api.netlify.app'
+};
+
+// === PAYWALL SYSTEM (FIXED) ===
 const PaywallSystem = {
-  STORAGE_KEY: 'iothub_access',
-  FREE_ARTICLES: [
-    'esp32-fundamentals.html',
-    'mqtt-protocol.html',
-    'mikrotik-routing.html',
-    'lora-communication.html',
-    'esp8266-nodemcu.html'
-  ]
+  FREE_ARTICLES: SITE_CONFIG.FREE_ARTICLES,
+
+  isFreeArticle(filename) { return this.FREE_ARTICLES.includes(filename); },
+
+  hasPaidAccess() {
+    const auth = JSON.parse(localStorage.getItem('iothub_auth') || 'null');
+    if (auth && auth.user && auth.user.plan && auth.user.plan !== 'free') return true;
+    const acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
+    return acc.lifetime === true || (acc.plan && acc.plan !== 'free');
+  },
+
+  hasEmailAccess(filename) {
+    const acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
+    return acc.emailUnlocked && acc.emailUnlocked.includes(filename);
+  },
+
+  init() {
+    const path = window.location.pathname;
+    if (!path.includes('/articles/')) return;
+    const filename = path.split('/').pop();
+    const isPaid = this.hasPaidAccess();
+    const isFree = this.isFreeArticle(filename);
+    const hasEmailAccess = this.hasEmailAccess(filename);
+    const isLoggedIn = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
+    if (isPaid) return;
+    if (isFree && (hasEmailAccess || isLoggedIn)) return;
+    if (isFree && !hasEmailAccess && !isLoggedIn) { this.showEmailGate(filename); return; }
+    if (!isFree && !isPaid) { this.showPaywall(filename); }
+  },
+
+  showEmailGate(filename) {
+    const article = document.querySelector('.article-content');
+    if (!article) return;
+    const elements = article.querySelectorAll('h2, h3, p, .code-block, .info-box, .arch-diagram, .compare-grid, .spec-table');
+    let cutIndex = 0, charCount = 0;
+    for (let i = 0; i < elements.length; i++) {
+      charCount += elements[i].textContent.length;
+      if (charCount > 600 || (elements[i].tagName === 'H2' && i > 1)) { cutIndex = i; break; }
+    }
+    const overlay = document.createElement('div');
+    overlay.className = 'paywall-overlay';
+    overlay.innerHTML = '<div class="paywall-blur">' + Array.from(elements).slice(cutIndex).map(el => el.outerHTML).join('') + '</div>' +
+      '<div class="paywall-card"><div class="paywall-icon">🔓</div><div class="paywall-badge">✨ Artikel Gratis</div>' +
+      '<h3>Baca Artikel Lengkap</h3><p>Masukkan email untuk membuka akses gratis.</p>' +
+      '<form class="email-gate-form" onsubmit="PaywallSystem.unlockWithEmail(event,\'' + filename + '\')">' +
+      '<input type="email" placeholder="email@kamu.com" required><button type="submit">Buka Akses</button></form></div>';
+    const cutPoint = elements[cutIndex];
+    if (cutPoint) { let s = cutPoint; while (s) { const n = s.nextElementSibling; s.remove(); s = n; } }
+    article.appendChild(overlay);
+  },
+
+  showPaywall(filename) {
+    const article = document.querySelector('.article-content');
+    if (!article) return;
+    const elements = article.querySelectorAll('h2, h3, p, .code-block, .info-box, .arch-diagram, .compare-grid, .spec-table');
+    const cutIndex = Math.min(4, elements.length);
+    const isLoggedIn = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
+    const overlay = document.createElement('div');
+    overlay.className = 'paywall-overlay';
+    if (isLoggedIn) {
+      overlay.innerHTML = '<div class="paywall-blur">' + Array.from(elements).slice(cutIndex).map(el => el.outerHTML).join('') + '</div>' +
+        '<div class="paywall-card"><div class="paywall-icon">👑</div><div class="paywall-badge">Artikel Premium</div>' +
+        '<h3>Upgrade ke Premium</h3><p>Akun kamu belum memiliki akses premium. Pilih paket untuk membuka semua artikel.</p>' +
+        '<a href="../pricing.html" class="btn-primary" style="display:inline-block;text-decoration:none;margin-top:16px;">💎 Lihat Paket Harga</a></div>';
+    } else {
+      overlay.innerHTML = '<div class="paywall-blur">' + Array.from(elements).slice(cutIndex).map(el => el.outerHTML).join('') + '</div>' +
+        '<div class="paywall-card"><div class="paywall-icon">🔒</div><div class="paywall-badge">Artikel Premium</div>' +
+        '<h3>Dapatkan Akses Penuh</h3><p>Login atau daftar untuk melanjutkan. Upgrade ke premium untuk semua artikel.</p>' +
+        '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin-top:16px;">👤 Login / Daftar</button>' +
+        '<p style="margin-top:12px;"><a href="../pricing.html" style="color:#3ecf8e;font-size:0.85rem;">Lihat paket harga →</a></p></div>';
+    }
+    const cutPoint = elements[cutIndex];
+    if (cutPoint) { let s = cutPoint; while (s) { const n = s.nextElementSibling; s.remove(); s = n; } }
+    article.appendChild(overlay);
+  },
+
+  unlockWithEmail(event, filename) {
+    event.preventDefault();
+    const email = event.target.querySelector('input').value;
+    const acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
+    if (!acc.email) acc.email = email;
+    if (!acc.emailUnlocked) acc.emailUnlocked = [];
+    if (!acc.emailUnlocked.includes(filename)) acc.emailUnlocked.push(filename);
+    localStorage.setItem('iothub_access', JSON.stringify(acc));
+    window.location.reload();
+  }
 };
 
 
@@ -761,69 +846,50 @@ const AuthSystem = {
   }
 };
 
-// === VIEW TRACKER ===
+// === VIEW TRACKER (FIXED) ===
 const ViewTracker = {
   SESSION_KEY: 'iothub_session_id',
   VIEWED_KEY: 'iothub_viewed',
-  FREE_VIEWS: 5,
+  FREE_VIEWS: SITE_CONFIG.FREE_VIEWS,
 
   getSessionId() {
     let sid = sessionStorage.getItem(this.SESSION_KEY);
-    if (!sid) {
-      sid = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      sessionStorage.setItem(this.SESSION_KEY, sid);
-    }
+    if (!sid) { sid = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9); sessionStorage.setItem(this.SESSION_KEY, sid); }
     return sid;
   },
-
-  getViews() {
-    return parseInt(sessionStorage.getItem(this.VIEWED_KEY) || '0');
-  },
-
-  addView() {
-    const views = this.getViews() + 1;
-    sessionStorage.setItem(this.VIEWED_KEY, views.toString());
-    return views;
-  },
-
-  hasReachedLimit() {
-    return this.getViews() >= this.FREE_VIEWS;
-  },
+  getViews() { return parseInt(sessionStorage.getItem(this.VIEWED_KEY) || '0'); },
+  addView() { const v = this.getViews() + 1; sessionStorage.setItem(this.VIEWED_KEY, v.toString()); return v; },
+  hasReachedLimit() { return this.getViews() >= this.FREE_VIEWS; },
 
   showBanner() {
     const path = window.location.pathname;
     if (!path.includes('/articles/')) return;
-
-    // Check if user is logged in and has subscription
-    const user = AuthSystem.getUser();
-    if (user && user.plan && user.plan !== 'free') return;
-
+    if (PaywallSystem.hasPaidAccess()) return;
     const views = this.getViews();
     const remaining = this.FREE_VIEWS - views;
+    const isLoggedIn = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
 
-    // Create or update banner
     let banner = document.getElementById('viewCounterBanner');
     if (!banner) {
       banner = document.createElement('div');
       banner.id = 'viewCounterBanner';
-      const articleContent = document.querySelector('.article-content');
-      if (articleContent) {
-        articleContent.insertBefore(banner, articleContent.firstChild);
-      }
+      const ac = document.querySelector('.article-content');
+      if (ac) ac.insertBefore(banner, ac.firstChild);
     }
 
     if (remaining <= 0) {
       banner.className = 'view-counter-banner limit-reached';
-      banner.innerHTML = `
-        <span class="view-text">⚠️ <strong>Batas viewing tercapai!</strong> Daftar atau login untuk melanjutkan membaca.</span>
-        <button class="view-btn" onclick="AuthSystem.showModal()">👤 Masuk / Daftar</button>
-      `;
+      if (isLoggedIn) {
+        banner.innerHTML = '<span class="view-text"><strong>Batas viewing tercapai!</strong> Upgrade ke premium untuk akses tanpa batas.</span>' +
+          '<a href="../pricing.html" class="view-btn" style="text-decoration:none;">💎 Upgrade Sekarang</a>';
+      } else {
+        banner.innerHTML = '<span class="view-text"><strong>Batas viewing tercapai!</strong> Login atau daftar untuk melanjutkan.</span>' +
+          '<button class="view-btn" onclick="AuthSystem.showModal()">👤 Masuk / Daftar</button>';
+      }
     } else {
       banner.className = 'view-counter-banner';
-      banner.innerHTML = `
-        <span class="view-text">📖 Sisa artikel gratis: <span class="view-count">${remaining}</span> lagi dari ${this.FREE_VIEWS}</span>
-        ${!AuthSystem.isLoggedIn() ? '<button class="view-btn" onclick="AuthSystem.showModal()">👤 Daftar Gratis</button>' : ''}
-      `;
+      banner.innerHTML = '<span class="view-text">Sisa artikel gratis: <span class="view-count">' + remaining + '</span> lagi</span>' +
+        (!isLoggedIn ? '<button class="view-btn" onclick="AuthSystem.showModal()">👤 Daftar Gratis</button>' : '');
     }
   }
 };
