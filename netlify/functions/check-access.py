@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Netlify Function: Check Access
 Endpoint: /.netlify/functions/check-access

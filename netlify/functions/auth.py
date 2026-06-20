@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Netlify Function: Auth (Register & Login)
 Endpoint: /.netlify/functions/auth

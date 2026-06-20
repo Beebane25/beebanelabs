@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Netlify Function: Create Payment (Midtrans Snap)
 Endpoint: /.netlify/functions/create-payment
