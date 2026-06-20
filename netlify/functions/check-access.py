@@ -34,7 +34,7 @@ def cors_response(status, data):
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "https://iothub25.netlify.app",
-            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Headers": "Content-Type, X-CSRF-Token",
             "Access-Control-Allow-Methods": "POST, OPTIONS"
         },
         "body": json.dumps(data)
@@ -87,7 +87,7 @@ def handler(event, context):
         # Look up the user that owns this session by user_id (not by email)
         session_owner = supabase_query(
             "users",
-            params=f"?id=eq.{session_user_id}&select=id,plan,is_active,plan_expires_at"
+            params=f"?id=eq.{session_user_id}&select=id,plan,is_active,plan_expires"
         )
 
         if not session_owner:
@@ -142,7 +142,7 @@ def handler(event, context):
             })
 
         plan = user.get('plan', 'free')
-        plan_expires = user.get('plan_expires_at', None)
+        plan_expires = user.get('plan_expires', None)
 
         # Check if paid plan has expired
         if plan in ('monthly', 'yearly') and plan_expires:

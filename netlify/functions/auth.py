@@ -56,7 +56,7 @@ def cors_response(status, data):
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "https://iothub25.netlify.app",
-            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Headers": "Content-Type, X-CSRF-Token",
             "Access-Control-Allow-Methods": "POST, OPTIONS"
         },
         "body": json.dumps(data)
@@ -71,6 +71,11 @@ def handler(event, context):
         return cors_response(405, {"error": "Method not allowed"})
 
     try:
+        # CSRF protection: custom headers can't be set by cross-origin forms
+        csrf_token = event.get('headers', {}).get('x-csrf-token', '')
+        if not csrf_token or len(csrf_token) < 16:
+            return cors_response(403, {"error": "CSRF token tidak valid"})
+
         body = json.loads(event.get('body', '{}'))
         action = body.get('action', '')
 
@@ -208,6 +213,23 @@ def handler(event, context):
                     "name": user['name'],
                     "plan": user.get('plan', 'free')
                 }
+            })
+
+        # === LOGOUT ===
+        elif action == 'logout':
+            token = body.get('token', '').strip()
+            if not token:
+                return cors_response(400, {"error": "Token harus diisi"})
+
+            # Delete all sessions for this token
+            try:
+                supabase_query("sessions", "DELETE", params=f"?token=eq.{token}")
+            except Exception:
+                pass  # Non-critical — session may already be deleted
+
+            return cors_response(200, {
+                "success": True,
+                "message": "Logout berhasil"
             })
 
         return cors_response(400, {"error": "Action tidak valid"})

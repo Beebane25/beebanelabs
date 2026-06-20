@@ -483,6 +483,24 @@ const SITE_CONFIG = {
   API_BASE: window.location.origin
 };
 
+// === CSRF TOKEN (double-submit pattern) ===
+const CSRF = {
+  _KEY: 'iothub_csrf',
+  getToken() {
+    let token = sessionStorage.getItem(this._KEY);
+    if (!token) {
+      token = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+      sessionStorage.setItem(this._KEY, token);
+    }
+    return token;
+  },
+  // Returns headers object with X-CSRF-Token for fetch calls
+  getHeaders() {
+    return { 'Content-Type': 'application/json', 'X-CSRF-Token': this.getToken() };
+  }
+};
+
 // === PAYWALL SYSTEM (FIXED) ===
 const PaywallSystem = {
   FREE_ARTICLES: SITE_CONFIG.FREE_ARTICLES,
@@ -499,12 +517,12 @@ const PaywallSystem = {
     if (auth && auth.token && auth.user && auth.user.email) {
       try {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/.netlify/functions/auth', false);
+        xhr.open('POST', '/.netlify/functions/check-access', false);
         xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify({ action: 'check-access', email: auth.user.email, token: auth.token }));
+        xhr.send(JSON.stringify({ email: auth.user.email, token: auth.token }));
         if (xhr.status === 200) {
           const result = JSON.parse(xhr.responseText);
-          if (result.hasAccess) {
+          if (result.access) {
             // Cache the plan status locally
             auth.user.plan = result.plan || 'premium';
             localStorage.setItem('iothub_auth', JSON.stringify(auth));
@@ -608,7 +626,7 @@ const PaywallSystem = {
     event.preventDefault();
     const email = event.target.querySelector('input').value;
     const acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
-    if (!acc.email) acc.email = email;
+    if (!acc.email) acc.email = (typeof AuthSystem !== 'undefined' && AuthSystem._obfuscateEmail) ? AuthSystem._obfuscateEmail(email) : email;
     if (!acc.emailUnlocked) acc.emailUnlocked = [];
     if (!acc.emailUnlocked.includes(filename)) acc.emailUnlocked.push(filename);
     localStorage.setItem('iothub_access', JSON.stringify(acc));
@@ -688,8 +706,23 @@ const AuthSystem = {
     return s ? s.user : null;
   },
 
-  logout() {
+  async logout() {
+    // Get session data before clearing, to notify server
+    const session = this.getSession();
+    // Server-side session invalidation (fire-and-forget)
+    if (session && session.token) {
+      try {
+        fetch(this.AUTH_ENDPOINT, {
+          method: 'POST',
+          headers: typeof CSRF !== 'undefined' ? CSRF.getHeaders() : { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'logout', token: session.token })
+        }).catch(function() {});
+      } catch (e) {
+        // Server unavailable — local session already cleared
+      }
+    }
     localStorage.removeItem(this.STORAGE_KEY);
+    localStorage.removeItem('iothub_access');
     this.updateNavbar();
     window.location.reload();
   },
@@ -801,7 +834,7 @@ const AuthSystem = {
     try {
       const res = await fetch(this.AUTH_ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: typeof CSRF !== 'undefined' ? CSRF.getHeaders() : { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'login', email, password })
       });
       const data = await res.json();
@@ -833,7 +866,7 @@ const AuthSystem = {
     try {
       const res = await fetch(this.AUTH_ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: typeof CSRF !== 'undefined' ? CSRF.getHeaders() : { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'register', name, email, password })
       });
       const data = await res.json();

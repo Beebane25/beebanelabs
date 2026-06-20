@@ -260,11 +260,12 @@
 
       fetch(API_BASE + '/.netlify/functions/create-payment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: (typeof CSRF !== 'undefined' && CSRF.getHeaders) ? CSRF.getHeaders() : { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email,
           plan: plan,
-          item_name: 'IoTHub Premium - ' + planName
+          item_name: 'IoTHub Premium - ' + planName,
+          amount: amount
         })
       })
       .then(function(r) { return r.json(); })
@@ -277,7 +278,7 @@
               acc.lifetime = true;
               acc.plan = plan;
               acc.purchasedAt = new Date().toISOString();
-              acc.email = email;
+              acc.email = (typeof AuthSystem !== 'undefined' && AuthSystem._obfuscateEmail) ? AuthSystem._obfuscateEmail(email) : email;
               localStorage.setItem('iothub_access', JSON.stringify(acc));
               if (authData && authData.user) {
                 authData.user.plan = plan;
