@@ -583,7 +583,7 @@ const PaywallSystem = {
 // === AUTH SYSTEM ===
 const AuthSystem = {
   API_BASE: window.location.origin,
-  AUTH_ENDPOINT: '/.netlify/functions/auth',
+  AUTH_ENDPOINT: '/api/auth',
   STORAGE_KEY: 'iothub_auth',
   VIEW_KEY: 'iothub_views',
   INITIAL_TOKENS: 5,
