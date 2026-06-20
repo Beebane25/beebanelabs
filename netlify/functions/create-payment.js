@@ -3,7 +3,7 @@
 const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY || '';
 const MIDTRANS_IS_PROD = process.env.MIDTRANS_IS_PRODUCTION === 'true';
 const SNAP_API = MIDTRANS_IS_PROD ? 'https://api.midtrans.com/snap/v1' : 'https://app.sandbox.midtrans.com/snap/v1';
-const PLAN_PRICES = { token5: 50000, token8: 80000 };
+const PLAN_PRICES = { token5: 50000, token10: 90000 };
 
 function cors(status, data) {
   return {

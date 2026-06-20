@@ -44,7 +44,7 @@ exports.handler = async (event) => {
 
       const users = await supabaseQuery('users', 'GET', null, `?email=eq.${email}&select=id,plan`);
       if (users && users.length > 0) {
-        const plan = gross_amount >= 80000 ? 'token8' : 'token5';
+        const plan = gross_amount >= 90000 ? 'token10' : 'token5';
         const expires = '2099-12-31T23:59:59+00:00';
         await supabaseQuery('users', 'PATCH', { plan, plan_expires: expires }, `?id=eq.${users[0].id}`);
         await supabaseQuery('payments', 'POST', {

@@ -586,7 +586,7 @@ const AuthSystem = {
   AUTH_ENDPOINT: '/.netlify/functions/auth',
   STORAGE_KEY: 'iothub_auth',
   VIEW_KEY: 'iothub_views',
-  FREE_VIEWS: 5,
+  INITIAL_TOKENS: 5,
 
   // Email obfuscation - never store plain email in localStorage
   _obfuscateEmail(email) {
