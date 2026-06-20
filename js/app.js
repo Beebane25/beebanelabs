@@ -905,24 +905,35 @@ const AuthSystem = {
     if (authContainer) {
       if (user) {
         const initial = (user.name || user.email)[0].toUpperCase();
-        const planClass = user.plan && user.plan !== 'free' ? 'premium' : '';
-        const planLabel = user.plan === 'yearly' ? '👑 Yearly' : user.plan === 'monthly' ? '⭐ Monthly' : 'Free';
+        const isPremium = user.plan && user.plan !== 'free';
+        const tokens = PaywallSystem.getTokens();
         const safeName = this.escapeHtml(user.name || user.email.split('@')[0]);
+
+        let tokenBadge = '';
+        if (!isPremium) {
+          tokenBadge = '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.25);border-radius:12px;padding:2px 8px;font-size:0.7rem;font-weight:600;color:#fb923c;">🔑 ' + tokens + ' Token</div>';
+        } else {
+          tokenBadge = '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(62,207,142,0.12);border:1px solid rgba(62,207,142,0.25);border-radius:12px;padding:2px 8px;font-size:0.7rem;font-weight:600;color:#3ecf8e;">👑 Premium</div>';
+        }
+
         authContainer.innerHTML = `
           <div class="user-badge">
             <div class="avatar">${initial}</div>
             <div>
               <div class="user-name">${safeName}</div>
-              <div class="user-plan ${planClass}">${planLabel}</div>
+              ${tokenBadge}
             </div>
             <button class="logout-btn" onclick="AuthSystem.logout()">Keluar</button>
           </div>
         `;
       } else {
+        // Not logged in - show token count for guests
+        const tokens = PaywallSystem.getTokens();
         authContainer.innerHTML = `
-          <button class="navbar-cta" onclick="AuthSystem.showModal()" style="background:var(--bg-card); border:1px solid var(--border-standard); color:var(--text-primary);">
-            👤 Masuk
-          </button>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.25);border-radius:12px;padding:4px 10px;font-size:0.75rem;font-weight:600;color:#fb923c;">🔑 ${tokens} Token Gratis</div>
+            <button class="navbar-cta" onclick="AuthSystem.showModal()" style="background:var(--bg-card); border:1px solid var(--border-standard); color:var(--text-primary); padding:6px 14px; font-size:0.8rem;">Masuk</button>
+          </div>
         `;
       }
     }
