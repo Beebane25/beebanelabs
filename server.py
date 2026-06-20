@@ -1,6 +1,6 @@
 """
-IoTHub Newsletter Subscribe Server
-Simple backend for handling newsletter subscriptions.
+IoTHub Newsletter & Auth Server
+Backend untuk newsletter, login, register, view tracking, dan subscription.
 Run: python server.py
 Access: http://localhost:8080
 """
@@ -8,234 +8,395 @@ Access: http://localhost:8080
 import http.server
 import json
 import os
-import re
 import csv
-import time
-from collections import defaultdict
-from datetime import datetime
-from urllib.parse import parse_qs, urlparse
 import hashlib
+import re
+import secrets
+from datetime import datetime, timedelta
+from urllib.parse import parse_qs, urlparse
+from collections import defaultdict
 
 PORT = 8080
 DATA_DIR = os.path.dirname(os.path.abspath(__file__))
 SUBSCRIBERS_FILE = os.path.join(DATA_DIR, 'subscribers.csv')
+USERS_FILE = os.path.join(DATA_DIR, 'users.csv')
+VIEWS_FILE = os.path.join(DATA_DIR, 'views.csv')
+FREE_VIEWS_LIMIT = 5
 
-# Allowed origins for CORS (add your domain here)
-ALLOWED_ORIGINS = [
-    'http://localhost:8080',
-    'http://127.0.0.1:8080',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-]
-
-# Email validation regex
-EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-
-# Ensure CSV file exists with header
-if not os.path.exists(SUBSCRIBERS_FILE):
-    with open(SUBSCRIBERS_FILE, 'w', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-        writer.writerow(['email', 'subscribed_at', 'ip_hash', 'status'])
+# Ensure CSV files exist with headers
+for filepath, headers in [
+    (SUBSCRIBERS_FILE, ['email', 'subscribed_at', 'ip_hash', 'status']),
+    (USERS_FILE, ['email', 'password_hash', 'name', 'created_at', 'plan', 'plan_expires', 'is_active']),
+    (VIEWS_FILE, ['session_id', 'article', 'viewed_at', 'ip_hash'])
+]:
+    if not os.path.exists(filepath):
+        with open(filepath, 'w', newline='', encoding='utf-8') as f:
+            csv.writer(f).writerow(headers)
 
 
 class NewsletterHandler(http.server.SimpleHTTPRequestHandler):
-    """Handle static files + newsletter API"""
-
-    # Rate limiting: {ip: [timestamp, ...]}
-    _rate_limit = defaultdict(list)
-    RATE_LIMIT_MAX = 10  # max requests per minute
-    RATE_LIMIT_WINDOW = 60  # seconds
-
-    def _check_rate_limit(self):
-        """Check if the client IP has exceeded rate limit. Returns True if OK."""
-        ip = self.client_address[0]
-        now = time.time()
-        # Remove timestamps outside the window
-        self._rate_limit[ip] = [t for t in self._rate_limit[ip] if now - t < self.RATE_LIMIT_WINDOW]
-        if len(self._rate_limit[ip]) >= self.RATE_LIMIT_MAX:
-            return False
-        self._rate_limit[ip].append(now)
-        return True
-
-    def _get_allowed_origin(self):
-        """Return the allowed origin header value, or None if origin is not allowed."""
-        origin = self.headers.get('Origin', '')
-        if origin in ALLOWED_ORIGINS:
-            return origin
-        # Fallback to first allowed origin for same-origin requests
-        return ALLOWED_ORIGINS[0] if ALLOWED_ORIGINS else None
 
     def do_GET(self):
-        # Serve static files from current directory
         if self.path.startswith('/api/'):
             self.handle_api_get()
         else:
-            # Default: serve files from current directory
             super().do_GET()
 
     def do_POST(self):
         if self.path == '/api/subscribe':
-            # Rate limiting check
-            if not self._check_rate_limit():
-                self.send_json(429, {'error': 'Terlalu banyak permintaan. Coba lagi nanti.'})
-                return
             self.handle_subscribe()
+        elif self.path == '/api/register':
+            self.handle_register()
+        elif self.path == '/api/login':
+            self.handle_login()
+        elif self.path == '/api/view':
+            self.handle_view()
+        elif self.path == '/api/check-access':
+            self.handle_check_access()
+        elif self.path == '/api/upgrade':
+            self.handle_upgrade()
         else:
             self.send_error(404)
 
     def do_OPTIONS(self):
-        """Handle CORS preflight"""
-        allowed_origin = self._get_allowed_origin()
         self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', allowed_origin)
+        self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
 
+    # === SUBSCRIBE ===
     def handle_subscribe(self):
-        """Handle newsletter subscription"""
-        content_length = int(self.headers.get('Content-Length', 0))
+        data = self.read_body()
+        if not data:
+            return
+        email = data.get('email', '').strip()
+        if not self.is_valid_email(email):
+            self.send_json(400, {'error': 'Email tidak valid'})
+            return
+        if self.csv_exists(SUBSCRIBERS_FILE, email):
+            self.send_json(200, {'success': True, 'message': 'Email sudah terdaftar!'})
+            return
+        self.csv_append(SUBSCRIBERS_FILE, [
+            email, datetime.now().isoformat(),
+            self.hash_ip(self.client_address[0]), 'active'
+        ])
+        self.send_json(200, {'success': True, 'message': f'Terima kasih! {email} berhasil terdaftar.'})
 
-        # Body size limit: max 1KB
-        if content_length > 1024:
-            self.send_json(413, {'error': 'Payload terlalu besar'})
+    # === REGISTER ===
+    def handle_register(self):
+        data = self.read_body()
+        if not data:
+            return
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
+        name = data.get('name', '').strip()
+
+        if not self.is_valid_email(email):
+            self.send_json(400, {'error': 'Email tidak valid'})
+            return
+        if len(password) < 6:
+            self.send_json(400, {'error': 'Password minimal 6 karakter'})
+            return
+        if not name:
+            self.send_json(400, {'error': 'Nama harus diisi'})
+            return
+        if self.csv_exists(USERS_FILE, email):
+            self.send_json(409, {'error': 'Email sudah terdaftar. Silakan login.'})
             return
 
-        body = self.rfile.read(content_length)
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        self.csv_append(USERS_FILE, [
+            email, password_hash, name,
+            datetime.now().isoformat(), 'free', '', 'true'
+        ])
 
-        try:
-            data = json.loads(body)
-            email = data.get('email', '').strip()
+        token = secrets.token_hex(32)
+        self.send_json(200, {
+            'success': True,
+            'message': 'Registrasi berhasil!',
+            'token': token,
+            'user': {'email': email, 'name': name, 'plan': 'free'}
+        })
 
-            # Validate email with proper regex
-            if not email or not EMAIL_REGEX.match(email):
-                self.send_json(400, {'error': 'Email tidak valid'})
-                return
+    # === LOGIN ===
+    def handle_login(self):
+        data = self.read_body()
+        if not data:
+            return
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
 
-            # Check for duplicate
-            if self.is_subscribed(email):
-                self.send_json(200, {
-                    'success': True,
-                    'message': 'Email sudah terdaftar sebelumnya!'
-                })
-                return
+        if not email or not password:
+            self.send_json(400, {'error': 'Email dan password harus diisi'})
+            return
 
-            # Save subscriber
-            self.save_subscriber(email)
+        user = self.csv_find(USERS_FILE, email)
+        if not user:
+            self.send_json(401, {'error': 'Email tidak terdaftar'})
+            return
 
-            self.send_json(200, {
-                'success': True,
-                'message': f'Terima kasih! Email berhasil terdaftar.'
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        if user.get('password_hash') != password_hash:
+            self.send_json(401, {'error': 'Password salah'})
+            return
+
+        if user.get('is_active') != 'true':
+            self.send_json(403, {'error': 'Akun tidak aktif'})
+            return
+
+        token = secrets.token_hex(32)
+        self.send_json(200, {
+            'success': True,
+            'message': 'Login berhasil!',
+            'token': token,
+            'user': {
+                'email': user['email'],
+                'name': user['name'],
+                'plan': user.get('plan', 'free'),
+                'plan_expires': user.get('plan_expires', '')
+            }
+        })
+
+    # === VIEW TRACKING ===
+    def handle_view(self):
+        data = self.read_body()
+        if not data:
+            return
+        session_id = data.get('session_id', '')
+        article = data.get('article', '')
+
+        if not session_id or not article:
+            self.send_json(400, {'error': 'session_id dan article harus diisi'})
+            return
+
+        # Count views for this session
+        views = self.count_views(session_id)
+        if views >= FREE_VIEWS_LIMIT:
+            self.send_json(403, {
+                'error': 'Batas viewing tercapai',
+                'views': views,
+                'limit': FREE_VIEWS_LIMIT,
+                'message': f'Anda sudah melihat {FREE_VIEWS_LIMIT} artikel. Login atau subscribe untuk melanjutkan.'
             })
+            return
 
-        except json.JSONDecodeError:
-            self.send_json(400, {'error': 'Format data tidak valid'})
-        except Exception:
-            # Hide exception details from client
-            self.send_json(500, {'error': 'Kesalahan server internal'})
+        # Record view
+        self.csv_append(VIEWS_FILE, [
+            session_id, article,
+            datetime.now().isoformat(),
+            self.hash_ip(self.client_address[0])
+        ])
 
+        self.send_json(200, {
+            'success': True,
+            'views': views + 1,
+            'limit': FREE_VIEWS_LIMIT,
+            'remaining': FREE_VIEWS_LIMIT - views - 1
+        })
+
+    # === CHECK ACCESS ===
+    def handle_check_access(self):
+        data = self.read_body()
+        if not data:
+            return
+
+        session_id = data.get('session_id', '')
+        article = data.get('article', '')
+        user_email = data.get('user_email', '')
+
+        # Check if user has paid subscription
+        if user_email:
+            user = self.csv_find(USERS_FILE, user_email)
+            if user and user.get('plan') in ('monthly', 'yearly'):
+                expires = user.get('plan_expires', '')
+                if expires:
+                    try:
+                        exp_date = datetime.fromisoformat(expires)
+                        if exp_date > datetime.now():
+                            self.send_json(200, {'access': True, 'reason': 'paid_subscription'})
+                            return
+                    except ValueError:
+                        pass
+                # Check lifetime
+                if user.get('plan') == 'yearly':
+                    self.send_json(200, {'access': True, 'reason': 'lifetime'})
+                    return
+
+        # Check free article
+        FREE_ARTICLES = [
+            'esp32-fundamentals.html', 'mqtt-protocol.html',
+            'mikrotik-routing.html', 'lora-communication.html',
+            'esp8266-nodemcu.html'
+        ]
+        if article in FREE_ARTICLES:
+            self.send_json(200, {'access': True, 'reason': 'free_article'})
+            return
+
+        # Check view limit
+        if session_id:
+            views = self.count_views(session_id)
+            if views < FREE_VIEWS_LIMIT:
+                self.send_json(200, {'access': True, 'reason': 'free_views', 'remaining': FREE_VIEWS_LIMIT - views})
+                return
+
+        self.send_json(403, {'access': False, 'reason': 'limit_reached'})
+
+    # === UPGRADE PLAN ===
+    def handle_upgrade(self):
+        data = self.read_body()
+        if not data:
+            return
+        email = data.get('email', '').strip()
+        plan = data.get('plan', 'monthly')
+
+        if plan not in ('monthly', 'yearly'):
+            self.send_json(400, {'error': 'Plan tidak valid'})
+            return
+
+        user = self.csv_find(USERS_FILE, email)
+        if not user:
+            self.send_json(404, {'error': 'User tidak ditemukan'})
+            return
+
+        # Set expiry
+        if plan == 'monthly':
+            expires = (datetime.now() + timedelta(days=30)).isoformat()
+        else:
+            expires = (datetime.now() + timedelta(days=365)).isoformat()
+
+        # Update user in CSV
+        self.csv_update(USERS_FILE, email, {'plan': plan, 'plan_expires': expires})
+
+        self.send_json(200, {
+            'success': True,
+            'message': f'Plan {plan} aktif!',
+            'plan': plan,
+            'expires': expires
+        })
+
+    # === HELPER METHODS ===
     def handle_api_get(self):
-        """Handle GET API requests"""
         if self.path == '/api/stats':
-            if not self._check_rate_limit():
-                self.send_json(429, {'error': 'Terlalu banyak permintaan. Coba lagi nanti.'})
-                return
-            count = self.get_subscriber_count()
-            self.send_json(200, {
-                'total_subscribers': count,
-                'status': 'active'
-            })
+            count = self.csv_count(SUBSCRIBERS_FILE, 'active')
+            users = self.csv_count_rows(USERS_FILE)
+            self.send_json(200, {'subscribers': count, 'users': users, 'status': 'active'})
         else:
             self.send_error(404)
 
-    def is_subscribed(self, email):
-        """Check if email is already subscribed"""
-        if not os.path.exists(SUBSCRIBERS_FILE):
+    def read_body(self):
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            if length > 4096:
+                self.send_json(413, {'error': 'Payload terlalu besar'})
+                return None
+            body = self.rfile.read(length)
+            return json.loads(body) if body else {}
+        except Exception:
+            self.send_json(400, {'error': 'Invalid JSON'})
+            return None
+
+    def send_json(self, status, data):
+        resp = json.dumps(data)
+        self.send_response(status)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(resp.encode())
+
+    def is_valid_email(self, email):
+        return bool(re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email))
+
+    def hash_ip(self, ip):
+        return hashlib.sha256(ip.encode()).hexdigest()[:16]
+
+    def sanitize_csv(self, val):
+        val = str(val)
+        if val and val[0] in ('=', '+', '-', '@', '\t', '\r', '\n'):
+            val = "'" + val
+        return val
+
+    def csv_exists(self, filepath, key):
+        if not os.path.exists(filepath):
             return False
-        email_lower = email.lower()
-        with open(SUBSCRIBERS_FILE, 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row['email'].lower() == email_lower and row['status'] == 'active':
+        with open(filepath, 'r', encoding='utf-8') as f:
+            for row in csv.DictReader(f):
+                if row.get('email', '').lower() == key.lower():
                     return True
         return False
 
-    def _sanitize_for_csv(self, value):
-        """Sanitize a value before writing to CSV to prevent CSV injection."""
-        # Characters that could be dangerous in CSV contexts
-        dangerous_chars = ['=', '+', '-', '@', '\t', '\r', '\n']
-        value = str(value).strip()
-        for ch in dangerous_chars:
-            if value.startswith(ch):
-                value = "'" + value
-                break
-        return value
+    def csv_find(self, filepath, key):
+        if not os.path.exists(filepath):
+            return None
+        with open(filepath, 'r', encoding='utf-8') as f:
+            for row in csv.DictReader(f):
+                if row.get('email', '').lower() == key.lower():
+                    return row
+        return None
 
-    def save_subscriber(self, email):
-        """Save subscriber to CSV"""
-        ip = self.client_address[0]
-        ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:16]
+    def csv_append(self, filepath, row):
+        with open(filepath, 'a', newline='', encoding='utf-8') as f:
+            csv.writer(f).writerow([self.sanitize_csv(str(c)) for c in row])
 
-        # Sanitize email for CSV
-        safe_email = self._sanitize_for_csv(email)
+    def csv_update(self, filepath, key, updates):
+        rows = []
+        if os.path.exists(filepath):
+            with open(filepath, 'r', encoding='utf-8') as f:
+                rows = list(csv.DictReader(f))
+        headers = list(rows[0].keys()) if rows else []
+        for row in rows:
+            if row.get('email', '').lower() == key.lower():
+                for k, v in updates.items():
+                    if k in row:
+                        row[k] = v
+        if headers:
+            with open(filepath, 'w', newline='', encoding='utf-8') as f:
+                w = csv.DictWriter(f, fieldnames=headers)
+                w.writeheader()
+                w.writerows(rows)
 
-        with open(SUBSCRIBERS_FILE, 'a', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                safe_email,
-                datetime.now().isoformat(),
-                ip_hash,
-                'active'
-            ])
-        # Don't log full email to stdout for privacy
-        masked = email[:2] + '***' + email.split('@')[-1] if '@' in email else '***'
-        print(f"[+] New subscriber: {masked}")
-
-    def get_subscriber_count(self):
-        """Count active subscribers"""
-        if not os.path.exists(SUBSCRIBERS_FILE):
-            return 0
+    def count_views(self, session_id):
         count = 0
-        with open(SUBSCRIBERS_FILE, 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row['status'] == 'active':
-                    count += 1
+        if os.path.exists(VIEWS_FILE):
+            with open(VIEWS_FILE, 'r', encoding='utf-8') as f:
+                for row in csv.DictReader(f):
+                    if row.get('session_id') == session_id:
+                        count += 1
         return count
 
-    def send_json(self, status_code, data):
-        """Send JSON response"""
-        response = json.dumps(data)
-        allowed_origin = self._get_allowed_origin()
-        self.send_response(status_code)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', allowed_origin)
-        self.end_headers()
-        self.wfile.write(response.encode())
+    def csv_count(self, filepath, status):
+        count = 0
+        if os.path.exists(filepath):
+            with open(filepath, 'r', encoding='utf-8') as f:
+                for row in csv.DictReader(f):
+                    if row.get('status') == status:
+                        count += 1
+        return count
 
-    def end_headers(self):
-        """Add CORS headers to all responses"""
-        if not hasattr(self, '_headers_sent'):
-            allowed_origin = self._get_allowed_origin()
-            self.send_header('Access-Control-Allow-Origin', allowed_origin)
-        super().end_headers()
+    def csv_count_rows(self, filepath):
+        if not os.path.exists(filepath):
+            return 0
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return sum(1 for _ in csv.DictReader(f))
 
     def log_message(self, format, *args):
-        """Custom log format"""
         print(f"[{datetime.now().strftime('%H:%M:%S')}] {args[0]}")
 
 
 if __name__ == '__main__':
     print(f"""
-╔══════════════════════════════════════════╗
-║     IoTHub Newsletter Server             ║
-║     http://localhost:{PORT}               ║
-║                                          ║
-║     Subscribers: {SUBSCRIBERS_FILE}      ║
-╚══════════════════════════════════════════╝
+╔═══════════════════════════════════════════════╗
+║     IoTHub Server v2.0                        ║
+║     http://localhost:{PORT}                    ║
+║                                               ║
+║     Features:                                 ║
+║     - Newsletter Subscribe                    ║
+║     - User Register/Login                     ║
+║     - View Tracking (5 free views)            ║
+║     - Subscription Management                 ║
+╚═══════════════════════════════════════════════╝
     """)
 
-    # Bind to 127.0.0.1 for security (localhost only)
     server = http.server.HTTPServer(('127.0.0.1', PORT), NewsletterHandler)
     try:
         server.serve_forever()
