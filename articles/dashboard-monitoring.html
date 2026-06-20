@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Monitoring Real-time: Node-RED + Grafana + MQTT | IoTHub</title>
+  <meta name="description" content="Tutorial lengkap membuat dashboard monitoring IoT real-time menggunakan Node-RED, Grafana, dan MQTT. Simpan data ke InfluxDB, visualisasikan dengan Grafana, dan atur alert otomatis.">
+  <meta name="keywords" content="dashboard monitoring, Node-RED, Grafana, MQTT, InfluxDB, IoT dashboard, real-time monitoring, Mosquitto, data visualization">
+  <meta name="author" content="IoTHub">
+  <meta property="og:title" content="Dashboard Monitoring Real-time: Node-RED + Grafana + MQTT">
+  <meta property="og:description" content="Tutorial lengkap membuat dashboard monitoring IoT real-time dari scratch dengan Node-RED, Grafana, dan InfluxDB.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://iothub.id/articles/dashboard-monitoring.html">
+  <meta property="article:published_time" content="2026-06-20">
+  <meta property="article:section" content="Dashboard & Visualisasi">
+  <meta property="article:tag" content="Node-RED">
+  <meta property="article:tag" content="Grafana">
+  <meta property="article:tag" content="MQTT">
+  <meta property="article:tag" content="InfluxDB">
+  <meta property="article:tag" content="IoT Dashboard">
+  <link rel="canonical" href="https://iothub.id/articles/dashboard-monitoring.html">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Dashboard Monitoring Real-time: Node-RED + Grafana + MQTT",
+    "description": "Tutorial lengkap membuat dashboard monitoring IoT real-time dengan Node-RED, Grafana, dan InfluxDB.",
+    "author": { "@type": "Organization", "name": "IoTHub" },
+    "datePublished": "2026-06-20",
+    "publisher": { "@type": "Organization", "name": "IoTHub" }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- ========== READING PROGRESS ========== -->
+  <div class="reading-progress-bar" id="readingProgress"></div>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="navbar-brand">
+        <div class="brand-icon">⚡</div>
+        <span>IoTHub</span>
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="../index.html">Beranda</a></li>
+        <li><a href="../index.html#categories">Kategori</a></li>
+        <li><a href="../index.html#articles">Artikel</a></li>
+        <li><a href="../index.html#newsletter">Newsletter</a></li>
+      </ul>
+      <div class="navbar-search" id="searchTrigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Cari tutorial...</span>
+        <kbd>/</kbd>
+      </div>
+      <a href="../index.html#newsletter" class="navbar-cta">📧 Subscribe</a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." autocomplete="off">
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Tekan <kbd>Esc</kbd> untuk menutup</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Monitoring Real-time</span>
+      </div>
+      <span class="category-tag">Dashboard & Visualisasi</span>
+      <h1>Dashboard Monitoring Real-time: Node-RED + Grafana + MQTT</h1>
+      <p class="article-subtitle">Bangun sistem monitoring IoT real-time dari nol — dari MQTT broker hingga dashboard Grafana yang interaktif, lengkap dengan alerting otomatis</p>
+      <div class="article-meta">
+        <span>📅 20 Juni 2026</span>
+        <span>📖 20 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <!-- AdSense: Top Banner 728x90 / Responsive -->
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#manfaat-dashboard">Mengapa Dashboard Monitoring?</a></li>
+          <li><a href="#arsitektur-sistem">Arsitektur Sistem</a></li>
+          <li><a href="#setup-mqtt">Setup MQTT Broker (Mosquitto)</a></li>
+          <li><a href="#node-red">Konfigurasi Node-RED</a></li>
+          <li><a href="#influxdb">Database InfluxDB</a></li>
+          <li><a href="#grafana-dashboard">Grafana Dashboard</a></li>
+          <li><a href="#proyek-monitoring">Proyek: Dashboard Suhu &amp; Kelembaban Real-time</a></li>
+          <li><a href="#optimasi">Optimasi &amp; Maintenance</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Mengapa Dashboard   -->
+      <!-- ============================== -->
+      <h2 id="manfaat-dashboard">1. Mengapa Dashboard Monitoring?</h2>
+
+      <p>Di era IoT, ribuan data dihasilkan setiap detik dari sensor suhu, kelembaban, tekanan, arus listrik, dan banyak lagi. Tanpa visualisasi yang tepat, data mentah ini hanyalah angka-angka yang sulit dipahami. <strong>Dashboard monitoring real-time</strong> mengubah data mentah menjadi informasi visual yang bisa langsung ditindaklanjuti.</p>
+
+      <p>Bayangkan sebuah gudang penyimpanan farmasi yang membutuhkan pemantauan suhu 24/7. Jika suhu melewati batas aman, obat-obatan bisa rusak dan menimbulkan kerugian ratusan juta rupiah. Dengan dashboard monitoring real-time, petugas bisa langsung melihat perubahan suhu dari layar mana pun dan menerima notifikasi otomatis saat terjadi anomali.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Alur Data Monitoring IoT</div>
+<pre>
+┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────────┐
+│  Sensor   │───▶│  Gateway  │───▶│  Server   │───▶│   Dashboard   │
+│  (Edge)   │    │  (MQTT)   │    │  (InfluxDB│    │   (Grafana)   │
+│           │    │           │    │   +NR)    │    │               │
+└───────────┘    └───────────┘    └───────────┘    └───────────────┘
+                                          │
+                                          ▼
+                                   ┌──────────────┐
+                                   │   Alert      │
+                                   │ (Telegram /  │
+                                   │  Email)      │
+                                   └──────────────┘
+
+  1. Sensor mengumpulkan data (suhu, kelembaban, dll.)
+  2. Gateway mengirim data via MQTT
+  3. Server menyimpan & memproses data
+  4. Dashboard menampilkan visualisasi real-time
+</pre>
+      </div>
+
+      <h3>Manfaat Utama Dashboard Monitoring</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Manfaat</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Visibilitas Real-time</td><td>Lihat kondisi sistem kapan saja dari browser mana pun tanpa akses fisik ke perangkat</td></tr>
+          <tr><td>Detect Anomali Dini</td><td>Pola grafik membantu mengidentifikasi masalah sebelum menjadi kritis</td></tr>
+          <tr><td>Historical Analysis</td><td>Analisis tren data historis untuk pengambilan keputusan jangka panjang</td></tr>
+          <tr><td>Alerting Otomatis</td><td>Sistem notifikasi otomatis via Telegram, Email, atau Webhook saat threshold terlewati</td></tr>
+          <tr><td>Skalabilitas</td><td>Menambah sensor baru tanpa mengubah arsitektur dashboard</td></tr>
+          <tr><td>Remote Access</td><td>Pantau dari mana saja selama ada koneksi internet</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Mengapa Bukan Spreadsheet?</div>
+        <p>Google Sheets atau Excel memang bisa menyimpan data, tetapi tidak dirancang untuk pemantauan real-time. Spreadsheet tidak memiliki fitur alerting otomatis, refresh data otomatis, atau kemampuan menampilkan ratusan panel grafik secara bersamaan. Tool dedicated seperti Grafana dirancang khusus untuk use case ini.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Arsitektur Sistem  -->
+      <!-- ============================== -->
+      <h2 id="arsitektur-sistem">2. Arsitektur Sistem</h2>
+
+      <p>Sistem dashboard monitoring yang kita bangun terdiri dari empat komponen utama yang saling terhubung: <strong>MQTT Broker</strong> sebagai pusat komunikasi, <strong>Node-RED</strong> sebagai middleware pemrosesan data, <strong>InfluxDB</strong> sebagai database time-series, dan <strong>Grafana</strong> sebagai platform visualisasi.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Arsitektur Lengkap Dashboard Monitoring</div>
+<pre>
+┌──────────────────────────────────────────────────────────────────────┐
+│                       SERVER / RASPBERRY PI                         │
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │                    Mosquitto MQTT Broker                     │   │
+│  │                    (Port: 1883 / 8883 TLS)                   │   │
+│  └──────┬───────────────────────┬───────────────────────────────┘   │
+│         │ Subscribe              │ Subscribe                        │
+│         ▼                       ▼                                  │
+│  ┌──────────────┐       ┌──────────────┐                           │
+│  │  Node-RED    │       │  Grafana     │                           │
+│  │  (Port 1880) │       │  (Port 3000) │                           │
+│  │              │       │              │                           │
+│  │  Flow:       │       │  Datasources:│                           │
+│  │  - Parse JSON│       │  - InfluxDB  │                           │
+│  │  - Validasi  │       │  - MQTT      │                           │
+│  │  - Simpan DB │       │              │                           │
+│  └──────┬───────┘       └──────┬───────┘                           │
+│         │ Write                │ Read                              │
+│         ▼                      ▼                                   │
+│  ┌──────────────────────────────────────────┐                      │
+│  │            InfluxDB 2.x                  │                      │
+│  │        (Port: 8086)                      │                      │
+│  │  Database: iot_sensors                   │                      │
+│  │  Retention: 30 hari                      │                      │
+│  └──────────────────────────────────────────┘                      │
+│                                                                     │
+└──────────────────────────────────────────────────────────────────────┘
+         ▲                        ▲
+         │ MQTT                   │ MQTT
+         │ (WiFi)                 │ (WiFi/LAN)
+  ┌──────┴──────┐          ┌──────┴──────┐
+  │  ESP32 #1   │          │  ESP32 #2   │
+  │  Suhu+RH    │          │  Suhu+RH    │
+  │  Ruang Server│         │  Gudang     │
+  └─────────────┘          └─────────────┘
+</pre>
+      </div>
+
+      <h3>Peran Setiap Komponen</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Komponen</th>
+            <th>Peran</th>
+            <th>Port Default</th>
+            <th>Bahasa</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Mosquitto</strong></td><td>MQTT Broker — menerima & meneruskan pesan antara publisher dan subscriber</td><td>1883 (TCP), 8883 (TLS)</td><td>C</td></tr>
+          <tr><td><strong>Node-RED</strong></td><td>Middleware visual — menerima data MQTT, memproses, dan menyimpan ke database</td><td>1880</td><td>JavaScript (Node.js)</td></tr>
+          <tr><td><strong>InfluxDB</strong></td><td>Database time-series — menyimpan data sensor dengan timestamp presisi tinggi</td><td>8086</td><td>Go</td></tr>
+          <tr><td><strong>Grafana</strong></td><td>Platform visualisasi — menampilkan grafik, gauge, table, dan alert</td><td>3000</td><td>Go + JavaScript</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Mengapa InfluxDB, bukan MySQL/PostgreSQL?</div>
+        <p>InfluxDB adalah database yang dioptimalkan untuk data time-series — data yang memiliki timestamp. Query seperti "ambil rata-rata suhu selama 1 jam terakhir" jauh lebih cepat di InfluxDB dibanding relational database. Selain itu, fitur retention policy memudahkan otomatisasi penghapusan data lama.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Setup MQTT Broker  -->
+      <!-- ============================== -->
+      <h2 id="setup-mqtt">3. Setup MQTT Broker (Mosquitto)</h2>
+
+      <p><strong>Eclipse Mosquitto</strong> adalah broker MQTT open-source yang ringan dan populer. Mosquitto mendukung MQTT 3.1.1 dan 5.0, menjadikannya pilihan standar untuk proyek-proyek IoT. Kita akan menginstalnya di Raspberry Pi atau server Linux.</p>
+
+      <h3>Instalasi Mosquitto di Ubuntu/Debian</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Instalasi</span>
+          <button class="code-copy" onclick="copyToClipboard(`# Update repository\\nsudo apt update\\n\\n# Instal Mosquitto broker dan client\\nsudo apt install -y mosquitto mosquitto-clients\\n\\n# Verifikasi instalasi\\nmosquitto -v`)">Salin</button>
+        </div>
+<pre># Update repository
+sudo apt update
+
+# Instal Mosquitto broker dan client
+sudo apt install -y mosquitto mosquitto-cliences
+
+# Verifikasi versi
+mosquitto -v</pre>
+      </div>
+
+      <h3>Konfigurasi Mosquitto</h3>
+      <p>Edit file konfigurasi <code>/etc/mosquitto/mosquitto.conf</code>:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — mosquitto.conf</span>
+          <button class="code-copy" onclick="copyToClipboard(`# Konfigurasi Mosquitto Broker\\n# /etc/mosquitto/mosquitto.conf\\n\\n# Listener MQTT (tanpa TLS)\\nlistener 1883\\n\\n# Listener MQTTS (dengan TLS)\\nlistener 8883\\ncertfile /etc/mosquitto/certs/server.crt\\nkeyfile /etc/mosquitto/certs/server.key\\ncafile /etc/mosquitto/certs/ca.crt\\n\\n# Otentikasi (WAJIB untuk produksi)\\nallow_anonymous false\\npassword_file /etc/mosquitto/passwd\\n\\n# Persistence untuk message retain\\npersistence true\\npersistence_location /var/lib/mosquitto/\\n\\n# Interval autosave (detik)\\nautosave_interval 300\\n\\n# Logging\\nlog_dest syslog\\nlog_type error\\nlog_type warning\\nlog_type notice\\nlog_type information\\nconnection_messages true\\nlog_timestamp true`)">Salin</button>
+        </div>
+<pre># Konfigurasi Mosquitto Broker
+# /etc/mosquitto/mosquitto.conf
+
+# Listener MQTT (tanpa TLS)
+listener 1883
+
+# Listener MQTTS (dengan TLS)
+listener 8883
+certfile /etc/mosquitto/certs/server.crt
+keyfile /etc/mosquitto/certs/server.key
+cafile /etc/mosquitto/certs/ca.crt
+
+# Otentikasi (WAJIB untuk produksi)
+allow_anonymous false
+password_file /etc/mosquitto/passwd
+
+# Persistence untuk message retain
+persistence true
+persistence_location /var/lib/mosquitto/
+
+# Interval autosave (detik)
+autosave_interval 300
+
+# Logging
+log_dest syslog
+log_type error
+log_type warning
+log_type notice
+log_type information
+connection_messages true
+log_timestamp true</pre>
+      </div>
+
+      <h3>Membuat User &amp; Password</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Autentikasi</span>
+          <button class="code-copy" onclick="copyToClipboard(`# Buat file password (jika belum ada)\\nsudo mosquitto_passwd -c /etc/mosquitto/passwd iotuser\\n\\n# Tambah user tambahan\\nsudo mosquitto_passwd -b /etc/mosquitto/passwd iotadmin admin123\\n\\n# Restart Mosquitto\\nsudo systemctl restart mosquitto\\n\\n# Cek status\\nsudo systemctl status mosquitto`)">Salin</button>
+        </div>
+<pre># Buat file password (jika belum ada)
+sudo mosquitto_passwd -c /etc/mosquitto/passwd iotuser
+
+# Tambah user tambahan
+sudo mosquitto_passwd -b /etc/mosquitto/passwd iotadmin admin123
+
+# Restart Mosquitto
+sudo systemctl restart mosquitto
+
+# Cek status
+sudo systemctl status mosquitto</pre>
+      </div>
+
+      <h3>Menguji Broker MQTT</h3>
+      <p>Buka dua terminal untuk menguji komunikasi publish/subscribe:</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Terminal 1 (Subscriber)</span>
+          <button class="code-copy" onclick="copyToClipboard(`# Subscribe ke topik sensor\\nmosquitto_sub -h localhost -t \\\"iot/sensor/+\\\" -u iotuser -P iotpass\\n\\n# Subscribe dengan verbose output\\nmosquitto_sub -h localhost -t \\\"iot/#\\\" -v -u iotuser -P iotpass`)">Salin</button>
+        </div>
+<pre># Subscribe ke topik sensor
+mosquitto_sub -h localhost -t "iot/sensor/+" -u iotuser -P iotpass
+
+# Subscribe dengan verbose output
+mosquitto_sub -h localhost -t "iot/#" -v -u iotuser -P iotpass</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Terminal 2 (Publisher)</span>
+          <button class="code-copy" onclick="copyToClipboard(`# Publish data suhu\\nmosquitto_pub -h localhost -t \\\"iot/sensor/suhu_ruang1\\\" \\n  -m '{\\\"suhu\\\":28.5,\\\"kelembaban\\\":72.0,\\\"ts\\\":1718800000}' \\n  -u iotuser -P iotpass`)">Salin</button>
+        </div>
+<pre># Publish data suhu
+mosquitto_pub -h localhost -t "iot/sensor/suhu_ruang1" \
+  -m '{"suhu":28.5,"kelembaban":72.0,"ts":1718800000}' \
+  -u iotuser -P iotpass</pre>
+      </div>
+
+      <div class="output-block">
+        <strong>Output Terminal 1 (Subscriber):</strong>
+        iot/sensor/suhu_ruang1 {"suhu":28.5,"kelembaban":72.0,"ts":1718800000}
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Keamanan MQTT</div>
+        <p>Jangan pernah menjalankan Mosquitto dengan <code>allow_anonymous true</code> di jaringan publik. Selalu gunakan autentikasi password dan pertimbangkan TLS/SSL (port 8883) untuk enkripsi data dalam transit. Untuk produksi, gunakan sertifikat dari CA yang dipercaya.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Node-RED            -->
+      <!-- ============================== -->
+      <h2 id="node-red">4. Konfigurasi Node-RED</h2>
+
+      <p><strong>Node-RED</strong> adalah tool pemrograman visual berbasis browser yang dibangun di atas Node.js. Node-RED memungkinkan kita menghubungkan hardware device, API, dan layanan online dengan mudah menggunakan antarmuka drag-and-drop. Dalam arsitektur monitoring, Node-RED berfungsi sebagai middleware yang menerima data MQTT, memprosesnya, dan menyimpannya ke InfluxDB.</p>
+
+      <h3>Instalasi Node-RED</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Instalasi via npm</span>
+          <button class="code-copy" onclick="copyToClipboard(`# Instalasi Node-RED (global)\\nsudo npm install -g --unsafe-perm node-red\\n\\n# Install flow untuk InfluxDB\\ncd ~/.node-red\\nnpm install node-red-contrib-influxdb\\n\\n# Jalankan Node-RED\\nnode-red`)">Salin</button>
+        </div>
+<pre># Instalasi Node-RED (global)
+sudo npm install -g --unsafe-perm node-red
+
+# Install flow untuk InfluxDB
+cd ~/.node-red
+npm install node-red-contrib-influxdb
+
+# Jalankan Node-RED
+node-red</pre>
+      </div>
+
+      <p>Buka browser dan akses <code>http://&lt;IP_SERVER&gt;:1880</code>. Anda akan melihat antarmuka visual editor Node-RED.</p>
+
+      <h3>Instalasi Package yang Dibutuhkan</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Package</th>
+            <th>Fungsi</th>
+            <th>Install Command</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>node-red-contrib-influxdb</td><td>Koneksi ke InfluxDB dari Node-RED</td><td><code>npm i node-red-contrib-influxdb</code></td></tr>
+          <tr><td>node-red-dashboard</td><td>Dashboard UI bawaan Node-RED (opsional)</td><td><code>npm i node-red-dashboard</code></td></tr>
+          <tr><td>node-red-node-email</td><td>Kirim email notifikasi</td><td><code>npm i node-red-node-email</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Flow Node-RED: MQTT ke InfluxDB</h3>
+      <p>Berikut adalah flow dasar untuk menerima data dari MQTT dan menyimpannya ke InfluxDB:</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Flow: MQTT → Parse → InfluxDB</div>
+<pre>
+┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│  MQTT    │───▶│  JSON    │───▶│  Range   │───▶│  InfluxDB│
+│  In     │    │  Parse   │    │  Check   │    │  Out     │
+│          │    │          │    │          │    │          │
+│ Topic:   │    │ msg.     │    │ Validate │    │ Bucket:  │
+│ iot/sensor│   │ payload  │    │ data     │    │ iot_data │
+│ /+       │    │ → object │    │          │    │          │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘
+</pre>
+      </div>
+
+      <h3>Konfigurasi Node-RED Flow (JSON)</h3>
+      <p>Copy kode JSON berikut dan import ke Node-RED via menu <strong>Import → Clipboard</strong>:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON — Node-RED Flow</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>[
+    {
+        "id": "mqtt_in_suhu",
+        "type": "mqtt in",
+        "name": "MQTT: Sensor Suhu",
+        "topic": "iot/sensor/+",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "mqtt_broker_01",
+        "wires": [["parse_json"]]
+    },
+    {
+        "id": "parse_json",
+        "type": "function",
+        "name": "Parse &amp; Validasi Data",
+        "func": "var data = msg.payload;\n\n// Validasi field wajib\nif (!data.suhu || !data.kelembaban) {\n    node.warn('Data tidak lengkap: ' + JSON.stringify(data));\n    return null;\n}\n\n// Parse topik untuk device_id\nvar parts = msg.topic.split('/');\nvar deviceId = parts[parts.length - 1];\n\n// Buat payload untuk InfluxDB\nmsg.payload = [\n    {\n        measurement: 'sensor_reading',\n        tags: {\n            device_id: deviceId,\n            location: 'ruang_server'\n        },\n        fields: {\n            suhu: parseFloat(data.suhu),\n            kelembaban: parseFloat(data.kelembaban),\n            wifi_rssi: parseInt(data.wifi_rssi) || 0\n        }\n    }\n];\n\nmsg.topic = '';\nreturn msg;",
+        "wires": [["influx_out"]]
+    },
+    {
+        "id": "influx_out",
+        "type": "influxdb out",
+        "name": "Tulis ke InfluxDB",
+        "influxdb": "influxdb_config",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "",
+        "precision": "ms",
+        "retentionPolicy": "",
+        "wires": []
+    },
+    {
+        "id": "influxdb_config",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "dbname": "",
+        "name": "InfluxDB Local",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://127.0.0.1:8086",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "mqtt_broker_01",
+        "type": "mqtt-broker",
+        "name": "Mosquitto Local",
+        "broker": "127.0.0.1",
+        "port": "1883",
+        "clientid": "nodered_client",
+        "autoConnect": true,
+        "usetls": false,
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "nodered/status",
+        "birthQos": "0",
+        "birthPayload": "online",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "willTopic": "nodered/status",
+        "willQos": "0",
+        "willPayload": "offline",
+        "sessionExpiry": ""
+    }
+]</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Testing Node-RED</div>
+        <p>Untuk menguji flow, kirim data via terminal: <code>mosquitto_pub -h localhost -t "iot/sensor/esp32_01" -m '{"suhu":29.3,"kelembaban":68.5}'</code>. Lihat log Node-RED di debug panel (sisi kanan editor) untuk memverifikasi data sampai dan tersimpan ke InfluxDB.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: InfluxDB            -->
+      <!-- ============================== -->
+      <h2 id="influxdb">5. Database InfluxDB (Time-Series Storage)</h2>
+
+      <p><strong>InfluxDB 2.x</strong> adalah database open-source yang dirancang khusus untuk menyimpan data time-series. Setiap data point tersimpan bersama timestamp nanosecond, menjadikannya ideal untuk monitoring IoT yang membutuhkan presisi waktu tinggi.</p>
+
+      <h3>Instalasi InfluxDB 2.x</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Instalasi InfluxDB</span>
+          <button class="code-copy" onclick="copyToClipboard(`# Import GPG key\\ncurl https://repos.influxdata.com/influxdata-archive_compat.key | \\\\\\n  gpg --dearmor | \\\\\\n  sudo tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg > /dev/null\\n\\n# Tambah repository\\necho \\"deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] \\\\\\n  https://repos.influxdata.com/debian stable main\\" | \\\\\\n  sudo tee /etc/apt/sources.list.d/influxdata.list\\n\\nsudo apt update\\nsudo apt install -y influxdb2\\n\\n# Jalankan InfluxDB\\nsudo systemctl enable influxdb\\nsudo systemctl start influxdb`)">Salin</button>
+        </div>
+<pre># Import GPG key
+curl https://repos.influxdata.com/influxdata-archive_compat.key | \
+  gpg --dearmor | \
+  sudo tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg > /dev/null
+
+# Tambah repository
+echo "deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] \
+  https://repos.influxdata.com/debian stable main" | \
+  sudo tee /etc/apt/sources.list.d/influxdata.list
+
+sudo apt update
+sudo apt install -y influxdb2
+
+# Jalankan InfluxDB
+sudo systemctl enable influxdb
+sudo systemctl start influxdb</pre>
+      </div>
+
+      <h3>Setup Awal InfluxDB via CLI</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Konfigurasi Awal</span>
+          <button class="code-copy" onclick="copyToClipboard(`# Setup awal InfluxDB\\ninflux setup \\n  --username admin \\n  --password MySecurePass123! \\n  --org iotlab \\n  --bucket iot_sensors \\n  --retention 720h \\n  --force\\n\\n# Simpan token (ganti dengan token dari setup)\\ninflux auth create \\n  --org iotlab \\n  --description \\"Node-RED write access\\" \\n  --write-bucket iot_sensors`)">Salin</button>
+        </div>
+<pre># Setup awal InfluxDB
+influx setup \
+  --username admin \
+  --password MySecurePass123! \
+  --org iotlab \
+  --bucket iot_sensors \
+  --retention 720h \
+  --force
+
+# Simpan token (ganti dengan token dari setup)
+influx auth create \
+  --org iotlab \
+  --description "Node-RED write access" \
+  --write-bucket iot_sensors</pre>
+      </div>
+
+      <h3>Retention Policies</h3>
+      <p>Retention policy menentukan berapa lama data disimpan sebelum otomatis dihapus. Ini penting untuk mengelola ruang disk dan menjaga performa query tetap optimal.</p>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Retention Policy</th>
+            <th>Durasi</th>
+            <th>Use Case</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>realtime</td><td>24 jam</td><td>Data untuk dashboard real-time, resolution tinggi</td></tr>
+          <tr><td>short_term</td><td>7 hari</td><td>Data harian, analisis mingguan</td></tr>
+          <tr><td>long_term</td><td>30 hari</td><td>Data bulanan, laporan periodik</td></tr>
+          <tr><td>archive</td><td>365 hari</td><td>Data tahunan, compliance, audit trail</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Flux — Query InfluxDB</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>// Query rata-rata suhu 1 jam terakhir
+from(bucket: "iot_sensors")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "sensor_reading")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> aggregateWindow(every: 5m, fn: mean)
+  |> yield(name: "avg_suhu")
+
+// Query suhu maksimum hari ini
+from(bucket: "iot_sensors")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "sensor_reading")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> max()
+
+// Query jumlah data per device
+from(bucket: "iot_sensors")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "sensor_reading")
+  |> group(columns: ["device_id"])
+  |> count()</pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ InfluxDB Cloud vs Self-Hosted</div>
+        <p>InfluxDB tersedia dalam versi cloud (gratis hingga 300MB/month) dan self-hosted (gratis, unlimited). Untuk proyek belajar, versi self-hosted sangat direkomendasikan karena Anda memiliki kontrol penuh atas data. Untuk produksi skala besar, pertimbangkan InfluxDB Cloud yang dikelola sepenuhnya.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Grafana Dashboard  -->
+      <!-- ============================== -->
+      <h2 id="grafana-dashboard">6. Grafana Dashboard</h2>
+
+      <p><strong>Grafana</strong> adalah platform visualisasi data open-source yang mendukung berbagai data source termasuk InfluxDB, PostgreSQL, Prometheus, dan banyak lagi. Grafana memungkinkan Anda membuat dashboard interaktif dengan berbagai jenis panel: grafik garis, gauge, stat, heatmap, dan alert rules.</p>
+
+      <h3>Instalasi Grafana</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Instalasi Grafana OSS</span>
+          <button class="code-copy" onclick="copyToClipboard(`# Tambah repository Grafana\\nsudo apt-get install -y apt-transport-https software-properties-common\\nwget -q -O - https://apt.grafana.com/gpg.key | sudo apt-key add -\\necho \\"deb [signed-by=/usr/share/keyrings/grafana.gpg] \\\\\\n  https://apt.grafana.com stable main\\" | \\\\\\n  sudo tee /etc/apt/sources.list.d/grafana.list\\n\\nsudo apt update\\nsudo apt install -y grafana\\n\\n# Jalankan Grafana\\nsudo systemctl enable grafana-server\\nsudo systemctl start grafana-server`)">Salin</button>
+        </div>
+<pre># Tambah repository Grafana
+sudo apt-get install -y apt-transport-https software-properties-common
+wget -q -O - https://apt.grafana.com/gpg.key | sudo apt-key add -
+echo "deb [signed-by=/usr/share/keyrings/grafana.gpg] \
+  https://apt.grafana.com stable main" | \
+  sudo tee /etc/apt/sources.list.d/grafana.list
+
+sudo apt update
+sudo apt install -y grafana
+
+# Jalankan Grafana
+sudo systemctl enable grafana-server
+sudo systemctl start grafana-server</pre>
+      </div>
+
+      <p>Akses Grafana di <code>http://&lt;IP_SERVER&gt;:3000</code>. Login default: <code>admin</code> / <code>admin</code>.</p>
+
+      <h3>Setup Data Source InfluxDB</h3>
+      <ol>
+        <li>Buka Grafana → <strong>Configuration (⚙️) → Data Sources</strong></li>
+        <li>Klik <strong>"Add data source"</strong></li>
+        <li>Pilih <strong>InfluxDB</strong></li>
+        <li>Isi konfigurasi berikut:</li>
+      </ol>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Nilai</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Query Language</td><td>Flux</td></tr>
+          <tr><td>URL</td><td>http://127.0.0.1:8086</td></tr>
+          <tr><td>Organization</td><td>iotlab</td></tr>
+          <tr><td>Token</td><td>[token dari InfluxDB setup]</td></tr>
+          <tr><td>Default Bucket</td><td>iot_sensors</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Data Source</div>
+        <p>Klik tombol <strong>"Save &amp; Test"</strong> setelah mengisi konfigurasi. Jika muncul hijau "Data source is working", artinya koneksi ke InfluxDB berhasil. Jika merah, periksa token, URL, dan nama bucket.</p>
+      </div>
+
+      <h3>Jenis Panel Grafana</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Panel Type</th>
+            <th>Fungsi</th>
+            <th>Cocok Untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Time Series</td><td>Grafik garis dengan sumbu X waktu</td><td>Tren suhu, kelembaban dari waktu ke waktu</td></tr>
+          <tr><td>Gauge</td><td>Indikator analog/digital</td><td>Suhu saat ini, persentase baterai</td></tr>
+          <tr><td>Stat</td><td>Angka besar dengan warna dinamis</td><td>Suhu terkini, jumlah device online</td></tr>
+          <tr><td>Bar Chart</td><td>Grafik batang</td><td>Perbandingan antar device/ruangan</td></tr>
+          <tr><td>Table</td><td>Tabel data</td><td>Daftar semua sensor dan status terkini</td></tr>
+          <tr><td>Heatmap</td><td>Peta panas</td><td>Distribusi suhu di area luas</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Query Flux untuk Panel Suhu</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Flux — Panel Grafana</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>// Panel: Grafik Suhu Real-time (6 jam terakhir)
+from(bucket: "iot_sensors")
+  |> range(start: -6h)
+  |> filter(fn: (r) => r._measurement == "sensor_reading")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)
+  |> yield(name: "suhu_trend")
+
+// Panel: Gauge Suhu Terkini
+from(bucket: "iot_sensors")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "sensor_reading")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> last()
+  |> yield(name: "suhu_current")
+
+// Panel: Tabel Status Semua Device
+from(bucket: "iot_sensors")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "sensor_reading")
+  |> last()
+  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+  |> keep(columns: ["device_id", "suhu", "kelembaban", "_time"])</pre>
+      </div>
+
+      <h3>Membuat Alert di Grafana</h3>
+      <ol>
+        <li>Buka panel Grafana → <strong>Alert</strong> tab</li>
+        <li>Klik <strong>"Create alert rule"</strong></li>
+        <li>Atur kondisi: <code>suhu &gt; 35</code> selama <code>5 menit</code></li>
+        <li>Atur notification channel: <strong>Email</strong> atau <strong>Telegram</strong></li>
+        <li>Simpan dan aktifkan alert</li>
+      </ol>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Alur Alert Grafana</div>
+<pre>
+  ┌────────────┐     ┌────────────┐     ┌────────────┐
+  │  InfluxDB  │────▶│  Grafana   │────▶│  Alert     │
+  │  Query     │     │  Rule Eval │     │  Notif.    │
+  │            │     │            │     │            │
+  │ suhu > 35? │     │ Every 1m   │     │ - Email    │
+  │            │     │            │     │ - Telegram │
+  └────────────┘     └────────────┘     │ - Webhook  │
+                                        └──────┬─────┘
+                                               │
+                                               ▼
+                                        ┌────────────┐
+                                        │  Telegram  │
+                                        │  Bot Msg   │
+                                        │ "⚠️ Suhu   │
+                                        │  37.2°C!"  │
+                                        └────────────┘</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Proyek Monitoring  -->
+      <!-- ============================== -->
+      <h2 id="proyek-monitoring">7. Proyek: Dashboard Suhu &amp; Kelembaban Real-time</h2>
+
+      <p>Sekarang kita akan menggabungkan seluruh komponen ke dalam satu proyek utuh. Pastikan Mosquitto, Node-RED, InfluxDB, dan Grafana sudah terinstal dan berjalan di server yang sama (atau Raspberry Pi).</p>
+
+      <h3>Step 1: Kode ESP32 untuk Proyek</h3>
+      <p>ESP32 akan membaca sensor DHT22 dan mengirim data ke MQTT broker setiap 10 detik:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — esp32_monitoring.ino</span>
+          <button class="code-copy" onclick="copyToClipboard(`#include \\"WiFi.h\\"\\n#include \\"PubSubClient.h\\"\\n#include \\"DHT.h\\"\\n\\n#define DHT_PIN 4\\n#define DHT_TYPE DHT22\\n\\nconst char* WIFI_SSID = \\"NamaWiFi\\";\\nconst char* WIFI_PASS = \\"PasswordWiFi\\";\\nconst char* MQTT_SERVER = \\"192.168.1.100\\";\\nconst int   MQTT_PORT = 1883;\\nconst char* MQTT_TOPIC = \\"iot/sensor/esp32_01\\";\\n\\nDHT dht(DHT_PIN, DHT_TYPE);\\nWiFiClient espClient;\\nPubSubClient mqtt(espClient);\\n\\nvoid setup() {\\n  Serial.begin(115200);\\n  dht.begin();\\n  WiFi.begin(WIFI_SSID, WIFI_PASS);\\n  while (WiFi.status() != WL_CONNECTED) delay(500);\\n  mqtt.setServer(MQTT_SERVER, MQTT_PORT);\\n}\\n\\nvoid loop() {\\n  if (!mqtt.connected()) {\\n    mqtt.connect(\\"esp32_01\\", \\"iotuser\\", \\"iotpass\\");\\n  }\\n  mqtt.loop();\\n\\n  float suhu = dht.readTemperature();\\n  float rh = dht.readHumidity();\\n  if (!isnan(suhu) && !isnan(rh)) {\\n    char payload[128];\\n    snprintf(payload, sizeof(payload),\\n      \\"{\\\\\\"suhu\\\\\\":%.1f,\\\\\\"kelembaban\\\\\\":%.1f,\\\\\\"rssi\\\\\\":%d}\\",\\n      suhu, rh, WiFi.RSSI());\\n    mqtt.publish(MQTT_TOPIC, payload);\\n    Serial.println(payload);\\n  }\\n  delay(10000);\\n}")">Salin</button>
+        </div>
+<pre>#include "WiFi.h"
+#include "PubSubClient.h"
+#include "DHT.h"
+
+#define DHT_PIN 4
+#define DHT_TYPE DHT22
+
+const char* WIFI_SSID = "NamaWiFi";
+const char* WIFI_PASS = "PasswordWiFi";
+const char* MQTT_SERVER = "192.168.1.100";
+const int   MQTT_PORT = 1883;
+const char* MQTT_TOPIC = "iot/sensor/esp32_01";
+
+DHT dht(DHT_PIN, DHT_TYPE);
+WiFiClient espClient;
+PubSubClient mqtt(espClient);
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
+  mqtt.setServer(MQTT_SERVER, MQTT_PORT);
+}
+
+void loop() {
+  if (!mqtt.connected()) {
+    mqtt.connect("esp32_01", "iotuser", "iotpass");
+  }
+  mqtt.loop();
+
+  float suhu = dht.readTemperature();
+  float rh = dht.readHumidity();
+  if (!isnan(suhu) && !isnan(rh)) {
+    char payload[128];
+    snprintf(payload, sizeof(payload),
+      "{\"suhu\":%.1f,\"kelembaban\":%.1f,\"rssi\":%d}",
+      suhu, rh, WiFi.RSSI());
+    mqtt.publish(MQTT_TOPIC, payload);
+    Serial.println(payload);
+  }
+  delay(10000);
+}</pre>
+      </div>
+
+      <h3>Step 2: Import Flow Node-RED</h3>
+      <p>Buka Node-RED di <code>http://&lt;IP&gt;:1880</code>, lalu import flow lengkap berikut:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON — Node-RED Full Flow</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>[
+    {
+        "id": "dashboard_flow",
+        "type": "tab",
+        "label": "IoT Dashboard Flow",
+        "disabled": false,
+        "info": "Flow lengkap untuk dashboard monitoring IoT"
+    },
+    {
+        "id": "mqtt_in_all",
+        "type": "mqtt in",
+        "z": "dashboard_flow",
+        "name": "All Sensor Data",
+        "topic": "iot/sensor/+",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mosquitto_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "wires": [["func_validate", "debug_raw"]]
+    },
+    {
+        "id": "func_validate",
+        "type": "function",
+        "z": "dashboard_flow",
+        "name": "Validate &amp; Transform",
+        "func": "// Extract device ID dari topik\nvar deviceId = msg.topic.split('/').pop();\nvar data = msg.payload;\n\n// Validasi data\nif (!data.suhu || !data.kelembaban) {\n    node.warn('Invalid data dari ' + deviceId);\n    return null;\n}\n\n// Siapkan untuk InfluxDB\nmsg.payload = [{\n    measurement: 'sensor_reading',\n    tags: { device_id: deviceId },\n    fields: {\n        suhu: parseFloat(data.suhu),\n        kelembaban: parseFloat(data.kelembaban)\n    }\n}];\nmsg.topic = '';\n\n// Duplikat untuk threshold check\nvar msg2 = {\n    payload: data,\n    device_id: deviceId\n};\n\nreturn [msg, msg2];",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "wires": [["influx_write", "func_threshold"]]
+    },
+    {
+        "id": "influx_write",
+        "type": "influxdb out",
+        "z": "dashboard_flow",
+        "influxdb": "influxdb_01",
+        "name": "Write InfluxDB",
+        "precision": "ms",
+        "retentionPolicy": "",
+        "database": "",
+        "precision": "ms",
+        "retentionPolicy": "",
+        "wires": []
+    },
+    {
+        "id": "func_threshold",
+        "type": "function",
+        "z": "dashboard_flow",
+        "name": "Threshold Check",
+        "func": "var data = msg.payload;\nif (data.suhu > 35) {\n    node.warn('ALERT: Suhu ' + data.suhu + '°C dari ' + msg.device_id);\n    msg.payload = {\n        alert: 'HIGH_TEMPERATURE',\n        suhu: data.suhu,\n        device: msg.device_id,\n        timestamp: new Date().toISOString()\n    };\n    return msg;\n}\nreturn null;",
+        "outputs": 1,
+        "wires": [["mqtt_alert_out"]]
+    },
+    {
+        "id": "mqtt_alert_out",
+        "type": "mqtt out",
+        "z": "dashboard_flow",
+        "name": "Publish Alert",
+        "topic": "iot/alert",
+        "qos": "0",
+        "retain": "false",
+        "broker": "mosquitto_local",
+        "wires": []
+    },
+    {
+        "id": "mosquitto_local",
+        "type": "mqtt-broker",
+        "name": "Mosquitto",
+        "broker": "127.0.0.1",
+        "port": "1883",
+        "clientid": "nodered",
+        "autoConnect": true,
+        "usetls": false,
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "nodered/status",
+        "birthQos": "0",
+        "birthPayload": "online",
+        "willTopic": "nodered/status",
+        "willQos": "0",
+        "willPayload": "offline"
+    },
+    {
+        "id": "influxdb_01",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "dbname": "",
+        "name": "InfluxDB IoT",
+        "influxdbVersion": "2.0",
+        "url": "http://127.0.0.1:8086",
+        "rejectUnauthorized": true
+    }
+]</pre>
+      </div>
+
+      <h3>Step 3: Import Dashboard Grafana</h3>
+      <p>Buka Grafana → <strong>➕ → Import Dashboard</strong> → paste JSON berikut:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON — Grafana Dashboard</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>{
+  "title": "IoT Monitoring Dashboard",
+  "tags": ["iot", "sensor", "suhu"],
+  "timezone": "Asia/Jakarta",
+  "panels": [
+    {
+      "title": "Suhu Saat Ini",
+      "type": "gauge",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 30},
+              {"color": "red", "value": 35}
+            ]
+          },
+          "unit": "celsius",
+          "min": 15,
+          "max": 50
+        }
+      },
+      "targets": [{
+        "query": "from(bucket:\"iot_sensors\") |> range(start:-1h) |> filter(fn:(r) => r._measurement==\"sensor_reading\") |> filter(fn:(r) => r._field==\"suhu\") |> last()"
+      }]
+    },
+    {
+      "title": "Grafik Suhu 24 Jam",
+      "type": "timeseries",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": {"drawStyle": "line", "fillOpacity": 10}
+        }
+      },
+      "targets": [{
+        "query": "from(bucket:\"iot_sensors\") |> range(start:-24h) |> filter(fn:(r) => r._measurement==\"sensor_reading\") |> filter(fn:(r) => r._field==\"suhu\") |> aggregateWindow(every:5m, fn:mean)"
+      }]
+    },
+    {
+      "title": "Kelembaban Saat Ini",
+      "type": "stat",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "steps": [
+              {"color": "yellow", "value": null},
+              {"color": "green", "value": 40},
+              {"color": "red", "value": 80}
+            ]
+          }
+        }
+      },
+      "targets": [{
+        "query": "from(bucket:\"iot_sensors\") |> range(start:-1h) |> filter(fn:(r) => r._measurement==\"sensor_reading\") |> filter(fn:(r) => r._field==\"kelembaban\") |> last()"
+      }]
+    },
+    {
+      "title": "Status Device",
+      "type": "table",
+      "targets": [{
+        "query": "from(bucket:\"iot_sensors\") |> range(start:-1h) |> filter(fn:(r) => r._measurement==\"sensor_reading\") |> last() |> pivot(rowKey:[\"_time\"], columnKey:[\"_field\"], valueColumn:\"_value\")"
+      }]
+    }
+  ],
+  "time": {"from": "now-24h", "to": "now"},
+  "refresh": "30s"
+}</pre>
+      </div>
+
+      <h3>Step 4: Verifikasi Seluruh Sistem</h3>
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Checklist Verifikasi</div>
+        <ol>
+          <li>✅ Mosquitto berjalan: <code>sudo systemctl status mosquitto</code></li>
+          <li>✅ InfluxDB berjalan: <code>curl http://localhost:8086/health</code></li>
+          <li>✅ Node-RED berjalan: akses <code>http://&lt;IP&gt;:1880</code></li>
+          <li>✅ Grafana berjalan: akses <code>http://&lt;IP&gt;:3000</code></li>
+          <li>✅ Data MQTT mengalir: cek debug panel Node-RED</li>
+          <li>✅ Data terimpan di InfluxDB: cek via InfluxDB UI atau CLI</li>
+          <li>✅ Dashboard Grafana menampilkan data real-time</li>
+          <li>✅ Alert berfungsi: simulasikan suhu tinggi</li>
+        </ol>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Optimasi           -->
+      <!-- ============================== -->
+      <h2 id="optimasi">8. Optimasi &amp; Maintenance</h2>
+
+      <p>Sistem monitoring yang berjalan 24/7 membutuhkan perhatian khusus dari sisi performa dan maintenance. Berikut adalah tips optimasi untuk menjaga sistem tetap stabil dan efisien.</p>
+
+      <h3>Optimasi Performa</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Optimasi</th>
+            <th>Dampak</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>InfluxDB</td><td>Gunakan retention policy &lt; 30 hari untuk data high-frequency</td><td>Hemat disk 70-80%</td></tr>
+          <tr><td>InfluxDB</td><td>Aktifkan compression (TSM engine default)</td><td>Ukuran data turun 5-10x</td></tr>
+          <tr><td>Grafana</td><td>Gunakan aggregateWindow() untuk range &gt; 1 jam</td><td>Query 10x lebih cepat</td></tr>
+          <tr><td>Node-RED</td><td>Gunakan batch write ke InfluxDB alih-alih per-pesan</td><td>Mengurangi I/O 50%</td></tr>
+          <tr><td>MQTT</td><td>Atur QoS = 0 untuk data non-kritis</td><td>Mengurangi overhead jaringan</td></tr>
+          <tr><td>Server</td><td>Pisahkan InfluxDB ke volume SSD terpisah</td><td>Write latency turun 3x</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Cron Job Maintenance</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Maintenance Scripts</span>
+          <button class="code-copy" onclick="copyToClipboard(`# Backup InfluxDB (via cron daily)\\ninflux backup /backups/influxdb_$(date +%Y%m%d) --org iotlab\\n\\n# Cleanup backup lama (hapus backup &gt; 7 hari)\\nfind /backups -name \\"influxdb_*\\" -mtime +7 -exec rm -rf {} \\;\\n\\n# Monitor disk usage\\ndf -h /var/lib/influxdb\\n\\n# Cek log errors\\nsudo journalctl -u mosquitto --since \\"1 hour ago\\" --priority=3\\nsudo journalctl -u influxdb --since \\"1 hour ago\\" --priority=3\\nsudo journalctl -u grafana-server --since \\"1 hour ago\\" --priority=3`)">Salin</button>
+        </div>
+<pre># Backup InfluxDB (via cron daily)
+influx backup /backups/influxdb_$(date +%Y%m%d) --org iotlab
+
+# Cleanup backup lama (hapus backup > 7 hari)
+find /backups -name "influxdb_*" -mtime +7 -exec rm -rf {} \;
+
+# Monitor disk usage
+df -h /var/lib/influxdb
+
+# Cek log errors
+sudo journalctl -u mosquitto --since "1 hour ago" --priority=3
+sudo journalctl -u influxdb --since "1 hour ago" --priority=3
+sudo journalctl -u grafana-server --since "1 hour ago" --priority=3</pre>
+      </div>
+
+      <h3>Monitoring Layanan (Systemd)</h3>
+      <p>Gunakan systemd untuk memastikan semua service otomatis restart jika crash:</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Service Status & Auto-restart</span>
+          <button class="code-copy" onclick="copyToClipboard(`# Cek status semua service\\necho \\"=== Mosquitto ===\\" && sudo systemctl is-active mosquitto\\necho \\"=== InfluxDB ===\\" && sudo systemctl is-active influxdb\\necho \\"=== Grafana  ===\\" && sudo systemctl is-active grafana-server\\necho \\"=== Node-RED ===\\" && systemctl --user is-active nodered\\n\\n# Restart semua service\\nsudo systemctl restart mosquitto influxdb grafana-server\\nsystemctl --user restart nodered\\n\\n# Auto-restart (sudah default di systemd, tapi pastikan):\\n# Edit /lib/systemd/system/mosquitto.service\\n# Tambahkan: Restart=always, RestartSec=10`)">Salin</button>
+        </div>
+<pre># Cek status semua service
+echo "=== Mosquitto ===" && sudo systemctl is-active mosquitto
+echo "=== InfluxDB ===" && sudo systemctl is-active influxdb
+echo "=== Grafana  ===" && sudo systemctl is-active grafana-server
+echo "=== Node-RED ===" && systemctl --user is-active nodered
+
+# Restart semua service
+sudo systemctl restart mosquitto influxdb grafana-server
+systemctl --user restart nodered
+
+# Auto-restart (sudah default di systemd, tapi pastikan):
+# Edit /lib/systemd/system/mosquitto.service
+# Tambahkan: Restart=always, RestartSec=10</pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Tips Penting</div>
+        <p>Selalu backup InfluxDB secara rutin. Database time-series bisa tumbuh sangat cepat jika volume data tinggi. Pastikan disk space minimal 20% kosong. Gunakan <code>logrotate</code> untuk rotasi log file Mosquitto dan Grafana agar tidak memenuhi disk.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article bottom -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang dashboard monitoring IoT:</p>
+
+      <div class="quiz-container" id="quiz06">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Komponen apa yang berfungsi sebagai middleware visual untuk menghubungkan MQTT ke InfluxDB dalam arsitektur dashboard monitoring?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Grafana</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Node-RED</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Mosquitto</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Prometheus</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Port default apa yang digunakan oleh Mosquitto MQTT Broker untuk koneksi TCP tanpa TLS?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) 1883</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) 8883</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) 3000</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) 1880</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: InfluxDB adalah database yang dioptimalkan khusus untuk tipe data apa?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Document store (JSON)</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Key-value pairs</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Relational (SQL)</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Time-series</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Untuk mengimpor flow dari JSON ke Node-RED, menu apa yang harus digunakan?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Deploy → Import</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Edit → Paste</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Import → Clipboard</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) File → Import</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa fungsi retention policy di InfluxDB?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Menentukan jumlah maksimum kolom per tabel</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Menentukan berapa lama data disimpan sebelum otomatis dihapus</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Mengatur kecepatan write data ke disk</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Membatasi jumlah query per jam</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article bottom -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="python-iot-automation.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Otomasi IoT dengan Python: MQTT, GPIO &amp; Scheduling</span>
+        </a>
+        <a href="esp32-fundamentals.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Panduan Lengkap ESP32: Dari Setup Hingga Proyek IoT Pertama</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand-name">⚡ <span>IoTHub</span></div>
+          <p>
+            Portal tutorial teknologi IoT, jaringan, dan mikrokontroler.
+            Konten original, gratis, dan selalu diperbarui.
+          </p>
+        </div>
+        <div class="footer-col">
+          <h4>Kategori</h4>
+          <ul>
+            <li><a href="#">ESP32 &amp; ESP8266</a></li>
+            <li><a href="#">MikroTik &amp; Jaringan</a></li>
+            <li><a href="#">LoRa &amp; LPWAN</a></li>
+            <li><a href="#">Keamanan Jaringan</a></li>
+            <li><a href="#">Python untuk IoT</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Populer</h4>
+          <ul>
+            <li><a href="#">Tutorial ESP32</a></li>
+            <li><a href="#">Konfigurasi MikroTik</a></li>
+            <li><a href="#">Proyek LoRa</a></li>
+            <li><a href="#">Dashboard IoT</a></li>
+            <li><a href="#">MQTT untuk Pemula</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Lainnya</h4>
+          <ul>
+            <li><a href="#">Tentang Kami</a></li>
+            <li><a href="#">Kebijakan Privasi</a></li>
+            <li><a href="#">Kontak</a></li>
+            <li><a href="#">RSS Feed</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 IoTHub. Semua hak dilindungi. Konten original buatan tim kami.</p>
+        <div class="social-links">
+          <a href="#">GitHub</a>
+          <a href="#">YouTube</a>
+          <a href="#">Discord</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== BACK TO TOP ========== -->
+  <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
+
+  <!-- ========== SCRIPTS ========== -->
+  <script src="../js/app.js"></script>
+  <script>
+    // Initialize quiz with correct answers
+    initQuiz('quiz06', ['b', 'a', 'd', 'c', 'b']);
+  </script>
+</body>
+</html>

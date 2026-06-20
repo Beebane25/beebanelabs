@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Otomasi IoT dengan Python: MQTT, GPIO &amp; Scheduling | IoTHub</title>
+  <meta name="description" content="Tutorial lengkap otomasi IoT menggunakan Python — paho-mqtt untuk komunikasi MQTT, RPi.GPIO untuk kontrol GPIO, pembacaan sensor DHT/BME280, dan scheduling otomatis dengan APScheduler. Lengkap dengan proyek monitoring.">
+  <meta name="keywords" content="Python IoT, otomasi IoT, MQTT Python, paho-mqtt, RPi.GPIO, gpiozero, APScheduler, sensor DHT, BME280, scheduling Python, Raspberry Pi, MicroPython">
+  <meta name="author" content="IoTHub">
+  <meta property="og:title" content="Otomasi IoT dengan Python: MQTT, GPIO &amp; Scheduling">
+  <meta property="og:description" content="Panduan komprehensif otomasi IoT dengan Python — dari MQTT hingga scheduling otomatis untuk proyek IoT nyata.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://iothub.id/articles/python-iot-automation.html">
+  <meta property="article:published_time" content="2026-06-20">
+  <meta property="article:section" content="Python untuk IoT">
+  <meta property="article:tag" content="Python">
+  <meta property="article:tag" content="IoT">
+  <meta property="article:tag" content="MQTT">
+  <meta property="article:tag" content="GPIO">
+  <meta property="article:tag" content="APScheduler">
+  <link rel="canonical" href="https://iothub.id/articles/python-iot-automation.html">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Otomasi IoT dengan Python: MQTT, GPIO &amp; Scheduling",
+    "description": "Panduan komprehensif otomasi IoT dengan Python — dari MQTT hingga scheduling otomatis untuk proyek IoT nyata.",
+    "author": { "@type": "Organization", "name": "IoTHub" },
+    "datePublished": "2026-06-20",
+    "publisher": { "@type": "Organization", "name": "IoTHub" }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- ========== READING PROGRESS ========== -->
+  <div class="reading-progress-bar" id="readingProgress"></div>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="navbar-brand">
+        <div class="brand-icon">⚡</div>
+        <span>IoTHub</span>
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="../index.html">Beranda</a></li>
+        <li><a href="../index.html#categories">Kategori</a></li>
+        <li><a href="../index.html#articles">Artikel</a></li>
+        <li><a href="../index.html#newsletter">Newsletter</a></li>
+      </ul>
+      <div class="navbar-search" id="searchTrigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Cari tutorial...</span>
+        <kbd>/</kbd>
+      </div>
+      <a href="../index.html#newsletter" class="navbar-cta">📧 Subscribe</a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." autocomplete="off">
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Tekan <kbd>Esc</kbd> untuk menutup</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">Otomasi IoT</span>
+      </div>
+      <span class="category-tag">Python untuk IoT</span>
+      <h1>Otomasi IoT dengan Python: MQTT, GPIO &amp; Scheduling</h1>
+      <p class="article-subtitle">Panduan lengkap membangun sistem IoT otomatis dengan Python — komunikasi MQTT, kontrol GPIO, pembacaan sensor, dan penjadwalan tugas otomatis</p>
+      <div class="article-meta">
+        <span>📅 20 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty pemula">Pemula — Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <!-- AdSense: Top Banner 728x90 / Responsive -->
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#python-untuk-iot">Python untuk IoT</a></li>
+          <li><a href="#setup-environment">Setup Environment Python</a></li>
+          <li><a href="#mqtt-paho">MQTT Client dengan paho-mqtt</a></li>
+          <li><a href="#gpio-control">GPIO Control via Python</a></li>
+          <li><a href="#membaca-sensor">Membaca Data Sensor dengan Python</a></li>
+          <li><a href="#scheduling">Scheduling &amp; Cron Jobs</a></li>
+          <li><a href="#proyek-monitoring">Proyek: Sistem Monitoring Otomatis</a></li>
+          <li><a href="#best-practices">Best Practices &amp; Error Handling</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Python untuk IoT     -->
+      <!-- ============================== -->
+      <h2 id="python-untuk-iot">1. Python untuk IoT</h2>
+
+      <p>Python telah menjadi salah satu bahasa pemrograman paling populer di dunia, dan dampaknya kini terasa kuat di ekosistem <strong>Internet of Things (IoT)</strong>. Dengan sintaks yang bersih, ekosistem library yang masif, dan dukungan lintas platform, Python menawarkan jalur tercepat dari ide ke prototipe fungsional dalam proyek IoT.</p>
+
+      <p>Dalam konteks IoT, Python berperan sebagai "otak" pada perangkat komputasi yang lebih powerful seperti <strong>Raspberry Pi</strong>, <strong>BeagleBone</strong>, atau <strong>Jetson Nano</strong>. Berbeda dari Arduino atau ESP32 yang menggunakan bahasa C/C++, Python memungkinkan pengembang membangun sistem IoT yang kompleks dengan fitur-fitur tingkat tinggi seperti threading, akses file sistem, database, dan jaringan — semuanya dalam satu bahasa.</p>
+
+      <h3>Mengapa Python untuk IoT?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Keunggulan</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Sintaks Sederhana</td><td>Bisa langsung menulis kode tanpa kompilasi panjang, cocok untuk prototyping cepat</td></tr>
+          <tr><td>Library Kaya</td><td>paho-mqtt, RPi.GPIO, gpiozero, smbus2, APScheduler — semua tersedia via pip</td></tr>
+          <tr><td>Cross-Platform</td><td>Jalan di Linux, macOS, Windows, dan berbagai single-board computer</td></tr>
+          <tr><td>Komunitas Besar</td><td>Banyak tutorial, forum, dan contoh proyek IoT berbasis Python</td></tr>
+          <tr><td>Integrasi Mudah</td><td>Mudah terhubung ke REST API, database, MQTT broker, dan layanan cloud</td></tr>
+          <tr><td>Async Support</td><td>asyncio dan library async memungkinkan handling simultan banyak koneksi</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Python vs MicroPython: Mana yang Cocok?</h3>
+      <p>Banyak pemula bingung antara Python biasa dan MicroPython. Keduanya memiliki peran berbeda dalam ekosistem IoT:</p>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Python (CPython)</th>
+            <th>MicroPython</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Jalur di</td><td>PC, Raspberry Pi, SBC</td><td>ESP32, ESP8266, RP2040, mikrokontroler</td></tr>
+          <tr><td>RAM Minimum</td><td>~50 MB</td><td>~256 KB</td></tr>
+          <tr><td>File System</td><td>Full access</td><td>Terbatas (FAT/LittleFS)</td></tr>
+          <tr><td>Library paho-mqtt</td><td>✅ Berjalan sempurna</td><td>❌ Tidak kompatibel langsung</td></tr>
+          <tr><td>Threading</td><td>✅ Multithreading penuh</td><td>Limited</td></tr>
+          <tr><td>Cocok untuk</td><td>Gateway, server, edge computing</td><td>Node sensor/aktuator ringan</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Tutorial ini berfokus pada <strong>Python (CPython)</strong> yang berjalan di Raspberry Pi atau PC. Jika Anda ingin memprogram ESP32 langsung dengan Python, pelajari MicroPython secara terpisah. Namun, konsep dasar seperti MQTT dan GPIO tetap berlaku di kedua platform.</p>
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Arsitektur Sistem IoT dengan Python</div>
+<pre>
+┌──────────────────────────────────────────────────────────┐
+│                  SISTEM IoT DENGAN PYTHON                │
+│                                                          │
+│  ┌──────────────┐    ┌──────────────┐   ┌────────────┐  │
+│  │   SENSOR     │    │  RASPBERRY   │   │   MQTT     │  │
+│  │   DHT11      ├───►│  PI 4B       ├──►│   BROKER   │  │
+│  │   BME280     │    │              │   │  (Mosquitto)│  │
+│  │   LDR        │    │  Python 3.x  │   └─────┬──────┘  │
+│  └──────────────┘    │              │         │          │
+│                      │  paho-mqtt   │         │          │
+│  ┌──────────────┐    │  RPi.GPIO    │         ▼          │
+│  │  AKTUATOR    │◄───│  gpiozero    │   ┌────────────┐  │
+│  │  LED / Relay  │    │  APScheduler │   │  DASHBOARD │  │
+│  │  Buzzer      │    │              │   │  / Server  │  │
+│  │  Motor       │    └──────────────┘   └────────────┘  │
+│  └──────────────┘                                        │
+└──────────────────────────────────────────────────────────┘
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Setup Environment    -->
+      <!-- ============================== -->
+      <h2 id="setup-environment">2. Setup Environment Python</h2>
+
+      <p>Sebelum mulai menulis kode, kita perlu menyiapkan lingkungan kerja yang bersih dan terisolasi. Penggunaan <strong>virtual environment</strong> adalah praktik terbaik agar dependensi proyek IoT tidak bertabrakan dengan package sistem operasi.</p>
+
+      <h3>Langkah 1: Instalasi Python 3</h3>
+      <p>Sebagian besar distribusi Linux sudah menyertakan Python 3. Namun, pastikan Anda menggunakan versi 3.9 atau lebih baru:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Cek versi Python yang terinstal
+python3 --version
+
+# Instalasi di Raspberry Pi OS / Debian / Ubuntu
+sudo apt update
+sudo apt install python3 python3-pip python3-venv -y
+
+# Instalasi di Fedora / CentOS
+sudo dnf install python3 python3-pip -y
+</pre>
+      </div>
+
+      <h3>Langkah 2: Buat Virtual Environment</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Buat direktori proyek
+mkdir ~/iot-project &amp;&amp; cd ~/iot-project
+
+# Buat virtual environment
+python3 -m venv venv
+
+# Aktifkan virtual environment
+source venv/bin/activate
+
+# Verifikasi
+which python3
+# Output: /home/pi/iot-project/venv/bin/python3
+</pre>
+      </div>
+
+      <h3>Langkah 3: Instalasi Library IoT</h3>
+      <p>Berikut daftar library utama yang kita butuhkan beserta fungsinya:</p>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Package</th>
+            <th>Fungsi</th>
+            <th>Instalasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>paho-mqtt</td><td>MQTT client untuk komunikasi pub/sub</td><td><code>pip install paho-mqtt</code></td></tr>
+          <tr><td>RPi.GPIO</td><td>Kontrol GPIO pin Raspberry Pi</td><td><code>pip install RPi.GPIO</code></td></tr>
+          <tr><td>gpiozero</td><td>API level tinggi untuk GPIO (LED, sensor, aktuator)</td><td><code>pip install gpiozero</code></td></tr>
+          <tr><td>smbus2</td><td>Komunikasi I2C untuk sensor seperti BME280</td><td><code>pip install smbus2</code></td></tr>
+          <tr><td>adafruit-circuitpython-dht</td><td>Pembacaan sensor DHT11/DHT22</td><td><code>pip install adafruit-circuitpython-dht</code></td></tr>
+          <tr><td>APScheduler</td><td>Penjadwalan tugas otomatis</td><td><code>pip install APScheduler</code></td></tr>
+          <tr><td>requests</td><td>HTTP client untuk REST API</td><td><code>pip install requests</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Instalasi semua library sekaligus
+pip install paho-mqtt RPi.GPIO gpiozero smbus2 \
+  adafruit-circuitpython-dht APScheduler requests
+
+# Simpan ke requirements.txt
+pip freeze > requirements.txt
+
+# Untuk reinstal di perangkat lain:
+# pip install -r requirements.txt
+</pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Library <strong>RPi.GPIO</strong> hanya berjalan di hardware Raspberry Pi. Jika Anda ingin mengembangkan di PC biasa (Windows/Linux), gunakan mode testing dengan <code>os.environ["MOCK"] = "1"</code> atau gunakan library <code>pigpio</code> yang mendukung remote GPIO. Alternatif lain adalah menulis kode dengan abstraksi agar mudah dipindah ke RPi.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: MQTT dengan paho    -->
+      <!-- ============================== -->
+      <h2 id="mqtt-paho">3. MQTT Client dengan paho-mqtt</h2>
+
+      <p><strong>MQTT (Message Queuing Telemetry Transport)</strong> adalah protokol komunikasi ringan berbasis publish/subscribe yang menjadi standar de facto di dunia IoT. Library <code>paho-mqtt</code> adalah implementasi MQTT paling populer untuk Python.</p>
+
+      <h3>Konsep Dasar MQTT</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Topologi MQTT Publish/Subscribe</div>
+<pre>
+  Publisher 1        ┌──────────────┐        Subscriber A
+ (Sensor Suhu) ────►│              │──────► (Dashboard)
+                     │ MQTT BROKER  │
+  Publisher 2        │  (Mosquitto) │        Subscriber B
+ (Sensor Gas)  ────►│              │──────► (Alert System)
+                     │              │
+  Subscriber C       │              │
+  (Telegram Bot) ◄──│              │
+                     └──────────────┘
+
+  Topik (Topics):
+  ├── home/sensor/suhu     → Publisher 1 → Subscriber A
+  ├── home/sensor/gas      → Publisher 2 → Subscriber B
+  ├── home/sensor/#        → Subscriber C (wildcard)
+  └── home/actuator/lampu  → Subscriber D → Aktuator
+</pre>
+      </div>
+
+      <h3>3.1 — MQTT Subscriber Sederhana</h3>
+      <p>Subscriber adalah komponen yang mendengarkan pesan dari broker. Mari kita mulai dengan subscriber yang menerima pesan dari topic tertentu:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — mqtt_subscriber.py</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>"""
+MQTT Subscriber - Menerima data dari topic IoT
+IoTHub - https://iothub.id
+"""
+
+import paho.mqtt.client as mqtt
+
+# --- Konfigurasi ---
+BROKER_HOST = "localhost"    # Alamat MQTT broker
+BROKER_PORT = 1883           # Port default MQTT
+CLIENT_ID   = "subscriber-rpi"
+TOPIC       = "home/sensor/suhu"
+
+
+def on_connect(client, userdata, flags, rc, properties=None):
+    """Callback saat koneksi ke broker berhasil."""
+    if rc == 0:
+        print(f"[OK] Terhubung ke MQTT broker ({BROKER_HOST}:{BROKER_PORT})")
+        # Subscribe ke topik setelah koneksi berhasil
+        client.subscribe(TOPIC, qos=1)
+        print(f"[OK] Subscribe ke topik: {TOPIC}")
+    else:
+        print(f"[ERROR] Gagal koneksi, kode: {rc}")
+
+
+def on_message(client, userdata, msg):
+    """Callback saat menerima pesan dari topik yang di-subscribe."""
+    payload = msg.payload.decode("utf-8")
+    print(f"[DATA] {msg.topic} → {payload}")
+
+
+def on_disconnect(client, userdata, rc, properties=None):
+    """Callback saat koneksi terputus."""
+    if rc != 0:
+        print(f"[WARN] Koneksi terputus (rc={rc}), mencoba reconnect...")
+
+
+# --- Setup Client ---
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, CLIENT_ID)
+
+# Set Last Will and Testament (LWT)
+# Pesan ini dikirim broker jika client disconnect mendadak
+client.will_set(
+    topic="home/status/subscriber",
+    payload="OFFLINE",
+    qos=1,
+    retain=True
+)
+
+# Hubungkan callback
+client.on_connect = on_connect
+client.on_message = on_message
+client.on_disconnect = on_disconnect
+
+# Koneksi ke broker
+client.connect(BROKER_HOST, BROKER_PORT, keepalive=60)
+
+# Mulai loop untuk menerima pesan secara terus-menerus
+print("[INFO] Subscriber berjalan... Tekan Ctrl+C untuk berhenti.")
+client.loop_forever()
+</pre>
+      </div>
+
+      <h3>3.2 — MQTT Publisher Sederhana</h3>
+      <p>Publisher adalah komponen yang mengirim pesan ke broker. Berikut contoh publisher yang mengirim data suhu simulasi:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — mqtt_publisher.py</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>"""
+MQTT Publisher - Mengirim data sensor ke broker
+IoTHub - https://iothub.id
+"""
+
+import json
+import time
+import random
+import paho.mqtt.client as mqtt
+
+BROKER_HOST = "localhost"
+BROKER_PORT = 1883
+CLIENT_ID   = "publisher-sensor"
+TOPIC       = "home/sensor/suhu"
+
+
+def on_connect(client, userdata, flags, rc, properties=None):
+    if rc == 0:
+        print(f"[OK] Publisher terhubung ke broker")
+    else:
+        print(f"[ERROR] Gagal koneksi, kode: {rc}")
+
+
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, CLIENT_ID)
+
+# Aktifkan autentikasi jika broker membutuhkan
+# client.username_pw_set("iot_user", "rahasia123")
+
+# Set LWT untuk publisher
+client.will_set("home/status/publisher", "OFFLINE", qos=1, retain=True)
+
+client.on_connect = on_connect
+client.connect(BROKER_HOST, BROKER_PORT, keepalive=60)
+
+# Publish status online (retain=True agar subscriber baru langsung tahu)
+client.publish("home/status/publisher", "ONLINE", qos=1, retain=True)
+
+# Loop publish data
+try:
+    print("[INFO] Mulai mengirim data...")
+    while True:
+        # Simulasi pembacaan sensor
+        suhu = round(random.uniform(24.0, 35.0), 1)
+        kelembaban = round(random.uniform(40.0, 80.0), 1)
+
+        # Buat payload JSON
+        payload = json.dumps({
+            "suhu": suhu,
+            "kelembaban": kelembaban,
+            "unit": "celcius",
+            "timestamp": int(time.time())
+        })
+
+        # Publish dengan QoS 1 (at least once delivery)
+        result = client.publish(TOPIC, payload, qos=1)
+
+        print(f"[KIRIM] {payload}")
+
+        time.sleep(5)  # Kirim setiap 5 detik
+
+except KeyboardInterrupt:
+    print("\n[INFO] Publisher dihentikan.")
+    client.publish("home/status/publisher", "OFFLINE", qos=1, retain=True)
+    client.disconnect()
+</pre>
+      </div>
+
+      <div class="output-block">
+        <strong>Output Subscriber:</strong>
+        [OK] Terhubung ke MQTT broker (localhost:1883)
+        [OK] Subscribe ke topik: home/sensor/suhu
+        [INFO] Subscriber berjalan... Tekan Ctrl+C untuk berhenti.
+        [DATA] home/sensor/suhu → {"suhu": 28.3, "kelembaban": 65.2, "unit": "celcius", "timestamp": 1750416000}
+        [DATA] home/sensor/suhu → {"suhu": 29.1, "kelembaban": 63.8, "unit": "celcius", "timestamp": 1750416005}
+      </div>
+
+      <h3>3.3 — Memahami QoS (Quality of Service)</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Level</th>
+            <th>Nama</th>
+            <th>Penjelasan</th>
+            <th>Cocok untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>QoS 0</td><td>At Most Once</td><td>Pesan dikirim sekali tanpa konfirmasi. Bisa hilang.</td><td>Data non-kritis,高频 update</td></tr>
+          <tr><td>QoS 1</td><td>At Least Once</td><td>Pesan dijamin sampai, tapi mungkin duplikat</td><td>Sensor suhu, status aktuator</td></tr>
+          <tr><td>QoS 2</td><td>Exactly Once</td><td>Pesan dijamin sampai tepat sekali. Paling lambat.</td><td>Kritis: alarm, perintah aktuator</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Last Will and Testament (LWT)</div>
+        <p>LWT adalah pesan khusus yang diatur saat client pertama kali connect ke broker. Jika client disconnect secara tidak normal (misalnya mati listrik), broker akan otomatis mempublikasikan LWT ke topik yang ditentukan. Ini sangat berguna untuk memantau status perangkat IoT secara real-time. Pastikan set <code>retain=True</code> agar subscriber baru langsung mengetahui status terakhir.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: GPIO Control         -->
+      <!-- ============================== -->
+      <h2 id="gpio-control">4. GPIO Control via Python</h2>
+
+      <p><strong>GPIO (General Purpose Input/Output)</strong> adalah pin digital pada Raspberry Pi yang bisa dikonfigurasi sebagai input atau output. Dengan Python, kita bisa mengontrol LED, relay, motor, dan membaca status tombol atau sensor digital.</p>
+
+      <h3>4.1 — Menggunakan RPi.GPIO</h3>
+      <p>Library <code>RPi.GPIO</code> adalah library klasik yang memberikan kontrol langsung ke pin GPIO Raspberry Pi:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — gpio_basic.py</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>"""
+GPIO Control dengan RPi.GPIO
+IoTHub - https://iothub.id
+"""
+
+import RPi.GPIO as GPIO
+import time
+
+# --- Setup Pin ---
+LED_PIN    = 17   # GPIO17 (fisik pin 11)
+BUTTON_PIN = 27   # GPIO27 (fisik pin 13)
+
+# Gunakan penomoran BOARD atau BCM
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+# Setup pin LED sebagai OUTPUT
+GPIO.setup(LED_PIN, GPIO.OUT)
+
+# Setup pin Tombol sebagai INPUT dengan pull-up internal
+GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+# --- Blink LED ---
+print("[INFO] Blink LED pada GPIO17...")
+for i in range(5):
+    GPIO.output(LED_PIN, GPIO.HIGH)  # Nyalakan LED
+    print(f"  Blink {i+1}: ON")
+    time.sleep(0.5)
+    GPIO.output(LED_PIN, GPIO.LOW)   # Matikan LED
+    print(f"  Blink {i+1}: OFF")
+    time.sleep(0.5)
+
+# --- Baca Tombol ---
+print("\n[INFO] Tunggu tekan tombol pada GPIO27...")
+try:
+    while True:
+        # Tombol active-low (ditekan = LOW)
+        if GPIO.input(BUTTON_PIN) == GPIO.LOW:
+            GPIO.output(LED_PIN, GPIO.HIGH)
+            print("[EVENT] Tombol ditekan! LED menyala.")
+        else:
+            GPIO.output(LED_PIN, GPIO.LOW)
+        time.sleep(0.1)
+
+except KeyboardInterrupt:
+    print("\n[INFO] Program dihentikan.")
+
+finally:
+    GPIO.cleanup()  # Selalu bersihkan GPIO saat selesai!
+</pre>
+      </div>
+
+      <h3>4.2 — Menggunakan gpiozero (API Level Tinggi)</h3>
+      <p>Library <code>gpiozero</code> menyediakan API yang jauh lebih bersih dan Pythonic. Sangat direkomendasikan untuk proyek baru:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — gpiozero_example.py</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>"""
+GPIO Control dengan gpiozero (lebih Pythonic)
+IoTHub - https://iothub.id
+"""
+
+from gpiozero import LED, Button, Buzzer
+from signal import pause
+import time
+
+# --- Inisialisasi Komponen ---
+led     = LED(17)          # LED pada GPIO17
+button  = Button(27)       # Tombol pada GPIO27
+buzzer  = Buzzer(22)       # Buzzer pada GPIO22
+
+# --- Blink LED dengan method gpiozero ---
+print("[INFO] Blink LED dengan gpiozero...")
+led.blink(on_time=0.5, off_time=0.5, n=3, background=False)
+
+# --- Event-driven: Tombol menyalakan LED ---
+print("[INFO] Mode event-driven. Tekan tombol untuk LED ON.")
+
+button.when_pressed = lambda: (led.on(), print("[EVENT] LED ON"))
+button.when_released = lambda: (led.off(), print("[EVENT] LED OFF"))
+
+# Jalankan event loop
+pause()
+</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Perbandingan RPi.GPIO vs gpiozero</div>
+        <p><strong>RPi.GPIO</strong>: Cocok jika Anda terbiasa dengan gaya pemrograman Arduino/low-level. Anda harus manual mengatur setup, input/output, dan cleanup. <strong>gpiozero</strong>: Lebih cocok untuk pemula karena menggunakan pendekatan object-oriented — cukup buat objek LED, panggil method-nya. Keduanya bisa dipakai bersamaan, tapi hindari mengontrol pin yang sama dari kedua library secara bersamaan.</p>
+      </div>
+
+      <h3>Pin Mapping Raspberry Pi (BCM Mode)</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fungsi</th>
+            <th>Pin BCM</th>
+            <th>Pin Fisik</th>
+            <th>Catatan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>LED A</td><td>GPIO 17</td><td>Pin 11</td><td>Cocok untuk output LED/relay</td></tr>
+          <tr><td>Tombol A</td><td>GPIO 27</td><td>Pin 13</td><td>Input dengan pull-up internal</td></tr>
+          <tr><td>Buzzer</td><td>GPIO 22</td><td>Pin 15</td><td>Output aktif HIGH</td></tr>
+          <tr><td>Sensor IR</td><td>GPIO 23</td><td>Pin 16</td><td>Input digital dari sensor IR</td></tr>
+          <tr><td>SPI CE0</td><td>GPIO 8</td><td>Pin 24</td><td>Pin SPI chip enable</td></tr>
+          <tr><td>I2C SDA</td><td>GPIO 2</td><td>Pin 3</td><td>Data line I2C</td></tr>
+          <tr><td>I2C SCL</td><td>GPIO 3</td><td>Pin 5</td><td>Clock line I2C</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Membaca Sensor       -->
+      <!-- ============================== -->
+      <h2 id="membaca-sensor">5. Membaca Data Sensor dengan Python</h2>
+
+      <p>Salah satu kebutuhan utama dalam proyek IoT adalah membaca data dari sensor fisik. Pada bagian ini, kita akan mempelajari cara membaca sensor <strong>DHT11/DHT22</strong> (suhu &amp; kelembaban) dan <strong>BME280</strong> (suhu, kelembaban &amp; tekanan udara) menggunakan Python di Raspberry Pi.</p>
+
+      <h3>5.1 — Membaca Sensor DHT11/DHT22</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — sensor_dht.py</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>"""
+Pembacaan Sensor DHT11/DHT22 dengan Python
+IoTHub - https://iothub.id
+
+Rangkaian:
+  DHT11 Pin 1 (VCC) → 3.3V Raspberry Pi
+  DHT11 Pin 2 (DATA) → GPIO4 (Pin 7) + Resistor 10kΩ ke 3.3V
+  DHT11 Pin 4 (GND) → GND Raspberry Pi
+"""
+
+import time
+import board
+import adafruit_dht
+
+# --- Inisialisasi Sensor ---
+# Untuk DHT11 gunakan adafruit_dht.DHT11(board.D4)
+# Untuk DHT22 gunakan adafruit_dht.DHT22(board.D4)
+sensor = adafruit_dht.DHT11(board.D4)
+
+# Interval pembacaan (detik)
+interval = 5
+
+
+def baca_sensor():
+    """Membaca data dari sensor DHT dan mengembalikan dict."""
+    try:
+        suhu = sensor.temperature       # Celsius
+        kelembaban = sensor.humidity     # Persen
+
+        if suhu is None or kelembaban is None:
+            return None
+
+        return {
+            "suhu": round(suhu, 1),
+            "kelembaban": round(kelembaban, 1),
+            "timestamp": int(time.time())
+        }
+
+    except RuntimeError as e:
+        # Error umum DHT: CRC check failed
+        print(f"[WARN] Sensor error: {e}")
+        return None
+    except Exception as e:
+        print(f"[ERROR] Error tak terduga: {e}")
+        return None
+
+
+def main():
+    print("=== Pembaca Sensor DHT11 ===")
+    print(f"Membaca setiap {interval} detik...\n")
+
+    try:
+        while True:
+            data = baca_sensor()
+
+            if data:
+                print(f"🌡️  Suhu       : {data['suhu']} °C")
+                print(f"💧 Kelembaban : {data['kelembaban']} %")
+                print(f"⏰ Timestamp  : {data['timestamp']}")
+                print("---")
+            else:
+                print("[SKIP] Pembacaan gagal, coba lagi...\n")
+
+            time.sleep(interval)
+
+    except KeyboardInterrupt:
+        print("\n[INFO] Program dihentikan.")
+    finally:
+        sensor.exit()
+
+
+if __name__ == "__main__":
+    main()
+</pre>
+      </div>
+
+      <div class="output-block">
+        <strong>Output Terminal:</strong>
+        === Pembaca Sensor DHT11 ===
+        Membaca setiap 5 detik...
+
+        🌡️  Suhu       : 28.5 °C
+        💧 Kelembaban : 72.0 %
+        ⏰ Timestamp  : 1750416000
+        ---
+        🌡️  Suhu       : 28.0 °C
+        💧 Kelembaban : 73.5 %
+        ⏰ Timestamp  : 1750416005
+        ---
+      </div>
+
+      <h3>5.2 — Membaca Sensor BME280 via I2C (smbus2)</h3>
+      <p>Sensor <strong>BME280</strong> menggunakan protokol I2C dan mengukur suhu, kelembaban, <em>dan</em> tekanan udara. Berikut cara membacanya langsung menggunakan library <code>smbus2</code>:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — sensor_bme280.py</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>"""
+Pembacaan Sensor BME280 via I2C dengan smbus2
+IoTHub - https://iothub.id
+
+Rangkaian:
+  BME280 VCC → 3.3V
+  BME280 GND → GND
+  BME280 SDA → GPIO2 (Pin 3)
+  BME280 SCL → GPIO3 (Pin 5)
+  BME280 SDO → GND (Alamat I2C: 0x76)
+"""
+
+import time
+import struct
+from smbus2 import SMBus
+
+# Alamat default BME280 (jika SDO ke GND = 0x76, ke VCC = 0x77)
+BME280_ADDR = 0x76
+
+# Register BME280
+REG_ID          = 0xD0
+REG_RESET       = 0xE0
+REG_CTRL_HUM    = 0xF2
+REG_CTRL_MEAS   = 0xF4
+REG_CONFIG      = 0xF5
+REG_DATA_START  = 0xF7
+
+# Kalibrasi data register
+CALIB_26_41     = 0xE1
+CALIB_00_25     = 0x88
+CALIB_00_25_LEN = 26
+CALIB_26_41_LEN = 7
+
+
+class BME280:
+    """Driver sederhana untuk sensor BME280."""
+
+    def __init__(self, bus_number=1, address=BME280_ADDR):
+        self.bus = SMBus(bus_number)
+        self.addr = address
+
+        # Verifikasi ID chip (harus 0x60)
+        chip_id = self.bus.read_byte_data(self.addr, REG_ID)
+        if chip_id != 0x60:
+            raise RuntimeError(f"BME280 tidak terdeteksi! Chip ID: {chip_id:#x}")
+
+        # Baca data kalibrasi
+        self._load_calibration()
+
+        # Konfigurasi: oversampling, mode normal
+        self.bus.write_byte_data(self.addr, REG_CTRL_HUM, 0x05)    # Humidity x16
+        self.bus.write_byte_data(self.addr, REG_CTRL_MEAS, 0xB7)   # Temp x16, Press x16, Normal mode
+        self.bus.write_byte_data(self.addr, REG_CONFIG, 0xA0)       # Standby 1000ms
+
+    def _load_calibration(self):
+        """Baca register kalibrasi untuk kompensasi suhu & tekanan."""
+        cal26 = self.bus.read_i2c_block_data(self.addr, CALIB_26_41, CALIB_26_41_LEN)
+        cal00 = self.bus.read_i2c_block_data(self.addr, CALIB_00_25, CALIB_00_25_LEN)
+
+        # Kompensasi suhu
+        self.dig_T1 = struct.unpack('<H', bytes(cal00[0:2]))[0]
+        self.dig_T2 = struct.unpack('<h', bytes(cal00[2:4]))[0]
+        self.dig_T3 = struct.unpack('<h', bytes(cal00[4:6]))[0]
+
+        # Kompensasi tekanan
+        self.dig_P1 = struct.unpack('<H', bytes(cal00[6:8]))[0]
+        self.dig_P2 = struct.unpack('<h', bytes(cal00[8:10]))[0]
+        self.dig_P3 = struct.unpack('<h', bytes(cal00[10:12]))[0]
+        self.dig_P4 = struct.unpack('<h', bytes(cal00[12:14]))[0]
+        self.dig_P5 = struct.unpack('<h', bytes(cal00[14:16]))[0]
+        self.dig_P6 = struct.unpack('<h', bytes(cal00[16:18]))[0]
+        self.dig_P7 = struct.unpack('<h', bytes(cal00[18:20]))[0]
+        self.dig_P8 = struct.unpack('<h', bytes(cal00[20:22]))[0]
+        self.dig_P9 = struct.unpack('<h', bytes(cal00[22:24]))[0]
+
+        # Kompensasi kelembaban
+        self.dig_H1 = cal26[0]
+        self.dig_H2 = struct.unpack('<h', bytes(cal26[1:3]))[0]
+        self.dig_H3 = cal26[3]
+        self.dig_H4 = (cal26[4] << 4) | (cal26[5] & 0x0F)
+        if self.dig_H4 > 2047:
+            self.dig_H4 -= 4096
+        self.dig_H5 = (cal26[6] << 4) | ((cal26[5] >> 4) & 0x0F)
+        if self.dig_H5 > 2047:
+            self.dig_H5 -= 4096
+        self.dig_H6 = struct.unpack('<b', bytes([cal26[7]]))[0]
+
+    def read_raw(self):
+        """Baca data mentah 8 byte dari register sensor."""
+        data = self.bus.read_i2c_block_data(self.addr, REG_DATA_START, 8)
+        raw_press = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
+        raw_temp  = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
+        raw_hum   = (data[6] << 8)  | data[7]
+        return raw_temp, raw_press, raw_hum
+
+    def read_compensated(self):
+        """Baca dan kompensasi data suhu, tekanan, kelembaban."""
+        raw_temp, raw_press, raw_hum = self.read_raw()
+
+        # Kompensasi suhu (dari datasheet BME280)
+        var1 = (raw_temp / 16384.0 - self.dig_T1 / 1024.0) * self.dig_T2
+        var2 = ((raw_temp / 131072.0 - self.dig_T1 / 8192.0) ** 2) * self.dig_T3
+        t_fine = var1 + var2
+        suhu = t_fine / 5120.0
+
+        # Kompensasi kelembaban
+        h = t_fine - 76800.0
+        h = (raw_hum - (self.dig_H4 * 64.0 + self.dig_H5 / 16384.0 * h)) * \
+            (self.dig_H2 / 65536.0 * (1.0 + self.dig_H6 / 67108864.0 * h *
+            (1.0 + self.dig_H3 / 67108864.0 * h)))
+        kelembaban = max(0.0, min(h, 100.0))
+
+        return round(suhu, 2), round(kelembaban, 2)
+
+
+# --- Program Utama ---
+if __name__ == "__main__":
+    sensor = BME280()
+    print("=== BME280 Sensor Reader ===\n")
+
+    try:
+        while True:
+            suhu, kelembaban = sensor.read_compensated()
+            print(f"🌡️  Suhu       : {suhu} °C")
+            print(f"💧 Kelembaban : {kelembaban} %")
+            print("---")
+            time.sleep(3)
+
+    except KeyboardInterrupt:
+        print("\n[INFO] Selesai.")
+</pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Mengapa smbus2 langsung?</div>
+        <p>BME280 juga bisa dibaca menggunakan library <code>adafruit-circuitpython-bme280</code> yang lebih sederhana. Namun, contoh di atas menunjukkan cara membaca register langsung menggunakan <code>smbus2</code> agar Anda memahami cara kerja komunikasi I2C di level register. Untuk proyek produksi, gunakan library tingkat tinggi untuk kemudahan.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Scheduling           -->
+      <!-- ============================== -->
+      <h2 id="scheduling">6. Scheduling &amp; Cron Jobs</h2>
+
+      <p>Sistem IoT yang andal membutuhkan penjadwalan tugas otomatis — misalnya mengirim laporan setiap jam, membersihkan log setiap tengah malam, atau menjalankan kalibrasi sensor secara berkala. Python menawarkan beberapa pilihan untuk ini.</p>
+
+      <h3>6.1 — APScheduler: Penjadwalan di dalam Aplikasi Python</h3>
+      <p><strong>APScheduler</strong> adalah library scheduling paling fleksibel untuk Python. Berbeda dari cron, APScheduler berjalan di dalam proses Python dan mendukung tiga jenis scheduler: <em>interval</em> (periodik), <em>date</em> (sekali di waktu tertentu), dan <em>cron</em> (polanya mirip system cron).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — scheduler_example.py</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>"""
+APScheduler - Penjadwalan Tugas Otomatis untuk IoT
+IoTHub - https://iothub.id
+"""
+
+import time
+import logging
+from datetime import datetime
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.cron import CronTrigger
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger("iot-scheduler")
+
+
+def baca_sensor_suhu():
+    """Tugas periodik: Baca data suhu setiap 10 detik."""
+    import random
+    suhu = round(random.uniform(25.0, 32.0), 1)
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    logger.info(f"[SENSOR] Suhu terbaca: {suhu} °C")
+
+
+def kirim_laporan_harian():
+    """Tugas cron: Kirim laporan setiap jam 08:00 pagi."""
+    logger.info("[LAPORAN] Mengirim laporan harian ke server...")
+
+
+def bersihkan_log():
+    """Tugas cron: Bersihkan log file setiap tengah malam."""
+    logger.info("[CLEANUP] Membersihkan log lama...")
+
+
+def kalibrasi_sensor():
+    """Tugas interval: Kalibrasi sensor setiap 6 jam."""
+    logger.info("[KALIBRASI] Menjalankan kalibrasi sensor BME280...")
+
+
+# --- Setup Scheduler ---
+scheduler = BackgroundScheduler()
+
+# Tugas 1: Baca sensor setiap 10 detik
+scheduler.add_job(
+    func=baca_sensor_suhu,
+    trigger=IntervalTrigger(seconds=10),
+    id="baca_sensor",
+    name="Pembacaan Sensor Suhu",
+    replace_existing=True
+)
+
+# Tugas 2: Laporan harian jam 08:00
+scheduler.add_job(
+    func=kirim_laporan_harian,
+    trigger=CronTrigger(hour=8, minute=0),
+    id="laporan_harian",
+    name="Laporan Harian"
+)
+
+# Tugas 3: Bersihkan log tengah malam
+scheduler.add_job(
+    func=bersihkan_log,
+    trigger=CronTrigger(hour=0, minute=0),
+    id="bersihkan_log",
+    name="Pembersihan Log"
+)
+
+# Tugas 4: Kalibrasi setiap 6 jam
+scheduler.add_job(
+    func=kalibrasi_sensor,
+    trigger=IntervalTrigger(hours=6),
+    id="kalibrasi",
+    name="Kalibrasi Sensor"
+)
+
+# Mulai scheduler
+scheduler.start()
+logger.info("[OK] Scheduler dimulai dengan 4 tugas terjadwal.")
+
+# Tampilkan jadwal yang aktif
+for job in scheduler.get_jobs():
+    logger.info(f"  📋 {job.name} → next run: {job.next_run_time}")
+
+# Jalankan selama 30 detik untuk demo
+try:
+    logger.info("[INFO] Scheduler berjalan selama 30 detik...")
+    time.sleep(30)
+except KeyboardInterrupt:
+    pass
+
+scheduler.shutdown()
+logger.info("[INFO] Scheduler dihentikan.")
+</pre>
+      </div>
+
+      <h3>6.2 — Perbandingan: APScheduler vs System Cron</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>APScheduler</th>
+            <th>System Cron</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Cara kerja</td><td>Di dalam proses Python</td><td>OS-level, menjalankan script baru</td></tr>
+          <tr><td>Interaksi antar tugas</td><td>✅ Bisa berbagi state</td><td>❌ Terisolasi</td></tr>
+          <tr><td>Misfire handling</td><td>✅ Grace period &amp; retry</td><td>❌ Perlu penanganan manual</td></tr>
+          <tr><td>Persistence</td><td>Via SQLAlchemy/jobstore</td><td>✅ Tersimpan di /etc/crontab</td></tr>
+          <tr><td>Overhead</td><td>Minimal (in-process)</td><td>Process spawn tiap eksekusi</td></tr>
+          <tr><td>Cocok untuk</td><td>App Python yang sudah berjalan</td><td>Schedule mandiri tanpa app</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Penting untuk Produksi</div>
+        <p>Saat menggunakan APScheduler di produksi, pastikan: (1) Gunakan <code>BackgroundScheduler</code> atau <code>AsyncIOScheduler</code> — jangan gunakan <code>BlockingScheduler</code> jika Anda juga perlu menjalankan MQTT client. (2) Aktifkan <code>misfire_grace_time</code> agar tugas tidak melewati deadline jika server sedang sibuk. (3) Gunakan <code>jobstore</code> berbasis database jika perlu persistensi setelah restart.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Proyek Monitoring    -->
+      <!-- ============================== -->
+      <h2 id="proyek-monitoring">7. Proyek: Sistem Monitoring Otomatis</h2>
+
+      <p>Sekarang kita akan menggabungkan semua konsep yang sudah dipelajari menjadi satu proyek nyata: <strong>Sistem Monitoring Suhu &amp; Kelembaban Otomatis</strong>. Sistem ini akan membaca sensor, mengirim data ke MQTT broker, menjadwalkan pembacaan otomatis, dan mengontrol relay berdasarkan threshold.</p>
+
+      <h3>Arsitektur Proyek</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Alur Sistem Monitoring Otomatis</div>
+<pre>
+┌────────────┐     ┌──────────────────────────────────┐     ┌───────────────┐
+│   DHT11    ├────►│        RASPBERRY PI 4B           │     │  MQTT BROKER  │
+│  (Sensor)  │     │                                  ├────►│  (Mosquitto)  │
+└────────────┘     │  ┌─────────────────────────────┐ │     └───────┬───────┘
+                   │  │    main_monitor.py           │ │             │
+┌────────────┐     │  │                             │ │     ┌───────▼───────┐
+│   LED      │◄────┤  │  1. Baca sensor (interval)  │ │     │  Dashboard /  │
+│  (Status)  │     │  │  2. Kirim ke MQTT            │ │     │  Telegram Bot │
+└────────────┘     │  │  3. Cek threshold            │ │     └───────────────┘
+                   │  │  4. Kontrol relay             │ │
+┌────────────┐     │  │  5. Log ke file               │ │
+│   RELAY    │◄────┤  └─────────────────────────────┘ │
+│  (Kipas/AC)│     └──────────────────────────────────┘
+└────────────┘
+</pre>
+      </div>
+
+      <h3>Implementasi Lengkap</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — main_monitor.py</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>"""
+Sistem Monitoring Suhu & Kelembaban Otomatis
+IoTHub - https://iothub.id
+
+Fitur:
+- Pembacaan DHT11 berkala via APScheduler
+- Publish data ke MQTT broker (paho-mqtt)
+- Kontrol relay otomatis berdasarkan threshold
+- Logging ke file
+- LED status: blink saat error, solid saat normal
+"""
+
+import json
+import time
+import logging
+import random  # Ganti dengan baca sensor asli
+from datetime import datetime
+
+import paho.mqtt.client as mqtt
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+
+# === KONFIGURASI ===
+BROKER_HOST    = "localhost"
+BROKER_PORT    = 1883
+CLIENT_ID      = "monitor-rpi-01"
+TOPIC_DATA     = "home/sensor/suhu"
+TOPIC_STATUS   = "home/status/monitor"
+TOPIC_RELAY    = "home/actuator/relay"
+
+# Threshold untuk kontrol otomatis
+SUHU_ON_THRESHOLD  = 30.0   # Suhu di atas ini → nyalakan kipas
+SUHU_OFF_THRESHOLD = 27.0   # Suhu di bawah ini → matikan kipas
+
+RELAY_PIN = 17   # GPIO pin relay
+LED_PIN   = 27   # GPIO pin LED status
+INTERVAL  = 10   # Detik antara pembacaan
+
+# === LOGGING ===
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler("monitor.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("monitor")
+
+# === STATE GLOBAL ===
+relay_aktif = False
+
+
+def baca_sensor():
+    """
+    Baca data dari DHT11.
+    Ganti bagian simulasi dengan kode sensor asli:
+      import board, adafruit_dht
+      sensor = adafruit_dht.DHT11(board.D4)
+      suhu = sensor.temperature
+      kelembaban = sensor.humidity
+    """
+    suhu = round(random.uniform(24.0, 34.0), 1)
+    kelembaban = round(random.uniform(40.0, 80.0), 1)
+    return suhu, kelembaban
+
+
+def kontrol_relay(suhu):
+    """Kontrol relay berdasarkan threshold suhu."""
+    global relay_aktif
+
+    if suhu >= SUHU_ON_THRESHOLD and not relay_aktif:
+        relay_aktif = True
+        logger.warning(f"⚡ RELAY ON — Suhu {suhu}°C ≥ {SUHU_ON_THRESHOLD}°C")
+        # GPIO.output(RELAY_PIN, GPIO.HIGH)  # Aktifkan relay
+
+    elif suhu <= SUHU_OFF_THRESHOLD and relay_aktif:
+        relay_aktif = False
+        logger.info(f"🔴 RELAY OFF — Suhu {suhu}°C ≤ {SUHU_OFF_THRESHOLD}°C")
+        # GPIO.output(RELAY_PIN, GPIO.LOW)   # Matikan relay
+
+
+def tugas_pembacaan():
+    """Tugas utama: baca sensor → publish → kontrol relay."""
+    try:
+        suhu, kelembaban = baca_sensor()
+
+        # Susun payload
+        payload = json.dumps({
+            "suhu": suhu,
+            "kelembaban": kelembaban,
+            "relay": "ON" if relay_aktif else "OFF",
+            "device": CLIENT_ID,
+            "timestamp": datetime.now().isoformat()
+        })
+
+        # Publish ke MQTT
+        client.publish(TOPIC_DATA, payload, qos=1)
+        logger.info(f"📊 Data terkirim: {payload}")
+
+        # Kontrol relay otomatis
+        kontrol_relay(suhu)
+
+    except Exception as e:
+        logger.error(f"❌ Error pembacaan: {e}")
+
+
+# === MQTT SETUP ===
+def on_connect(client, userdata, flags, rc, properties=None):
+    if rc == 0:
+        logger.info(f"✅ MQTT terhubung ke {BROKER_HOST}")
+        client.publish(TOPIC_STATUS, "ONLINE", qos=1, retain=True)
+
+        # Subscribe ke topik kontrol relay dari dashboard
+        client.subscribe(f"{TOPIC_RELAY}/command", qos=1)
+        logger.info(f"📡 Subscribe ke {TOPIC_RELAY}/command")
+    else:
+        logger.error(f"❌ MQTT gagal koneksi, rc={rc}")
+
+
+def on_message(client, userdata, msg):
+    """Handler untuk perintah relay dari dashboard."""
+    command = msg.payload.decode("utf-8")
+    global relay_aktif
+
+    if command == "ON":
+        relay_aktif = True
+        logger.info("🔔 Relay diaktifkan via MQTT command")
+    elif command == "OFF":
+        relay_aktif = False
+        logger.info("🔔 Relay dimatikan via MQTT command")
+
+
+def on_disconnect(client, userdata, rc, properties=None):
+    if rc != 0:
+        logger.warning(f"⚠️ MQTT terputus (rc={rc})")
+
+
+# === INISIALISASI ===
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, CLIENT_ID)
+client.will_set(TOPIC_STATUS, "OFFLINE", qos=1, retain=True)
+client.on_connect = on_connect
+client.on_message = on_message
+client.on_disconnect = on_disconnect
+
+# Hubungkan
+client.connect(BROKER_HOST, BROKER_PORT, keepalive=60)
+
+# Mulai scheduler
+scheduler = BackgroundScheduler()
+scheduler.add_job(
+    func=tugas_pembacaan,
+    trigger=IntervalTrigger(seconds=INTERVAL),
+    id="pembacaan_sensor",
+    name="Pembacaan Sensor & Publish MQTT"
+)
+scheduler.start()
+logger.info(f"📅 Scheduler aktif — interval {INTERVAL} detik")
+
+# === MAIN LOOP ===
+logger.info("🚀 Sistem monitoring dimulai!")
+logger.info(f"   Threshold ON  : {SUHU_ON_THRESHOLD}°C")
+logger.info(f"   Threshold OFF : {SUHU_OFF_THRESHOLD}°C")
+
+try:
+    # Jalankan MQTT loop di thread utama
+    client.loop_forever()
+
+except KeyboardInterrupt:
+    logger.info("\n🛑 Sistem dihentikan oleh user.")
+
+finally:
+    client.publish(TOPIC_STATUS, "OFFLINE", qos=1, retain=True)
+    scheduler.shutdown()
+    client.disconnect()
+    logger.info("👋 Shutdown selesai.")
+</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Menjalankan di Background</div>
+        <p>Untuk menjalankan sistem monitoring secara permanen di Raspberry Pi, gunakan <strong>systemd service</strong> atau <strong>screen/tmux</strong>. Berikut contoh perintah screen: <code>screen -S monitor</code> → jalankan <code>python3 main_monitor.py</code> → tekan <kbd>Ctrl+A</kbd> lalu <kbd>D</kbd> untuk detach. Gunakan <code>screen -r monitor</code> untuk kembali.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Best Practices       -->
+      <!-- ============================== -->
+      <h2 id="best-practices">8. Best Practices &amp; Error Handling</h2>
+
+      <p>Sistem IoT yang berjalan 24/7 membutuhkan error handling yang robust. Berikut praktik terbaik yang wajib diterapkan dalam proyek IoT Python Anda:</p>
+
+      <h3>8.1 — Error Handling yang Benar</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — error_handling.py</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>"""
+Best Practices Error Handling untuk IoT Python
+IoTHub - https://iothub.id
+"""
+
+import logging
+import time
+import json
+from functools import wraps
+from datetime import datetime
+
+# === DECORATOR: RETRY dengan backoff ===
+def retry_with_backoff(max_retries=5, base_delay=1.0, max_delay=60.0):
+    """Decorator untuk retry otomatis dengan exponential backoff."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            retries = 0
+            while retries < max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    retries += 1
+                    delay = min(base_delay * (2 ** (retries - 1)), max_delay)
+                    logging.warning(
+                        f"[RETRY] {func.__name__} gagal (attempt {retries}/{max_retries}): {e}"
+                    )
+                    if retries < max_retries:
+                        logging.info(f"[RETRY] Menunggu {delay:.1f}s sebelum retry...")
+                        time.sleep(delay)
+                    else:
+                        logging.error(f"[FATAL] {func.__name__} gagal setelah {max_retries} percobaan!")
+                        raise
+        return wrapper
+    return decorator
+
+
+# === CONTOH PENGGUNAAN ===
+@retry_with_backoff(max_retries=3, base_delay=2.0)
+def kirim_ke_broker(client, topic, payload):
+    """Kirim data ke MQTT broker dengan retry."""
+    result = client.publish(topic, json.dumps(payload), qos=1)
+    if result.rc != 0:
+        raise ConnectionError(f"Publish gagal, rc={result.rc}")
+    return True
+
+
+@retry_with_backoff(max_retries=5)
+def baca_sensor_dht():
+    """Baca sensor DHT dengan retry."""
+    import board, adafruit_dht
+    sensor = adafruit_dht.DHT11(board.D4)
+    suhu = sensor.temperature
+    if suhu is None:
+        raise ValueError("Pembacaan sensor mengembalikan None")
+    return suhu
+
+
+# === HEALTH CHECK LOGGER ===
+class HealthMonitor:
+    """Monitor kesehatan sistem IoT."""
+
+    def __init__(self):
+        self.errors = []
+        self.last_success = datetime.now()
+        self.max_error_age = 300  # 5 menit
+
+    def record_success(self):
+        self.last_success = datetime.now()
+        self.errors.clear()
+
+    def record_error(self, error_msg):
+        self.errors.append({
+            "time": datetime.now().isoformat(),
+            "error": error_msg
+        })
+        if len(self.errors) > 10:
+            self.errors = self.errors[-10:]  # Simpan 10 error terakhir
+
+    def is_healthy(self):
+        """Cek apakah sistem masih sehat."""
+        age = (datetime.now() - self.last_success).total_seconds()
+        return age < self.max_error_age and len(self.errors) < 5
+
+    def get_status_report(self):
+        """Generate laporan kesehatan."""
+        age = (datetime.now() - self.last_success).total_seconds()
+        return {
+            "healthy": self.is_healthy(),
+            "last_success_ago": f"{age:.0f}s",
+            "recent_errors": len(self.errors),
+            "uptime_ok": age < self.max_error_age
+        }
+
+
+# === KONFIGURASI LOGGING YANG BAIK ===
+def setup_logging(log_file="iot_system.log"):
+    """Setup logging untuk sistem IoT."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ]
+    )
+    return logging.getLogger("iot")
+</pre>
+      </div>
+
+      <h3>Checklist Best Practices</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Praktik</th>
+            <th>Penjelasan</th>
+            <th>Prioritas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>SELALU pakai try/except</td><td>Wrap semua pembacaan sensor dan MQTT publish dalam try/except</td><td>🔴 Tinggi</td></tr>
+          <tr><td>Retry dengan backoff</td><td>Jangan retry langsung — gunakan delay eksponensial</td><td>🔴 Tinggi</td></tr>
+          <tr><td>Logging ke file</td><td>Catat semua aktivitas ke log file untuk debugging</td><td>🔴 Tinggi</td></tr>
+          <tr><td>LWT MQTT aktif</td><td>Gunakan Last Will agar broker tahu jika device offline</td><td>🟡 Sedang</td></tr>
+          <tr><td>Watchdog timer</td><td>Gunakan hardware/software watchdog untuk auto-restart</td><td>🟡 Sedang</td></tr>
+          <tr><td>Konfigurasi via file/env</td><td>Jangan hardcode kredensial di kode sumber</td><td>🟡 Sedang</td></tr>
+          <tr><td>Graceful shutdown</td><td>Pastikan relay aktuator dimatikan saat program berhenti</td><td>🔴 Tinggi</td></tr>
+          <tr><td>Health check endpoint</td><td>Exposes endpoint untuk monitoring dari luar</td><td>🟢 Opsional</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box danger">
+        <div class="info-box-title">🚫 Kesalahan Umum yang Harus Dihindari</div>
+        <p><strong>1. Hardcode password di kode sumber</strong> — gunakan environment variable atau file config terpisah. <strong>2. Menggunakan <code>time.sleep()</code> panjang di main thread</strong> — gunakan scheduler atau threading agar MQTT loop tidak ter-block. <strong>3. Tidak ada <code>GPIO.cleanup()</code></strong> — pin GPIO bisa tertinggal di state yang salah setelah program berhenti. <strong>4. Mengabaikan error <code>NaN</code> dari sensor</strong> — DHT11 sering mengembalikan None/NaN, pastikan selalu dicek.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article bottom -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                 -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang otomasi IoT dengan Python:</p>
+
+      <div class="quiz-container" id="quiz04">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Level QoS mana yang menjamin pesan sampai minimal sekali (at least once), meski berpotensi duplikat?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) QoS 0</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) QoS 1</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) QoS 2</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) QoS 3</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa fungsi Last Will and Testament (LWT) dalam MQTT?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Menyimpan pesan ke dalam database broker</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Mengenkripsi semua pesan yang dikirim client</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Membuat client reconnect secara otomatis saat disconnect</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Mengirim pesan otomatis dari broker jika client disconnect mendadak</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Library apa yang disarankan untuk GPIO Raspberry Pi karena API-nya yang Pythonic dan object-oriented?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) gpiozero</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) serial</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) numpy</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) flask</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Trigger mana pada APScheduler yang menjalankan tugas secara periodik dengan interval tetap?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) CronTrigger</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) DateTrigger</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) IntervalTrigger</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) OnceTrigger</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Praktik terbaik apa yang harus digunakan saat retry koneksi MQTT yang gagal?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Retry langsung tanpa delay</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Exponential backoff dengan delay yang meningkat</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Cukup satu kali percobaan saja</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Menutup program dan menjalankan ulang dari awal</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article bottom -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="dashboard-monitoring.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Dashboard Monitoring IoT dengan Flask &amp; Grafana</span>
+        </a>
+        <a href="network-security.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Keamanan Jaringan IoT: Firewall, VPN &amp; Enkripsi Data</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand-name">⚡ <span>IoTHub</span></div>
+          <p>
+            Portal tutorial teknologi IoT, jaringan, dan mikrokontroler.
+            Konten original, gratis, dan selalu diperbarui.
+          </p>
+        </div>
+        <div class="footer-col">
+          <h4>Kategori</h4>
+          <ul>
+            <li><a href="#">ESP32 &amp; ESP8266</a></li>
+            <li><a href="#">MikroTik &amp; Jaringan</a></li>
+            <li><a href="#">LoRa &amp; LPWAN</a></li>
+            <li><a href="#">Keamanan Jaringan</a></li>
+            <li><a href="#">Python untuk IoT</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Populer</h4>
+          <ul>
+            <li><a href="#">Tutorial ESP32</a></li>
+            <li><a href="#">Konfigurasi MikroTik</a></li>
+            <li><a href="#">Proyek LoRa</a></li>
+            <li><a href="#">Dashboard IoT</a></li>
+            <li><a href="#">MQTT untuk Pemula</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Lainnya</h4>
+          <ul>
+            <li><a href="#">Tentang Kami</a></li>
+            <li><a href="#">Kebijakan Privasi</a></li>
+            <li><a href="#">Kontak</a></li>
+            <li><a href="#">RSS Feed</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 IoTHub. Semua hak dilindungi. Konten original buatan tim kami.</p>
+        <div class="social-links">
+          <a href="#">GitHub</a>
+          <a href="#">YouTube</a>
+          <a href="#">Discord</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== BACK TO TOP ========== -->
+  <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
+
+  <!-- ========== SCRIPTS ========== -->
+  <script src="../js/app.js"></script>
+  <script>
+    // Initialize quiz with correct answers
+    initQuiz('quiz04', ['b', 'd', 'a', 'c', 'b']);
+  </script>
+</body>
+</html>
