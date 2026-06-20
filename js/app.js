@@ -550,52 +550,105 @@ const PaywallSystem = {
     const isFree = this.isFreeArticle(filename);
     const hasEmailAccess = this.hasEmailAccess(filename);
     const isLoggedIn = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
+
+    // PAID users: see everything
     if (isPaid) return;
+
+    // FREE articles: show email gate if not unlocked
+    if (isFree && !hasEmailAccess && !isLoggedIn) {
+      this.showEmailGate(filename);
+      return;
+    }
+    // FREE articles: logged in users see free articles
     if (isFree && (hasEmailAccess || isLoggedIn)) return;
-    if (isFree && !hasEmailAccess && !isLoggedIn) { this.showEmailGate(filename); return; }
-    if (!isFree && !isPaid) { this.showPaywall(filename); }
+
+    // PREMIUM articles: ALWAYS block for non-paid users
+    if (!isFree && !isPaid) {
+      this.showPremiumBlock(filename);
+    }
   },
 
+  // === Email Gate for Free Articles ===
   showEmailGate(filename) {
     const article = document.querySelector('.article-content');
     if (!article) return;
-    const elements = article.querySelectorAll('h2, h3, p, .code-block, .info-box, .arch-diagram, .compare-grid, .spec-table');
-    let cutIndex = 0, charCount = 0;
-    for (let i = 0; i < elements.length; i++) {
-      charCount += elements[i].textContent.length;
-      if (charCount > 600 || (elements[i].tagName === 'H2' && i > 1)) { cutIndex = i; break; }
-    }
-    const overlay = document.createElement('div');
-    overlay.className = 'paywall-overlay';
-    const blurDiv = document.createElement('div');
-    blurDiv.className = 'paywall-blur';
-    Array.from(elements).slice(cutIndex).forEach(el => blurDiv.appendChild(el.cloneNode(true)));
 
+    // Remove ALL content after first 2 paragraphs
+    const children = Array.from(article.children);
+    let cutIdx = 0;
+    let charCount = 0;
+    for (let i = 0; i < children.length; i++) {
+      charCount += (children[i].textContent || '').length;
+      if (charCount > 500) { cutIdx = i + 1; break; }
+    }
+    // Keep at least title + 2 paragraphs
+    cutIdx = Math.max(cutIdx, 3);
+
+    // Remove everything after cutIdx
+    while (article.children.length > cutIdx) {
+      article.removeChild(article.lastChild);
+    }
+
+    // Add paywall card
     const card = document.createElement('div');
     card.className = 'paywall-card';
-    card.innerHTML = '<div class="paywall-icon">🔓</div><div class="paywall-badge">✨ Artikel Gratis</div>' +
-      '<h3>Baca Artikel Lengkap</h3><p>Masukkan email untuk membuka akses gratis.</p>';
+    card.style.cssText = 'margin-top:24px;';
+    card.innerHTML = `
+      <div class="paywall-icon">🔓</div>
+      <div class="paywall-badge">✨ Artikel Gratis</div>
+      <h3>Buka Artikel Ini</h3>
+      <p>Masukkan email untuk membuka akses gratis ke artikel ini.</p>
+      <form class="email-gate-form" style="display:flex;gap:8px;max-width:420px;margin:16px auto 0;">
+        <input type="email" placeholder="email@kamu.com" required style="flex:1;background:var(--bg-secondary);border:1px solid var(--border-standard);border-radius:8px;padding:10px 14px;color:var(--text-primary);font-family:var(--font-primary);outline:none;">
+        <button type="submit" style="background:var(--accent-primary);color:#0f0f0f;font-weight:600;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-family:var(--font-primary);">Buka</button>
+      </form>
+      <p style="font-size:0.75rem;color:var(--text-subtle);margin-top:12px;">Atau <a href="../pricing.html" style="color:#3ecf8e;">beli akses premium</a> ke semua artikel</p>
+    `;
+    card.querySelector('form').onsubmit = function(e) {
+      e.preventDefault();
+      const email = e.target.querySelector('input').value;
+      const acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
+      if (!acc.emailUnlocked) acc.emailUnlocked = [];
+      if (!acc.emailUnlocked.includes(filename)) acc.emailUnlocked.push(filename);
+      localStorage.setItem('iothub_access', JSON.stringify(acc));
+      window.location.reload();
+    };
+    article.appendChild(card);
+  },
 
-    const form = document.createElement('form');
-    form.className = 'email-gate-form';
-    form.onsubmit = function(e) { PaywallSystem.unlockWithEmail(e, filename); };
-    const input = document.createElement('input');
-    input.type = 'email';
-    input.placeholder = 'email@kamu.com';
-    input.required = true;
-    const btn = document.createElement('button');
-    btn.type = 'submit';
-    btn.textContent = 'Buka Akses';
-    form.appendChild(input);
-    form.appendChild(btn);
-    card.appendChild(form);
+  // === Premium Block for Paid Articles ===
+  showPremiumBlock(filename) {
+    const article = document.querySelector('.article-content');
+    if (!article) return;
 
-    overlay.appendChild(blurDiv);
-    overlay.appendChild(card);
+    // REMOVE ALL article content
+    while (article.firstChild) {
+      article.removeChild(article.firstChild);
+    }
 
-    const cutPoint = elements[cutIndex];
-    if (cutPoint) { let s = cutPoint; while (s) { const n = s.nextElementSibling; s.remove(); s = n; } }
-    article.appendChild(overlay);
+    // Show lock screen
+    const isLoggedIn = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
+    article.innerHTML = `
+      <div style="text-align:center;padding:80px 20px;">
+        <div style="font-size:4rem;margin-bottom:16px;">🔒</div>
+        <div style="display:inline-block;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:600;color:#fb923c;margin-bottom:16px;">Artikel Premium</div>
+        <h2 style="color:var(--text-primary);margin-bottom:8px;">Konten Terkunci</h2>
+        <p style="color:var(--text-muted);max-width:480px;margin:0 auto 24px;line-height:1.6;">
+          ${isLoggedIn
+            ? 'Akun kamu belum memiliki akses premium. Upgrade ke paket Bulanan atau Tahunan untuk membuka semua artikel.'
+            : 'Login atau daftar untuk mengakses artikel premium. Atau beli paket langganan.'}
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          ${isLoggedIn
+            ? '<a href="../pricing.html" style="background:var(--accent-primary);color:#0f0f0f;font-weight:600;padding:12px 28px;border-radius:9999px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">💎 Upgrade Sekarang</a>'
+            : '<button onclick="AuthSystem.showModal()" style="background:var(--accent-primary);color:#0f0f0f;font-weight:600;padding:12px 28px;border-radius:9999px;border:none;cursor:pointer;font-family:var(--font-primary);display:inline-flex;align-items:center;gap:8px;">👤 Login / Daftar</button><a href="../pricing.html" style="background:var(--bg-card);color:var(--text-secondary);font-weight:500;padding:12px 28px;border-radius:9999px;border:1px solid var(--border-standard);text-decoration:none;display:inline-flex;align-items:center;gap:8px;">💎 Lihat Harga</a>'}
+        </div>
+      </div>
+    `;
+
+    // Prevent scrolling
+    article.style.overflow = 'hidden';
+    article.style.maxHeight = 'none';
   },
 
   showPaywall(filename) {
