@@ -1,36 +1,70 @@
-
+"""
+Netlify Function: Create Payment (Midtrans Snap)
+Endpoint: /.netlify/functions/create-payment
+Method: POST
+Body: {"email": "...", "plan": "monthly"|"yearly", "amount": 49000, "item_name": "..."}
+"""
 import json
 import os
 import time
-import urllib.request
-import urllib.error
+import secrets
+import hashlib
+import base64
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+
+MIDTRANS_SERVER_KEY = os.environ.get('MIDTRANS_SERVER_KEY', '')
+MIDTRANS_IS_PROD = os.environ.get('MIDTRANS_IS_PRODUCTION', 'false') == 'true'
+
+if MIDTRANS_IS_PROD:
+    MIDTRANS_API = 'https://api.midtrans.com/v2'
+    SNAP_API = 'https://api.midtrans.com/snap/v1'
+else:
+    MIDTRANS_API = 'https://api.sandbox.midtrans.com/v2'
+    SNAP_API = 'https://app.sandbox.midtrans.com/snap/v1'
+
+def cors_response(status, data):
+    return {
+        "statusCode": status,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Methods": "POST, OPTIONS"
+        },
+        "body": json.dumps(data)
+    }
 
 def handler(event, context):
-    """Create Midtrans Snap transaction"""
-    if event['httpMethod'] != 'POST':
-        return {"statusCode": 405, "body": json.dumps({"error": "Method not allowed"})}
+    if event.get('httpMethod') == 'OPTIONS':
+        return cors_response(200, "")
+
+    if event.get('httpMethod') != 'POST':
+        return cors_response(405, {"error": "Method not allowed"})
 
     try:
-        body = json.loads(event['body'])
-        email = body.get('email', '')
-        plan = body.get('plan', 'monthly')
-        amount = body.get('amount', 49000)
+        body = json.loads(event.get('body', '{}'))
+        email = body.get('email', '').strip()
+        plan = body.get('plan', '')
+        amount = body.get('amount', 0)
         item_name = body.get('item_name', 'IoTHub Premium')
 
-        if not email or plan not in ('monthly', 'yearly'):
-            return {"statusCode": 400, "body": json.dumps({"error": "Invalid data"})}
+        # Validation
+        if not email or '@' not in email:
+            return cors_response(400, {"error": "Email tidak valid"})
+        if plan not in ('monthly', 'yearly'):
+            return cors_response(400, {"error": "Plan tidak valid"})
+        if amount not in (49000, 399000):
+            return cors_response(400, {"error": "Jumlah tidak valid"})
 
-        # Midtrans Snap API
-        server_key = os.environ.get('MIDTRANS_SERVER_KEY', '')
-        client_key = os.environ.get('MIDTRANS_CLIENT_KEY', '')
+        if not MIDTRANS_SERVER_KEY:
+            return cors_response(500, {"error": "Payment gateway tidak terkonfigurasi"})
 
-        if not server_key:
-            return {"statusCode": 500, "body": json.dumps({"error": "Server key not configured"})}
+        # Generate unique order ID
+        order_id = f"IOHUB-{int(time.time())}-{secrets.token_hex(4)}"
 
-        order_id = f"IOHUB-{int(time.time())}-{email.split('@')[0]}"
-
-        # Build request
-        payload = json.dumps({
+        # Build Midtrans Snap payload
+        payload = {
             "transaction_details": {
                 "order_id": order_id,
                 "gross_amount": amount
@@ -45,42 +79,41 @@ def handler(event, context):
                 "name": item_name
             }],
             "callbacks": {
-                "finish": f"https://beebane25.github.io/iothub/pricing.html?status=success&order={order_id}"
+                "finish": "https://beebane25.github.io/iothub/pricing.html"
             }
-        }).encode('utf-8')
+        }
 
         # Call Midtrans Snap API
-        req = urllib.request.Request(
-            'https://app.sandbox.midtrans.com/snap/v1/transactions',
-            data=payload,
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': f'Basic {__import__("base64").b64encode(f"{server_key}:".encode()).decode()}'
-            },
+        auth = base64.b64encode(f"{MIDTRANS_SERVER_KEY}:".encode()).decode()
+        api_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Basic {auth}'
+        }
+
+        req = Request(
+            f"{SNAP_API}/transactions",
+            data=json.dumps(payload).encode('utf-8'),
+            headers=api_headers,
             method='POST'
         )
 
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urlopen(req, timeout=30) as resp:
             result = json.loads(resp.read().decode())
 
-        return {
-            "statusCode": 200,
-            "headers": {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*"
-            },
-            "body": json.dumps({
-                "token": result.get("token", ""),
+        if 'token' in result:
+            return cors_response(200, {
+                "success": True,
+                "token": result['token'],
                 "order_id": order_id,
-                "redirect_url": result.get("redirect_url", "")
+                "redirect_url": result.get('redirect_url', '')
             })
-        })
+        else:
+            return cors_response(500, {"error": "Gagal membuat transaksi"})
 
-    except urllib.error.HTTPError as e:
+    except HTTPError as e:
         error_body = e.read().decode() if e.fp else str(e)
-        print(f"Midtrans error: {e.code} - {error_body}")
-        return {"statusCode": 502, "body": json.dumps({"error": "Payment gateway error", "detail": str(e.code)})}
-
+        print(f"Midtrans Error: {e.code} - {error_body}")
+        return cors_response(502, {"error": "Payment gateway error", "code": e.code})
     except Exception as e:
         print(f"Error: {str(e)}")
-        return {"statusCode": 500, "body": json.dumps({"error": "Internal server error"})}
+        return cors_response(500, {"error": "Internal server error"})
