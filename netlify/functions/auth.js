@@ -82,7 +82,7 @@ exports.handler = async (event, context) => {
 
       const users = await supabaseQuery('users', 'POST', {
         email, name, password_hash: storedHash,
-        plan: 'free', is_active: true,
+        plan: 'tokens', is_active: true,
         created_at: new Date().toISOString()
       });
 
@@ -93,7 +93,7 @@ exports.handler = async (event, context) => {
         await supabaseQuery('sessions', 'POST', {
           user_id: user.id, token, expires_at: expires
         });
-        return cors(200, { success: true, message: 'Registrasi berhasil!', token, user: { email, name, plan: 'free' } });
+        return cors(200, { success: true, message: 'Registrasi berhasil!', token, user: { email, name, plan: 'tokens' } });
       }
       return cors(500, { error: 'Gagal membuat akun' });
     }
@@ -163,18 +163,18 @@ exports.handler = async (event, context) => {
       if (!token) return cors(400, { error: 'Token required' });
 
       const sessions = await supabaseQuery('sessions', 'GET', null, `?token=eq.${token}&select=id,user_id,expires_at`);
-      if (!sessions || sessions.length === 0) return cors(200, { access: false, plan: 'free' });
+      if (!sessions || sessions.length === 0) return cors(200, { access: false, plan: 'tokens' });
 
       const session = sessions[0];
       if (new Date(session.expires_at) < new Date()) {
         await supabaseQuery('sessions', 'DELETE', null, `?token=eq.${token}`);
-        return cors(200, { access: false, plan: 'free', reason: 'expired' });
+        return cors(200, { access: false, plan: 'tokens', reason: 'expired' });
       }
 
       const userId = session.user_id;
       const users = await supabaseQuery('users', 'GET', null, `?id=eq.${userId}&select=email,plan,is_active,plan_expires`);
       if (!users || users.length === 0 || !users[0].is_active) {
-        return cors(200, { access: false, plan: 'free' });
+        return cors(200, { access: false, plan: 'tokens' });
       }
 
       const user = users[0];

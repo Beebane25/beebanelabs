@@ -479,10 +479,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // === CONFIGURATION ===
 const SITE_CONFIG = {
-  FREE_ARTICLES: ['esp32-fundamentals.html', 'mqtt-protocol.html', 'mikrotik-routing.html', 'lora-communication.html', 'esp8266-nodemcu.html'],
-  FREE_VIEWS: 5,
   API_BASE: window.location.origin,
-  APP_VERSION: '2.1.0'
+  APP_VERSION: '3.0.0',
+  TOKEN_PRICE: 10000,
+  INITIAL_TOKENS: 5
 };
 
 // === CSRF TOKEN (double-submit pattern) ===
@@ -503,83 +503,77 @@ const CSRF = {
   }
 };
 
-// === PAYWALL SYSTEM (TOKEN-BASED) ===
+// === PAYWALL SYSTEM (ALL ARTICLES NEED TOKENS) ===
 const PaywallSystem = {
-  FREE_ARTICLES: SITE_CONFIG.FREE_ARTICLES,
   TOKEN_KEY: 'iothub_tokens',
   UNLOCKED_KEY: 'iothub_unlocked',
-  INITIAL_TOKENS: 5,
 
-  isFreeArticle(f) {
-    const clean = f.replace(/\?.*$/, '').replace(/#.*$/, '');
-    return this.FREE_ARTICLES.includes(clean);
-  },
   hasPaidAccess() {
     const a = JSON.parse(localStorage.getItem('iothub_auth') || 'null');
     if (a && a.user && a.user.plan && a.user.plan !== 'free') return true;
     const c = JSON.parse(localStorage.getItem('iothub_access') || '{}');
     return c.lifetime === true || (c.plan && c.plan !== 'free');
   },
-  getTokens() { return parseInt(localStorage.getItem(this.TOKEN_KEY) || String(this.INITIAL_TOKENS)); },
-  useToken() { const t = this.getTokens(); if (t <= 0) return false; localStorage.setItem(this.TOKEN_KEY, String(t - 1)); return true; },
-  getUnlocked() { return JSON.parse(localStorage.getItem(this.UNLOCKED_KEY) || '[]'); },
+
+  getTokens() {
+    const v = localStorage.getItem(SITE_CONFIG.TOKEN_KEY);
+    return v !== null ? parseInt(v) : SITE_CONFIG.INITIAL_TOKENS;
+  },
+
+  useToken() {
+    const t = this.getTokens();
+    if (t <= 0) return false;
+    localStorage.setItem(SITE_CONFIG.TOKEN_KEY, String(t - 1));
+    return true;
+  },
+
+  getUnlocked() { return JSON.parse(localStorage.getItem(SITE_CONFIG.UNLOCKED_KEY) || '[]'); },
   isUnlocked(f) { return this.getUnlocked().includes(f); },
-  unlockArticle(f) { const u = this.getUnlocked(); if (!u.includes(f)) { u.push(f); localStorage.setItem(this.UNLOCKED_KEY, JSON.stringify(u)); } },
+  unlockArticle(f) {
+    const u = this.getUnlocked();
+    if (!u.includes(f)) { u.push(f); localStorage.setItem(SITE_CONFIG.UNLOCKED_KEY, JSON.stringify(u)); }
+  },
+
   isAccessible(f) {
     if (this.hasPaidAccess()) return true;
-    if (this.isFreeArticle(f) && this.isUnlocked(f)) return true;
-    return false;
+    return this.isUnlocked(f);
   },
+
   init() {
     const p = window.location.pathname;
     if (!p.includes('/articles/')) return;
     const f = p.split('/').pop();
     if (this.isAccessible(f)) return;
-    if (this.isFreeArticle(f)) this.showTokenGate(f);
-    else this.showPremiumLock(f);
+    this.showTokenGate(f);
   },
+
   showTokenGate(f) {
     const a = document.querySelector('.article-content');
     if (!a) return;
     const t = this.getTokens();
     const logged = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
     while (a.firstChild) a.removeChild(a.firstChild);
+
     let icon, badge, msg, btns;
     if (t <= 0 && !logged) {
       icon = '🔒'; badge = 'Token Habis';
-      msg = 'Token gratis kamu sudah habis. Login atau beli paket premium untuk akses lebih banyak.';
-      btns = '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin:0 8px;">👤 Login</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">💎 Beli Premium</a>';
+      msg = 'Token gratis kamu sudah habis. Login atau beli token untuk membuka artikel.';
+      btns = '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin:0 8px;">👤 Login</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">💰 Beli Token</a>';
     } else if (t <= 0 && logged) {
       icon = '🔒'; badge = 'Token Habis';
-      msg = 'Token gratis sudah habis. Upgrade ke premium untuk akses semua artikel.';
-      btns = '<a href="../pricing.html" class="btn-primary" style="text-decoration:none;">💎 Upgrade Premium</a>';
+      msg = 'Token sudah habis. Beli token tambahan untuk membuka lebih banyak artikel.';
+      btns = '<a href="../pricing.html" class="btn-primary" style="text-decoration:none;">💰 Beli Token</a>';
     } else {
       icon = '🔓'; badge = t + ' Token Tersisa';
       msg = 'Gunakan 1 token untuk membuka artikel ini. Setelah diunlock, akses permanen.';
-      btns = '<button onclick="PaywallSystem.unlockWithToken("" + f + "")" class="btn-primary" style="margin:0 8px;">🔑 Gunakan 1 Token</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">💎 Beli Premium</a>';
+      btns = '<button onclick="PaywallSystem.unlockWithToken(' + f + ')" class="btn-primary" style="margin:0 8px;">🔑 Gunakan 1 Token</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">💰 Beli Token</a>';
     }
-    a.innerHTML = '<div style="text-align:center;padding:80px 20px;"><div style="font-size:4rem;margin-bottom:16px;">' + icon + '</div><div style="display:inline-block;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:600;color:#fb923c;margin-bottom:16px;">' + badge + '</div><h2 style="color:var(--text-primary);margin-bottom:8px;">Artikel Terkunci</h2><p style="color:var(--text-muted);max-width:480px;margin:0 auto 24px;line-height:1.6;">' + msg + '</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' + btns + '</div></div>';
+    a.innerHTML = '<div style="text-align:center;padding:60px 20px;"><div style="font-size:4rem;margin-bottom:16px;">' + icon + '</div><div style="display:inline-block;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:600;color:#fb923c;margin-bottom:16px;">' + badge + '</div><h2 style="color:var(--text-primary);margin-bottom:8px;">Artikel Terkunci</h2><p style="color:var(--text-muted);max-width:480px;margin:0 auto 24px;line-height:1.6;">' + msg + '</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' + btns + '</div></div>';
   },
-  showPremiumLock(f) {
-    const a = document.querySelector('.article-content');
-    if (!a) return;
-    const logged = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
-    while (a.firstChild) a.removeChild(a.firstChild);
-    let icon, badge, msg, btns;
-    if (logged) {
-      icon = '👑'; badge = 'Artikel Premium';
-      msg = 'Belum punya akses premium. Beli paket untuk membuka semua 16+ artikel premium.';
-      btns = '<a href="../pricing.html" class="btn-primary" style="text-decoration:none;">💎 Beli Paket Sekarang</a>';
-    } else {
-      icon = '🔒'; badge = 'Artikel Premium';
-      msg = 'Login atau beli paket premium. Tidak bisa dibuka dengan token gratis.';
-      btns = '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin:0 8px;">👤 Login / Daftar</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">💎 Lihat Harga</a>';
-    }
-    a.innerHTML = '<div style="text-align:center;padding:80px 20px;"><div style="font-size:4rem;margin-bottom:16px;">' + icon + '</div><div style="display:inline-block;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:600;color:#fb923c;margin-bottom:16px;">' + badge + '</div><h2 style="color:var(--text-primary);margin-bottom:8px;">Konten Terkunci</h2><p style="color:var(--text-muted);max-width:480px;margin:0 auto 24px;line-height:1.6;">' + msg + '</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' + btns + '</div></div>';
-  },
+
   unlockWithToken(f) {
     const t = this.getTokens();
-    if (t <= 0) { alert('Token habis! Beli paket premium.'); window.location.href = '../pricing.html'; return; }
+    if (t <= 0) { alert('Token habis! Beli token tambahan.'); window.location.href = '../pricing.html'; return; }
     if (!this.useToken()) return;
     this.unlockArticle(f);
     alert('Artikel dibuka! Token tersisa: ' + this.getTokens());
@@ -945,7 +939,7 @@ const AuthSystem = {
 };
 
 // === VIEW TRACKER (FIXED) ===
-// === TOKEN DISPLAY (replaces view counter) ===
+// === TOKEN DISPLAY ===
 const TokenDisplay = {
   showBanner() {
     const p = window.location.pathname;
@@ -961,31 +955,12 @@ const TokenDisplay = {
     }
     if (tokens > 0) {
       banner.className = 'view-counter-banner';
-      banner.innerHTML = '<span class="view-text">🔑 Token gratis: <span class="view-count">' + tokens + '</span> tersisa</span><span style="font-size:0.75rem;color:var(--text-subtle);">Token dipakai untuk unlock artikel gratis</span>';
+      banner.innerHTML = '<span class="view-text"><strong>Token gratis: ' + tokens + ' tersisa</strong></span><span style="font-size:0.75rem;color:var(--text-subtle);">Token dipakai untuk unlock artikel gratis</span>';
     } else {
       banner.className = 'view-counter-banner limit-reached';
-      banner.innerHTML = '<span class="view-text"><strong>Token habis!</strong> Upgrade ke premium untuk akses tanpa batas.</span><a href="../pricing.html" class="view-btn" style="text-decoration:none;">💎 Upgrade</a>';
+      banner.innerHTML = '<span class="view-text"><strong>Token habis!</strong> Beli token untuk membuka artikel.</span><a href="../pricing.html" class="view-btn" style="text-decoration:none;">Beli Token</a>';
     }
   }
 };
 
-// Initialize auth and view tracker
-AuthSystem.init();
-PaywallSystem.init();
-TokenDisplay.showBanner();
 
-// Track article views
-if (window.location.pathname.includes('/articles/')) {
-  const views = ViewTracker.addView();
-  ViewTracker.showBanner();
-  // HARD BLOCK: completely prevent reading when limit is reached (non-logged-in users)
-  ViewTracker.blockContent();
-
-  if (ViewTracker.hasReachedLimit() && !AuthSystem.isLoggedIn()) {
-    setTimeout(() => {
-      if (!AuthSystem.isLoggedIn()) {
-        AuthSystem.showModal();
-      }
-    }, 1500);
-  }
-}
