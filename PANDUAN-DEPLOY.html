@@ -292,8 +292,9 @@
     <li><a href="#s6">Apply Google AdSense</a></li>
     <li><a href="#s7">Pasang Kode Iklan AdSense</a></li>
     <li><a href="#s8">Setup Subscribe Backend</a></li>
-    <li><a href="#s9">Setup Email Notification</a></li>
-    <li><a href="#s10">Checklist Akhir & Monitoring</a></li>
+    <li><a href="#s9">Setup Payment Gateway (Premium)</a></li>
+    <li><a href="#s10">Setup Email Notification</a></li>
+    <li><a href="#s11">Checklist Akhir & Monitoring</a></li>
   </ol>
 </div>
 
@@ -908,10 +909,206 @@ http://localhost:8080</code></pre>
 
 
 <!-- ============================================ -->
-<!-- LANGKAH 9 -->
+<!-- LANGKAH 9: PAYMENT GATEWAY -->
 <!-- ============================================ -->
 <div class="page-break"></div>
-<h2 id="s9">9. Setup Email Notification</h2>
+<h2 id="s9">9. Setup Payment Gateway untuk Subscribe Premium</h2>
+
+<p>Sistem pembayaran memungkinkan pengunjung membayar untuk akses ke semua artikel premium.</p>
+
+<h3>9.1 Perbandingan Payment Gateway</h3>
+
+<table>
+  <tr>
+    <th>Platform</th>
+    <th>Biaya</th>
+    <th>Metode Bayar</th>
+    <th>Cocok Untuk</th>
+  </tr>
+  <tr>
+    <td><strong>Midtrans</strong></td>
+    <td>2.9% + Rp 2.000/transaksi</td>
+    <td>VA, QRIS, kartu, GoPay, OVO, Dana</td>
+    <td><span class="badge paid">Recommended</span></td>
+  </tr>
+  <tr>
+    <td><strong>Stripe</strong></td>
+    <td>3.9% + Rp 3.000/transaksi</td>
+    <td>Kartu kredit, kartu debit</td>
+    <td>Internasional</td>
+  </tr>
+  <tr>
+    <td><strong>Xendit</strong></td>
+    <td>1.5% + Rp 3.000/transaksi</td>
+    <td>VA, QRIS, GoPay, OVO</td>
+    <td>Indonesia</td>
+  </tr>
+  <tr>
+    <td><strong>Saweria</strong></td>
+    <td>0% (gratis)</td>
+    <td>QRIS, VA, GoPay, OVO, Dana</td>
+    <td>Paling Mudah</td>
+  </tr>
+</table>
+
+<h3>9.2 Opsi A: Midtrans (Recommended untuk Indonesia)</h3>
+
+<div class="step">
+  <span class="step-num">1</span> <strong>Daftar Midtrans</strong>
+  <ol>
+    <li>Buka <code>https://midtrans.com</code> → Register</li>
+    <li>Verifikasi identitas (KTP) → tunggu 1-3 hari kerja</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">2</span> <strong>Ambil API Keys</strong>
+  <ol>
+    <li>Midtrans Dashboard → Settings → Access Keys</li>
+    <li>Copy <strong>Client Key</strong> (frontend) & <strong>Server Key</strong> (backend - JANGAN share!)</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="step-num">3</span> <strong>Setup Frontend Payment</strong>
+</div>
+
+<pre><code>&lt;!-- Tambahkan di pricing.html --&gt;
+&lt;script src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key="SB-Mid-client-XXXXXXXXXX"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+function startPayment(plan) {
+  const prices = { monthly: 49000, yearly: 399000 };
+
+  fetch('/api/create-payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: getUserEmail(),
+      plan: plan,
+      amount: prices[plan],
+      item_name: 'IoTHub Premium - ' + plan
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    window.snap.pay(data.token, {
+      onSuccess: (result) => {
+        alert('Pembayaran berhasil!');
+        // Unlock premium content
+        const acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
+        acc.lifetime = true; acc.plan = 'yearly';
+        localStorage.setItem('iothub_access', JSON.stringify(acc));
+        window.location.reload();
+      },
+      onPending: () => alert('Menunggu pembayaran. Selesaikan dalam 24 jam.'),
+      onError: () => alert('Pembayaran gagal. Coba lagi.')
+    });
+  });
+}
+&lt;/script&gt;</code></pre>
+
+<div class="step">
+  <span class="step-num">4</span> <strong>Setup Backend Payment</strong>
+</div>
+
+<pre><code># Contoh: netlify/functions/create-payment.py
+import os, time, json
+import midtransclient
+
+snap = midtransclient.Snap(
+    is_production=False,  # True untuk production
+    server_key=os.environ['MIDTRANS_SERVER_KEY']
+)
+
+def handler(event, context):
+    data = json.loads(event['body'])
+    order_id = f"ORDER-{int(time.time())}"
+
+    param = {
+        "transaction_details": {
+            "order_id": order_id,
+            "gross_amount": data['amount']
+        },
+        "customer_details": {"email": data['email']},
+        "item_details": [{
+            "id": data['plan'], "price": data['amount'],
+            "quantity": 1, "name": data['item_name']
+        }]
+    }
+    transaction = snap.create_transaction(param)
+    return {"statusCode": 200, "body": json.dumps({"token": transaction['token']})}</code></pre>
+
+<div class="step">
+  <span class="step-num">5</span> <strong>Setup Webhook (Verifikasi Pembayaran)</strong>
+  <ol>
+    <li>Midtrans Dashboard → Settings → Payment Notification URL</li>
+    <li>URL: <code>https://your-api.netlify.app/api/payment-notification</code></li>
+    <li>Backend verifikasi status → update user ke "premium"</li>
+  </ol>
+</div>
+
+<div class="info-box warning">
+  <strong>⚠️ Production Checklist</strong>
+  Ganti <code>is_production=False</code> → <code>True</code>, gunakan production keys, webhook harus HTTPS.
+</div>
+
+<h3>9.3 Opsi B: Stripe Payment Links (Termudah)</h3>
+
+<div class="step">
+  <span class="step-num">1</span> <strong>Buat Payment Link di Stripe</strong>
+  <ol>
+    <li>Dashboard → Payment Links → Create new</li>
+    <li>Buat 2 link: Bulanan Rp 49.000 & Tahunan Rp 399.000</li>
+    <li>Copy link → taruh di pricing.html</li>
+  </ol>
+</div>
+
+<pre><code>&lt;a href="https://buy.stripe.com/XXXXX-monthly" class="plan-btn primary"&gt;
+  💳 Bayar Bulanan - Rp 49.000
+&lt;/a&gt;
+&lt;a href="https://buy.stripe.com/XXXXX-yearly" class="plan-btn primary"&gt;
+  💳 Bayar Tahunan - Rp 399.000
+&lt;/a&gt;</code></pre>
+
+<h3>9.4 Opsi C: Saweria (Gratis & Paling Mudah)</h3>
+
+<div class="step">
+  <span class="step-num">1</span> <strong>Setup Saweria</strong>
+  <ol>
+    <li>Buka <code>https://saweria.co</code> → Login</li>
+    <li>Buat produk: Rp 49.000 (bulanan) & Rp 399.000 (tahunan)</li>
+    <li>Copy link → ganti tombol "Beli" di pricing.html</li>
+    <li>Setelah bayar, user kirim bukti ke email</li>
+    <li>Admin manual unlock via <code>/api/upgrade</code></li>
+  </ol>
+</div>
+
+<h3>9.5 Alur Pembayaran Lengkap</h3>
+
+<table>
+  <tr><th>Langkah</th><th>User</th><th>System</th></tr>
+  <tr><td>1</td><td>Klik "Beli Premium"</td><td>-</td></tr>
+  <tr><td>2</td><td>Pilih paket & metode bayar</td><td>Buat order di Midtrans/Stripe</td></tr>
+  <tr><td>3</td><td>Selesaikan pembayaran</td><td>Terima webhook notifikasi</td></tr>
+  <tr><td>4</td><td>-</td><td>Verifikasi → update status user</td></tr>
+  <tr><td>5</td><td>Bisa akses semua artikel</td><td>Paywall terbuka</td></tr>
+</table>
+
+<h3>9.6 Test Pembayaran</h3>
+
+<table>
+  <tr><th>Platform</th><th>Mode</th><th>Kartu Test</th></tr>
+  <tr><td>Midtrans</td><td>Sandbox</td><td><code>4811 1111 1111 1114</code> CVV: 123</td></tr>
+  <tr><td>Stripe</td><td>Test Mode</td><td><code>4242 4242 4242 4242</code> CVV: 123</td></tr>
+</table>
+
+<!-- ============================================ -->
+<!-- LANGKAH 10: EMAIL NOTIFICATION -->
+<!-- ============================================ -->
+<div class="page-break"></div>
+<h2 id="s10">10. Setup Email Notification</h2>
 
 <p>Dapatkan notifikasi saat ada subscriber baru atau pembayaran masuk.</p>
 
@@ -992,7 +1189,7 @@ notify_telegram(f"🔔 Subscriber baru: {email}")</code></pre>
 <!-- ============================================ -->
 <!-- LANGKAH 10 -->
 <!-- ============================================ -->
-<h2 id="s10">10. Checklist Akhir & Monitoring</h2>
+<h2 id="s11">11. Checklist Akhir & Monitoring</h2>
 
 <h3>10.1 Checklist Sebelum Go-Live</h3>
 
