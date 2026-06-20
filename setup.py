@@ -58,8 +58,8 @@ def setup_env():
     supabase_url = get_input("Supabase URL", "https://xxxxx.supabase.co")
     supabase_anon = get_input("Supabase Anon Key", "")
     supabase_service = get_input("Supabase Service Key", "")
-    midtrans_client = get_input("Midtrans Client Key", "Mid-client-i8CzWdgvnoRMxqHH")
-    midtrans_server = get_input("Midtrans Server Key", "Mid-server-HCBkVMSxPouPg0Cm0vy5hlEa")
+    midtrans_client = get_input("Midtrans Client Key", "YOUR_MIDTRANS_CLIENT_KEY")
+    midtrans_server = get_input("Midtrans Server Key", "YOUR_MIDTRANS_SERVER_KEY")
 
     # Write .env file
     env_content = f"""# IoTHub Environment Variables
