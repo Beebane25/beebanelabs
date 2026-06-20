@@ -1,8 +1,9 @@
 """
 Netlify Function: Check Access
 Endpoint: /.netlify/functions/check-access
-Method: GET
-Params: email=USER_EMAIL&token=SESSION_TOKEN
+Method: POST
+Body: {"email": "USER_EMAIL", "token": "SESSION_TOKEN"}
+Email is validated against the session owner to prevent IDOR.
 """
 import json
 import os
@@ -32,9 +33,9 @@ def cors_response(status, data):
         "statusCode": status,
         "headers": {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": "https://iothub25.netlify.app",
             "Access-Control-Allow-Headers": "Content-Type",
-            "Access-Control-Allow-Methods": "GET, OPTIONS"
+            "Access-Control-Allow-Methods": "POST, OPTIONS"
         },
         "body": json.dumps(data)
     }
@@ -44,13 +45,13 @@ def handler(event, context):
     if event.get('httpMethod') == 'OPTIONS':
         return cors_response(200, "")
 
-    if event.get('httpMethod') != 'GET':
+    if event.get('httpMethod') != 'POST':
         return cors_response(405, {"error": "Method not allowed"})
 
     try:
-        params = event.get('queryStringParameters') or {}
-        email = params.get('email', '').strip().lower()
-        token = params.get('token', '').strip()
+        body = json.loads(event.get('body', '{}'))
+        email = body.get('email', '').strip().lower()
+        token = body.get('token', '').strip()
 
         # Validation
         if not email or '@' not in email:
@@ -72,6 +73,41 @@ def handler(event, context):
             })
 
         session = sessions[0]
+
+        # IDOR FIX: Verify that the session's user_id matches the email provided
+        # Derive user from session's user_id, not from the email parameter
+        session_user_id = session.get('user_id')
+        if not session_user_id:
+            return cors_response(401, {
+                "access": False,
+                "plan": "free",
+                "error": "Token tidak valid"
+            })
+
+        # Look up the user that owns this session by user_id (not by email)
+        session_owner = supabase_query(
+            "users",
+            params=f"?id=eq.{session_user_id}&select=id,plan,is_active,plan_expires_at"
+        )
+
+        if not session_owner:
+            return cors_response(401, {
+                "access": False,
+                "plan": "free",
+                "error": "User tidak ditemukan"
+            })
+
+        user = session_owner[0]
+
+        # IDOR FIX: Verify that the email in the request matches the session owner's email
+        owner_email = user.get('email', '').strip().lower()
+        if owner_email != email:
+            # Email doesn't match session owner — reject (potential IDOR attack)
+            return cors_response(403, {
+                "access": False,
+                "plan": "free",
+                "error": "Akses ditolak"
+            })
 
         # Check if session has expired
         expires_at = session.get('expires_at', '')
@@ -97,21 +133,6 @@ def handler(event, context):
                     "error": "Format expiry tidak valid"
                 })
 
-        # Look up user's plan
-        users = supabase_query(
-            "users",
-            params=f"?email=eq.{email}&select=id,plan,is_active,plan_expires_at"
-        )
-
-        if not users:
-            return cors_response(404, {
-                "access": False,
-                "plan": "free",
-                "error": "User tidak ditemukan"
-            })
-
-        user = users[0]
-
         # Check if user account is active
         if not user.get('is_active'):
             return cors_response(403, {
@@ -136,7 +157,7 @@ def handler(event, context):
                         "users",
                         "PATCH",
                         {"plan": "free"},
-                        params=f"?email=eq.{email}"
+                        params=f"?id=eq.{session_user_id}"
                     )
                     plan = "free"
                     plan_expires = None

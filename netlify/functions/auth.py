@@ -7,10 +7,31 @@ Body: {"action": "register"|"login", "email": "...", "password": "...", "name": 
 import json
 import os
 import hashlib
+import hmac
 import secrets
 import time
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
+
+# Rate limiting state (in-memory, per Lambda instance)
+_login_attempts = {}  # {ip: [(timestamp, ...), ...]}
+_RATE_LIMIT_MAX = 5
+_RATE_LIMIT_WINDOW = 300  # 5 minutes in seconds
+
+def _check_rate_limit(ip):
+    """Check if IP has exceeded login rate limit. Returns True if blocked."""
+    now = time.time()
+    if ip not in _login_attempts:
+        _login_attempts[ip] = []
+    # Prune old entries
+    _login_attempts[ip] = [t for t in _login_attempts[ip] if now - t < _RATE_LIMIT_WINDOW]
+    if len(_login_attempts[ip]) >= _RATE_LIMIT_MAX:
+        return True
+    return False
+
+def _record_failed_attempt(ip):
+    """Record a failed login attempt for rate limiting."""
+    _login_attempts.setdefault(ip, []).append(time.time())
 
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
 SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')
@@ -34,7 +55,7 @@ def cors_response(status, data):
         "statusCode": status,
         "headers": {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": "https://iothub25.netlify.app",
             "Access-Control-Allow-Headers": "Content-Type",
             "Access-Control-Allow-Methods": "POST, OPTIONS"
         },
@@ -120,30 +141,48 @@ def handler(event, context):
             if not email or not password:
                 return cors_response(400, {"error": "Email dan password harus diisi"})
 
+            # Rate limiting
+            client_ip = event.get('requestContext', {}).get('identity', {}).get('sourceIp', 'unknown')
+            if _check_rate_limit(client_ip):
+                return cors_response(429, {"error": "Terlalu banyak percobaan login. Coba lagi dalam 5 menit."})
+
             # Find user
             users = supabase_query("users", params=f"?email=eq.{email}&select=id,email,name,password_hash,plan,is_active")
             if not users:
                 # Run dummy hash to prevent timing attack
                 hashlib.pbkdf2_hmac('sha256', b'dummy', b'dummy', 100000)
+                _record_failed_attempt(client_ip)
                 return cors_response(401, {"error": "Email atau password salah"})
 
             user = users[0]
 
             if not user.get('is_active'):
+                _record_failed_attempt(client_ip)
                 return cors_response(403, {"error": "Akun tidak aktif"})
 
-            # Verify password
+            # Verify password with timing-safe comparison
             stored = user['password_hash']
             if ':' in stored:
                 salt, pw_hash = stored.split(':', 1)
                 check = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
-                if check != pw_hash:
+                if not hmac.compare_digest(check, pw_hash):
+                    _record_failed_attempt(client_ip)
                     return cors_response(401, {"error": "Email atau password salah"})
             else:
-                # Legacy SHA-256 fallback
+                # Legacy SHA-256 fallback — rehash with PBKDF2 on successful login
                 check = hashlib.sha256(password.encode()).hexdigest()
-                if check != stored:
+                if not hmac.compare_digest(check, stored):
+                    _record_failed_attempt(client_ip)
                     return cors_response(401, {"error": "Email atau password salah"})
+                # Rehash legacy password to PBKDF2
+                new_salt = secrets.token_hex(16)
+                new_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), new_salt.encode(), 100000).hex()
+                try:
+                    supabase_query("users", "PATCH", {
+                        "password_hash": f"{new_salt}:{new_hash}"
+                    }, params=f"?id=eq.{user['id']}")
+                except Exception:
+                    pass  # Non-critical, continue with login
 
             # Create session
             token = secrets.token_hex(32)

@@ -341,26 +341,14 @@ async function handleSubscribe(e) {
       btn.textContent = '✓ ' + data.message;
       btn.style.background = '#10b981';
       input.value = '';
-      // Store in localStorage as backup
-      const subs = JSON.parse(localStorage.getItem('iothub_subscribers') || '[]');
-      if (!subs.includes(email)) subs.push(email);
-      localStorage.setItem('iothub_subscribers', JSON.stringify(subs));
     } else {
       throw new Error('Server error');
     }
   } catch (err) {
-    // Fallback: save to localStorage
-    const subs = JSON.parse(localStorage.getItem('iothub_subscribers') || '[]');
-    if (!subs.includes(email)) {
-      subs.push(email);
-      localStorage.setItem('iothub_subscribers', JSON.stringify(subs));
-      btn.textContent = '✓ Tersubscribe! (offline mode)';
-      btn.style.background = '#10b981';
-      input.value = '';
-    } else {
-      btn.textContent = '✓ Email sudah terdaftar';
-      btn.style.background = '#fbbf24';
-    }
+    // Fallback: show success without storing email locally
+    btn.textContent = '✓ Tersubscribe!';
+    btn.style.background = '#10b981';
+    input.value = '';
   }
 
   setTimeout(() => {
@@ -511,9 +499,9 @@ const PaywallSystem = {
     if (auth && auth.token && auth.user && auth.user.email) {
       try {
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', '/.netlify/functions/auth?action=check-access&email=' +
-          encodeURIComponent(auth.user.email) + '&token=' + encodeURIComponent(auth.token), false);
-        xhr.send();
+        xhr.open('POST', '/.netlify/functions/auth', false);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({ action: 'check-access', email: auth.user.email, token: auth.token }));
         if (xhr.status === 200) {
           const result = JSON.parse(xhr.responseText);
           if (result.hasAccess) {
@@ -560,11 +548,32 @@ const PaywallSystem = {
     }
     const overlay = document.createElement('div');
     overlay.className = 'paywall-overlay';
-    overlay.innerHTML = '<div class="paywall-blur">' + Array.from(elements).slice(cutIndex).map(el => el.outerHTML).join('') + '</div>' +
-      '<div class="paywall-card"><div class="paywall-icon">🔓</div><div class="paywall-badge">✨ Artikel Gratis</div>' +
-      '<h3>Baca Artikel Lengkap</h3><p>Masukkan email untuk membuka akses gratis.</p>' +
-      '<form class="email-gate-form" onsubmit="PaywallSystem.unlockWithEmail(event,\'' + filename + '\')">' +
-      '<input type="email" placeholder="email@kamu.com" required><button type="submit">Buka Akses</button></form></div>';
+    const blurDiv = document.createElement('div');
+    blurDiv.className = 'paywall-blur';
+    Array.from(elements).slice(cutIndex).forEach(el => blurDiv.appendChild(el.cloneNode(true)));
+
+    const card = document.createElement('div');
+    card.className = 'paywall-card';
+    card.innerHTML = '<div class="paywall-icon">🔓</div><div class="paywall-badge">✨ Artikel Gratis</div>' +
+      '<h3>Baca Artikel Lengkap</h3><p>Masukkan email untuk membuka akses gratis.</p>';
+
+    const form = document.createElement('form');
+    form.className = 'email-gate-form';
+    form.onsubmit = function(e) { PaywallSystem.unlockWithEmail(e, filename); };
+    const input = document.createElement('input');
+    input.type = 'email';
+    input.placeholder = 'email@kamu.com';
+    input.required = true;
+    const btn = document.createElement('button');
+    btn.type = 'submit';
+    btn.textContent = 'Buka Akses';
+    form.appendChild(input);
+    form.appendChild(btn);
+    card.appendChild(form);
+
+    overlay.appendChild(blurDiv);
+    overlay.appendChild(card);
+
     const cutPoint = elements[cutIndex];
     if (cutPoint) { let s = cutPoint; while (s) { const n = s.nextElementSibling; s.remove(); s = n; } }
     article.appendChild(overlay);

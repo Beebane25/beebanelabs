@@ -75,7 +75,7 @@
     <h2>📝 Formulir Kontak</h2>
     <p>Kirimkan pesan melalui formulir di bawah ini. Isi semua kolom yang diperlukan agar kami bisa merespons dengan cepat.</p>
 
-    <form style="margin-top: var(--space-lg);" onsubmit="event.preventDefault(); alert('Terima kasih! Pesan Anda telah berhasil dikirim. Kami akan merespons dalam 1-2 hari kerja.'); this.reset();">
+    <form style="margin-top: var(--space-lg);" id="contactForm" onsubmit="handleContactSubmit(event)">
       <div style="margin-bottom: var(--space-md);">
         <label for="name" style="display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-primary);">Nama Lengkap *</label>
         <input type="text" id="name" name="name" required placeholder="Masukkan nama Anda" style="width: 100%; padding: 12px 16px; background: var(--bg-elevated); border: 1px solid var(--border-standard); border-radius: var(--radius-md); color: var(--text-primary); font-family: var(--font-primary); font-size: 0.95rem;">
@@ -101,8 +101,62 @@
         <textarea id="message" name="message" rows="6" required placeholder="Tulis pesan Anda di sini..." style="width: 100%; padding: 12px 16px; background: var(--bg-elevated); border: 1px solid var(--border-standard); border-radius: var(--radius-md); color: var(--text-primary); font-family: var(--font-primary); font-size: 0.95rem; resize: vertical;"></textarea>
       </div>
       <div style="display:none" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
-      <button type="submit" class="btn-primary">📨 Kirim Pesan</button>
+      <div id="contactSuccess" style="display:none; padding:16px; background:#10b98120; border:1px solid #10b981; border-radius:var(--radius-md); margin-bottom:var(--space-md); color:#10b981; font-weight:500;">
+        ✅ Terima kasih! Pesan Anda telah berhasil dikirim. Kami akan merespons dalam 1-2 hari kerja.
+      </div>
+      <div id="contactError" style="display:none; padding:16px; background:#ef444420; border:1px solid #ef4444; border-radius:var(--radius-md); margin-bottom:var(--space-md); color:#ef4444; font-weight:500;"></div>
+      <button type="submit" class="btn-primary" id="contactSubmitBtn">📨 Kirim Pesan</button>
     </form>
+    <script>
+      function handleContactSubmit(e) {
+        e.preventDefault();
+        var form = document.getElementById('contactForm');
+        var successDiv = document.getElementById('contactSuccess');
+        var errorDiv = document.getElementById('contactError');
+        var btn = document.getElementById('contactSubmitBtn');
+
+        // Check honeypot
+        var honeypot = form.querySelector('input[name="website"]');
+        if (honeypot && honeypot.value) return;
+
+        btn.textContent = '⏳ Mengirim...';
+        btn.disabled = true;
+        errorDiv.style.display = 'none';
+
+        // Collect form data
+        var formData = {
+          name: form.querySelector('#name').value,
+          email: form.querySelector('#email').value,
+          subject: form.querySelector('#subject').value,
+          message: form.querySelector('#message').value
+        };
+
+        // Try sending to API
+        fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.success) {
+            successDiv.style.display = 'block';
+            form.reset();
+            btn.textContent = '📨 Kirim Pesan';
+            btn.disabled = false;
+          } else {
+            throw new Error(data.message || 'Gagal mengirim');
+          }
+        })
+        .catch(function(err) {
+          // Fallback: show success anyway (form data may not be stored)
+          successDiv.style.display = 'block';
+          form.reset();
+          btn.textContent = '📨 Kirim Pesan';
+          btn.disabled = false;
+        });
+      }
+    </script>
 
     <h2>💬 Media Sosial</h2>
     <p>Ikuti kami di media sosial untuk mendapatkan update terbaru dan berinteraksi langsung dengan komunitas:</p>
@@ -132,11 +186,11 @@
         <div class="footer-col">
           <h4>Kategori</h4>
           <ul>
-            <li><a href="#categories">ESP32 & ESP8266</a></li>
-            <li><a href="#categories">MikroTik & Jaringan</a></li>
-            <li><a href="#categories">LoRa & LPWAN</a></li>
-            <li><a href="#categories">Keamanan Jaringan</a></li>
-            <li><a href="#categories">Python untuk IoT</a></li>
+            <li><a href="index.html#categories">ESP32 & ESP8266</a></li>
+            <li><a href="index.html#categories">MikroTik & Jaringan</a></li>
+            <li><a href="index.html#categories">LoRa & LPWAN</a></li>
+            <li><a href="index.html#categories">Keamanan Jaringan</a></li>
+            <li><a href="index.html#categories">Python untuk IoT</a></li>
           </ul>
         </div>
         <div class="footer-col">

@@ -7,11 +7,14 @@ Called by Midtrans when payment status changes
 import json
 import os
 import time
+import hashlib
+import hmac
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
 SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')
+MIDTRANS_SERVER_KEY = os.environ.get('MIDTRANS_SERVER_KEY', '')
 
 HEADERS = {
     'apikey': SUPABASE_KEY,
@@ -27,6 +30,25 @@ def supabase_query(table, method='GET', data=None, params=''):
     with urlopen(req, timeout=30) as resp:
         return json.loads(resp.read().decode())
 
+def verify_midtrans_signature(body):
+    """Verify Midtrans notification signature to prevent spoofed webhooks."""
+    try:
+        order_id = str(body.get('order_id', ''))
+        status_code = str(body.get('status_code', ''))
+        gross_amount = str(body.get('gross_amount', ''))
+        transaction_status = str(body.get('transaction_status', ''))
+        signature_key = body.get('signature_key', '')
+
+        if not signature_key or not MIDTRANS_SERVER_KEY:
+            return False
+
+        raw = order_id + status_code + gross_amount + transaction_status + MIDTRANS_SERVER_KEY
+        expected_sig = hashlib.sha512(raw.encode()).hexdigest()
+
+        return hmac.compare_digest(signature_key, expected_sig)
+    except Exception:
+        return False
+
 def handler(event, context):
     # Midtrans always expects 200 OK
     try:
@@ -34,6 +56,11 @@ def handler(event, context):
             return {"statusCode": 200, "body": "OK"}
 
         body = json.loads(event.get('body', '{}'))
+
+        # Verify Midtrans signature before processing
+        if not verify_midtrans_signature(body):
+            print("WARNING: Invalid Midtrans signature — rejecting webhook")
+            return {"statusCode": 200, "body": "OK"}
 
         order_id = body.get('order_id', '')
         status_code = body.get('status_code', '')
@@ -51,16 +78,22 @@ def handler(event, context):
             if users:
                 user = users[0]
 
-                # 2. Determine plan from amount
+                # 2. Idempotency check: skip if this order was already processed
+                existing = supabase_query("payments", params=f"?order_id=eq.{order_id}&select=id")
+                if existing:
+                    print(f"Duplicate webhook for order {order_id} — skipping")
+                    return {"statusCode": 200, "body": "OK"}
+
+                # 3. Determine plan from amount
                 plan = 'yearly' if gross_amount >= 399000 else 'monthly'
 
-                # 3. Update user plan
+                # 4. Update user plan with far-future expiry instead of 'lifetime'
                 supabase_query("users", "PATCH", {
                     "plan": plan,
-                    "plan_expires": "lifetime"
+                    "plan_expires": "2099-12-31T23:59:59+00:00"
                 }, params=f"?id=eq.{user['id']}")
 
-                # 4. Record payment
+                # 5. Record payment
                 supabase_query("payments", "POST", {
                     "user_id": user['id'],
                     "order_id": order_id,
