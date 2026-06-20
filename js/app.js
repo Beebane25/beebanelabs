@@ -616,6 +616,24 @@ const AuthSystem = {
   VIEW_KEY: 'iothub_views',
   FREE_VIEWS: 5,
 
+  // Email obfuscation - never store plain email in localStorage
+  _obfuscateEmail(email) {
+    // Store as base64 reversed + split to prevent casual reading
+    return btoa(email.split('').reverse().join(''));
+  },
+
+  _deobfuscateEmail(encoded) {
+    try { return atob(encoded).split('').reverse().join(''); }
+    catch(e) { return ''; }
+  },
+
+  _maskEmail(email) {
+    // Show as u***@domain.com for display
+    if (!email || !email.includes('@')) return '***';
+    const [user, domain] = email.split('@');
+    return user[0] + '***@' + domain;
+  },
+
   init() {
     // Clean up old localStorage data (insecure auth from previous versions)
     localStorage.removeItem('iothub_users');
@@ -626,11 +644,21 @@ const AuthSystem = {
   },
 
   getSession() {
-    return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || 'null');
+    const raw = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || 'null');
+    if (raw && raw.user && raw.user.email) {
+      // Deobfuscate email for internal use
+      raw.user.email = this._deobfuscateEmail(raw.user.email);
+    }
+    return raw;
   },
 
   saveSession(data) {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+    // Obfuscate email before storing
+    const safe = JSON.parse(JSON.stringify(data));
+    if (safe.user && safe.user.email) {
+      safe.user.email = this._obfuscateEmail(safe.user.email);
+    }
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(safe));
   },
 
   checkSession() {
