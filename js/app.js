@@ -964,3 +964,12 @@ const TokenDisplay = {
 };
 
 
+
+
+// === INITIALIZE ALL SYSTEMS ===
+document.addEventListener('DOMContentLoaded', () => {
+  initReadingProgress();
+  AuthSystem.init();
+  PaywallSystem.init();
+  TokenDisplay.showBanner();
+});
