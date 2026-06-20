@@ -502,193 +502,86 @@ const CSRF = {
   }
 };
 
-// === PAYWALL SYSTEM (FIXED) ===
+// === PAYWALL SYSTEM (TOKEN-BASED) ===
 const PaywallSystem = {
   FREE_ARTICLES: SITE_CONFIG.FREE_ARTICLES,
+  TOKEN_KEY: 'iothub_tokens',
+  UNLOCKED_KEY: 'iothub_unlocked',
+  INITIAL_TOKENS: 5,
 
-  isFreeArticle(filename) { return this.FREE_ARTICLES.includes(filename); },
+  isFreeArticle(f) { return this.FREE_ARTICLES.includes(f); },
   hasPaidAccess() {
-    // Check session-cached plan first (set during login/register)
-    const auth = JSON.parse(localStorage.getItem('iothub_auth') || 'null');
-    if (auth && auth.user && auth.user.plan && auth.user.plan !== 'free') return true;
-    // Also check legacy access cache
-    const acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
-    if (acc.lifetime === true || (acc.plan && acc.plan !== 'free')) return true;
-    // Check server-side access if user is logged in with a token
-    if (auth && auth.token && auth.user && auth.user.email) {
-      try {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/.netlify/functions/check-access', false);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify({ email: auth.user.email, token: auth.token }));
-        if (xhr.status === 200) {
-          const result = JSON.parse(xhr.responseText);
-          if (result.access) {
-            // Cache the plan status locally
-            auth.user.plan = result.plan || 'premium';
-            localStorage.setItem('iothub_auth', JSON.stringify(auth));
-            return true;
-          }
-        }
-      } catch (e) {
-        // Server unavailable, rely on cached status
-      }
-    }
+    const a = JSON.parse(localStorage.getItem('iothub_auth') || 'null');
+    if (a && a.user && a.user.plan && a.user.plan !== 'free') return true;
+    const c = JSON.parse(localStorage.getItem('iothub_access') || '{}');
+    return c.lifetime === true || (c.plan && c.plan !== 'free');
+  },
+  getTokens() { return parseInt(localStorage.getItem(this.TOKEN_KEY) || String(this.INITIAL_TOKENS)); },
+  useToken() { const t = this.getTokens(); if (t <= 0) return false; localStorage.setItem(this.TOKEN_KEY, String(t - 1)); return true; },
+  getUnlocked() { return JSON.parse(localStorage.getItem(this.UNLOCKED_KEY) || '[]'); },
+  isUnlocked(f) { return this.getUnlocked().includes(f); },
+  unlockArticle(f) { const u = this.getUnlocked(); if (!u.includes(f)) { u.push(f); localStorage.setItem(this.UNLOCKED_KEY, JSON.stringify(u)); } },
+  isAccessible(f) {
+    if (this.hasPaidAccess()) return true;
+    if (this.isFreeArticle(f) && this.isUnlocked(f)) return true;
     return false;
   },
-
-  hasEmailAccess(filename) {
-    const acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
-    return acc.emailUnlocked && acc.emailUnlocked.includes(filename);
-  },
-
   init() {
-    const path = window.location.pathname;
-    if (!path.includes('/articles/')) return;
-    const filename = path.split('/').pop();
-    const isPaid = this.hasPaidAccess();
-    const isFree = this.isFreeArticle(filename);
-    const hasEmailAccess = this.hasEmailAccess(filename);
-    const isLoggedIn = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
-
-    // PAID users: see everything
-    if (isPaid) return;
-
-    // FREE articles: show email gate if not unlocked
-    if (isFree && !hasEmailAccess && !isLoggedIn) {
-      this.showEmailGate(filename);
-      return;
-    }
-    // FREE articles: logged in users see free articles
-    if (isFree && (hasEmailAccess || isLoggedIn)) return;
-
-    // PREMIUM articles: ALWAYS block for non-paid users
-    if (!isFree && !isPaid) {
-      this.showPremiumBlock(filename);
-    }
+    const p = window.location.pathname;
+    if (!p.includes('/articles/')) return;
+    const f = p.split('/').pop();
+    if (this.isAccessible(f)) return;
+    if (this.isFreeArticle(f)) this.showTokenGate(f);
+    else this.showPremiumLock(f);
   },
-
-  // === Email Gate for Free Articles ===
-  showEmailGate(filename) {
-    const article = document.querySelector('.article-content');
-    if (!article) return;
-
-    // Remove ALL content after first 2 paragraphs
-    const children = Array.from(article.children);
-    let cutIdx = 0;
-    let charCount = 0;
-    for (let i = 0; i < children.length; i++) {
-      charCount += (children[i].textContent || '').length;
-      if (charCount > 500) { cutIdx = i + 1; break; }
-    }
-    // Keep at least title + 2 paragraphs
-    cutIdx = Math.max(cutIdx, 3);
-
-    // Remove everything after cutIdx
-    while (article.children.length > cutIdx) {
-      article.removeChild(article.lastChild);
-    }
-
-    // Add paywall card
-    const card = document.createElement('div');
-    card.className = 'paywall-card';
-    card.style.cssText = 'margin-top:24px;';
-    card.innerHTML = `
-      <div class="paywall-icon">🔓</div>
-      <div class="paywall-badge">✨ Artikel Gratis</div>
-      <h3>Buka Artikel Ini</h3>
-      <p>Masukkan email untuk membuka akses gratis ke artikel ini.</p>
-      <form class="email-gate-form" style="display:flex;gap:8px;max-width:420px;margin:16px auto 0;">
-        <input type="email" placeholder="email@kamu.com" required style="flex:1;background:var(--bg-secondary);border:1px solid var(--border-standard);border-radius:8px;padding:10px 14px;color:var(--text-primary);font-family:var(--font-primary);outline:none;">
-        <button type="submit" style="background:var(--accent-primary);color:#0f0f0f;font-weight:600;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-family:var(--font-primary);">Buka</button>
-      </form>
-      <p style="font-size:0.75rem;color:var(--text-subtle);margin-top:12px;">Atau <a href="../pricing.html" style="color:#3ecf8e;">beli akses premium</a> ke semua artikel</p>
-    `;
-    card.querySelector('form').onsubmit = function(e) {
-      e.preventDefault();
-      const email = e.target.querySelector('input').value;
-      const acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
-      if (!acc.emailUnlocked) acc.emailUnlocked = [];
-      if (!acc.emailUnlocked.includes(filename)) acc.emailUnlocked.push(filename);
-      localStorage.setItem('iothub_access', JSON.stringify(acc));
-      window.location.reload();
-    };
-    article.appendChild(card);
-  },
-
-  // === Premium Block for Paid Articles ===
-  showPremiumBlock(filename) {
-    const article = document.querySelector('.article-content');
-    if (!article) return;
-
-    // REMOVE ALL article content
-    while (article.firstChild) {
-      article.removeChild(article.firstChild);
-    }
-
-    // Show lock screen
-    const isLoggedIn = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
-    article.innerHTML = `
-      <div style="text-align:center;padding:80px 20px;">
-        <div style="font-size:4rem;margin-bottom:16px;">🔒</div>
-        <div style="display:inline-block;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:600;color:#fb923c;margin-bottom:16px;">Artikel Premium</div>
-        <h2 style="color:var(--text-primary);margin-bottom:8px;">Konten Terkunci</h2>
-        <p style="color:var(--text-muted);max-width:480px;margin:0 auto 24px;line-height:1.6;">
-          ${isLoggedIn
-            ? 'Akun kamu belum memiliki akses premium. Upgrade ke paket Bulanan atau Tahunan untuk membuka semua artikel.'
-            : 'Login atau daftar untuk mengakses artikel premium. Atau beli paket langganan.'}
-        </p>
-        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-          ${isLoggedIn
-            ? '<a href="../pricing.html" style="background:var(--accent-primary);color:#0f0f0f;font-weight:600;padding:12px 28px;border-radius:9999px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">💎 Upgrade Sekarang</a>'
-            : '<button onclick="AuthSystem.showModal()" style="background:var(--accent-primary);color:#0f0f0f;font-weight:600;padding:12px 28px;border-radius:9999px;border:none;cursor:pointer;font-family:var(--font-primary);display:inline-flex;align-items:center;gap:8px;">👤 Login / Daftar</button><a href="../pricing.html" style="background:var(--bg-card);color:var(--text-secondary);font-weight:500;padding:12px 28px;border-radius:9999px;border:1px solid var(--border-standard);text-decoration:none;display:inline-flex;align-items:center;gap:8px;">💎 Lihat Harga</a>'}
-        </div>
-      </div>
-    `;
-
-    // Prevent scrolling
-    article.style.overflow = 'hidden';
-    article.style.maxHeight = 'none';
-  },
-
-  showPaywall(filename) {
-    const article = document.querySelector('.article-content');
-    if (!article) return;
-    const elements = article.querySelectorAll('h2, h3, p, .code-block, .info-box, .arch-diagram, .compare-grid, .spec-table');
-    const cutIndex = Math.min(4, elements.length);
-    const isLoggedIn = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
-    const overlay = document.createElement('div');
-    overlay.className = 'paywall-overlay';
-    if (isLoggedIn) {
-      overlay.innerHTML = '<div class="paywall-blur">' + Array.from(elements).slice(cutIndex).map(el => el.outerHTML).join('') + '</div>' +
-        '<div class="paywall-card"><div class="paywall-icon">👑</div><div class="paywall-badge">Artikel Premium</div>' +
-        '<h3>Upgrade ke Premium</h3><p>Akun kamu belum memiliki akses premium. Pilih paket untuk membuka semua artikel.</p>' +
-        '<a href="../pricing.html" class="btn-primary" style="display:inline-block;text-decoration:none;margin-top:16px;">💎 Lihat Paket Harga</a></div>';
+  showTokenGate(f) {
+    const a = document.querySelector('.article-content');
+    if (!a) return;
+    const t = this.getTokens();
+    const logged = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
+    while (a.firstChild) a.removeChild(a.firstChild);
+    let icon, badge, msg, btns;
+    if (t <= 0 && !logged) {
+      icon = '🔒'; badge = 'Token Habis';
+      msg = 'Token gratis kamu sudah habis. Login atau beli paket premium untuk akses lebih banyak.';
+      btns = '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin:0 8px;">👤 Login</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">💎 Beli Premium</a>';
+    } else if (t <= 0 && logged) {
+      icon = '🔒'; badge = 'Token Habis';
+      msg = 'Token gratis sudah habis. Upgrade ke premium untuk akses semua artikel.';
+      btns = '<a href="../pricing.html" class="btn-primary" style="text-decoration:none;">💎 Upgrade Premium</a>';
     } else {
-      overlay.innerHTML = '<div class="paywall-blur">' + Array.from(elements).slice(cutIndex).map(el => el.outerHTML).join('') + '</div>' +
-        '<div class="paywall-card"><div class="paywall-icon">🔒</div><div class="paywall-badge">Artikel Premium</div>' +
-        '<h3>Dapatkan Akses Penuh</h3><p>Login atau daftar untuk melanjutkan. Upgrade ke premium untuk semua artikel.</p>' +
-        '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin-top:16px;">👤 Login / Daftar</button>' +
-        '<p style="margin-top:12px;"><a href="../pricing.html" style="color:#3ecf8e;font-size:0.85rem;">Lihat paket harga →</a></p></div>';
+      icon = '🔓'; badge = t + ' Token Tersisa';
+      msg = 'Gunakan 1 token untuk membuka artikel ini. Setelah diunlock, akses permanen.';
+      btns = '<button onclick="PaywallSystem.unlockWithToken("" + f + "")" class="btn-primary" style="margin:0 8px;">🔑 Gunakan 1 Token</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">💎 Beli Premium</a>';
     }
-    const cutPoint = elements[cutIndex];
-    if (cutPoint) { let s = cutPoint; while (s) { const n = s.nextElementSibling; s.remove(); s = n; } }
-    article.appendChild(overlay);
+    a.innerHTML = '<div style="text-align:center;padding:80px 20px;"><div style="font-size:4rem;margin-bottom:16px;">' + icon + '</div><div style="display:inline-block;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:600;color:#fb923c;margin-bottom:16px;">' + badge + '</div><h2 style="color:var(--text-primary);margin-bottom:8px;">Artikel Terkunci</h2><p style="color:var(--text-muted);max-width:480px;margin:0 auto 24px;line-height:1.6;">' + msg + '</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' + btns + '</div></div>';
   },
-
-  unlockWithEmail(event, filename) {
-    event.preventDefault();
-    const email = event.target.querySelector('input').value;
-    const acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
-    if (!acc.email) acc.email = (typeof AuthSystem !== 'undefined' && AuthSystem._obfuscateEmail) ? AuthSystem._obfuscateEmail(email) : email;
-    if (!acc.emailUnlocked) acc.emailUnlocked = [];
-    if (!acc.emailUnlocked.includes(filename)) acc.emailUnlocked.push(filename);
-    localStorage.setItem('iothub_access', JSON.stringify(acc));
+  showPremiumLock(f) {
+    const a = document.querySelector('.article-content');
+    if (!a) return;
+    const logged = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
+    while (a.firstChild) a.removeChild(a.firstChild);
+    let icon, badge, msg, btns;
+    if (logged) {
+      icon = '👑'; badge = 'Artikel Premium';
+      msg = 'Belum punya akses premium. Beli paket untuk membuka semua 16+ artikel premium.';
+      btns = '<a href="../pricing.html" class="btn-primary" style="text-decoration:none;">💎 Beli Paket Sekarang</a>';
+    } else {
+      icon = '🔒'; badge = 'Artikel Premium';
+      msg = 'Login atau beli paket premium. Tidak bisa dibuka dengan token gratis.';
+      btns = '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin:0 8px;">👤 Login / Daftar</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">💎 Lihat Harga</a>';
+    }
+    a.innerHTML = '<div style="text-align:center;padding:80px 20px;"><div style="font-size:4rem;margin-bottom:16px;">' + icon + '</div><div style="display:inline-block;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:600;color:#fb923c;margin-bottom:16px;">' + badge + '</div><h2 style="color:var(--text-primary);margin-bottom:8px;">Konten Terkunci</h2><p style="color:var(--text-muted);max-width:480px;margin:0 auto 24px;line-height:1.6;">' + msg + '</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' + btns + '</div></div>';
+  },
+  unlockWithToken(f) {
+    const t = this.getTokens();
+    if (t <= 0) { alert('Token habis! Beli paket premium.'); window.location.href = '../pricing.html'; return; }
+    if (!this.useToken()) return;
+    this.unlockArticle(f);
+    alert('Artikel dibuka! Token tersisa: ' + this.getTokens());
     window.location.reload();
   }
 };
-
-
 // === AUTH SYSTEM ===
 const AuthSystem = {
   API_BASE: window.location.origin,
@@ -1037,98 +930,34 @@ const AuthSystem = {
 };
 
 // === VIEW TRACKER (FIXED) ===
-const ViewTracker = {
-  SESSION_KEY: 'iothub_session_id',
-  VIEWED_KEY: 'iothub_viewed',
-  FREE_VIEWS: SITE_CONFIG.FREE_VIEWS,
-
-  getSessionId() {
-    let sid = sessionStorage.getItem(this.SESSION_KEY);
-    if (!sid) { sid = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9); sessionStorage.setItem(this.SESSION_KEY, sid); }
-    return sid;
-  },
-  getViews() { return parseInt(sessionStorage.getItem(this.VIEWED_KEY) || '0'); },
-  addView() { const v = this.getViews() + 1; sessionStorage.setItem(this.VIEWED_KEY, v.toString()); return v; },
-  hasReachedLimit() { return this.getViews() >= this.FREE_VIEWS; },
-
+// === TOKEN DISPLAY (replaces view counter) ===
+const TokenDisplay = {
   showBanner() {
-    const path = window.location.pathname;
-    if (!path.includes('/articles/')) return;
+    const p = window.location.pathname;
+    if (!p.includes('/articles/')) return;
     if (PaywallSystem.hasPaidAccess()) return;
-    const views = this.getViews();
-    const remaining = this.FREE_VIEWS - views;
-    const isLoggedIn = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
-
-    let banner = document.getElementById('viewCounterBanner');
+    const tokens = PaywallSystem.getTokens();
+    let banner = document.getElementById('tokenBanner');
     if (!banner) {
       banner = document.createElement('div');
-      banner.id = 'viewCounterBanner';
+      banner.id = 'tokenBanner';
       const ac = document.querySelector('.article-content');
       if (ac) ac.insertBefore(banner, ac.firstChild);
     }
-
-    if (remaining <= 0) {
-      banner.className = 'view-counter-banner limit-reached';
-      if (isLoggedIn) {
-        banner.innerHTML = '<span class="view-text"><strong>Batas viewing tercapai!</strong> Upgrade ke premium untuk akses tanpa batas.</span>' +
-          '<a href="../pricing.html" class="view-btn" style="text-decoration:none;">💎 Upgrade Sekarang</a>';
-      } else {
-        banner.innerHTML = '<span class="view-text"><strong>Batas viewing tercapai!</strong> Login atau daftar untuk melanjutkan.</span>' +
-          '<button class="view-btn" onclick="AuthSystem.showModal()">👤 Masuk / Daftar</button>';
-      }
-    } else {
+    if (tokens > 0) {
       banner.className = 'view-counter-banner';
-      banner.innerHTML = '<span class="view-text">Sisa artikel gratis: <span class="view-count">' + remaining + '</span> lagi</span>' +
-        (!isLoggedIn ? '<button class="view-btn" onclick="AuthSystem.showModal()">👤 Daftar Gratis</button>' : '');
+      banner.innerHTML = '<span class="view-text">🔑 Token gratis: <span class="view-count">' + tokens + '</span> tersisa</span><span style="font-size:0.75rem;color:var(--text-subtle);">Token dipakai untuk unlock artikel gratis</span>';
+    } else {
+      banner.className = 'view-counter-banner limit-reached';
+      banner.innerHTML = '<span class="view-text"><strong>Token habis!</strong> Upgrade ke premium untuk akses tanpa batas.</span><a href="../pricing.html" class="view-btn" style="text-decoration:none;">💎 Upgrade</a>';
     }
-  },
-
-  blockContent() {
-    // HARD BLOCK: When view limit is reached and user is NOT logged in,
-    // completely block all article content from being readable
-    const path = window.location.pathname;
-    if (!path.includes('/articles/')) return;
-    if (PaywallSystem.hasPaidAccess()) return;
-    if (typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn()) return;
-    if (!this.hasReachedLimit()) return;
-
-    // Prevent scrolling
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-
-    // Create full-screen blocking overlay
-    const existingBlock = document.getElementById('viewBlockOverlay');
-    if (existingBlock) return;
-
-    const overlay = document.createElement('div');
-    overlay.id = 'viewBlockOverlay';
-    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:10000;' +
-      'background:linear-gradient(135deg, rgba(10,10,26,0.97) 0%, rgba(15,23,42,0.97) 100%);' +
-      'display:flex;align-items:center;justify-content:center;text-align:center;color:#e2e8f0;' +
-      'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;';
-    overlay.innerHTML = '<div style="max-width:480px;padding:40px 32px;">' +
-      '<div style="font-size:3.5rem;margin-bottom:16px;">🔒</div>' +
-      '<h2 style="font-size:1.5rem;font-weight:700;margin:0 0 12px;color:#fff;">Batas Artikel Tercapai</h2>' +
-      '<p style="font-size:0.95rem;color:#94a3b8;margin:0 0 24px;line-height:1.6;">' +
-      'Kamu sudah membaca ' + this.FREE_VIEWS + ' artikel gratis. ' +
-      'Login atau upgrade ke premium untuk membaca semua artikel tanpa batas.</p>' +
-      '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' +
-      '<button onclick="AuthSystem.showModal()" style="padding:12px 28px;border-radius:999px;border:none;' +
-      'background:linear-gradient(135deg,#3ecf8e,#10b981);color:#0f0f0f;font-weight:700;font-size:0.95rem;' +
-      'cursor:pointer;">👤 Login / Daftar</button>' +
-      '<a href="../pricing.html" style="padding:12px 28px;border-radius:999px;border:1px solid #334155;' +
-      'background:transparent;color:#e2e8f0;font-weight:600;font-size:0.95rem;text-decoration:none;' +
-      'cursor:pointer;display:inline-block;">💎 Lihat Harga</a>' +
-      '</div>' +
-      '<p style="margin-top:20px;font-size:0.8rem;color:#64748b;">Mulai dari <strong>Rp 49.000/bulan</strong> — akses 21+ artikel</p>' +
-      '</div>';
-    document.body.appendChild(overlay);
   }
 };
 
 // Initialize auth and view tracker
 AuthSystem.init();
+PaywallSystem.init();
+TokenDisplay.showBanner();
 
 // Track article views
 if (window.location.pathname.includes('/articles/')) {
