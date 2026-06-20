@@ -240,7 +240,8 @@ if (searchInput) {
     );
 
     if (filtered.length === 0) {
-      searchResults.innerHTML = '<div class="search-hint">Tidak ada hasil ditemukan untuk "' + query + '"</div>';
+      const safeQuery = query.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      searchResults.innerHTML = '<div class="search-hint">Tidak ada hasil ditemukan untuk "' + safeQuery + '"</div>';
       return;
     }
 
