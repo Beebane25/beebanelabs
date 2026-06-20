@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Koneksi API - IoTHub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body>
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <div class="brand-icon">⚡</div>
+        <span>IoTHub</span>
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="index.html">Beranda</a></li>
+      </ul>
+      <a href="pricing.html" class="navbar-cta">💎 Upgrade</a>
+    </div>
+  </nav>
+
+  <section class="article-hero">
+    <div class="container">
+      <h1>🔌 Test Koneksi API</h1>
+      <p style="color:var(--text-muted); margin-top:var(--space-sm);">Verifikasi status endpoint Netlify Functions</p>
+    </div>
+  </section>
+
+  <section style="padding:var(--space-2xl) 0 var(--space-4xl);">
+    <div class="container" style="max-width:700px;">
+
+      <div id="results" style="display:flex; flex-direction:column; gap:var(--space-md);">
+        <!-- results injected by JS -->
+      </div>
+
+      <div style="text-align:center; margin-top:var(--space-xl);">
+        <button onclick="runAllTests()" class="plan-btn primary" style="max-width:280px; margin:0 auto; padding:14px 28px; font-size:1rem;">
+          🔄 Jalankan Ulang Tes
+        </button>
+      </div>
+
+      <div style="margin-top:var(--space-2xl); padding:var(--space-lg); background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-lg);">
+        <h3 style="font-size:1rem; margin-bottom:var(--space-sm);">ℹ️ Informasi</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.7; margin:0;">
+          Halaman ini menguji konektivitas ke Netlify Functions endpoint. Jika ada endpoint yang belum aktif,
+          kemungkinan fungsi belum di-deploy atau sedang dalam proses build. Cek dashboard
+          <a href="https://app.netlify.com" target="_blank" rel="noopener">Netlify</a> untuk status deployment.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2026 IoTHub. Test Connection Page.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const API_BASE = 'https://iothub25.netlify.app';
+
+    const endpoints = [
+      {
+        name: 'Health Check',
+        method: 'GET',
+        url: '/.netlify/functions/health',
+        desc: 'Memverifikasi fungsi health check berjalan',
+      },
+      {
+        name: 'Create Payment',
+        method: 'OPTIONS',
+        url: '/.netlify/functions/create-payment',
+        desc: 'Endpoint pembayaran Midtrans (preflight CORS)',
+      },
+      {
+        name: 'Verify Payment',
+        method: 'OPTIONS',
+        url: '/.netlify/functions/verify-payment',
+        desc: 'Endpoint verifikasi status pembayaran',
+      },
+      {
+        name: 'API Root',
+        method: 'GET',
+        url: '/api/',
+        desc: 'Redirect ke Netlify Functions (via netlify.toml)',
+      },
+      {
+        name: 'Site Reachable',
+        method: 'GET',
+        url: '/',
+        desc: 'Memverifikasi situs utama dapat diakses',
+      },
+    ];
+
+    const resultsDiv = document.getElementById('results');
+
+    function createCard(name, desc) {
+      const card = document.createElement('div');
+      card.style.cssText = 'background:var(--bg-card); border:1px solid var(--border-card); border-radius:var(--radius-lg); padding:var(--space-md) var(--space-lg); transition: all var(--transition-fast);';
+      card.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+          <div>
+            <strong style="color:var(--text-primary); font-size:0.95rem;">${name}</strong>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin:2px 0 0;">${desc}</p>
+          </div>
+          <span class="status-badge" style="font-size:0.8rem; font-weight:600; padding:4px 12px; border-radius:var(--radius-pill); background:rgba(255,255,255,0.05); color:var(--text-subtle);">⏳ Testing...</span>
+        </div>
+      `;
+      return card;
+    }
+
+    function setStatus(card, status, detail) {
+      const badge = card.querySelector('.status-badge');
+      if (status === 'ok') {
+        badge.textContent = '✅ ' + detail;
+        badge.style.background = 'rgba(16,185,129,0.15)';
+        badge.style.color = '#10b981';
+        card.style.borderColor = 'rgba(16,185,185,129,0.3)';
+      } else if (status === 'warn') {
+        badge.textContent = '⚠️ ' + detail;
+        badge.style.background = 'rgba(251,191,36,0.15)';
+        badge.style.color = '#fbbf24';
+        card.style.borderColor = 'rgba(251,191,36,0.3)';
+      } else {
+        badge.textContent = '❌ ' + detail;
+        badge.style.background = 'rgba(239,68,68,0.15)';
+        badge.style.color = '#ef4444';
+        card.style.borderColor = 'rgba(239,68,68,0.3)';
+      }
+    }
+
+    async function testEndpoint(ep) {
+      const card = createCard(ep.name, ep.desc);
+      resultsDiv.appendChild(card);
+
+      const start = performance.now();
+      try {
+        const opts = { method: ep.method, mode: 'cors' };
+        if (ep.method !== 'OPTIONS') {
+          opts.headers = { 'Accept': 'application/json' };
+        }
+        const resp = await fetch(API_BASE + ep.url, opts);
+        const elapsed = Math.round(performance.now() - start);
+
+        if (resp.ok) {
+          setStatus(card, 'ok', resp.status + ' ' + resp.statusText + ' (' + elapsed + 'ms)');
+        } else if (resp.status === 404) {
+          setStatus(card, 'warn', resp.status + ' — Fungsi belum di-deploy (' + elapsed + 'ms)');
+        } else {
+          setStatus(card, 'fail', resp.status + ' ' + resp.statusText + ' (' + elapsed + 'ms)');
+        }
+      } catch (err) {
+        const elapsed = Math.round(performance.now() - start);
+        setStatus(card, 'fail', 'Network Error (' + elapsed + 'ms)');
+      }
+    }
+
+    async function runAllTests() {
+      resultsDiv.innerHTML = '';
+      for (const ep of endpoints) {
+        await testEndpoint(ep);
+      }
+    }
+
+    runAllTests();
+  </script>
+</body>
+</html>

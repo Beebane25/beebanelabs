@@ -480,7 +480,8 @@ document.addEventListener('DOMContentLoaded', () => {
 const SITE_CONFIG = {
   FREE_ARTICLES: ['esp32-fundamentals.html', 'mqtt-protocol.html', 'mikrotik-routing.html', 'lora-communication.html', 'esp8266-nodemcu.html'],
   FREE_VIEWS: 5,
-  API_BASE: window.location.origin
+  API_BASE: window.location.origin,
+  APP_VERSION: '2.1.0'
 };
 
 // === CSRF TOKEN (double-submit pattern) ===
@@ -662,8 +663,33 @@ const AuthSystem = {
   },
 
   init() {
-    // Clean up old localStorage data (insecure auth from previous versions)
-    localStorage.removeItem('iothub_users');
+    // === AGGRESSIVE CLEANUP: Remove ALL old/insecure localStorage data ===
+    // Remove legacy user data (insecure plaintext auth from old versions)
+    try {
+      localStorage.removeItem('iothub_users');
+    } catch(e) {}
+
+    // Version-based cleanup: if app version changed, clear ALL old data
+    try {
+      const storedVersion = localStorage.getItem('iothub_app_version');
+      if (storedVersion !== SITE_CONFIG.APP_VERSION) {
+        // New version detected — clear stale auth and cache data
+        const keysToKeep = new Set(['iothub_auth', 'iothub_session_id', 'iothub_viewed', 'iothub_csrf']);
+        const allKeys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          allKeys.push(localStorage.key(i));
+        }
+        allKeys.forEach(key => {
+          if (key && key.startsWith('iothub_') && !keysToKeep.has(key)) {
+            localStorage.removeItem(key);
+          }
+        });
+        localStorage.setItem('iothub_app_version', SITE_CONFIG.APP_VERSION);
+      }
+    } catch(e) {}
+
+    // Force logout if session is older than 7 days
+    this._enforceSessionExpiry();
 
     this.checkSession();
     this.createLoginModal();
@@ -685,6 +711,10 @@ const AuthSystem = {
     if (safe.user && safe.user.email) {
       safe.user.email = this._obfuscateEmail(safe.user.email);
     }
+    // Add login timestamp for session expiry enforcement
+    if (!safe._createdAt) {
+      safe._createdAt = new Date().toISOString();
+    }
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(safe));
   },
 
@@ -694,6 +724,36 @@ const AuthSystem = {
       return true;
     }
     return false;
+  },
+
+  _enforceSessionExpiry() {
+    // Force logout if session is older than 7 days
+    try {
+      const raw = localStorage.getItem(this.STORAGE_KEY);
+      if (!raw) return;
+      const session = JSON.parse(raw);
+      // Check if session has a created_at or login timestamp
+      const sessionTime = session._createdAt || session.loginAt || null;
+      if (sessionTime) {
+        const ageMs = Date.now() - new Date(sessionTime).getTime();
+        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+        if (ageMs > SEVEN_DAYS_MS) {
+          // Session expired — clear it silently
+          localStorage.removeItem(this.STORAGE_KEY);
+          localStorage.removeItem('iothub_access');
+          // Also invalidate server-side session (fire-and-forget)
+          if (session.token) {
+            try {
+              fetch(this.AUTH_ENDPOINT, {
+                method: 'POST',
+                headers: typeof CSRF !== 'undefined' ? CSRF.getHeaders() : { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'logout', token: session.token })
+              }).catch(function() {});
+            } catch(e) {}
+          }
+        }
+      }
+    } catch(e) {}
   },
 
   isLoggedIn() {
@@ -968,6 +1028,49 @@ const ViewTracker = {
       banner.innerHTML = '<span class="view-text">Sisa artikel gratis: <span class="view-count">' + remaining + '</span> lagi</span>' +
         (!isLoggedIn ? '<button class="view-btn" onclick="AuthSystem.showModal()">👤 Daftar Gratis</button>' : '');
     }
+  },
+
+  blockContent() {
+    // HARD BLOCK: When view limit is reached and user is NOT logged in,
+    // completely block all article content from being readable
+    const path = window.location.pathname;
+    if (!path.includes('/articles/')) return;
+    if (PaywallSystem.hasPaidAccess()) return;
+    if (typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn()) return;
+    if (!this.hasReachedLimit()) return;
+
+    // Prevent scrolling
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+
+    // Create full-screen blocking overlay
+    const existingBlock = document.getElementById('viewBlockOverlay');
+    if (existingBlock) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'viewBlockOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:10000;' +
+      'background:linear-gradient(135deg, rgba(10,10,26,0.97) 0%, rgba(15,23,42,0.97) 100%);' +
+      'display:flex;align-items:center;justify-content:center;text-align:center;color:#e2e8f0;' +
+      'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;';
+    overlay.innerHTML = '<div style="max-width:480px;padding:40px 32px;">' +
+      '<div style="font-size:3.5rem;margin-bottom:16px;">🔒</div>' +
+      '<h2 style="font-size:1.5rem;font-weight:700;margin:0 0 12px;color:#fff;">Batas Artikel Tercapai</h2>' +
+      '<p style="font-size:0.95rem;color:#94a3b8;margin:0 0 24px;line-height:1.6;">' +
+      'Kamu sudah membaca ' + this.FREE_VIEWS + ' artikel gratis. ' +
+      'Login atau upgrade ke premium untuk membaca semua artikel tanpa batas.</p>' +
+      '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' +
+      '<button onclick="AuthSystem.showModal()" style="padding:12px 28px;border-radius:999px;border:none;' +
+      'background:linear-gradient(135deg,#3ecf8e,#10b981);color:#0f0f0f;font-weight:700;font-size:0.95rem;' +
+      'cursor:pointer;">👤 Login / Daftar</button>' +
+      '<a href="../pricing.html" style="padding:12px 28px;border-radius:999px;border:1px solid #334155;' +
+      'background:transparent;color:#e2e8f0;font-weight:600;font-size:0.95rem;text-decoration:none;' +
+      'cursor:pointer;display:inline-block;">💎 Lihat Harga</a>' +
+      '</div>' +
+      '<p style="margin-top:20px;font-size:0.8rem;color:#64748b;">Mulai dari <strong>Rp 49.000/bulan</strong> — akses 21+ artikel</p>' +
+      '</div>';
+    document.body.appendChild(overlay);
   }
 };
 
@@ -978,13 +1081,14 @@ AuthSystem.init();
 if (window.location.pathname.includes('/articles/')) {
   const views = ViewTracker.addView();
   ViewTracker.showBanner();
+  // HARD BLOCK: completely prevent reading when limit is reached (non-logged-in users)
+  ViewTracker.blockContent();
 
   if (ViewTracker.hasReachedLimit() && !AuthSystem.isLoggedIn()) {
-    // Show login modal after a delay
     setTimeout(() => {
       if (!AuthSystem.isLoggedIn()) {
         AuthSystem.showModal();
       }
-    }, 2000);
+    }, 1500);
   }
 }
