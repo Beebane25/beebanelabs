@@ -7,6 +7,8 @@
   <meta name="description" content="Pilih paket langganan IoTHub yang sesuai kebutuhanmu. Akses tutorial IoT, jaringan, dan mikrokontroler premium dengan harga terjangkau.">
   <meta name="keywords" content="langganan IoTHub, paket harga, pricing IoT tutorial, langganan tutorial teknologi">
   <meta name="author" content="IoTHub">
+  <!-- Midtrans Snap -->
+  <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-i8CzWdgvnoRMxqHH"></script>
   <meta property="og:title" content="Harga & Langganan - IoTHub">
   <meta property="og:description" content="Pilih paket langganan IoTHub yang sesuai kebutuhanmu. Akses tutorial premium dengan harga terjangkau.">
   <meta property="og:type" content="website">
@@ -81,7 +83,7 @@
             <li>📧 Newsletter mingguan</li>
             <li>💬 Akses komunitas Discord</li>
           </ul>
-          <button class="plan-btn secondary" onclick="PaywallSystem.simulatePayment('free')">Mulai Gratis</button>
+          <button class="plan-btn secondary" onclick="startPayment('free')">Mulai Gratis</button>
         </div>
 
         <!-- BULANAN -->
@@ -96,7 +98,7 @@
             <li>🛠️ Priority support via email</li>
             <li>📊 Progres belajar terpantau</li>
           </ul>
-          <button class="plan-btn secondary" onclick="PaywallSystem.simulatePayment('monthly')">Pilih Bulanan</button>
+          <button class="plan-btn secondary" onclick="startPayment('monthly')">Pilih Bulanan</button>
         </div>
 
         <!-- TAHUNAN (Populer) -->
@@ -111,7 +113,7 @@
             <li>🏅 Badge member eksklusif</li>
             <li>📥 Download materi offline</li>
           </ul>
-          <button class="plan-btn primary" onclick="PaywallSystem.simulatePayment('yearly')">Pilih Tahunan</button>
+          <button class="plan-btn primary" onclick="startPayment('yearly')">Pilih Tahunan</button>
         </div>
 
       </div>
@@ -219,5 +221,120 @@
   <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
 
   <script src="js/app.js"></script>
-</body>
+  <script>
+    // === MIDTRANS PAYMENT INTEGRATION ===
+    const API_BASE = 'https://beebane25.iothub-api.netlify.app'; // Change after Netlify deploy
+
+    function startPayment(plan) {
+      if (plan === 'free') {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const prices = { monthly: 49000, yearly: 399000 };
+      const amount = prices[plan];
+      const planName = plan === 'yearly' ? 'Tahunan' : 'Bulanan';
+
+      // Check if user is logged in
+      const authData = JSON.parse(localStorage.getItem('iothub_auth') || 'null');
+      const email = authData && authData.user ? authData.user.email : null;
+
+      if (!email) {
+        if (typeof AuthSystem !== 'undefined') {
+          AuthSystem.showModal();
+          alert('Silakan login terlebih dahulu untuk melakukan pembayaran.');
+        } else {
+          alert('Silakan login terlebih dahulu.');
+        }
+        return;
+      }
+
+      if (!confirm('Beli Paket ' + planName + ' seharga Rp ' + amount.toLocaleString('id-ID') + '?')) {
+        return;
+      }
+
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.textContent = '⏳ Memproses...';
+      btn.disabled = true;
+
+      fetch(API_BASE + '/.netlify/functions/create-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          plan: plan,
+          amount: amount,
+          item_name: 'IoTHub Premium - ' + planName
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.token) {
+          window.snap.pay(data.token, {
+            onSuccess: function(result) {
+              console.log('Payment success:', result);
+              var acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
+              acc.lifetime = true;
+              acc.plan = plan;
+              acc.purchasedAt = new Date().toISOString();
+              acc.email = email;
+              localStorage.setItem('iothub_access', JSON.stringify(acc));
+              if (authData && authData.user) {
+                authData.user.plan = plan;
+                localStorage.setItem('iothub_auth', JSON.stringify(authData));
+              }
+              alert('Pembayaran berhasil! Paket ' + planName + ' telah aktif.');
+              window.location.reload();
+            },
+            onPending: function(result) {
+              alert('Pembayaran diproses. Order ID: ' + data.order_id + '. Selesaikan dalam 24 jam.');
+              btn.textContent = originalText;
+              btn.disabled = false;
+            },
+            onError: function(result) {
+              alert('Pembayaran gagal. Silakan coba lagi.');
+              btn.textContent = originalText;
+              btn.disabled = false;
+            },
+            onClose: function() {
+              btn.textContent = originalText;
+              btn.disabled = false;
+            }
+          });
+        } else {
+          // Fallback: demo mode
+          if (confirm('Backend belum aktif. Aktifkan mode demo?')) {
+            var acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
+            acc.lifetime = true;
+            acc.plan = plan;
+            acc.purchasedAt = new Date().toISOString();
+            acc.email = email;
+            localStorage.setItem('iothub_access', JSON.stringify(acc));
+            alert('Demo mode: Premium unlocked!');
+            window.location.reload();
+          } else {
+            btn.textContent = originalText;
+            btn.disabled = false;
+          }
+        }
+      })
+      .catch(function(err) {
+        console.error('Payment error:', err);
+        if (confirm('Backend belum aktif. Aktifkan mode demo?')) {
+          var acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
+          acc.lifetime = true;
+          acc.plan = plan;
+          acc.purchasedAt = new Date().toISOString();
+          acc.email = email;
+          localStorage.setItem('iothub_access', JSON.stringify(acc));
+          alert('Demo mode: Premium unlocked!');
+          window.location.reload();
+        } else {
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
+      });
+    }
+  </script>
 </html>
