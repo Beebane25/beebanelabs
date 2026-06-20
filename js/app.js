@@ -617,6 +617,9 @@ const AuthSystem = {
   FREE_VIEWS: 5,
 
   init() {
+    // Clean up old localStorage data (insecure auth from previous versions)
+    localStorage.removeItem('iothub_users');
+
     this.checkSession();
     this.createLoginModal();
     this.updateNavbar();
