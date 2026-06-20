@@ -492,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const SITE_CONFIG = {
   FREE_ARTICLES: ['esp32-fundamentals.html', 'mqtt-protocol.html', 'mikrotik-routing.html', 'lora-communication.html', 'esp8266-nodemcu.html'],
   FREE_VIEWS: 5,
-  API_BASE: 'https://beebane25.iothub-api.netlify.app'
+  API_BASE: window.location.origin
 };
 
 // === PAYWALL SYSTEM (FIXED) ===
@@ -500,12 +500,34 @@ const PaywallSystem = {
   FREE_ARTICLES: SITE_CONFIG.FREE_ARTICLES,
 
   isFreeArticle(filename) { return this.FREE_ARTICLES.includes(filename); },
-
   hasPaidAccess() {
+    // Check session-cached plan first (set during login/register)
     const auth = JSON.parse(localStorage.getItem('iothub_auth') || 'null');
     if (auth && auth.user && auth.user.plan && auth.user.plan !== 'free') return true;
+    // Also check legacy access cache
     const acc = JSON.parse(localStorage.getItem('iothub_access') || '{}');
-    return acc.lifetime === true || (acc.plan && acc.plan !== 'free');
+    if (acc.lifetime === true || (acc.plan && acc.plan !== 'free')) return true;
+    // Check server-side access if user is logged in with a token
+    if (auth && auth.token && auth.user && auth.user.email) {
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', '/.netlify/functions/auth?action=check-access&email=' +
+          encodeURIComponent(auth.user.email) + '&token=' + encodeURIComponent(auth.token), false);
+        xhr.send();
+        if (xhr.status === 200) {
+          const result = JSON.parse(xhr.responseText);
+          if (result.hasAccess) {
+            // Cache the plan status locally
+            auth.user.plan = result.plan || 'premium';
+            localStorage.setItem('iothub_auth', JSON.stringify(auth));
+            return true;
+          }
+        }
+      } catch (e) {
+        // Server unavailable, rely on cached status
+      }
+    }
+    return false;
   },
 
   hasEmailAccess(filename) {
@@ -588,7 +610,8 @@ const PaywallSystem = {
 
 // === AUTH SYSTEM ===
 const AuthSystem = {
-  API_BASE: '',
+  API_BASE: window.location.origin,
+  AUTH_ENDPOINT: '/.netlify/functions/auth',
   STORAGE_KEY: 'iothub_auth',
   VIEW_KEY: 'iothub_views',
   FREE_VIEWS: 5,
@@ -734,12 +757,12 @@ const AuthSystem = {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
 
-    // Try server first
+    // Login via Netlify Function backend
     try {
-      const res = await fetch('/api/login', {
+      const res = await fetch(this.AUTH_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ action: 'login', email, password })
       });
       const data = await res.json();
       if (data.success) {
@@ -747,20 +770,11 @@ const AuthSystem = {
         this.showSuccess('Login berhasil! Mengalihkan...');
         setTimeout(() => window.location.reload(), 1000);
         return;
+      } else {
+        this.showError(data.message || 'Email atau password salah');
       }
     } catch (err) {
-      // Server not available, use localStorage fallback
-    }
-
-    // Fallback: check localStorage
-    const users = JSON.parse(localStorage.getItem('iothub_users') || '[]');
-    const user = users.find(u => u.email === email && u.password === password);
-    if (user) {
-      this.saveSession({ user: { email: user.email, name: user.name, plan: user.plan || 'free' }, token: 'local_' + Date.now() });
-      this.showSuccess('Login berhasil! Mengalihkan...');
-      setTimeout(() => window.location.reload(), 1000);
-    } else {
-      this.showError('Email atau password salah');
+      this.showError('Gagal terhubung ke server. Coba lagi nanti.');
     }
   },
 
@@ -775,12 +789,12 @@ const AuthSystem = {
       return;
     }
 
-    // Try server first
+    // Register via Netlify Function backend
     try {
-      const res = await fetch('/api/register', {
+      const res = await fetch(this.AUTH_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ action: 'register', name, email, password })
       });
       const data = await res.json();
       if (data.success) {
@@ -788,22 +802,12 @@ const AuthSystem = {
         this.showSuccess('Registrasi berhasil! Mengalihkan...');
         setTimeout(() => window.location.reload(), 1000);
         return;
+      } else {
+        this.showError(data.message || 'Gagal mendaftar');
       }
     } catch (err) {
-      // Server not available, use localStorage fallback
+      this.showError('Gagal terhubung ke server. Coba lagi nanti.');
     }
-
-    // Fallback: save to localStorage
-    const users = JSON.parse(localStorage.getItem('iothub_users') || '[]');
-    if (users.find(u => u.email === email)) {
-      this.showError('Email sudah terdaftar');
-      return;
-    }
-    users.push({ name, email, password, plan: 'free', created: new Date().toISOString() });
-    localStorage.setItem('iothub_users', JSON.stringify(users));
-    this.saveSession({ user: { email, name, plan: 'free' }, token: 'local_' + Date.now() });
-    this.showSuccess('Registrasi berhasil! Mengalihkan...');
-    setTimeout(() => window.location.reload(), 1000);
   },
 
   escapeHtml(str) {
