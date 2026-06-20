@@ -12,6 +12,7 @@ import csv
 import hashlib
 import re
 import secrets
+import time
 from datetime import datetime, timedelta
 from urllib.parse import parse_qs, urlparse
 from collections import defaultdict
@@ -23,10 +24,18 @@ USERS_FILE = os.path.join(DATA_DIR, 'users.csv')
 VIEWS_FILE = os.path.join(DATA_DIR, 'views.csv')
 FREE_VIEWS_LIMIT = 5
 
+# --- Security Configuration ---
+ALLOWED_ORIGIN = 'https://yourusername.github.io'  # Change to your GitHub Pages domain
+PBKDF2_ITERATIONS = 100000
+TOKEN_EXPIRY_HOURS = 24
+RATE_LIMIT_WINDOW = 60       # seconds
+RATE_LIMIT_MAX_REQUESTS = 10  # max requests per window per IP per endpoint
+PASSWORD_MIN_LENGTH = 8
+
 # Ensure CSV files exist with headers
 for filepath, headers in [
     (SUBSCRIBERS_FILE, ['email', 'subscribed_at', 'ip_hash', 'status']),
-    (USERS_FILE, ['email', 'password_hash', 'name', 'created_at', 'plan', 'plan_expires', 'is_active']),
+    (USERS_FILE, ['email', 'password_hash', 'password_salt', 'name', 'created_at', 'plan', 'plan_expires', 'is_active']),
     (VIEWS_FILE, ['session_id', 'article', 'viewed_at', 'ip_hash'])
 ]:
     if not os.path.exists(filepath):
@@ -36,6 +45,12 @@ for filepath, headers in [
 
 class NewsletterHandler(http.server.SimpleHTTPRequestHandler):
 
+    # --- Class-level token store ---
+    _tokens = {}   # {token_str: {'email': str, 'expires': datetime}}
+    # --- Class-level rate limit store ---
+    _rate_limit = {}  # {f'{endpoint}:{ip}': {'count': int, 'window_start': float}}
+
+    # === ROUTING ===
     def do_GET(self):
         if self.path.startswith('/api/'):
             self.handle_api_get()
@@ -60,9 +75,9 @@ class NewsletterHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_OPTIONS(self):
         self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Origin', ALLOWED_ORIGIN)
         self.send_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         self.end_headers()
 
     # === SUBSCRIBE ===
@@ -85,6 +100,11 @@ class NewsletterHandler(http.server.SimpleHTTPRequestHandler):
 
     # === REGISTER ===
     def handle_register(self):
+        # Rate limit check
+        if not self.check_rate_limit('register'):
+            self.send_json(429, {'error': 'Terlalu banyak percobaan. Silakan tunggu beberapa saat.'})
+            return
+
         data = self.read_body()
         if not data:
             return
@@ -95,9 +115,13 @@ class NewsletterHandler(http.server.SimpleHTTPRequestHandler):
         if not self.is_valid_email(email):
             self.send_json(400, {'error': 'Email tidak valid'})
             return
-        if len(password) < 6:
-            self.send_json(400, {'error': 'Password minimal 6 karakter'})
+
+        # Strengthened password policy
+        pwd_error = self.validate_password_strength(password)
+        if pwd_error:
+            self.send_json(400, {'error': pwd_error})
             return
+
         if not name:
             self.send_json(400, {'error': 'Nama harus diisi'})
             return
@@ -105,13 +129,18 @@ class NewsletterHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json(409, {'error': 'Email sudah terdaftar. Silakan login.'})
             return
 
-        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        # PBKDF2 hashing with random salt
+        salt = secrets.token_hex(16)
+        password_hash = hashlib.pbkdf2_hmac(
+            'sha256', password.encode(), salt.encode(), PBKDF2_ITERATIONS
+        ).hex()
+
         self.csv_append(USERS_FILE, [
-            email, password_hash, name,
+            email, password_hash, salt, name,
             datetime.now().isoformat(), 'free', '', 'true'
         ])
 
-        token = secrets.token_hex(32)
+        token = self._store_token(email)
         self.send_json(200, {
             'success': True,
             'message': 'Registrasi berhasil!',
@@ -121,6 +150,11 @@ class NewsletterHandler(http.server.SimpleHTTPRequestHandler):
 
     # === LOGIN ===
     def handle_login(self):
+        # Rate limit check
+        if not self.check_rate_limit('login'):
+            self.send_json(429, {'error': 'Terlalu banyak percobaan. Silakan tunggu beberapa saat.'})
+            return
+
         data = self.read_body()
         if not data:
             return
@@ -132,20 +166,36 @@ class NewsletterHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         user = self.csv_find(USERS_FILE, email)
+
+        # Prevent user enumeration: same error for missing user or wrong password
         if not user:
-            self.send_json(401, {'error': 'Email tidak terdaftar'})
+            # Still run dummy hash to prevent timing attacks
+            hashlib.pbkdf2_hmac('sha256', b'dummy', b'dummy', PBKDF2_ITERATIONS)
+            self.send_json(401, {'error': 'Email atau password salah'})
             return
 
-        password_hash = hashlib.sha256(password.encode()).hexdigest()
-        if user.get('password_hash') != password_hash:
-            self.send_json(401, {'error': 'Password salah'})
+        # Verify password - support both PBKDF2 (new) and SHA-256 (legacy)
+        stored_hash = user.get('password_hash', '')
+        salt = user.get('password_salt', '')
+
+        if salt:
+            # New PBKDF2 password
+            computed_hash = hashlib.pbkdf2_hmac(
+                'sha256', password.encode(), salt.encode(), PBKDF2_ITERATIONS
+            ).hex()
+        else:
+            # Legacy SHA-256 password (backward compatibility)
+            computed_hash = hashlib.sha256(password.encode()).hexdigest()
+
+        if not secrets.compare_digest(stored_hash, computed_hash):
+            self.send_json(401, {'error': 'Email atau password salah'})
             return
 
         if user.get('is_active') != 'true':
             self.send_json(403, {'error': 'Akun tidak aktif'})
             return
 
-        token = secrets.token_hex(32)
+        token = self._store_token(email)
         self.send_json(200, {
             'success': True,
             'message': 'Login berhasil!',
@@ -244,10 +294,16 @@ class NewsletterHandler(http.server.SimpleHTTPRequestHandler):
 
     # === UPGRADE PLAN ===
     def handle_upgrade(self):
+        # Require authentication via token
+        email = self._validate_token()
+        if not email:
+            self.send_json(401, {'error': 'Token tidak valid atau sudah kedaluwarsa. Silakan login ulang.'})
+            return
+
         data = self.read_body()
         if not data:
             return
-        email = data.get('email', '').strip()
+
         plan = data.get('plan', 'monthly')
 
         if plan not in ('monthly', 'yearly'):
@@ -300,7 +356,7 @@ class NewsletterHandler(http.server.SimpleHTTPRequestHandler):
         resp = json.dumps(data)
         self.send_response(status)
         self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Origin', ALLOWED_ORIGIN)
         self.end_headers()
         self.wfile.write(resp.encode())
 
@@ -316,6 +372,79 @@ class NewsletterHandler(http.server.SimpleHTTPRequestHandler):
             val = "'" + val
         return val
 
+    # === TOKEN MANAGEMENT ===
+    def _store_token(self, email):
+        """Generate a token, store it with expiry, return the token string."""
+        token = secrets.token_hex(32)
+        NewsletterHandler._tokens[token] = {
+            'email': email,
+            'expires': datetime.now() + timedelta(hours=TOKEN_EXPIRY_HOURS)
+        }
+        # Prune expired tokens periodically
+        self._prune_tokens()
+        return token
+
+    def _validate_token(self):
+        """Validate token from Authorization header. Returns email or None."""
+        auth_header = self.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return None
+        token = auth_header[7:].strip()
+        if not token:
+            return None
+        token_data = NewsletterHandler._tokens.get(token)
+        if not token_data:
+            return None
+        if datetime.now() > token_data['expires']:
+            del NewsletterHandler._tokens[token]
+            return None
+        return token_data['email']
+
+    def _prune_tokens(self):
+        """Remove expired tokens to prevent memory leak."""
+        now = datetime.now()
+        expired = [t for t, d in NewsletterHandler._tokens.items() if now > d['expires']]
+        for t in expired:
+            del NewsletterHandler._tokens[t]
+
+    # === RATE LIMITING ===
+    def check_rate_limit(self, endpoint):
+        """Simple sliding-window rate limiter. Returns True if allowed."""
+        ip = self.client_address[0]
+        key = f'{endpoint}:{ip}'
+        now = time.time()
+
+        entry = NewsletterHandler._rate_limit.get(key)
+        if entry is None:
+            NewsletterHandler._rate_limit[key] = {'count': 1, 'window_start': now}
+            return True
+
+        # Reset window if expired
+        if now - entry['window_start'] > RATE_LIMIT_WINDOW:
+            NewsletterHandler._rate_limit[key] = {'count': 1, 'window_start': now}
+            return True
+
+        # Within window
+        if entry['count'] >= RATE_LIMIT_MAX_REQUESTS:
+            return False
+
+        entry['count'] += 1
+        return True
+
+    # === PASSWORD VALIDATION ===
+    def validate_password_strength(self, password):
+        """Validate password policy. Returns error message or None if valid."""
+        if len(password) < PASSWORD_MIN_LENGTH:
+            return f'Password minimal {PASSWORD_MIN_LENGTH} karakter'
+        if not re.search(r'[A-Z]', password):
+            return 'Password harus mengandung huruf besar (A-Z)'
+        if not re.search(r'[a-z]', password):
+            return 'Password harus mengandung huruf kecil (a-z)'
+        if not re.search(r'[0-9]', password):
+            return 'Password harus mengandung angka (0-9)'
+        return None
+
+    # === CSV HELPERS ===
     def csv_exists(self, filepath, key):
         if not os.path.exists(filepath):
             return False
@@ -385,16 +514,18 @@ class NewsletterHandler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     print(f"""
-╔═══════════════════════════════════════════════╗
-║     IoTHub Server v2.0                        ║
+╔═════════════════════════════════════════════╗
+║     IoTHub Server v2.1 (Secured)           ║
 ║     http://localhost:{PORT}                    ║
 ║                                               ║
 ║     Features:                                 ║
 ║     - Newsletter Subscribe                    ║
-║     - User Register/Login                     ║
-║     - View Tracking (5 free views)            ║
-║     - Subscription Management                 ║
-╚═══════════════════════════════════════════════╝
+║     - User Register/Login (PBKDF2)           ║
+║     - View Tracking (5 free views)           ║
+║     - Subscription Management                ║
+║     - Token-based Auth for Upgrade           ║
+║     - Rate Limiting & CORS Hardening         ║
+╚═════════════════════════════════════════════╝
     """)
 
     server = http.server.HTTPServer(('127.0.0.1', PORT), NewsletterHandler)

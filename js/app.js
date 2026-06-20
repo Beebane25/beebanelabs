@@ -488,16 +488,17 @@
 488|488|});
 489|489|
 490|
-491|// === PAYWALL SYSTEM ===
-492|const PaywallSystem = {
-493|  STORAGE_KEY: 'iothub_access',
-494|  FREE_ARTICLES: [
-495|    'esp32-fundamentals.html',
-496|    'mqtt-protocol.html',
-497|    'mikrotik-routing.html',
-498|    'lora-communication.html',
-499|    'esp8266-nodemcu.html'
-500|  ],
+// === PAYWALL SYSTEM ===
+const PaywallSystem = {
+  STORAGE_KEY: 'iothub_access',
+  FREE_ARTICLES: [
+    'esp32-fundamentals.html',
+    'mqtt-protocol.html',
+    'mikrotik-routing.html',
+    'lora-communication.html',
+    'esp8266-nodemcu.html'
+  ]
+};
 501|
 
 // === AUTH SYSTEM ===
@@ -694,6 +695,12 @@ const AuthSystem = {
     }
   },
 
+  escapeHtml(str) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  },
+
   updateNavbar() {
     const nav = document.querySelector('.navbar-links');
     if (!nav) return;
@@ -706,11 +713,12 @@ const AuthSystem = {
         const initial = (user.name || user.email)[0].toUpperCase();
         const planClass = user.plan && user.plan !== 'free' ? 'premium' : '';
         const planLabel = user.plan === 'yearly' ? '👑 Yearly' : user.plan === 'monthly' ? '⭐ Monthly' : 'Free';
+        const safeName = this.escapeHtml(user.name || user.email.split('@')[0]);
         authContainer.innerHTML = `
           <div class="user-badge">
             <div class="avatar">${initial}</div>
             <div>
-              <div class="user-name">${user.name || user.email.split('@')[0]}</div>
+              <div class="user-name">${safeName}</div>
               <div class="user-plan ${planClass}">${planLabel}</div>
             </div>
             <button class="logout-btn" onclick="AuthSystem.logout()">Keluar</button>
