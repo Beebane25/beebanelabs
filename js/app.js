@@ -649,6 +649,7 @@ const AuthSystem = {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
 
+    // Try server first
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
@@ -656,16 +657,25 @@ const AuthSystem = {
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-
       if (data.success) {
         this.saveSession({ user: data.user, token: data.token });
         this.showSuccess('Login berhasil! Mengalihkan...');
         setTimeout(() => window.location.reload(), 1000);
-      } else {
-        this.showError(data.error || 'Login gagal');
+        return;
       }
     } catch (err) {
-      this.showError('Gagal terhubung ke server');
+      // Server not available, use localStorage fallback
+    }
+
+    // Fallback: check localStorage
+    const users = JSON.parse(localStorage.getItem('iothub_users') || '[]');
+    const user = users.find(u => u.email === email && u.password === password);
+    if (user) {
+      this.saveSession({ user: { email: user.email, name: user.name, plan: user.plan || 'free' }, token: 'local_' + Date.now() });
+      this.showSuccess('Login berhasil! Mengalihkan...');
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+      this.showError('Email atau password salah');
     }
   },
 
@@ -675,6 +685,12 @@ const AuthSystem = {
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
 
+    if (!name || !email || password.length < 6) {
+      this.showError('Semua field harus diisi, password minimal 6 karakter');
+      return;
+    }
+
+    // Try server first
     try {
       const res = await fetch('/api/register', {
         method: 'POST',
@@ -682,17 +698,27 @@ const AuthSystem = {
         body: JSON.stringify({ name, email, password })
       });
       const data = await res.json();
-
       if (data.success) {
         this.saveSession({ user: data.user, token: data.token });
         this.showSuccess('Registrasi berhasil! Mengalihkan...');
         setTimeout(() => window.location.reload(), 1000);
-      } else {
-        this.showError(data.error || 'Registrasi gagal');
+        return;
       }
     } catch (err) {
-      this.showError('Gagal terhubung ke server');
+      // Server not available, use localStorage fallback
     }
+
+    // Fallback: save to localStorage
+    const users = JSON.parse(localStorage.getItem('iothub_users') || '[]');
+    if (users.find(u => u.email === email)) {
+      this.showError('Email sudah terdaftar');
+      return;
+    }
+    users.push({ name, email, password, plan: 'free', created: new Date().toISOString() });
+    localStorage.setItem('iothub_users', JSON.stringify(users));
+    this.saveSession({ user: { email, name, plan: 'free' }, token: 'local_' + Date.now() });
+    this.showSuccess('Registrasi berhasil! Mengalihkan...');
+    setTimeout(() => window.location.reload(), 1000);
   },
 
   escapeHtml(str) {
