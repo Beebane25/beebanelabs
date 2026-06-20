@@ -1,3 +1,4 @@
+/* v2.2.0 - Token System */
 /* ============================================
    IoTHub - Main JavaScript
    ============================================ */
@@ -509,7 +510,10 @@ const PaywallSystem = {
   UNLOCKED_KEY: 'iothub_unlocked',
   INITIAL_TOKENS: 5,
 
-  isFreeArticle(f) { return this.FREE_ARTICLES.includes(f); },
+  isFreeArticle(f) {
+    const clean = f.replace(/\?.*$/, '').replace(/#.*$/, '');
+    return this.FREE_ARTICLES.includes(clean);
+  },
   hasPaidAccess() {
     const a = JSON.parse(localStorage.getItem('iothub_auth') || 'null');
     if (a && a.user && a.user.plan && a.user.plan !== 'free') return true;
