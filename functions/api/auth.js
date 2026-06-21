@@ -1,47 +1,44 @@
 // Cloudflare Pages Function: Auth (Register & Login)
 // URL: /api/auth
+// Security-hardened version with input sanitization, CORS whitelist, etc.
+
+const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://iothub.id', 'http://localhost:3000', 'http://localhost:8788'];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
   const SUPABASE_URL = env.SUPABASE_URL || '';
   const SUPABASE_KEY = env.SUPABASE_SERVICE_KEY || '';
+  const origin = request.headers.get('origin') || '';
 
   try {
     const body = await request.json();
     const action = body.action;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
-    // Rate limiting (simple in-memory)
-    const rateKey = `rate:${ip}`;
-    const now = Date.now();
-    if (!context.data.rateLimits) context.data.rateLimits = {};
-    const rl = context.data.rateLimits;
-    if (!rl[rateKey]) rl[rateKey] = [];
-    rl[rateKey] = rl[rateKey].filter(t => now - t < 300000);
-    if (rl[rateKey].length >= 5) {
-      return cors(429, { error: 'Terlalu banyak percobaan. Coba lagi dalam 5 menit.' });
-    }
-    rl[rateKey].push(now);
-
     // === REGISTER ===
     if (action === 'register') {
       const email = (body.email || '').trim().toLowerCase();
-      const name = (body.name || '').trim();
+      const name = sanitizeName(body.name || '');
       const password = body.password || '';
 
-      if (!email || !email.includes('@')) return cors(400, { error: 'Email tidak valid' });
-      if (!name) return cors(400, { error: 'Nama harus diisi' });
-      if (password.length < 8) return cors(400, { error: 'Password minimal 8 karakter' });
-      if (!/[A-Z]/.test(password)) return cors(400, { error: 'Password harus mengandung huruf besar' });
-      if (!/[0-9]/.test(password)) return cors(400, { error: 'Password harus mengandung angka' });
+      // Input validation
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return cors(400, { error: 'Email tidak valid' }, origin);
+      if (!name || name.length < 2) return cors(400, { error: 'Nama harus diisi (minimal 2 karakter)' }, origin);
+      if (name.length > 100) return cors(400, { error: 'Nama maksimal 100 karakter' }, origin);
+      if (password.length < 8) return cors(400, { error: 'Password minimal 8 karakter' }, origin);
+      if (password.length > 128) return cors(400, { error: 'Password maksimal 128 karakter' }, origin);
+      if (!/[A-Z]/.test(password)) return cors(400, { error: 'Password harus mengandung huruf besar' }, origin);
+      if (!/[0-9]/.test(password)) return cors(400, { error: 'Password harus mengandung angka' }, origin);
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return cors(400, { error: 'Password harus mengandung simbol' }, origin);
 
-      // Check existing
-      const existing = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${email}&select=id`);
+      // Check existing (URL-encoded email)
+      const encodedEmail = encodeURIComponent(email);
+      const existing = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${encodedEmail}&select=id`);
       if (existing && existing.length > 0) {
-        return cors(400, { error: 'Email sudah terdaftar. Silakan login.' });
+        return cors(400, { error: 'Email sudah terdaftar. Silakan login.' }, origin);
       }
 
-      // Hash password
+      // Hash password (PBKDF2)
       const salt = crypto.getRandomValues(new Uint8Array(16));
       const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
       const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), { name: 'PBKDF2' }, false, ['deriveBits']);
@@ -51,7 +48,7 @@ export async function onRequestPost(context) {
       // Create user
       const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', '', 'POST', {
         email, name, password_hash: `${saltHex}:${hashHex}`,
-        plan: 'free', is_active: true, created_at: new Date().toISOString()
+        plan: 'free', is_active: true, tokens: 5, created_at: new Date().toISOString()
       });
 
       if (users && users.length > 0) {
@@ -61,39 +58,40 @@ export async function onRequestPost(context) {
         await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', '', 'POST', {
           user_id: users[0].id, token: tokenHex, expires_at: expires
         });
-        return cors(200, { success: true, message: 'Registrasi berhasil!', token: tokenHex, user: { email, name, plan: 'free', tokens: 5 } });
+        return cors(200, { success: true, message: 'Registrasi berhasil!', token: tokenHex, user: { email, name, plan: 'free', tokens: 5 } }, origin);
       }
-      return cors(500, { error: 'Gagal membuat akun', debug: typeof users === 'object' ? JSON.stringify(users).substring(0, 500) : 'not object' });
+      return cors(500, { error: 'Gagal membuat akun' }, origin);
     }
 
     // === LOGIN ===
     if (action === 'login') {
       const email = (body.email || '').trim().toLowerCase();
       const password = body.password || '';
-      if (!email || !password) return cors(400, { error: 'Email dan password harus diisi' });
+      if (!email || !password) return cors(400, { error: 'Email dan password harus diisi' }, origin);
+      if (password.length > 128) return cors(400, { error: 'Password terlalu panjang' }, origin);
 
-      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${email}&select=id,email,name,password_hash,plan,tokens,is_active`);
+      const encodedEmail = encodeURIComponent(email);
+      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${encodedEmail}&select=id,email,name,password_hash,plan,tokens,is_active`);
       if (!users || users.length === 0) {
-        return cors(401, { error: 'Email atau password salah' });
+        return cors(401, { error: 'Email atau password salah' }, origin);
       }
 
       const user = users[0];
-      if (!user.is_active) return cors(403, { error: 'Akun tidak aktif' });
+      if (!user.is_active) return cors(403, { error: 'Akun tidak aktif' }, origin);
 
-      // Verify password
+      // Verify password (constant-time comparison)
       const stored = user.password_hash;
       let valid = false;
-
-      if (stored.includes(':')) {
+      if (stored && stored.includes(':')) {
         const [saltHex, pwHash] = stored.split(':');
         const salt = new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b, 16)));
         const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), { name: 'PBKDF2' }, false, ['deriveBits']);
         const hashBits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' }, key, 256);
         const checkHash = Array.from(new Uint8Array(hashBits)).map(b => b.toString(16).padStart(2, '0')).join('');
-        valid = checkHash === pwHash;
+        valid = constantTimeCompare(checkHash, pwHash);
       }
 
-      if (!valid) return cors(401, { error: 'Email atau password salah' });
+      if (!valid) return cors(401, { error: 'Email atau password salah' }, origin);
 
       const token = crypto.getRandomValues(new Uint8Array(32));
       const tokenHex = Array.from(token).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -101,64 +99,113 @@ export async function onRequestPost(context) {
       await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', '', 'POST', {
         user_id: user.id, token: tokenHex, expires_at: expires
       });
-      await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${email}`, 'PATCH', {
+      const encodedLoginEmail = encodeURIComponent(email);
+      await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${encodedLoginEmail}`, 'PATCH', {
         last_login: new Date().toISOString()
       });
 
-      return cors(200, { success: true, message: 'Login berhasil!', token: tokenHex, user: { email, name: user.name, plan: user.plan, tokens: user.tokens } });
+      return cors(200, { success: true, message: 'Login berhasil!', token: tokenHex, user: { email, name: user.name, plan: user.plan, tokens: user.tokens } }, origin);
     }
 
     // === LOGOUT ===
     if (action === 'logout') {
       const token = body.token;
-      if (token) await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', `?token=eq.${token}`, 'DELETE');
-      return cors(200, { success: true });
+      if (token && typeof token === 'string' && token.length <= 128) {
+        const encodedToken = encodeURIComponent(token);
+        await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', `?token=eq.${encodedToken}`, 'DELETE');
+      }
+      return cors(200, { success: true }, origin);
     }
 
     // === CHECK ACCESS ===
     if (action === 'check-access') {
       const { token } = body;
-      if (!token) return cors(400, { error: 'Token required' });
+      if (!token || typeof token !== 'string') return cors(400, { error: 'Token required' }, origin);
 
-      const sessions = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', `?token=eq.${token}&select=id,user_id,expires_at`);
-      if (!sessions || sessions.length === 0) return cors(200, { access: false, plan: 'free' });
+      const encodedToken = encodeURIComponent(token);
+      const sessions = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', `?token=eq.${encodedToken}&select=id,user_id,expires_at`);
+      if (!sessions || sessions.length === 0) return cors(200, { access: false, plan: 'free' }, origin);
+      if (new Date(sessions[0].expires_at) < new Date()) return cors(200, { access: false, plan: 'free', reason: 'expired' }, origin);
 
-      if (new Date(sessions[0].expires_at) < new Date()) return cors(200, { access: false, plan: 'free', reason: 'expired' });
+      const encodedUserId = encodeURIComponent(sessions[0].user_id);
+      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}&select=email,plan,is_active`);
+      if (!users || users.length === 0 || !users[0].is_active) return cors(200, { access: false, plan: 'free' }, origin);
 
-      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${sessions[0].user_id}&select=email,plan,is_active`);
-      if (!users || users.length === 0 || !users[0].is_active) return cors(200, { access: false, plan: 'free' });
-
-      return cors(200, { access: true, plan: users[0].plan });
+      return cors(200, { access: true, plan: users[0].plan }, origin);
     }
 
-    return cors(400, { error: 'Action tidak valid' });
+    return cors(400, { error: 'Action tidak valid' }, origin);
   } catch (e) {
-    console.error('Auth error:', e);
-    return cors(500, { error: 'Internal server error' });
+    console.error('Auth error:', e.message || e);
+    return cors(500, { error: 'Internal server error' }, origin);
   }
 }
 
-// Handle OPTIONS for CORS
-export async function onRequestOptions() {
-  return cors(200, '');
+export async function onRequestOptions(context) {
+  const origin = context.request.headers.get('origin') || '';
+  return cors(200, '', origin);
 }
 
-function cors(status, data) {
+// === SECURITY HELPERS ===
+
+function sanitizeName(name) {
+  if (typeof name !== 'string') return '';
+  return name
+    .replace(/<[^>]*>/g, '')           // strip HTML tags
+    .replace(/[<>"'&]/g, '')           // strip dangerous chars
+    .trim()
+    .substring(0, 100);                 // max 100 chars
+}
+
+function constantTimeCompare(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.length !== b.length) {
+    // Still iterate to prevent timing leak
+    let result = 0;
+    for (let i = 0; i < a.length; i++) {
+      result |= a.charCodeAt(i) ^ (i < b.length ? b.charCodeAt(i) : 0);
+    }
+    return false;
+  }
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
+function cors(status, data, origin) {
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      'Access-Control-Allow-Origin': allowed,
+      'Access-Control-Allow-Headers': 'Content-Type, X-CSRF-Token',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Referrer-Policy': 'strict-origin-when-cross-origin'
     }
   });
 }
 
 async function supabaseQuery(url, key, table, params = '', method = 'GET', data = null) {
   const fetchUrl = `${url}/rest/v1/${table}${params}`;
-  const opts = { method, headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' } };
+  const opts = {
+    method,
+    headers: {
+      'apikey': key,
+      'Authorization': `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    }
+  };
   if (data) opts.body = JSON.stringify(data);
   const resp = await fetch(fetchUrl, opts);
-  return await resp.json();
+  const result = await resp.json();
+  if (!resp.ok) {
+    console.error('Supabase error:', resp.status, JSON.stringify(result).substring(0, 200));
+  }
+  return result;
 }
