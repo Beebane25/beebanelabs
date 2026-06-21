@@ -516,22 +516,22 @@ const PaywallSystem = {
   },
 
   getTokens() {
-    const v = localStorage.getItem(SITE_CONFIG.TOKEN_KEY);
+    const v = localStorage.getItem(this.TOKEN_KEY);
     return v !== null ? parseInt(v) : SITE_CONFIG.INITIAL_TOKENS;
   },
 
   useToken() {
     const t = this.getTokens();
     if (t <= 0) return false;
-    localStorage.setItem(SITE_CONFIG.TOKEN_KEY, String(t - 1));
+    localStorage.setItem(this.TOKEN_KEY, String(t - 1));
     return true;
   },
 
-  getUnlocked() { return JSON.parse(localStorage.getItem(SITE_CONFIG.UNLOCKED_KEY) || '[]'); },
+  getUnlocked() { return JSON.parse(localStorage.getItem(this.UNLOCKED_KEY) || '[]'); },
   isUnlocked(f) { return this.getUnlocked().includes(f); },
   unlockArticle(f) {
     const u = this.getUnlocked();
-    if (!u.includes(f)) { u.push(f); localStorage.setItem(SITE_CONFIG.UNLOCKED_KEY, JSON.stringify(u)); }
+    if (!u.includes(f)) { u.push(f); localStorage.setItem(this.UNLOCKED_KEY, JSON.stringify(u)); }
   },
 
   isAccessible(f) {
@@ -566,7 +566,7 @@ const PaywallSystem = {
     } else {
       icon = '🔓'; badge = t + ' Token Tersisa';
       msg = 'Gunakan 1 token untuk membuka artikel ini. Setelah diunlock, akses permanen.';
-      btns = '<button onclick="PaywallSystem.unlockWithToken(' + f + ')" class="btn-primary" style="margin:0 8px;">🔑 Gunakan 1 Token</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">💰 Beli Token</a>';
+      btns = '<button onclick="PaywallSystem.unlockWithToken(\' + f + '\)\" class="btn-primary" style="margin:0 8px;">🔑 Gunakan 1 Token</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">💰 Beli Token</a>';
     }
     a.innerHTML = '<div style="text-align:center;padding:60px 20px;"><div style="font-size:4rem;margin-bottom:16px;">' + icon + '</div><div style="display:inline-block;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:600;color:#fb923c;margin-bottom:16px;">' + badge + '</div><h2 style="color:var(--text-primary);margin-bottom:8px;">Artikel Terkunci</h2><p style="color:var(--text-muted);max-width:480px;margin:0 auto 24px;line-height:1.6;">' + msg + '</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' + btns + '</div></div>';
   },
