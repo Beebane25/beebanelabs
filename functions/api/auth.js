@@ -63,7 +63,7 @@ export async function onRequestPost(context) {
         });
         return cors(200, { success: true, message: 'Registrasi berhasil!', token: tokenHex, user: { email, name, plan: 'free', tokens: 5 } });
       }
-      return cors(500, { error: 'Gagal membuat akun' });
+      return cors(500, { error: 'Gagal membuat akun', debug: typeof users === 'object' ? JSON.stringify(users).substring(0, 500) : 'not object' });
     }
 
     // === LOGIN ===
