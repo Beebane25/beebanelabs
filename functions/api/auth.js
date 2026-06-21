@@ -49,7 +49,7 @@ export async function onRequestPost(context) {
       const hashHex = Array.from(new Uint8Array(hashBits)).map(b => b.toString(16).padStart(2, '0')).join('');
 
       // Create user
-      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', null, 'POST', {
+      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', '', 'POST', {
         email, name, password_hash: `${saltHex}:${hashHex}`,
         plan: 'tokens', is_active: true, created_at: new Date().toISOString()
       });
@@ -58,7 +58,7 @@ export async function onRequestPost(context) {
         const token = crypto.getRandomValues(new Uint8Array(32));
         const tokenHex = Array.from(token).map(b => b.toString(16).padStart(2, '0')).join('');
         const expires = new Date(Date.now() + 7 * 86400000).toISOString();
-        await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', null, 'POST', {
+        await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', '', 'POST', {
           user_id: users[0].id, token: tokenHex, expires_at: expires
         });
         return cors(200, { success: true, message: 'Registrasi berhasil!', token: tokenHex, user: { email, name, plan: 'tokens' } });
@@ -98,7 +98,7 @@ export async function onRequestPost(context) {
       const token = crypto.getRandomValues(new Uint8Array(32));
       const tokenHex = Array.from(token).map(b => b.toString(16).padStart(2, '0')).join('');
       const expires = new Date(Date.now() + 7 * 86400000).toISOString();
-      await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', null, 'POST', {
+      await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', '', 'POST', {
         user_id: user.id, token: tokenHex, expires_at: expires
       });
       await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${email}`, 'PATCH', {
