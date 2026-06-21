@@ -507,31 +507,66 @@ const CSRF = {
 const PaywallSystem = {
   TOKEN_KEY: 'iothub_tokens',
   UNLOCKED_KEY: 'iothub_unlocked',
+  TOKEN_ENDPOINT: '/api/tokens',
+  _serverTokens: null,
+  _serverAccess: null,
 
   hasPaidAccess() {
     const a = JSON.parse(localStorage.getItem('iothub_auth') || 'null');
     if (a && a.user && a.user.plan && a.user.plan !== 'free') return true;
-    const c = JSON.parse(localStorage.getItem('iothub_access') || '{}');
-    return c.lifetime === true || (c.plan && c.plan !== 'free');
+    return false;
   },
 
   getTokens() {
-    const v = localStorage.getItem(SITE_CONFIG.TOKEN_KEY);
+    if (this._serverTokens !== null) return this._serverTokens;
+    const v = localStorage.getItem(this.TOKEN_KEY);
     return v !== null ? parseInt(v) : SITE_CONFIG.INITIAL_TOKENS;
   },
 
-  useToken() {
-    const t = this.getTokens();
-    if (t <= 0) return false;
-    localStorage.setItem(SITE_CONFIG.TOKEN_KEY, String(t - 1));
-    return true;
+  async serverCheckAccess(articleSlug) {
+    const session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    if (!session || !session.token) return { access: false, tokens: this.getTokens(), plan: 'free' };
+    try {
+      const res = await fetch(this.TOKEN_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'check-access', token: session.token, articleSlug })
+      });
+      const data = await res.json();
+      this._serverTokens = data.tokens || 0;
+      localStorage.setItem(this.TOKEN_KEY, String(data.tokens || 0));
+      return data;
+    } catch(e) {
+      return { access: this.isUnlocked(articleSlug), tokens: this.getTokens(), plan: 'free' };
+    }
   },
 
-  getUnlocked() { return JSON.parse(localStorage.getItem(SITE_CONFIG.UNLOCKED_KEY) || '[]'); },
+  async serverUseToken(articleSlug) {
+    const session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    if (!session || !session.token) return { success: false, error: 'Login diperlukan' };
+    try {
+      const res = await fetch(this.TOKEN_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'use-token', token: session.token, articleSlug })
+      });
+      const data = await res.json();
+      if (data.success) {
+        this._serverTokens = data.tokens;
+        localStorage.setItem(this.TOKEN_KEY, String(data.tokens));
+        this.unlockArticle(articleSlug);
+      }
+      return data;
+    } catch(e) {
+      return { success: false, error: 'Gagal terhubung ke server' };
+    }
+  },
+
+  getUnlocked() { return JSON.parse(localStorage.getItem(this.UNLOCKED_KEY) || '[]'); },
   isUnlocked(f) { return this.getUnlocked().includes(f); },
   unlockArticle(f) {
     const u = this.getUnlocked();
-    if (!u.includes(f)) { u.push(f); localStorage.setItem(SITE_CONFIG.UNLOCKED_KEY, JSON.stringify(u)); }
+    if (!u.includes(f)) { u.push(f); localStorage.setItem(this.UNLOCKED_KEY, JSON.stringify(u)); }
   },
 
   isAccessible(f) {
@@ -543,41 +578,61 @@ const PaywallSystem = {
     const p = window.location.pathname;
     if (!p.includes('/articles/')) return;
     const f = p.split('/').pop();
-    if (this.isAccessible(f)) return;
-    this.showTokenGate(f);
+    this._checkAndRender(f);
   },
 
-  showTokenGate(f) {
+  async _checkAndRender(slug) {
+    const logged = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
+    if (!logged) {
+      const localUnlocked = this.isUnlocked(slug);
+      if (localUnlocked || this.hasPaidAccess()) return;
+      this.showTokenGate(slug, this.getTokens(), false);
+      return;
+    }
+    const result = await this.serverCheckAccess(slug);
+    if (result.access) return;
+    this.showTokenGate(slug, result.tokens || 0, true);
+  },
+
+  showTokenGate(f, tokens, logged) {
     const a = document.querySelector('.article-content');
     if (!a) return;
-    const t = this.getTokens();
-    const logged = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
+    const t = tokens !== undefined ? tokens : this.getTokens();
     while (a.firstChild) a.removeChild(a.firstChild);
 
     let icon, badge, msg, btns;
     if (t <= 0 && !logged) {
-      icon = '🔒'; badge = 'Token Habis';
+      icon = '\u{1f512}'; badge = 'Token Habis';
       msg = 'Token gratis kamu sudah habis. Login atau beli token untuk membuka artikel.';
-      btns = '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin:0 8px;">👤 Login</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">💰 Beli Token</a>';
+      btns = '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin:0 8px;">\u{1f464} Login</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">\u{1f4b0} Beli Token</a>';
     } else if (t <= 0 && logged) {
-      icon = '🔒'; badge = 'Token Habis';
+      icon = '\u{1f512}'; badge = 'Token Habis';
       msg = 'Token sudah habis. Beli token tambahan untuk membuka lebih banyak artikel.';
-      btns = '<a href="../pricing.html" class="btn-primary" style="text-decoration:none;">💰 Beli Token</a>';
+      btns = '<a href="../pricing.html" class="btn-primary" style="text-decoration:none;">\u{1f4b0} Beli Token</a>';
     } else {
-      icon = '🔓'; badge = t + ' Token Tersisa';
-      msg = 'Gunakan 1 token untuk membuka artikel ini. Setelah diunlock, akses permanen.';
-      btns = '<button onclick="PaywallSystem.unlockWithToken(' + f + ')" class="btn-primary" style="margin:0 8px;">🔑 Gunakan 1 Token</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">💰 Beli Token</a>';
+      icon = '\u{1f513}'; badge = t + ' Token Tersisa';
+      msg = logged
+        ? 'Gunakan 1 token untuk membuka artikel ini. Token disimpan di server.'
+        : 'Login untuk menggunakan token. Token disimpan di server.';
+      if (logged) {
+        btns = '<button onclick="PaywallSystem.unlockWithToken(\\'' + f + '\\')" class="btn-primary" style="margin:0 8px;">\u{1f511} Gunakan 1 Token</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">\u{1f4b0} Beli Token</a>';
+      } else {
+        btns = '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin:0 8px;">\u{1f464} Login untuk Unlock</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">\u{1f4b0} Beli Token</a>';
+      }
     }
     a.innerHTML = '<div style="text-align:center;padding:60px 20px;"><div style="font-size:4rem;margin-bottom:16px;">' + icon + '</div><div style="display:inline-block;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:600;color:#fb923c;margin-bottom:16px;">' + badge + '</div><h2 style="color:var(--text-primary);margin-bottom:8px;">Artikel Terkunci</h2><p style="color:var(--text-muted);max-width:480px;margin:0 auto 24px;line-height:1.6;">' + msg + '</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' + btns + '</div></div>';
   },
 
-  unlockWithToken(f) {
-    const t = this.getTokens();
-    if (t <= 0) { alert('Token habis! Beli token tambahan.'); window.location.href = '../pricing.html'; return; }
-    if (!this.useToken()) return;
-    this.unlockArticle(f);
-    alert('Artikel dibuka! Token tersisa: ' + this.getTokens());
-    window.location.reload();
+  async unlockWithToken(f) {
+    const logged = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
+    if (!logged) { AuthSystem.showModal(); return; }
+    const result = await this.serverUseToken(f);
+    if (result.success) {
+      alert(result.message || 'Artikel dibuka!');
+      window.location.reload();
+    } else {
+      alert(result.error || 'Gagal membuka artikel');
+    }
   }
 };
 // === AUTH SYSTEM ===
@@ -665,6 +720,11 @@ const AuthSystem = {
   checkSession() {
     const session = this.getSession();
     if (session && session.user) {
+      // Sync server token balance to localStorage
+      if (session.user.tokens !== undefined && typeof PaywallSystem !== 'undefined') {
+        PaywallSystem._serverTokens = session.user.tokens;
+        localStorage.setItem('iothub_tokens', String(session.user.tokens));
+      }
       return true;
     }
     return false;

@@ -49,19 +49,19 @@ export async function onRequestPost(context) {
       const hashHex = Array.from(new Uint8Array(hashBits)).map(b => b.toString(16).padStart(2, '0')).join('');
 
       // Create user
-      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', null, 'POST', {
+      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', '', 'POST', {
         email, name, password_hash: `${saltHex}:${hashHex}`,
-        plan: 'tokens', is_active: true, created_at: new Date().toISOString()
+        plan: 'free', is_active: true, created_at: new Date().toISOString()
       });
 
       if (users && users.length > 0) {
         const token = crypto.getRandomValues(new Uint8Array(32));
         const tokenHex = Array.from(token).map(b => b.toString(16).padStart(2, '0')).join('');
         const expires = new Date(Date.now() + 7 * 86400000).toISOString();
-        await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', null, 'POST', {
+        await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', '', 'POST', {
           user_id: users[0].id, token: tokenHex, expires_at: expires
         });
-        return cors(200, { success: true, message: 'Registrasi berhasil!', token: tokenHex, user: { email, name, plan: 'tokens' } });
+        return cors(200, { success: true, message: 'Registrasi berhasil!', token: tokenHex, user: { email, name, plan: 'free', tokens: 5 } });
       }
       return cors(500, { error: 'Gagal membuat akun' });
     }
@@ -72,7 +72,7 @@ export async function onRequestPost(context) {
       const password = body.password || '';
       if (!email || !password) return cors(400, { error: 'Email dan password harus diisi' });
 
-      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${email}&select=id,email,name,password_hash,plan,is_active`);
+      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${email}&select=id,email,name,password_hash,plan,tokens,is_active`);
       if (!users || users.length === 0) {
         return cors(401, { error: 'Email atau password salah' });
       }
@@ -98,14 +98,14 @@ export async function onRequestPost(context) {
       const token = crypto.getRandomValues(new Uint8Array(32));
       const tokenHex = Array.from(token).map(b => b.toString(16).padStart(2, '0')).join('');
       const expires = new Date(Date.now() + 7 * 86400000).toISOString();
-      await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', null, 'POST', {
+      await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', '', 'POST', {
         user_id: user.id, token: tokenHex, expires_at: expires
       });
       await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${email}`, 'PATCH', {
         last_login: new Date().toISOString()
       });
 
-      return cors(200, { success: true, message: 'Login berhasil!', token: tokenHex, user: { email, name: user.name, plan: user.plan } });
+      return cors(200, { success: true, message: 'Login berhasil!', token: tokenHex, user: { email, name: user.name, plan: user.plan, tokens: user.tokens } });
     }
 
     // === LOGOUT ===
