@@ -1028,10 +1028,39 @@ const TokenDisplay = {
 
 
 
+// === ARTICLE CARD UNLOCK STATUS ===
+function updateArticleCardStatus() {
+  const cards = document.querySelectorAll('.article-card');
+  if (!cards.length) return;
+  const unlocked = PaywallSystem.getUnlocked();
+  cards.forEach(card => {
+    const href = card.getAttribute('href') || '';
+    const slug = href.split('/').pop().replace('.html', '');
+    if (!slug) return;
+    const badge = card.querySelector('.access-badge');
+    if (unlocked.includes(slug)) {
+      // Article is unlocked - show green badge
+      if (badge) {
+        badge.className = 'access-badge unlocked';
+        badge.textContent = '✓ Dibuka';
+      }
+      // Add checkmark circle on thumbnail
+      const thumb = card.querySelector('.thumbnail');
+      if (thumb && !thumb.querySelector('.unlock-mark')) {
+        const mark = document.createElement('div');
+        mark.className = 'unlock-mark';
+        mark.textContent = '✓';
+        thumb.appendChild(mark);
+      }
+    }
+  });
+}
+
 // === INITIALIZE ALL SYSTEMS ===
 document.addEventListener('DOMContentLoaded', () => {
   initReadingProgress();
   AuthSystem.init();
   PaywallSystem.init();
   TokenDisplay.showBanner();
+  updateArticleCardStatus();
 });
