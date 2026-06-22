@@ -2,7 +2,7 @@
 // URL: /api/create-payment
 // Security-hardened: input validation, CORS whitelist, no info leakage
 
-const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://iothub.id', 'http://localhost:3000', 'http://localhost:8788'];
+const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id', 'http://localhost:3000', 'http://localhost:8788'];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -27,7 +27,7 @@ export async function onRequestPost(context) {
     const orderId = `IOHUB-${Date.now()}-${Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join('')}`;
 
     const amount = PLAN_PRICES[plan];
-    const safeItemName = plan === 'token10' ? 'IoTHub 10 Token' : 'IoTHub 5 Token';
+    const safeItemName = plan === 'token10' ? 'BeebaneLabs 10 Token' : 'BeebaneLabs 5 Token';
 
     const payload = {
       transaction_details: { order_id: orderId, gross_amount: amount },
