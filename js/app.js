@@ -1,6 +1,6 @@
 /* v2.2.0 - Token System */
 /* ============================================
-   IoTHub - Main JavaScript
+   BeebaneLabs - Main JavaScript
    ============================================ */
 
 // === Search Data ===
@@ -809,7 +809,7 @@ const AuthSystem = {
         <button class="auth-close" onclick="AuthSystem.closeModal()">&times;</button>
         <div style="text-align:center; margin-bottom:20px;">
           <div style="font-size:2.5rem; margin-bottom:8px;">⚡</div>
-          <h2 style="margin-bottom:4px;">Selamat Datang di IoTHub</h2>
+          <h2 style="margin-bottom:4px;">Selamat Datang di BeebaneLabs</h2>
           <p style="font-size:0.85rem; color:var(--text-muted);">Masuk atau daftar untuk melanjutkan</p>
         </div>
 

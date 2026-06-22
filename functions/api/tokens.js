@@ -2,7 +2,7 @@
 // URL: /api/tokens
 // Security-hardened: CORS whitelist, input validation, URL encoding
 
-const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://iothub.id', 'http://localhost:3000', 'http://localhost:8788'];
+const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id', 'http://localhost:3000', 'http://localhost:8788'];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
