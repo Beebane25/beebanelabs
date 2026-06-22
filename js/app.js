@@ -1176,6 +1176,113 @@ function injectArticleExtras() {
   }
 }
 
+// === TABLE OF CONTENTS (TOC) ===
+function initTOC() {
+  const content = document.querySelector('.article-content');
+  if (!content) return;
+  const headings = content.querySelectorAll('h2, h3');
+  if (headings.length < 2) return;
+
+  // Create TOC sidebar
+  const toc = document.createElement('nav');
+  toc.className = 'toc-sidebar';
+  toc.innerHTML = '<h4>Daftar Isi</h4><ul>' + Array.from(headings).map((h, i) => {
+    const id = 'toc-' + i;
+    h.id = id;
+    const isH3 = h.tagName === 'H3';
+    return '<li><a href="#' + id + '" class="' + (isH3 ? 'toc-h3' : '') + '">' + h.textContent + '</a></li>';
+  }).join('') + '</ul>';
+
+  // Wrap article-content in layout grid
+  const layout = document.createElement('div');
+  layout.className = 'article-layout';
+  content.parentNode.insertBefore(layout, content);
+  layout.appendChild(content);
+  layout.appendChild(toc);
+
+  // Active state on scroll
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        toc.querySelectorAll('a').forEach(a => a.classList.remove('active'));
+        const link = toc.querySelector('a[href="#' + e.target.id + '"]');
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px' });
+  headings.forEach(h => observer.observe(h));
+}
+
+// === COPY CODE BUTTON ===
+function initCopyCode() {
+  document.querySelectorAll('pre').forEach(pre => {
+    if (pre.closest('.code-block')) return;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'code-block';
+    pre.parentNode.insertBefore(wrapper, pre);
+    wrapper.appendChild(pre);
+    const btn = document.createElement('button');
+    btn.className = 'copy-code-btn';
+    btn.textContent = '📋 Copy';
+    btn.onclick = () => {
+      navigator.clipboard.writeText(pre.textContent).then(() => {
+        btn.textContent = '✓ Copied!';
+        btn.classList.add('copied');
+        if (typeof Toast !== 'undefined') Toast.show('Kode disalin!', 'success');
+        setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    };
+    wrapper.appendChild(btn);
+  });
+}
+
+// === ARTICLE FILTER (Homepage) ===
+function initArticleFilter() {
+  const section = document.querySelector('#articles');
+  if (!section) return;
+  const grid = section.querySelector('.articles-grid') || section;
+  const cards = grid.querySelectorAll('.article-card');
+  if (!cards.length) return;
+
+  // Extract difficulty from each card
+  cards.forEach(card => {
+    const diff = card.querySelector('.difficulty');
+    card.dataset.level = diff ? diff.textContent.trim().toLowerCase() : '';
+  });
+
+  // Create filter bar
+  const filterBar = document.createElement('div');
+  filterBar.className = 'filter-bar';
+  filterBar.innerHTML = '<span style="font-size:0.8rem;color:var(--text-muted);font-weight:600;">Filter:</span><button class="filter-btn active" data-filter="all">Semua</button><button class="filter-btn" data-filter="pemula">🟢 Pemula</button><button class="filter-btn" data-filter="menengah">🟡 Menengah</button><button class="filter-btn" data-filter="lanjut">🔴 Lanjut</button>';
+  grid.parentNode.insertBefore(filterBar, grid);
+
+  filterBar.addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    filterBar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    cards.forEach(card => {
+      if (filter === 'all' || card.dataset.level === filter) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+}
+
+// === LEARNING PATH (Homepage) ===
+function injectLearningPath() {
+  const homepage = document.querySelector('.hero');
+  if (!homepage || window.location.pathname !== '/' && !window.location.pathname.includes('index')) return;
+  const articlesSection = document.querySelector('#articles');
+  if (!articlesSection) return;
+
+  const pathHTML = '<section class="learning-path container"><h2 style="font-family:var(--font-heading);font-size:1.5rem;font-weight:800;color:var(--text-primary);text-align:center;">🗺️ Learning Path — Urutan Belajar yang Direkomendasikan</h2><p style="text-align:center;color:var(--text-muted);margin-top:8px;font-size:0.9rem;">Ikuti urutan ini untuk hasil optimal</p><div class="path-grid"><a href="articles/esp32-fundamentals.html" class="path-card"><div class="step-num">1</div><div class="path-icon">🔧</div><h4>ESP32 Dasar</h4><p>Setup Arduino IDE, WiFi, sensor dasar</p></a><a href="articles/mqtt-protocol.html" class="path-card"><div class="step-num">2</div><div class="path-icon">📨</div><h4>Protokol MQTT</h4><p>Pub/Sub, broker, QoS untuk IoT</p></a><a href="articles/dashboard-monitoring.html" class="path-card"><div class="step-num">3</div><div class="path-icon">📊</div><h4>Dashboard IoT</h4><p>Node-RED, Grafana, visualisasi data</p></a><a href="articles/firebase-iot.html" class="path-card"><div class="step-num">4</div><div class="path-icon">🔥</div><h4>Cloud & Firebase</h4><p>Penyimpanan data cloud, RTDB</p></a></div></section>';
+  articlesSection.insertAdjacentHTML('beforebegin', pathHTML);
+}
+
 // === INITIALIZE ALL SYSTEMS ===
 document.addEventListener('DOMContentLoaded', () => {
   initReadingProgress();
@@ -1187,4 +1294,8 @@ document.addEventListener('DOMContentLoaded', () => {
   CookieConsent.init();
   ThemeToggle.init();
   injectArticleExtras();
+  initTOC();
+  initCopyCode();
+  initArticleFilter();
+  injectLearningPath();
 });
