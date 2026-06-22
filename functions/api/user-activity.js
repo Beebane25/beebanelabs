@@ -1,7 +1,7 @@
 // Cloudflare Pages Function: User Activity
 // URL: /api/user-activity
 
-const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id', 'http://localhost:3000', 'http://localhost:8788'];
+const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id'];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -55,6 +55,7 @@ export async function onRequestPost(context) {
     return cors(400, { error: 'Invalid action' }, origin);
 
   } catch (e) {
+    // Error logged for debugging
     console.error('User activity error:', e);
     return cors(500, { error: 'Internal server error' }, origin);
   }

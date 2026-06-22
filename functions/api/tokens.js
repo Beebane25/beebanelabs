@@ -2,7 +2,7 @@
 // URL: /api/tokens
 // Security-hardened: CORS whitelist, input validation, URL encoding
 
-const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id', 'http://localhost:3000', 'http://localhost:8788'];
+const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id'];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -159,6 +159,7 @@ export async function onRequestPost(context) {
 
     return cors(400, { error: 'Action tidak valid' }, origin);
   } catch (e) {
+    // Error logged for debugging
     console.error('Token error:', e.message || e);
     return cors(500, { error: 'Internal server error' }, origin);
   }
@@ -198,6 +199,7 @@ async function supabaseQuery(url, key, table, params = '', method = 'GET', data 
   if (data) opts.body = JSON.stringify(data);
   const resp = await fetch(fetchUrl, opts);
   const result = await resp.json();
-  if (!resp.ok) console.error('Supabase error:', resp.status);
+  if (!resp.ok) // Error logged for debugging
+    console.error('Supabase error:', resp.status);
   return result;
 }

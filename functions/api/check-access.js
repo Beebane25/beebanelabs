@@ -22,6 +22,7 @@ export async function onRequestPost(context) {
 
     return cors(200, { access: true, plan: users[0].plan });
   } catch (e) {
+    // Error logged for debugging
     console.error('Check access error:', e);
     return cors(500, { error: 'Internal server error' });
   }

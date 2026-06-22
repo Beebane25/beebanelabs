@@ -2,7 +2,7 @@
 // URL: /api/create-payment
 // Security-hardened: input validation, CORS whitelist, no info leakage
 
-const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id', 'http://localhost:3000', 'http://localhost:8788'];
+const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id'];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -48,9 +48,11 @@ export async function onRequestPost(context) {
       return cors(200, { success: true, token: result.token, order_id: orderId, redirect_url: result.redirect_url }, origin);
     }
     // FIX: Don't leak Midtrans error details
+    // Error logged for debugging
     console.error('Midtrans error:', result.status_code, result.status_message);
     return cors(500, { error: 'Gagal membuat transaksi' }, origin);
   } catch (e) {
+    // Error logged for debugging
     console.error('Payment error:', e.message || e);
     return cors(500, { error: 'Internal server error' }, origin);
   }

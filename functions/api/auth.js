@@ -1,14 +1,39 @@
 // Cloudflare Pages Function: Auth (Register & Login)
 // URL: /api/auth
-// Security-hardened version with input sanitization, CORS whitelist, etc.
+// Security-hardened version with input sanitization, CORS whitelist, rate limiting
 
-const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id', 'http://localhost:3000', 'http://localhost:8788'];
+const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id'];
+
+// Simple in-memory rate limiting
+const loginAttempts = new Map();
+const MAX_LOGIN_ATTEMPTS = 10;
+const LOGIN_WINDOW_MS = 60000; // 1 minute
+
+function checkLoginRateLimit(ip) {
+  const now = Date.now();
+  const attempts = loginAttempts.get(ip) || [];
+  const recentAttempts = attempts.filter(t => now - t < LOGIN_WINDOW_MS);
+  loginAttempts.set(ip, recentAttempts);
+  return recentAttempts.length < MAX_LOGIN_ATTEMPTS;
+}
+
+function recordLoginAttempt(ip) {
+  const attempts = loginAttempts.get(ip) || [];
+  attempts.push(Date.now());
+  loginAttempts.set(ip, attempts);
+}
 
 export async function onRequestPost(context) {
   const { request, env } = context;
   const SUPABASE_URL = env.SUPABASE_URL || '';
   const SUPABASE_KEY = env.SUPABASE_SERVICE_KEY || '';
   const origin = request.headers.get('origin') || '';
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+
+  // Rate limiting check for login
+  if (!checkLoginRateLimit(ip)) {
+    return cors(429, { error: 'Terlalu banyak percobaan. Silakan coba lagi dalam 1 menit.' }, origin);
+  }
 
   try {
     const body = await request.json();
@@ -73,6 +98,7 @@ export async function onRequestPost(context) {
       const encodedEmail = encodeURIComponent(email);
       const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${encodedEmail}&select=id,email,name,password_hash,plan,tokens,is_active`);
       if (!users || users.length === 0) {
+        recordLoginAttempt(ip);
         return cors(401, { error: 'Email atau password salah' }, origin);
       }
 
@@ -91,7 +117,10 @@ export async function onRequestPost(context) {
         valid = constantTimeCompare(checkHash, pwHash);
       }
 
-      if (!valid) return cors(401, { error: 'Email atau password salah' }, origin);
+      if (!valid) {
+        recordLoginAttempt(ip);
+        return cors(401, { error: 'Email atau password salah' }, origin);
+      }
 
       const token = crypto.getRandomValues(new Uint8Array(32));
       const tokenHex = Array.from(token).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -136,6 +165,7 @@ export async function onRequestPost(context) {
 
     return cors(400, { error: 'Action tidak valid' }, origin);
   } catch (e) {
+    // Error logged for debugging
     console.error('Auth error:', e.message || e);
     return cors(500, { error: 'Internal server error' }, origin);
   }
@@ -205,6 +235,7 @@ async function supabaseQuery(url, key, table, params = '', method = 'GET', data 
   const resp = await fetch(fetchUrl, opts);
   const result = await resp.json();
   if (!resp.ok) {
+    // Error logged for debugging
     console.error('Supabase error:', resp.status, JSON.stringify(result).substring(0, 200));
   }
   return result;
