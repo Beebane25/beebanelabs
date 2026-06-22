@@ -406,7 +406,7 @@ function initQuiz(quizId, answers) {
   if (submitBtn) {
     submitBtn.addEventListener('click', () => {
       if (Object.keys(selected).length < total) {
-        alert('Silakan jawab semua pertanyaan terlebih dahulu!');
+        Toast.show('Silakan jawab semua pertanyaan terlebih dahulu!', 'warning');
         return;
       }
 
@@ -630,10 +630,10 @@ const PaywallSystem = {
     if (!logged) { AuthSystem.showModal(); return; }
     const result = await this.serverUseToken(f);
     if (result.success) {
-      alert(result.message || 'Artikel dibuka!');
+      Toast.show(result.message || 'Artikel dibuka!', 'success');
       window.location.reload();
     } else {
-      alert(result.error || 'Gagal membuka artikel');
+      Toast.show(result.error || 'Gagal membuka artikel', 'error');
     }
   }
 };
@@ -882,6 +882,7 @@ const AuthSystem = {
     el.textContent = msg;
     el.classList.add('show');
     document.getElementById('authSuccess').classList.remove('show');
+    if (typeof Toast !== 'undefined') Toast.show(msg, 'error');
   },
 
   showSuccess(msg) {
@@ -889,6 +890,7 @@ const AuthSystem = {
     el.textContent = msg;
     el.classList.add('show');
     document.getElementById('authError').classList.remove('show');
+    if (typeof Toast !== 'undefined') Toast.show(msg, 'success');
   },
 
   clearMessages() {
@@ -1068,6 +1070,112 @@ function updateArticleCardStatus() {
   });
 }
 
+// === TOAST NOTIFICATION SYSTEM ===
+const Toast = {
+  container: null,
+  init() {
+    this.container = document.createElement('div');
+    this.container.className = 'toast-container';
+    document.body.appendChild(this.container);
+  },
+  show(msg, type = 'info', duration = 3500) {
+    if (!this.container) this.init();
+    const icons = { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' };
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.innerHTML = '<span class="toast-icon">' + (icons[type] || 'ℹ') + '</span><span class="toast-msg">' + msg + '</span><button class="toast-close" onclick="this.parentElement.remove()">×</button>';
+    this.container.appendChild(t);
+    requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+    setTimeout(() => { t.classList.add('hide'); setTimeout(() => t.remove(), 300); }, duration);
+  }
+};
+
+// === LOADING SPINNER ===
+const Loading = {
+  el: null,
+  init() {
+    this.el = document.createElement('div');
+    this.el.className = 'loading-overlay';
+    this.el.innerHTML = '<div class="spinner"></div>';
+    document.body.appendChild(this.el);
+  },
+  show() { if (!this.el) this.init(); this.el.classList.add('active'); },
+  hide() { if (this.el) this.el.classList.remove('active'); }
+};
+
+// === COOKIE CONSENT ===
+const CookieConsent = {
+  KEY: 'iothub_cookie_consent',
+  init() {
+    if (localStorage.getItem(this.KEY)) return;
+    setTimeout(() => this.show(), 2000);
+  },
+  show() {
+    const banner = document.createElement('div');
+    banner.className = 'cookie-consent';
+    banner.innerHTML = '<p>🍪 Kami menggunakan cookie untuk meningkatkan pengalaman Anda. <a href="privacy-policy.html">Pelajari lebih lanjut</a></p><div class="cookie-btns"><button class="cookie-decline" onclick="CookieConsent.dismiss(this)">Tolak</button><button class="cookie-accept" onclick="CookieConsent.accept(this)">Terima</button></div>';
+    document.body.appendChild(banner);
+    requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('show')));
+  },
+  accept(btn) { localStorage.setItem(this.KEY, 'accepted'); btn.closest('.cookie-consent').classList.remove('show'); setTimeout(() => btn.closest('.cookie-consent').remove(), 400); Toast.show('Cookie diterima! Terima kasih.', 'success'); },
+  dismiss(btn) { localStorage.setItem(this.KEY, 'declined'); btn.closest('.cookie-consent').classList.remove('show'); setTimeout(() => btn.closest('.cookie-consent').remove(), 400); }
+};
+
+// === THEME TOGGLE ===
+const ThemeToggle = {
+  KEY: 'iothub_theme',
+  init() {
+    const saved = localStorage.getItem(this.KEY);
+    if (saved === 'light') document.body.classList.add('light-theme');
+    this.updateButton();
+  },
+  toggle() {
+    document.body.classList.toggle('light-theme');
+    const isLight = document.body.classList.contains('light-theme');
+    localStorage.setItem(this.KEY, isLight ? 'light' : 'dark');
+    this.updateButton();
+  },
+  updateButton() {
+    const btn = document.querySelector('.theme-toggle');
+    if (btn) btn.textContent = document.body.classList.contains('light-theme') ? '🌙' : '☀️';
+  }
+};
+
+// === SHARE BUTTON + RELATED ARTICLES ===
+function injectArticleExtras() {
+  if (!window.location.pathname.includes('/articles/')) return;
+  const articleContent = document.querySelector('.article-content');
+  if (!articleContent) return;
+
+  // Share buttons
+  const url = encodeURIComponent(window.location.href);
+  const title = encodeURIComponent(document.title);
+  const shareHTML = '<div style="display:flex;align-items:center;gap:12px;padding:24px 0;border-top:1px solid var(--border-subtle);margin-top:32px;"><span style="font-size:0.85rem;color:var(--text-muted);font-weight:600;">Bagikan:</span><a href="https://twitter.com/intent/tweet?url='+url+'&text='+title+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-pill);background:rgba(29,161,242,0.1);border:1px solid rgba(29,161,242,0.3);color:#1da1f2;font-size:0.8rem;font-weight:600;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(29,161,242,0.2)\'" onmouseout="this.style.background=\'rgba(29,161,242,0.1)\'">𝕏 Twitter</a><a href="https://wa.me/?text='+title+'%20'+url+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-pill);background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.3);color:#25d366;font-size:0.8rem;font-weight:600;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(37,211,102,0.2)\'" onmouseout="this.style.background=\'rgba(37,211,102,0.1)\'">💬 WhatsApp</a><button onclick="navigator.clipboard.writeText(window.location.href);if(typeof Toast!==\'undefined\')Toast.show(\'Link disalin!\',\'success\')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-pill);background:var(--bg-hover);border:1px solid var(--border-standard);color:var(--text-secondary);font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;">📋 Salin Link</button></div>';
+  articleContent.insertAdjacentHTML('beforeend', shareHTML);
+
+  // Related articles
+  const allArticles = [
+    { slug: 'esp32-fundamentals', title: 'Panduan Lengkap ESP32', icon: '🔧', cat: 'ESP32' },
+    { slug: 'mikrotik-routing', title: 'Konfigurasi Routing MikroTik', icon: '🌐', cat: 'MikroTik' },
+    { slug: 'lora-communication', title: 'Jaringan Sensor LoRa', icon: '📡', cat: 'LoRa' },
+    { slug: 'python-iot-automation', title: 'Otomasi IoT dengan Python', icon: '🐍', cat: 'Python' },
+    { slug: 'network-security', title: 'Keamanan Jaringan IoT', icon: '🔐', cat: 'Keamanan' },
+    { slug: 'dashboard-monitoring', title: 'Dashboard Monitoring', icon: '📊', cat: 'Dashboard' },
+    { slug: 'esp8266-nodemcu', title: 'ESP8266 NodeMCU', icon: '📶', cat: 'ESP8266' },
+    { slug: 'mqtt-protocol', title: 'Protokol MQTT', icon: '📨', cat: 'Protokol' },
+    { slug: 'sensor-dht-esp32', title: 'Sensor DHT dengan ESP32', icon: '🌡️', cat: 'Sensor' },
+    { slug: 'raspberry-pi-iot', title: 'Raspberry Pi untuk IoT', icon: '🍓', cat: 'RPi' },
+    { slug: 'firebase-iot', title: 'Firebase untuk IoT', icon: '🔥', cat: 'Cloud' },
+    { slug: 'telegram-bot-iot', title: 'Telegram Bot untuk IoT', icon: '🤖', cat: 'IoT' }
+  ];
+  const currentSlug = window.location.pathname.split('/').pop().replace('.html', '');
+  const related = allArticles.filter(a => a.slug !== currentSlug).sort(() => 0.5 - Math.random()).slice(0, 3);
+  if (related.length) {
+    const relHTML = '<div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border-subtle);"><h3 style="font-family:var(--font-heading);font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:20px;">📚 Artikel Terkait</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;">' + related.map(a => '<a href="../articles/' + a.slug + '.html" style="display:flex;align-items:center;gap:12px;padding:16px;background:var(--bg-card);border:1px solid var(--border-standard);border-radius:var(--radius-md);text-decoration:none;transition:all 0.2s;" onmouseover="this.style.borderColor=\'var(--accent-primary)\'" onmouseout="this.style.borderColor=\'var(--border-standard)\'"><span style="font-size:1.5rem;">' + a.icon + '</span><div><div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:2px;">' + a.title + '</div><div style="font-size:0.7rem;color:var(--text-subtle);text-transform:uppercase;">' + a.cat + '</div></div></a>').join('') + '</div></div>';
+    articleContent.insertAdjacentHTML('beforeend', relHTML);
+  }
+}
+
 // === INITIALIZE ALL SYSTEMS ===
 document.addEventListener('DOMContentLoaded', () => {
   initReadingProgress();
@@ -1075,4 +1183,8 @@ document.addEventListener('DOMContentLoaded', () => {
   PaywallSystem.init();
   TokenDisplay.showBanner();
   updateArticleCardStatus();
+  Toast.init();
+  CookieConsent.init();
+  ThemeToggle.init();
+  injectArticleExtras();
 });
