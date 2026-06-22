@@ -1294,7 +1294,7 @@ const ALL_ARTICLES = [
 ];
 
 function renderArticleCard(a) {
-  return '<a href="articles/' + a.slug + '.html" class="article-card"><div class="list-icon">' + a.icon + '</div><div class="list-info"><h3>' + a.title + '</h3><p>' + a.desc + '</p></div><div class="list-meta"><span class="access-badge ' + (a.access === 'Premium' ? 'premium' : 'unlocked') + '">' + a.access + '</span><span class="read-time">📖 ' + a.time + ' mnt</span><span class="difficulty ' + a.diff + '">' + a.diff.charAt(0).toUpperCase() + a.diff.slice(1) + '</span></div></a>';
+  return '<a href="articles/' + a.slug + '.html" class="article-card"><div class="thumbnail"><div class="thumbnail-bg cyan">' + a.icon + '</div></div><div class="content"><div class="meta"><span class="category-tag">' + a.cat + '</span><span class="access-badge ' + (a.access === 'Premium' ? 'premium' : 'unlocked') + '">' + a.access + '</span><span class="date">' + a.date + '</span></div><h3>' + a.title + '</h3><p>' + a.desc + '</p><div class="footer"><span class="read-time">📖 ' + a.time + ' menit baca</span><span class="difficulty ' + a.diff + '">' + a.diff.charAt(0).toUpperCase() + a.diff.slice(1) + '</span></div></div></a>';
 }
 
 function renderGroupedArticles(filter) {
@@ -1314,7 +1314,7 @@ function renderGroupedArticles(filter) {
   catOrder.forEach(cat => {
     if (!groups[cat]) return;
     const items = groups[cat].slice(0, 3);
-    html += '<div class="category-section"><div class="cat-header"><h3>' + items[0].icon + ' ' + cat + '</h3><a href="kategori/' + cat.toLowerCase().replace(/\s+/g, '-') + '.html">Lihat Semua →</a></div><div style="display:flex;flex-direction:column;gap:8px;">' + items.map(renderArticleCard).join('') + '</div></div>';
+    html += '<div class="category-section"><div class="cat-header"><h3>' + items[0].icon + ' ' + cat + '</h3><a href="kategori/' + cat.toLowerCase().replace(/\s+/g, '-') + '.html">Lihat Semua →</a></div><div class="cards-grid">' + items.map(renderArticleCard).join('') + '</div></div>';
   });
   grid.innerHTML = html;
 }
