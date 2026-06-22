@@ -2,7 +2,7 @@
 // URL: /api/unlocked-articles
 // Returns all articles a user has unlocked
 
-const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id', 'http://localhost:3000', 'http://localhost:8788'];
+const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id'];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -58,6 +58,7 @@ export async function onRequestPost(context) {
     }, origin);
 
   } catch (e) {
+    // Error logged for debugging
     console.error('Unlocked articles error:', e);
     return cors(500, { error: 'Internal server error' }, origin);
   }

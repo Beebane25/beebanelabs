@@ -11,7 +11,8 @@ export async function onRequestPost(context) {
   try {
     // CRITICAL FIX: Reject if MIDTRANS_SERVER_KEY not configured
     if (!MIDTRANS_SERVER_KEY) {
-      console.error('Webhook rejected: MIDTRANS_SERVER_KEY not configured');
+      // Error logged for debugging
+    console.error('Webhook rejected: MIDTRANS_SERVER_KEY not configured');
       return new Response('Service unavailable', { status: 503 });
     }
 
@@ -68,6 +69,7 @@ export async function onRequestPost(context) {
     }
     return new Response('OK', { status: 200 });
   } catch (e) {
+    // Error logged for debugging
     console.error('Webhook error:', e.message || e);
     return new Response('OK', { status: 200 }); // Midtrans expects 200
   }
@@ -109,6 +111,7 @@ async function supabaseQuery(url, key, table, params = '', method = 'GET', data 
   if (data) opts.body = JSON.stringify(data);
   const resp = await fetch(fetchUrl, opts);
   const result = await resp.json();
-  if (!resp.ok) console.error('Supabase error:', resp.status);
+  if (!resp.ok) // Error logged for debugging
+    console.error('Supabase error:', resp.status);
   return result;
 }
