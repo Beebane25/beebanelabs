@@ -574,6 +574,46 @@ const PaywallSystem = {
     if (!u.includes(f)) { u.push(f); localStorage.setItem(this.UNLOCKED_KEY, JSON.stringify(u)); }
   },
 
+  // Sync unlocked articles from server
+  async syncFromServer() {
+    const session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    if (!session || !session.token) return;
+    
+    try {
+      const res = await fetch('/api/unlocked-articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: session.token })
+      });
+      const data = await res.json();
+      
+      if (data.articles) {
+        // Merge server data with local data
+        const localUnlocked = this.getUnlocked();
+        const serverSlugs = data.articles.map(a => a.slug);
+        const merged = [...new Set([...localUnlocked, ...serverSlugs])];
+        localStorage.setItem(this.UNLOCKED_KEY, JSON.stringify(merged));
+      }
+      
+      if (data.tokens !== undefined) {
+        this._serverTokens = data.tokens;
+        localStorage.setItem(this.TOKEN_KEY, String(data.tokens));
+      }
+      
+      // Update navbar
+      if (typeof AuthSystem !== 'undefined' && AuthSystem.updateNavbar) {
+        AuthSystem.updateNavbar();
+      }
+      
+      // Re-render articles if on homepage
+      if (typeof renderGroupedArticles === 'function') {
+        renderGroupedArticles('all');
+      }
+    } catch(e) {
+      console.error('Sync from server failed:', e);
+    }
+  },
+
   isAccessible(f) {
     if (this.hasPaidAccess()) return true;
     return this.isUnlocked(f);
@@ -726,6 +766,10 @@ const AuthSystem = {
       safe._createdAt = new Date().toISOString();
     }
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(safe));
+    // Sync unlocked articles from server after login
+    if (typeof PaywallSystem !== 'undefined' && PaywallSystem.syncFromServer) {
+      setTimeout(() => PaywallSystem.syncFromServer(), 500);
+    }
   },
 
   checkSession() {
