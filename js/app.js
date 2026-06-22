@@ -977,14 +977,14 @@ const AuthSystem = {
         }
 
         authContainer.innerHTML = `
-          <div class="user-badge">
+          <a href="profile.html" class="user-badge" style="text-decoration:none;cursor:pointer;">
             <div class="avatar">${initial}</div>
             <div>
               <div class="user-name">${safeName}</div>
               ${tokenBadge}
             </div>
-            <button class="logout-btn" onclick="AuthSystem.logout()">Keluar</button>
-          </div>
+          </a>
+          <button class="logout-btn" onclick="event.preventDefault();AuthSystem.logout()">Keluar</button>
         `;
       } else {
         // Not logged in - show token count for guests

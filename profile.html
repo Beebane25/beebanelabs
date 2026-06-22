@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil Saya - IoTHub</title>
+  <meta name="description" content="Kelola akun IoTHub Anda. Lihat token, artikel yang sudah dibuka, dan pengaturan akun.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <style>
+    /* Profile-specific styles */
+    .profile-page {
+      min-height: 80vh;
+      padding: var(--space-3xl) 0 var(--space-4xl);
+    }
+
+    .profile-header {
+      text-align: center;
+      margin-bottom: var(--space-3xl);
+    }
+
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #0f0f0f;
+      margin: 0 auto var(--space-lg);
+      border: 3px solid var(--accent-primary);
+    }
+
+    .profile-name {
+      font-family: var(--font-heading);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: var(--space-sm);
+    }
+
+    .profile-email {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .profile-plan {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: var(--space-md);
+      padding: 6px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .profile-plan.free {
+      background: rgba(251, 146, 60, 0.1);
+      border: 1px solid rgba(251, 146, 60, 0.3);
+      color: #fb923c;
+    }
+
+    .profile-plan.premium {
+      background: rgba(62, 207, 142, 0.1);
+      border: 1px solid rgba(62, 207, 142, 0.3);
+      color: #3ecf8e;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-3xl);
+    }
+
+    .profile-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-standard);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+    }
+
+    .profile-card h3 {
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: var(--space-lg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: var(--space-md);
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+    }
+
+    .stat-value {
+      font-family: var(--font-heading);
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--accent-primary);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-value.orange { color: var(--accent-orange); }
+    .stat-value.purple { color: var(--accent-purple); }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .token-bar {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+    }
+
+    .token-bar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-md);
+    }
+
+    .token-count {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent-orange);
+    }
+
+    .token-progress {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-hover);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: var(--space-sm);
+    }
+
+    .token-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-orange), #f97316);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .token-info {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .unlocked-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .unlocked-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      transition: background 0.2s;
+    }
+
+    .unlocked-item:hover {
+      background: var(--bg-secondary);
+    }
+
+    .unlocked-item + .unlocked-item {
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .unlocked-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      background: rgba(62, 207, 142, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .unlocked-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .unlocked-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .unlocked-date {
+      font-size: 0.75rem;
+      color: var(--text-subtle);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: var(--space-2xl) var(--space-lg);
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon {
+      font-size: 2.5rem;
+      margin-bottom: var(--space-md);
+      opacity: 0.5;
+    }
+
+    .empty-state p {
+      font-size: 0.9rem;
+      margin-bottom: var(--space-lg);
+    }
+
+    .btn-upgrade {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      background: var(--accent-primary);
+      color: #0f0f0f;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-upgrade:hover {
+      background: var(--accent-secondary);
+      transform: translateY(-1px);
+    }
+
+    .btn-logout {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      background: transparent;
+      color: #ef4444;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.85rem;
+      border: 1px solid var(--border-standard);
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-strong);
+    }
+
+    .profile-actions {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-md);
+      margin-top: var(--space-3xl);
+    }
+
+    .login-required {
+      text-align: center;
+      padding: var(--space-4xl) var(--space-lg);
+    }
+
+    .login-required .icon {
+      font-size: 4rem;
+      margin-bottom: var(--space-lg);
+    }
+
+    .login-required h2 {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      margin-bottom: var(--space-md);
+    }
+
+    .login-required p {
+      color: var(--text-muted);
+      margin-bottom: var(--space-xl);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <div class="brand-icon">⚡</div>
+        <span>IoTHub</span>
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="index.html">Beranda</a></li>
+        <li><a href="index.html#categories">Kategori</a></li>
+        <li><a href="index.html#articles">Artikel</a></li>
+        <li><a href="index.html#newsletter">Newsletter</a></li>
+        <li><a href="pricing.html">Harga</a></li>
+      </ul>
+      <div id="authNavArea"></div>
+      <a href="index.html#newsletter" class="navbar-cta">📧 Subscribe</a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========== PROFILE CONTENT ========== -->
+  <section class="profile-page">
+    <div class="container" style="max-width: 800px;">
+
+      <!-- Login Required State -->
+      <div id="loginRequired" class="login-required" style="display:none;">
+        <div class="icon">🔒</div>
+        <h2>Login Diperlukan</h2>
+        <p>Silakan login untuk melihat profil Anda.</p>
+        <button class="btn-upgrade" onclick="AuthSystem.showModal()">👤 Masuk</button>
+      </div>
+
+      <!-- Profile Content (shown after login) -->
+      <div id="profileContent" style="display:none;">
+
+        <!-- Header -->
+        <div class="profile-header">
+          <div class="profile-avatar" id="profileAvatar">U</div>
+          <h1 class="profile-name" id="profileName">User</h1>
+          <p class="profile-email" id="profileEmail">user@email.com</p>
+          <div class="profile-plan free" id="profilePlan">
+            <span>🆓</span> <span id="planText">Free</span>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="profile-grid">
+          <!-- Token Card -->
+          <div class="profile-card">
+            <h3>🔑 Token</h3>
+            <div class="token-bar">
+              <div class="token-bar-header">
+                <span style="font-size:0.85rem;color:var(--text-muted);">Sisa Token</span>
+                <span class="token-count" id="tokenCount">5</span>
+              </div>
+              <div class="token-progress">
+                <div class="token-progress-fill" id="tokenProgress" style="width:100%"></div>
+              </div>
+              <p class="token-info">Token digunakan untuk membuka artikel premium</p>
+            </div>
+          </div>
+
+          <!-- Stats Card -->
+          <div class="profile-card">
+            <h3>📊 Statistik</h3>
+            <div class="stat-grid">
+              <div class="stat-item">
+                <div class="stat-value" id="statUnlocked">0</div>
+                <div class="stat-label">Artikel Dibuka</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value orange" id="statTokensUsed">0</div>
+                <div class="stat-label">Token Terpakai</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unlocked Articles -->
+        <div class="profile-card" style="margin-bottom: var(--space-xl);">
+          <h3>📖 Artikel yang Sudah Dibuka</h3>
+          <ul class="unlocked-list" id="unlockedList">
+            <!-- Populated by JS -->
+          </ul>
+          <div class="empty-state" id="emptyUnlocked" style="display:none;">
+            <div class="icon">📚</div>
+            <p>Belum ada artikel yang dibuka.</p>
+            <a href="index.html#articles" class="btn-upgrade">Jelajahi Artikel</a>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="profile-actions">
+          <a href="index.html" class="btn-back">← Kembali ke Beranda</a>
+          <button class="btn-logout" onclick="handleLogout()">🚪 Keluar</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand-name">⚡ <span>IoTHub</span></div>
+          <p>Portal tutorial teknologi IoT, jaringan, dan mikrokontroler.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Kategori</h4>
+          <ul>
+            <li><a href="index.html#categories">ESP32 & ESP8266</a></li>
+            <li><a href="index.html#categories">MikroTik & Jaringan</a></li>
+            <li><a href="index.html#categories">LoRa & LPWAN</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Populer</h4>
+          <ul>
+            <li><a href="articles/esp32-fundamentals.html">Tutorial ESP32</a></li>
+            <li><a href="articles/mikrotik-routing.html">Konfigurasi MikroTik</a></li>
+            <li><a href="articles/lora-communication.html">Proyek LoRa</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Lainnya</h4>
+          <ul>
+            <li><a href="about.html">Tentang Kami</a></li>
+            <li><a href="privacy-policy.html">Kebijakan Privasi</a></li>
+            <li><a href="contact.html">Kontak</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 IoTHub. Semua hak dilindungi.</p>
+        <div class="social-links">
+          <a href="https://github.com/Beebane25">GitHub</a>
+          <a href="#">YouTube</a>
+          <a href="#">Discord</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
+
+  <script src="js/app.js?v=3.0.0"></script>
+  <script>
+    // Profile page logic
+    (function() {
+      // Wait for auth system to initialize
+      setTimeout(() => {
+        const session = AuthSystem.getSession();
+        const loginRequired = document.getElementById('loginRequired');
+        const profileContent = document.getElementById('profileContent');
+
+        if (!session || !session.user) {
+          // Not logged in
+          loginRequired.style.display = 'block';
+          profileContent.style.display = 'none';
+          return;
+        }
+
+        // Logged in - show profile
+        loginRequired.style.display = 'none';
+        profileContent.style.display = 'block';
+
+        const user = session.user;
+        const tokens = PaywallSystem.getTokens();
+        const unlocked = PaywallSystem.getUnlocked();
+
+        // Fill profile data
+        const initial = (user.name || user.email || 'U')[0].toUpperCase();
+        document.getElementById('profileAvatar').textContent = initial;
+        document.getElementById('profileName').textContent = user.name || 'User';
+        document.getElementById('profileEmail').textContent = user.email || '';
+
+        // Plan badge
+        const planEl = document.getElementById('profilePlan');
+        const planText = document.getElementById('planText');
+        if (user.plan && user.plan !== 'free') {
+          planEl.className = 'profile-plan premium';
+          planEl.innerHTML = '<span>👑</span> <span>' + (user.plan === 'monthly' ? 'Bulanan' : user.plan === 'yearly' ? 'Tahunalan' : user.plan) + '</span>';
+        } else {
+          planEl.className = 'profile-plan free';
+          planText.textContent = 'Free';
+        }
+
+        // Token display
+        document.getElementById('tokenCount').textContent = tokens;
+        const maxTokens = 5;
+        const pct = Math.min(100, (tokens / maxTokens) * 100);
+        document.getElementById('tokenProgress').style.width = pct + '%';
+
+        // Stats
+        document.getElementById('statUnlocked').textContent = unlocked.length;
+        document.getElementById('statTokensUsed').textContent = Math.max(0, maxTokens - tokens);
+
+        // Unlocked articles list
+        const listEl = document.getElementById('unlockedList');
+        const emptyEl = document.getElementById('emptyUnlocked');
+
+        if (unlocked.length === 0) {
+          listEl.style.display = 'none';
+          emptyEl.style.display = 'block';
+        } else {
+          listEl.style.display = 'block';
+          emptyEl.style.display = 'none';
+
+          // Article data mapping
+          const articleData = {
+            'esp32-fundamentals': { title: 'Panduan Lengkap ESP32', icon: '🔧', category: 'ESP32' },
+            'mikrotik-routing': { title: 'Konfigurasi Routing MikroTik', icon: '🌐', category: 'MikroTik' },
+            'lora-communication': { title: 'Jaringan Sensor LoRa', icon: '📡', category: 'LoRa' },
+            'python-iot-automation': { title: 'Otomasi IoT dengan Python', icon: '🐍', category: 'Python' },
+            'network-security': { title: 'Keamanan Jaringan IoT', icon: '🔐', category: 'Keamanan' },
+            'dashboard-monitoring': { title: 'Dashboard Monitoring Real-time', icon: '📊', category: 'Dashboard' },
+            'esp8266-nodemcu': { title: 'ESP8266 NodeMCU untuk Pemula', icon: '📶', category: 'ESP8266' },
+            'mqtt-protocol': { title: 'Protokol MQTT', icon: '📨', category: 'Protokol' },
+            'sensor-dht-esp32': { title: 'Sensor DHT11/DHT22 dengan ESP32', icon: '🌡️', category: 'Sensor' },
+            'raspberry-pi-iot': { title: 'Raspberry Pi untuk IoT', icon: '🍓', category: 'Raspberry Pi' },
+            'firebase-iot': { title: 'Firebase untuk IoT', icon: '🔥', category: 'Cloud' },
+            'mikrotik-firewall': { title: 'MikroTik Firewall', icon: '🛡️', category: 'MikroTik' },
+            'telegram-bot-iot': { title: 'Telegram Bot untuk IoT', icon: '🤖', category: 'IoT' },
+            'web-server-esp32': { title: 'Web Server di ESP32', icon: '🌐', category: 'ESP32' },
+            'iot-protocols-comparison': { title: 'Perbandingan Protokol IoT', icon: '⚖️', category: 'Protokol' },
+            'deep-sleep-esp32': { title: 'ESP32 Deep Sleep', icon: '💤', category: 'ESP32' },
+            'arduino-ide-setup': { title: 'Arduino IDE 2.x Setup', icon: '💻', category: 'Tools' },
+            'node-red-iot': { title: 'Node-RED untuk IoT', icon: '🔀', category: 'Dashboard' },
+            'grafana-influxdb': { title: 'Grafana + InfluxDB', icon: '📈', category: 'Dashboard' },
+            'mikrotik-queue': { title: 'MikroTik Queue Management', icon: '🎛️', category: 'MikroTik' },
+            'blynk-iot': { title: 'Blynk IoT', icon: '📱', category: 'IoT' }
+          };
+
+          listEl.innerHTML = unlocked.map(slug => {
+            const art = articleData[slug] || { title: slug, icon: '📄', category: '' };
+            return '<li class="unlocked-item">' +
+              '<div class="unlocked-icon">' + art.icon + '</div>' +
+              '<div class="unlocked-info">' +
+                '<div class="unlocked-title">' + art.title + '</div>' +
+                '<div class="unlocked-date">' + art.category + '</div>' +
+              '</div>' +
+              '<a href="articles/' + slug + '.html" style="color:var(--accent-primary);text-decoration:none;font-size:0.8rem;">Buka →</a>' +
+            '</li>';
+          }).join('');
+        }
+      }, 500); // Wait for auth init
+    })();
+
+    function handleLogout() {
+      if (confirm('Yakin ingin keluar?')) {
+        AuthSystem.logout();
+      }
+    }
+  </script>
+</body>
+</html>
