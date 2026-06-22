@@ -1294,7 +1294,11 @@ const ALL_ARTICLES = [
 ];
 
 function renderArticleCard(a) {
-  return '<a href="articles/' + a.slug + '.html" class="article-card"><div class="thumbnail"><div class="thumbnail-bg cyan">' + a.icon + '</div></div><div class="content"><div class="meta"><span class="category-tag">' + a.cat + '</span><span class="access-badge ' + (a.access === 'Premium' ? 'premium' : 'unlocked') + '">' + a.access + '</span><span class="date">' + a.date + '</span></div><h3>' + a.title + '</h3><p>' + a.desc + '</p><div class="footer"><span class="read-time">📖 ' + a.time + ' menit baca</span><span class="difficulty ' + a.diff + '">' + a.diff.charAt(0).toUpperCase() + a.diff.slice(1) + '</span></div></div></a>';
+  const isUnlocked = (typeof PaywallSystem !== 'undefined' && PaywallSystem.isUnlocked(a.slug));
+  const lockIcon = isUnlocked
+    ? '<div class="lock-icon unlocked">🔓</div>'
+    : '<div class="lock-icon locked">🔒</div>';
+  return '<a href="articles/' + a.slug + '.html" class="article-card' + (isUnlocked ? ' viewed' : '') + '"><div class="thumbnail"><div class="thumbnail-bg cyan">' + a.icon + '</div>' + lockIcon + (isUnlocked ? '<div class="viewed-badge">✓ Dilihat</div>' : '') + '</div><div class="content"><div class="meta"><span class="category-tag">' + a.cat + '</span><span class="access-badge ' + (a.access === 'Premium' ? 'premium' : 'unlocked') + '">' + a.access + '</span><span class="date">' + a.date + '</span></div><h3>' + a.title + '</h3><p>' + a.desc + '</p><div class="footer"><span class="read-time">📖 ' + a.time + ' menit baca</span><span class="difficulty ' + a.diff + '">' + a.diff.charAt(0).toUpperCase() + a.diff.slice(1) + '</span></div></div></a>';
 }
 
 function renderGroupedArticles(filter) {
