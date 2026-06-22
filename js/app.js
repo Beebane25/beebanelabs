@@ -788,10 +788,9 @@ const AuthSystem = {
   checkSession() {
     const session = this.getSession();
     if (session && session.user) {
-      // Sync server token balance to localStorage
+      // Sync server token balance to memory cache (NOT localStorage)
       if (session.user.tokens !== undefined && typeof PaywallSystem !== 'undefined') {
         PaywallSystem._serverTokens = session.user.tokens;
-        localStorage.setItem('iothub_tokens', String(session.user.tokens));
       }
       return true;
     }
