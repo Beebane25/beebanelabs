@@ -1240,35 +1240,20 @@ function initCopyCode() {
 function initArticleFilter() {
   const section = document.querySelector('#articles');
   if (!section) return;
-  const grid = section.querySelector('.articles-grid') || section;
-  const cards = grid.querySelectorAll('.article-card');
-  if (!cards.length) return;
-
-  // Extract difficulty from each card
-  cards.forEach(card => {
-    const diff = card.querySelector('.difficulty');
-    card.dataset.level = diff ? diff.textContent.trim().toLowerCase() : '';
-  });
 
   // Create filter bar
   const filterBar = document.createElement('div');
   filterBar.className = 'filter-bar';
   filterBar.innerHTML = '<span style="font-size:0.8rem;color:var(--text-muted);font-weight:600;">Filter:</span><button class="filter-btn active" data-filter="all">Semua</button><button class="filter-btn" data-filter="pemula">🟢 Pemula</button><button class="filter-btn" data-filter="menengah">🟡 Menengah</button><button class="filter-btn" data-filter="lanjut">🔴 Lanjut</button>';
-  grid.parentNode.insertBefore(filterBar, grid);
+  section.querySelector('.section-header').after(filterBar);
 
   filterBar.addEventListener('click', e => {
     const btn = e.target.closest('.filter-btn');
     if (!btn) return;
     filterBar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    const filter = btn.dataset.filter;
-    cards.forEach(card => {
-      if (filter === 'all' || card.dataset.level === filter) {
-        card.style.display = '';
-      } else {
-        card.style.display = 'none';
-      }
-    });
+    renderGroupedArticles(btn.dataset.filter);
+    updateArticleCardStatus();
   });
 }
 
@@ -1281,6 +1266,57 @@ function injectLearningPath() {
 
   const pathHTML = '<section class="learning-path container"><h2 style="font-family:var(--font-heading);font-size:1.5rem;font-weight:800;color:var(--text-primary);text-align:center;">🗺️ Learning Path — Urutan Belajar yang Direkomendasikan</h2><p style="text-align:center;color:var(--text-muted);margin-top:8px;font-size:0.9rem;">Ikuti urutan ini untuk hasil optimal</p><div class="path-grid"><a href="articles/esp32-fundamentals.html" class="path-card"><div class="step-num">1</div><div class="path-icon">🔧</div><h4>ESP32 Dasar</h4><p>Setup Arduino IDE, WiFi, sensor dasar</p></a><a href="articles/mqtt-protocol.html" class="path-card"><div class="step-num">2</div><div class="path-icon">📨</div><h4>Protokol MQTT</h4><p>Pub/Sub, broker, QoS untuk IoT</p></a><a href="articles/dashboard-monitoring.html" class="path-card"><div class="step-num">3</div><div class="path-icon">📊</div><h4>Dashboard IoT</h4><p>Node-RED, Grafana, visualisasi data</p></a><a href="articles/firebase-iot.html" class="path-card"><div class="step-num">4</div><div class="path-icon">🔥</div><h4>Cloud & Firebase</h4><p>Penyimpanan data cloud, RTDB</p></a></div></section>';
   articlesSection.insertAdjacentHTML('beforebegin', pathHTML);
+}
+
+// === GROUPED ARTICLES (3 per category) ===
+const ALL_ARTICLES = [
+  { slug: 'esp32-fundamentals', title: 'Panduan Lengkap ESP32', icon: '🔧', cat: 'ESP32', desc: 'Tutorial komprehensif ESP32 untuk pemula', diff: 'pemula', time: '15', access: 'Token', date: '20 Juni 2026' },
+  { slug: 'esp8266-nodemcu', title: 'ESP8266 NodeMCU untuk Pemula', icon: '📶', cat: 'ESP32', desc: 'Setup dan proyek pertama dengan ESP8266', diff: 'pemula', time: '10', access: 'Token', date: '7 Juni 2026' },
+  { slug: 'sensor-dht-esp32', title: 'Sensor DHT dengan ESP32', icon: '🌡️', cat: 'ESP32', desc: 'Baca suhu dan kelembaban dengan DHT11/DHT22', diff: 'pemula', time: '8', access: 'Premium', date: '5 Juni 2026' },
+  { slug: 'web-server-esp32', title: 'Web Server di ESP32', icon: '🌐', cat: 'ESP32', desc: 'Bangun web server mandiri di ESP32', diff: 'menengah', time: '11', access: 'Premium', date: '30 Mei 2026' },
+  { slug: 'deep-sleep-esp32', title: 'ESP32 Deep Sleep', icon: '💤', cat: 'ESP32', desc: 'Hemat baterai untuk proyek IoT', diff: 'pemula', time: '7', access: 'Premium', date: '28 Mei 2026' },
+  { slug: 'mikrotik-routing', title: 'Konfigurasi Routing MikroTik', icon: '🌐', cat: 'MikroTik', desc: 'Static route, OSPF, dan BGP', diff: 'menengah', time: '12', access: 'Token', date: '18 Juni 2026' },
+  { slug: 'mikrotik-firewall', title: 'MikroTik Firewall', icon: '🛡️', cat: 'MikroTik', desc: 'Filter rules, NAT, dan mangle', diff: 'lanjut', time: '16', access: 'Premium', date: '2 Juni 2026' },
+  { slug: 'mikrotik-queue', title: 'MikroTik Queue Management', icon: '🎛️', cat: 'MikroTik', desc: 'QoS dan bandwidth control', diff: 'menengah', time: '10', access: 'Premium', date: '24 Mei 2026' },
+  { slug: 'lora-communication', title: 'Jaringan Sensor LoRa', icon: '📡', cat: 'LoRa', desc: 'Telemetry dan monitoring jarak jauh', diff: 'menengah', time: '10', access: 'Token', date: '15 Juni 2026' },
+  { slug: 'python-iot-automation', title: 'Otomasi IoT dengan Python', icon: '🐍', cat: 'Python', desc: 'MQTT, GPIO, dan scheduling', diff: 'pemula', time: '8', access: 'Premium', date: '12 Juni 2026' },
+  { slug: 'network-security', title: 'Keamanan Jaringan IoT', icon: '🔐', cat: 'Keamanan', desc: 'Firewall, VPN, dan enkripsi data', diff: 'lanjut', time: '14', access: 'Premium', date: '10 Juni 2026' },
+  { slug: 'dashboard-monitoring', title: 'Dashboard Monitoring Real-time', icon: '📊', cat: 'Dashboard', desc: 'Node-RED, Grafana, dan MQTT', diff: 'menengah', time: '11', access: 'Premium', date: '8 Juni 2026' },
+  { slug: 'node-red-iot', title: 'Node-RED untuk IoT', icon: '🔀', cat: 'Dashboard', desc: 'Flow programming dan integrasi', diff: 'menengah', time: '12', access: 'Premium', date: '26 Mei 2026' },
+  { slug: 'grafana-influxdb', title: 'Grafana + InfluxDB', icon: '📈', cat: 'Dashboard', desc: 'Visualisasi data IoT real-time', diff: 'menengah', time: '13', access: 'Premium', date: '25 Mei 2026' },
+  { slug: 'mqtt-protocol', title: 'Protokol MQTT', icon: '📨', cat: 'Protokol', desc: 'Panduan lengkap MQTT untuk IoT', diff: 'menengah', time: '13', access: 'Token', date: '6 Juni 2026' },
+  { slug: 'iot-protocols-comparison', title: 'Perbandingan Protokol IoT', icon: '⚖️', cat: 'Protokol', desc: 'MQTT vs CoAP vs HTTP vs AMQP', diff: 'lanjut', time: '14', access: 'Premium', date: '29 Mei 2026' },
+  { slug: 'raspberry-pi-iot', title: 'Raspberry Pi untuk IoT', icon: '🍓', cat: 'Raspberry Pi', desc: 'Gateway dan edge computing', diff: 'menengah', time: '15', access: 'Premium', date: '4 Juni 2026' },
+  { slug: 'firebase-iot', title: 'Firebase untuk IoT', icon: '🔥', cat: 'Cloud', desc: 'Realtime database dan cloud functions', diff: 'menengah', time: '12', access: 'Premium', date: '3 Juni 2026' },
+  { slug: 'telegram-bot-iot', title: 'Telegram Bot untuk IoT', icon: '🤖', cat: 'IoT', desc: 'Notifikasi dan kontrol jarak jauh', diff: 'pemula', time: '9', access: 'Premium', date: '1 Juni 2026' },
+  { slug: 'blynk-iot', title: 'Blynk IoT', icon: '📱', cat: 'IoT', desc: 'Kontrol perangkat dari mobile app', diff: 'pemula', time: '8', access: 'Premium', date: '23 Mei 2026' },
+  { slug: 'arduino-ide-setup', title: 'Arduino IDE 2.x Setup', icon: '💻', cat: 'Tools', desc: 'Instalasi dan konfigurasi lengkap', diff: 'pemula', time: '6', access: 'Premium', date: '27 Mei 2026' }
+];
+
+function renderArticleCard(a) {
+  return '<a href="articles/' + a.slug + '.html" class="article-card"><div class="thumbnail"><div class="thumbnail-bg cyan">' + a.icon + '</div></div><div class="content"><div class="meta"><span class="category-tag">' + a.cat + '</span><span class="access-badge premium">' + a.access + '</span><span class="date">' + a.date + '</span></div><h3>' + a.title + '</h3><p>' + a.desc + '</p><div class="footer"><span class="read-time">📖 ' + a.time + ' menit baca</span><span class="difficulty ' + a.diff + '">' + a.diff.charAt(0).toUpperCase() + a.diff.slice(1) + '</span></div></div></a>';
+}
+
+function renderGroupedArticles(filter) {
+  const grid = document.getElementById('articlesGrid');
+  if (!grid) return;
+  const articles = filter && filter !== 'all' ? ALL_ARTICLES.filter(a => a.diff === filter) : ALL_ARTICLES;
+
+  // Group by category
+  const groups = {};
+  articles.forEach(a => {
+    if (!groups[a.cat]) groups[a.cat] = [];
+    groups[a.cat].push(a);
+  });
+
+  let html = '';
+  const catOrder = ['ESP32', 'MikroTik', 'LoRa', 'Python', 'Keamanan', 'Dashboard', 'Protokol', 'Raspberry Pi', 'Cloud', 'IoT', 'Tools'];
+  catOrder.forEach(cat => {
+    if (!groups[cat]) return;
+    const items = groups[cat].slice(0, 3);
+    html += '<div class="category-section" style="margin-bottom:40px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><h3 style="font-family:var(--font-heading);font-size:1.1rem;font-weight:700;color:var(--text-primary);">' + items[0].icon + ' ' + cat + '</h3><a href="kategori/' + cat.toLowerCase().replace(/\s+/g, '-') + '.html" style="font-size:0.8rem;color:var(--accent-primary);text-decoration:none;font-weight:500;">Lihat Semua →</a></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;">' + items.map(renderArticleCard).join('') + '</div></div>';
+  });
+  grid.innerHTML = html;
 }
 
 // === INITIALIZE ALL SYSTEMS ===
@@ -1296,6 +1332,7 @@ document.addEventListener('DOMContentLoaded', () => {
   injectArticleExtras();
   initTOC();
   initCopyCode();
-  initArticleFilter();
   injectLearningPath();
+  renderGroupedArticles('all');
+  initArticleFilter();
 });
