@@ -615,7 +615,7 @@ const PaywallSystem = {
         ? 'Gunakan 1 token untuk membuka artikel ini. Token disimpan di server.'
         : 'Login untuk menggunakan token. Token disimpan di server.';
       if (logged) {
-        btns = '<button onclick="PaywallSystem.unlockWithToken(\\'' + f + '\\')" class="btn-primary" style="margin:0 8px;">\u{1f511} Gunakan 1 Token</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">\u{1f4b0} Beli Token</a>';
+        btns = '<button onclick="PaywallSystem.unlockWithToken(\'' + f + '\')" class="btn-primary" style="margin:0 8px;">\u{1f511} Gunakan 1 Token</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">\u{1f4b0} Beli Token</a>';
       } else {
         btns = '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin:0 8px;">\u{1f464} Login untuk Unlock</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">\u{1f4b0} Beli Token</a>';
       }
