@@ -1069,11 +1069,10 @@ const AuthSystem = {
       } else {
         // Not logged in - show token count for guests
         const tokens = PaywallSystem.getTokens();
-        const isMobile = window.innerWidth <= 768;
         authContainer.innerHTML = `
-          <div style="display:flex;align-items:center;gap:${isMobile ? '6' : '10'}px;">
-            <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.25);border-radius:12px;padding:${isMobile ? '2px 6px' : '4px 10px'};font-size:${isMobile ? '0.65rem' : '0.75rem'};font-weight:600;color:#fb923c;">🔑 ${tokens} Token</div>
-            <button class="navbar-cta" onclick="AuthSystem.showModal()" style="background:var(--bg-card); border:1px solid var(--border-standard); color:var(--text-primary); padding:${isMobile ? '4px 10px' : '6px 14px'}; font-size:${isMobile ? '0.7rem' : '0.8rem'};">Masuk</button>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.25);border-radius:12px;padding:3px 8px;font-size:0.7rem;font-weight:600;color:#fb923c;">🔑 ${tokens} Token</div>
+            <button onclick="AuthSystem.showModal()" style="background:var(--bg-card); border:1px solid var(--border-standard); color:var(--text-primary); padding:5px 12px; font-size:0.75rem; border-radius:var(--radius-pill); cursor:pointer; font-weight:500;">Masuk</button>
           </div>
         `;
       }
