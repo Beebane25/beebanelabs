@@ -503,13 +503,15 @@ const CSRF = {
   }
 };
 
-// === PAYWALL SYSTEM (ALL ARTICLES NEED TOKENS) ===
+// === PAYWALL SYSTEM (SERVER-ONLY DATA) ===
 const PaywallSystem = {
-  TOKEN_KEY: 'iothub_tokens',
-  UNLOCKED_KEY: 'iothub_unlocked',
   TOKEN_ENDPOINT: '/api/tokens',
+  UNLOCKED_ENDPOINT: '/api/unlocked-articles',
+  // In-memory cache (NOT localStorage - server is source of truth)
   _serverTokens: null,
-  _serverAccess: null,
+  _unlockedCache: null,
+  _lastSyncTime: 0,
+  _syncCooldown: 5000, // 5 seconds cooldown between syncs
 
   hasPaidAccess() {
     const a = JSON.parse(localStorage.getItem('iothub_auth') || 'null');
@@ -519,8 +521,68 @@ const PaywallSystem = {
 
   getTokens() {
     if (this._serverTokens !== null) return this._serverTokens;
-    const v = localStorage.getItem(this.TOKEN_KEY);
-    return v !== null ? parseInt(v) : SITE_CONFIG.INITIAL_TOKENS;
+    return SITE_CONFIG.INITIAL_TOKENS;
+  },
+
+  // Check if article is unlocked (from memory cache)
+  isUnlocked(slug) {
+    if (!this._unlockedCache) return false;
+    return this._unlockedCache.includes(slug);
+  },
+
+  // Get all unlocked articles (from memory cache)
+  getUnlocked() {
+    return this._unlockedCache || [];
+  },
+
+  // Sync from server - ONLY place that updates cache
+  async syncFromServer() {
+    const now = Date.now();
+    if (now - this._lastSyncTime < this._syncCooldown) return;
+    
+    const session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    if (!session || !session.token) {
+      this._unlockedCache = [];
+      this._serverTokens = null;
+      return;
+    }
+    
+    try {
+      const res = await fetch(this.UNLOCKED_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: session.token })
+      });
+      const data = await res.json();
+      
+      if (data.articles) {
+        this._unlockedCache = data.articles.map(a => a.slug);
+      }
+      
+      if (data.tokens !== undefined) {
+        this._serverTokens = data.tokens;
+      }
+      
+      this._lastSyncTime = Date.now();
+      
+      // Update navbar
+      if (typeof AuthSystem !== 'undefined' && AuthSystem.updateNavbar) {
+        AuthSystem.updateNavbar();
+      }
+      
+      // Re-render articles if on homepage
+      if (typeof renderGroupedArticles === 'function') {
+        renderGroupedArticles('all');
+      }
+    } catch(e) {
+      console.error('Sync from server failed:', e);
+    }
+  },
+
+  // Force refresh from server
+  async forceRefresh() {
+    this._lastSyncTime = 0;
+    await this.syncFromServer();
   },
 
   async serverCheckAccess(articleSlug) {
@@ -533,8 +595,7 @@ const PaywallSystem = {
         body: JSON.stringify({ action: 'check-access', token: session.token, articleSlug })
       });
       const data = await res.json();
-      this._serverTokens = data.tokens || 0;
-      localStorage.setItem(this.TOKEN_KEY, String(data.tokens || 0));
+      if (data.tokens !== undefined) this._serverTokens = data.tokens;
       return data;
     } catch(e) {
       return { access: this.isUnlocked(articleSlug), tokens: this.getTokens(), plan: 'free' };
@@ -552,65 +613,17 @@ const PaywallSystem = {
       });
       const data = await res.json();
       if (data.success) {
-        this._serverTokens = data.tokens;
-        localStorage.setItem(this.TOKEN_KEY, String(data.tokens));
-        this.unlockArticle(articleSlug);
+        if (data.tokens !== undefined) this._serverTokens = data.tokens;
+        // Add to local cache immediately
+        if (!this._unlockedCache) this._unlockedCache = [];
+        if (!this._unlockedCache.includes(articleSlug)) {
+          this._unlockedCache.push(articleSlug);
+        }
         if (typeof AuthSystem !== 'undefined' && AuthSystem.updateNavbar) AuthSystem.updateNavbar();
       }
       return data;
     } catch(e) {
       return { success: false, error: 'Gagal terhubung ke server' };
-    }
-  },
-
-  getUnlocked() { return JSON.parse(localStorage.getItem(this.UNLOCKED_KEY) || '[]'); },
-  isUnlocked(f) {
-    const session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
-    if (!session || !session.token) return false;
-    return this.getUnlocked().includes(f);
-  },
-  unlockArticle(f) {
-    const u = this.getUnlocked();
-    if (!u.includes(f)) { u.push(f); localStorage.setItem(this.UNLOCKED_KEY, JSON.stringify(u)); }
-  },
-
-  // Sync unlocked articles from server
-  async syncFromServer() {
-    const session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
-    if (!session || !session.token) return;
-    
-    try {
-      const res = await fetch('/api/unlocked-articles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: session.token })
-      });
-      const data = await res.json();
-      
-      if (data.articles) {
-        // Merge server data with local data
-        const localUnlocked = this.getUnlocked();
-        const serverSlugs = data.articles.map(a => a.slug);
-        const merged = [...new Set([...localUnlocked, ...serverSlugs])];
-        localStorage.setItem(this.UNLOCKED_KEY, JSON.stringify(merged));
-      }
-      
-      if (data.tokens !== undefined) {
-        this._serverTokens = data.tokens;
-        localStorage.setItem(this.TOKEN_KEY, String(data.tokens));
-      }
-      
-      // Update navbar
-      if (typeof AuthSystem !== 'undefined' && AuthSystem.updateNavbar) {
-        AuthSystem.updateNavbar();
-      }
-      
-      // Re-render articles if on homepage
-      if (typeof renderGroupedArticles === 'function') {
-        renderGroupedArticles('all');
-      }
-    } catch(e) {
-      console.error('Sync from server failed:', e);
     }
   },
 
@@ -842,11 +855,11 @@ const AuthSystem = {
     }
     localStorage.removeItem(this.STORAGE_KEY);
     localStorage.removeItem('iothub_access');
-    localStorage.removeItem('iothub_unlocked');
-    localStorage.removeItem('iothub_tokens');
+    // Clear in-memory cache (NOT localStorage)
     if (typeof PaywallSystem !== 'undefined') {
       PaywallSystem._serverTokens = null;
-      PaywallSystem._serverAccess = null;
+      PaywallSystem._unlockedCache = null;
+      PaywallSystem._lastSyncTime = 0;
     }
     this.updateNavbar();
     window.location.reload();
