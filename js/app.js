@@ -555,6 +555,7 @@ const PaywallSystem = {
         this._serverTokens = data.tokens;
         localStorage.setItem(this.TOKEN_KEY, String(data.tokens));
         this.unlockArticle(articleSlug);
+        if (typeof AuthSystem !== 'undefined' && AuthSystem.updateNavbar) AuthSystem.updateNavbar();
       }
       return data;
     } catch(e) {
@@ -592,6 +593,7 @@ const PaywallSystem = {
     const result = await this.serverCheckAccess(slug);
     if (result.access) return;
     this.showTokenGate(slug, result.tokens || 0, true);
+    if (typeof AuthSystem !== 'undefined' && AuthSystem.updateNavbar) AuthSystem.updateNavbar();
   },
 
   showTokenGate(f, tokens, logged) {
@@ -673,7 +675,7 @@ const AuthSystem = {
       const storedVersion = localStorage.getItem('iothub_app_version');
       if (storedVersion !== SITE_CONFIG.APP_VERSION) {
         // New version detected — clear stale auth and cache data
-        const keysToKeep = new Set(['iothub_auth', 'iothub_session_id', 'iothub_viewed', 'iothub_csrf']);
+        const keysToKeep = new Set(['iothub_auth', 'iothub_session_id', 'iothub_viewed', 'iothub_csrf', 'iothub_tokens']);
         const allKeys = [];
         for (let i = 0; i < localStorage.length; i++) {
           allKeys.push(localStorage.key(i));
