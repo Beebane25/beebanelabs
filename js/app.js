@@ -564,7 +564,11 @@ const PaywallSystem = {
   },
 
   getUnlocked() { return JSON.parse(localStorage.getItem(this.UNLOCKED_KEY) || '[]'); },
-  isUnlocked(f) { return this.getUnlocked().includes(f); },
+  isUnlocked(f) {
+    const session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    if (!session || !session.token) return false;
+    return this.getUnlocked().includes(f);
+  },
   unlockArticle(f) {
     const u = this.getUnlocked();
     if (!u.includes(f)) { u.push(f); localStorage.setItem(this.UNLOCKED_KEY, JSON.stringify(u)); }
@@ -794,6 +798,12 @@ const AuthSystem = {
     }
     localStorage.removeItem(this.STORAGE_KEY);
     localStorage.removeItem('iothub_access');
+    localStorage.removeItem('iothub_unlocked');
+    localStorage.removeItem('iothub_tokens');
+    if (typeof PaywallSystem !== 'undefined') {
+      PaywallSystem._serverTokens = null;
+      PaywallSystem._serverAccess = null;
+    }
     this.updateNavbar();
     window.location.reload();
   },
