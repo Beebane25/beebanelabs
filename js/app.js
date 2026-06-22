@@ -695,6 +695,11 @@ const AuthSystem = {
     this.checkSession();
     this.createLoginModal();
     this.updateNavbar();
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      const dd = document.getElementById('userDropdown');
+      if (dd && !dd.contains(e.target)) dd.classList.remove('open');
+    });
   },
 
   getSession() {
@@ -977,14 +982,21 @@ const AuthSystem = {
         }
 
         authContainer.innerHTML = `
-          <a href="profile.html" class="user-badge" style="text-decoration:none;cursor:pointer;">
-            <div class="avatar">${initial}</div>
-            <div>
-              <div class="user-name">${safeName}</div>
-              ${tokenBadge}
+          <div class="user-dropdown" id="userDropdown">
+            <div class="user-trigger" onclick="document.getElementById('userDropdown').classList.toggle('open')">
+              <div class="avatar">${initial}</div>
+              <div class="user-meta">
+                <span class="user-name">${safeName}</span>
+                <span class="user-token">🔑 ${tokens} Token</span>
+              </div>
+              <span class="chevron">▼</span>
             </div>
-          </a>
-          <button class="logout-btn" onclick="event.preventDefault();AuthSystem.logout()">Keluar</button>
+            <div class="dropdown-menu">
+              <a href="profile.html">👤 Profil Saya</a>
+              <div class="menu-divider"></div>
+              <button class="logout-item" onclick="AuthSystem.logout()">🚪 Keluar</button>
+            </div>
+          </div>
         `;
       } else {
         // Not logged in - show token count for guests
