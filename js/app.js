@@ -531,8 +531,7 @@ const PaywallSystem = {
   _syncCooldown: 5000, // 5 seconds cooldown between syncs
 
   hasPaidAccess() {
-    const a = JSON.parse(localStorage.getItem('iothub_auth') || 'null');
-    if (a && a.user && a.user.plan && a.user.plan !== 'free') return true;
+    // No premium plan - all access is via tokens
     return false;
   },
 
@@ -1095,16 +1094,10 @@ const AuthSystem = {
     if (authContainer) {
       if (user) {
         const initial = (user.name || user.email)[0].toUpperCase();
-        const isPremium = user.plan && user.plan !== 'free';
         const tokens = PaywallSystem.getTokens();
         const safeName = this.escapeHtml(user.name || user.email.split('@')[0]);
 
-        let tokenBadge = '';
-        if (!isPremium) {
-          tokenBadge = '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.25);border-radius:12px;padding:2px 8px;font-size:0.7rem;font-weight:600;color:#fb923c;">🔑 ' + tokens + ' Token</div>';
-        } else {
-          tokenBadge = '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(62,207,142,0.12);border:1px solid rgba(62,207,142,0.25);border-radius:12px;padding:2px 8px;font-size:0.7rem;font-weight:600;color:#3ecf8e;">👑 Premium</div>';
-        }
+        const tokenBadge = '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.25);border-radius:12px;padding:2px 8px;font-size:0.7rem;font-weight:600;color:#fb923c;">\u{1f511} ' + tokens + ' Token</div>';
 
         authContainer.innerHTML = `
           <div class="user-dropdown" id="userDropdown">
@@ -1407,25 +1400,25 @@ function injectLearningPath() {
 const ALL_ARTICLES = [
   { slug: 'esp32-fundamentals', title: 'Panduan Lengkap ESP32', icon: '🔧', cat: 'ESP32', desc: 'Tutorial komprehensif ESP32 untuk pemula', diff: 'pemula', time: '15', access: 'Token', date: '20 Juni 2026' },
   { slug: 'esp8266-nodemcu', title: 'ESP8266 NodeMCU untuk Pemula', icon: '📶', cat: 'ESP32', desc: 'Setup dan proyek pertama dengan ESP8266', diff: 'pemula', time: '10', access: 'Token', date: '7 Juni 2026' },
-  { slug: 'sensor-dht-esp32', title: 'Sensor DHT dengan ESP32', icon: '🌡️', cat: 'ESP32', desc: 'Baca suhu dan kelembaban dengan DHT11/DHT22', diff: 'pemula', time: '8', access: 'Premium', date: '5 Juni 2026' },
-  { slug: 'web-server-esp32', title: 'Web Server di ESP32', icon: '🌐', cat: 'ESP32', desc: 'Bangun web server mandiri di ESP32', diff: 'menengah', time: '11', access: 'Premium', date: '30 Mei 2026' },
-  { slug: 'deep-sleep-esp32', title: 'ESP32 Deep Sleep', icon: '💤', cat: 'ESP32', desc: 'Hemat baterai untuk proyek IoT', diff: 'pemula', time: '7', access: 'Premium', date: '28 Mei 2026' },
+  { slug: 'sensor-dht-esp32', title: 'Sensor DHT dengan ESP32', icon: '🌡️', cat: 'ESP32', desc: 'Baca suhu dan kelembaban dengan DHT11/DHT22', diff: 'pemula', time: '8', access: 'Token', date: '5 Juni 2026' },
+  { slug: 'web-server-esp32', title: 'Web Server di ESP32', icon: '🌐', cat: 'ESP32', desc: 'Bangun web server mandiri di ESP32', diff: 'menengah', time: '11', access: 'Token', date: '30 Mei 2026' },
+  { slug: 'deep-sleep-esp32', title: 'ESP32 Deep Sleep', icon: '💤', cat: 'ESP32', desc: 'Hemat baterai untuk proyek IoT', diff: 'pemula', time: '7', access: 'Token', date: '28 Mei 2026' },
   { slug: 'mikrotik-routing', title: 'Konfigurasi Routing MikroTik', icon: '🌐', cat: 'MikroTik', desc: 'Static route, OSPF, dan BGP', diff: 'menengah', time: '12', access: 'Token', date: '18 Juni 2026' },
-  { slug: 'mikrotik-firewall', title: 'MikroTik Firewall', icon: '🛡️', cat: 'MikroTik', desc: 'Filter rules, NAT, dan mangle', diff: 'lanjut', time: '16', access: 'Premium', date: '2 Juni 2026' },
-  { slug: 'mikrotik-queue', title: 'MikroTik Queue Management', icon: '🎛️', cat: 'MikroTik', desc: 'QoS dan bandwidth control', diff: 'menengah', time: '10', access: 'Premium', date: '24 Mei 2026' },
+  { slug: 'mikrotik-firewall', title: 'MikroTik Firewall', icon: '🛡️', cat: 'MikroTik', desc: 'Filter rules, NAT, dan mangle', diff: 'lanjut', time: '16', access: 'Token', date: '2 Juni 2026' },
+  { slug: 'mikrotik-queue', title: 'MikroTik Queue Management', icon: '🎛️', cat: 'MikroTik', desc: 'QoS dan bandwidth control', diff: 'menengah', time: '10', access: 'Token', date: '24 Mei 2026' },
   { slug: 'lora-communication', title: 'Jaringan Sensor LoRa', icon: '📡', cat: 'LoRa', desc: 'Telemetry dan monitoring jarak jauh', diff: 'menengah', time: '10', access: 'Token', date: '15 Juni 2026' },
-  { slug: 'python-iot-automation', title: 'Otomasi IoT dengan Python', icon: '🐍', cat: 'Python', desc: 'MQTT, GPIO, dan scheduling', diff: 'pemula', time: '8', access: 'Premium', date: '12 Juni 2026' },
-  { slug: 'network-security', title: 'Keamanan Jaringan IoT', icon: '🔐', cat: 'Keamanan', desc: 'Firewall, VPN, dan enkripsi data', diff: 'lanjut', time: '14', access: 'Premium', date: '10 Juni 2026' },
-  { slug: 'dashboard-monitoring', title: 'Dashboard Monitoring Real-time', icon: '📊', cat: 'Dashboard', desc: 'Node-RED, Grafana, dan MQTT', diff: 'menengah', time: '11', access: 'Premium', date: '8 Juni 2026' },
-  { slug: 'node-red-iot', title: 'Node-RED untuk IoT', icon: '🔀', cat: 'Dashboard', desc: 'Flow programming dan integrasi', diff: 'menengah', time: '12', access: 'Premium', date: '26 Mei 2026' },
-  { slug: 'grafana-influxdb', title: 'Grafana + InfluxDB', icon: '📈', cat: 'Dashboard', desc: 'Visualisasi data IoT real-time', diff: 'menengah', time: '13', access: 'Premium', date: '25 Mei 2026' },
+  { slug: 'python-iot-automation', title: 'Otomasi IoT dengan Python', icon: '🐍', cat: 'Python', desc: 'MQTT, GPIO, dan scheduling', diff: 'pemula', time: '8', access: 'Token', date: '12 Juni 2026' },
+  { slug: 'network-security', title: 'Keamanan Jaringan IoT', icon: '🔐', cat: 'Keamanan', desc: 'Firewall, VPN, dan enkripsi data', diff: 'lanjut', time: '14', access: 'Token', date: '10 Juni 2026' },
+  { slug: 'dashboard-monitoring', title: 'Dashboard Monitoring Real-time', icon: '📊', cat: 'Dashboard', desc: 'Node-RED, Grafana, dan MQTT', diff: 'menengah', time: '11', access: 'Token', date: '8 Juni 2026' },
+  { slug: 'node-red-iot', title: 'Node-RED untuk IoT', icon: '🔀', cat: 'Dashboard', desc: 'Flow programming dan integrasi', diff: 'menengah', time: '12', access: 'Token', date: '26 Mei 2026' },
+  { slug: 'grafana-influxdb', title: 'Grafana + InfluxDB', icon: '📈', cat: 'Dashboard', desc: 'Visualisasi data IoT real-time', diff: 'menengah', time: '13', access: 'Token', date: '25 Mei 2026' },
   { slug: 'mqtt-protocol', title: 'Protokol MQTT', icon: '📨', cat: 'Protokol', desc: 'Panduan lengkap MQTT untuk IoT', diff: 'menengah', time: '13', access: 'Token', date: '6 Juni 2026' },
-  { slug: 'iot-protocols-comparison', title: 'Perbandingan Protokol IoT', icon: '⚖️', cat: 'Protokol', desc: 'MQTT vs CoAP vs HTTP vs AMQP', diff: 'lanjut', time: '14', access: 'Premium', date: '29 Mei 2026' },
-  { slug: 'raspberry-pi-iot', title: 'Raspberry Pi untuk IoT', icon: '🍓', cat: 'Raspberry Pi', desc: 'Gateway dan edge computing', diff: 'menengah', time: '15', access: 'Premium', date: '4 Juni 2026' },
-  { slug: 'firebase-iot', title: 'Firebase untuk IoT', icon: '🔥', cat: 'Cloud', desc: 'Realtime database dan cloud functions', diff: 'menengah', time: '12', access: 'Premium', date: '3 Juni 2026' },
-  { slug: 'telegram-bot-iot', title: 'Telegram Bot untuk IoT', icon: '🤖', cat: 'IoT', desc: 'Notifikasi dan kontrol jarak jauh', diff: 'pemula', time: '9', access: 'Premium', date: '1 Juni 2026' },
-  { slug: 'blynk-iot', title: 'Blynk IoT', icon: '📱', cat: 'IoT', desc: 'Kontrol perangkat dari mobile app', diff: 'pemula', time: '8', access: 'Premium', date: '23 Mei 2026' },
-  { slug: 'arduino-ide-setup', title: 'Arduino IDE 2.x Setup', icon: '💻', cat: 'Tools', desc: 'Instalasi dan konfigurasi lengkap', diff: 'pemula', time: '6', access: 'Premium', date: '27 Mei 2026' }
+  { slug: 'iot-protocols-comparison', title: 'Perbandingan Protokol IoT', icon: '⚖️', cat: 'Protokol', desc: 'MQTT vs CoAP vs HTTP vs AMQP', diff: 'lanjut', time: '14', access: 'Token', date: '29 Mei 2026' },
+  { slug: 'raspberry-pi-iot', title: 'Raspberry Pi untuk IoT', icon: '🍓', cat: 'Raspberry Pi', desc: 'Gateway dan edge computing', diff: 'menengah', time: '15', access: 'Token', date: '4 Juni 2026' },
+  { slug: 'firebase-iot', title: 'Firebase untuk IoT', icon: '🔥', cat: 'Cloud', desc: 'Realtime database dan cloud functions', diff: 'menengah', time: '12', access: 'Token', date: '3 Juni 2026' },
+  { slug: 'telegram-bot-iot', title: 'Telegram Bot untuk IoT', icon: '🤖', cat: 'IoT', desc: 'Notifikasi dan kontrol jarak jauh', diff: 'pemula', time: '9', access: 'Token', date: '1 Juni 2026' },
+  { slug: 'blynk-iot', title: 'Blynk IoT', icon: '📱', cat: 'IoT', desc: 'Kontrol perangkat dari mobile app', diff: 'pemula', time: '8', access: 'Token', date: '23 Mei 2026' },
+  { slug: 'arduino-ide-setup', title: 'Arduino IDE 2.x Setup', icon: '💻', cat: 'Tools', desc: 'Instalasi dan konfigurasi lengkap', diff: 'pemula', time: '6', access: 'Token', date: '27 Mei 2026' }
 ];
 
 function renderArticleCard(a) {
@@ -1433,7 +1426,7 @@ function renderArticleCard(a) {
   const lockIcon = isUnlocked
     ? '<div class="lock-icon unlocked">🔓</div>'
     : '<div class="lock-icon locked">🔒</div>';
-  return '<a href="articles/' + a.slug + '.html" class="article-card' + (isUnlocked ? ' viewed' : '') + '"><div class="thumbnail"><div class="thumbnail-bg cyan">' + a.icon + '</div>' + lockIcon + (isUnlocked ? '<div class="viewed-badge">✓ Dilihat</div>' : '') + '</div><div class="content"><div class="meta"><span class="category-tag">' + a.cat + '</span><span class="access-badge ' + (a.access === 'Premium' ? 'premium' : 'unlocked') + '">' + a.access + '</span><span class="date">' + a.date + '</span></div><h3>' + a.title + '</h3><p>' + a.desc + '</p><div class="footer"><span class="read-time">📖 ' + a.time + ' menit baca</span><span class="difficulty ' + a.diff + '">' + a.diff.charAt(0).toUpperCase() + a.diff.slice(1) + '</span></div></div></a>';
+  return '<a href="articles/' + a.slug + '.html" class="article-card' + (isUnlocked ? ' viewed' : '') + '"><div class="thumbnail"><div class="thumbnail-bg cyan">' + a.icon + '</div>' + lockIcon + (isUnlocked ? '<div class="viewed-badge">✓ Dilihat</div>' : '') + '</div><div class="content"><div class="meta"><span class="category-tag">' + a.cat + '</span><span class="access-badge ' + (a.access === 'Token' ? 'token' : 'unlocked') + '">' + a.access + '</span><span class="date">' + a.date + '</span></div><h3>' + a.title + '</h3><p>' + a.desc + '</p><div class="footer"><span class="read-time">📖 ' + a.time + ' menit baca</span><span class="difficulty ' + a.diff + '">' + a.diff.charAt(0).toUpperCase() + a.diff.slice(1) + '</span></div></div></a>';
 }
 
 function renderGroupedArticles(filter) {
