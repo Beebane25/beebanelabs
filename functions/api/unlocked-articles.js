@@ -2,7 +2,7 @@
 // URL: /api/unlocked-articles
 // Returns all articles a user has unlocked
 
-const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id'];
+const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id', 'https://www.beebanelabs.id'];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -66,12 +66,13 @@ export async function onRequestPost(context) {
 
 export async function onRequestOptions() { return cors(200, ''); }
 
-function cors(status, data, origin = '*') {
+function cors(status, data, origin = '') {
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': origin || '*',
+      'Access-Control-Allow-Origin': allowed,
       'Access-Control-Allow-Headers': 'Content-Type',
       'Access-Control-Allow-Methods': 'POST, OPTIONS'
     }
