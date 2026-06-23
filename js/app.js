@@ -168,6 +168,7 @@ const navbar = document.getElementById('navbar');
 let lastScroll = 0;
 
 window.addEventListener('scroll', debounce(() => {
+  if (!navbar) return;
   const currentScroll = window.pageYOffset;
   if (currentScroll > 50) {
     navbar.classList.add('scrolled');
@@ -203,11 +204,13 @@ const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
 
 function openSearch() {
+  if (!searchOverlay || !searchInput) return;
   searchOverlay.classList.add('active');
   searchInput.focus();
 }
 
 function closeSearch() {
+  if (!searchOverlay || !searchInput || !searchResults) return;
   searchOverlay.classList.remove('active');
   searchInput.value = '';
   searchResults.innerHTML = '<div class="search-hint">Tekan <kbd>Esc</kbd> untuk menutup</div>';
@@ -225,7 +228,7 @@ if (searchOverlay) {
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
-  if (e.key === '/' && !searchOverlay.classList.contains('active') && document.activeElement.tagName !== 'INPUT') {
+  if (e.key === '/' && searchOverlay && !searchOverlay.classList.contains('active') && document.activeElement.tagName !== 'INPUT') {
     e.preventDefault();
     openSearch();
   }
@@ -271,6 +274,7 @@ if (searchInput) {
 const backToTop = document.getElementById('backToTop');
 
 window.addEventListener('scroll', debounce(() => {
+  if (!backToTop) return;
   if (window.pageYOffset > 400) {
     backToTop.classList.add('visible');
   } else {
@@ -378,6 +382,9 @@ document.querySelectorAll('.code-copy').forEach(btn => {
       const original = btn.textContent;
       btn.textContent = '✓ Copied!';
       setTimeout(() => { btn.textContent = original; }, 2000);
+    }).catch(() => {
+      // Clipboard access denied - fallback
+      if (typeof Toast !== 'undefined') Toast.show('Gagal menyalin kode', 'error');
     });
   });
 });
@@ -483,9 +490,8 @@ function initReadingProgress() {
 }
 
 // === Initialize ===
-document.addEventListener('DOMContentLoaded', () => {
-  initReadingProgress();
-});
+// NOTE: initReadingProgress() is called from the main DOMContentLoaded handler below
+// to avoid running it twice.
 
 
 // === CONFIGURATION ===
@@ -564,6 +570,7 @@ const PaywallSystem = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: session.token })
       });
+      if (!res.ok) return;
       const data = await res.json();
       
       if (data.articles) {
@@ -605,6 +612,7 @@ const PaywallSystem = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'check-access', token: session.token, articleSlug })
       });
+      if (!res.ok) return { access: this.isUnlocked(articleSlug), tokens: this.getTokens(), plan: 'free' };
       const data = await res.json();
       if (data.tokens !== undefined) this._serverTokens = data.tokens;
       return data;
@@ -622,6 +630,7 @@ const PaywallSystem = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'use-token', token: session.token, articleSlug })
       });
+      if (!res.ok) return { success: false, error: 'Server error' };
       const data = await res.json();
       if (data.success) {
         if (data.tokens !== undefined) this._serverTokens = data.tokens;
@@ -696,14 +705,21 @@ const PaywallSystem = {
   async unlockWithToken(f) {
     const logged = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
     if (!logged) { AuthSystem.showModal(); return; }
-    const result = await this.serverUseToken(f);
-    if (result.success) {
-      Toast.show(result.message || 'Artikel dibuka!', 'success');
-      window.location.reload();
-    } else {
-      Toast.show(result.error || 'Gagal membuka artikel', 'error');
+    // FIX: Show loading state on the unlock button
+    const btn = document.querySelector('.btn-primary[onclick*="unlockWithToken"]');
+    if (btn) { btn.classList.add('btn-loading'); btn.disabled = true; }
+    try {
+      const result = await this.serverUseToken(f);
+      if (result.success) {
+        Toast.show(result.message || 'Artikel dibuka!', 'success');
+        window.location.reload();
+      } else {
+        Toast.show(result.error || 'Gagal membuka artikel', 'error');
+      }
+    } finally {
+      if (btn) { btn.classList.remove('btn-loading'); btn.disabled = false; }
     }
-  }
+  },
 };
 // === AUTH SYSTEM ===
 const AuthSystem = {
@@ -941,7 +957,10 @@ const AuthSystem = {
     document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
     document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
     document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
-    event.target.classList.add('active');
+    // FIX: Use event parameter instead of implicit global
+    const activeTab = document.querySelector('.auth-tab[data-tab="' + tab + '"]') ||
+                      document.querySelectorAll('.auth-tab')[tab === 'login' ? 0 : 1];
+    if (activeTab) activeTab.classList.add('active');
     this.clearMessages();
   },
 
@@ -1093,7 +1112,7 @@ const AuthSystem = {
               <div class="avatar">${initial}</div>
               <div class="user-meta">
                 <span class="user-name">${safeName}</span>
-                <span class="user-token">🔑 ${tokens} Token</span>
+                ${tokenBadge}
               </div>
               <span class="chevron">▼</span>
             </div>
@@ -1185,9 +1204,11 @@ const Toast = {
   show(msg, type = 'info', duration = 3500) {
     if (!this.container) this.init();
     const icons = { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' };
+    // FIX: Escape HTML in msg to prevent XSS
+    const safeMsg = String(msg).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const t = document.createElement('div');
     t.className = 'toast ' + type;
-    t.innerHTML = '<span class="toast-icon">' + (icons[type] || 'ℹ') + '</span><span class="toast-msg">' + msg + '</span><button class="toast-close" onclick="this.parentElement.remove()">×</button>';
+    t.innerHTML = '<span class="toast-icon">' + (icons[type] || 'ℹ') + '</span><span class="toast-msg">' + safeMsg + '</span><button class="toast-close" onclick="this.parentElement.remove()">×</button>';
     this.container.appendChild(t);
     requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
     setTimeout(() => { t.classList.add('hide'); setTimeout(() => t.remove(), 300); }, duration);
@@ -1342,6 +1363,8 @@ function initCopyCode() {
         btn.classList.add('copied');
         if (typeof Toast !== 'undefined') Toast.show('Kode disalin!', 'success');
         setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('copied'); }, 2000);
+      }).catch(() => {
+        if (typeof Toast !== 'undefined') Toast.show('Gagal menyalin kode', 'error');
       });
     };
     wrapper.appendChild(btn);
