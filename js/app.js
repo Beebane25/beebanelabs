@@ -1406,7 +1406,7 @@ function renderGroupedArticles(filter) {
 }
 
 // === INITIALIZE ALL SYSTEMS ===
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initReadingProgress();
   AuthSystem.init();
   PaywallSystem.init();
@@ -1421,4 +1421,15 @@ document.addEventListener('DOMContentLoaded', () => {
   injectLearningPath();
   renderGroupedArticles('all');
   initArticleFilter();
+
+  // FIX: Sync unlocked articles from server for logged-in users
+  // This must happen AFTER initial render (sync is async, render is sync)
+  // After sync completes, re-render to update lock icons
+  if (typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn()) {
+    await PaywallSystem.syncFromServer();
+    renderGroupedArticles(
+      document.querySelector('.filter-btn.active')?.dataset?.filter || 'all'
+    );
+    updateArticleCardStatus();
+  }
 });
