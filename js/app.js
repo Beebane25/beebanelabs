@@ -154,11 +154,20 @@ const articles = [
   }
 ];
 
+// === Debounce utility ===
+function debounce(fn, delay) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 // === Navbar Scroll Effect ===
 const navbar = document.getElementById('navbar');
 let lastScroll = 0;
 
-window.addEventListener('scroll', () => {
+window.addEventListener('scroll', debounce(() => {
   const currentScroll = window.pageYOffset;
   if (currentScroll > 50) {
     navbar.classList.add('scrolled');
@@ -166,7 +175,7 @@ window.addEventListener('scroll', () => {
     navbar.classList.remove('scrolled');
   }
   lastScroll = currentScroll;
-});
+}, 10));
 
 // === Mobile Menu Toggle ===
 const menuToggle = document.getElementById('menuToggle');
@@ -261,13 +270,13 @@ if (searchInput) {
 // === Back to Top ===
 const backToTop = document.getElementById('backToTop');
 
-window.addEventListener('scroll', () => {
+window.addEventListener('scroll', debounce(() => {
   if (window.pageYOffset > 400) {
     backToTop.classList.add('visible');
   } else {
     backToTop.classList.remove('visible');
   }
-});
+}, 50));
 
 if (backToTop) {
   backToTop.addEventListener('click', () => {
@@ -324,12 +333,13 @@ async function handleSubscribe(e) {
     return;
   }
 
-  // Disable button during request
+  // Disable button and show loading
   btn.disabled = true;
+  btn.classList.add('btn-loading');
+  const origText = btn.textContent;
   btn.textContent = '⏳ Mengirim...';
 
   try {
-    // Try backend API first
     const API_BASE = window.location.origin;
     const res = await fetch(API_BASE + '/api/subscribe', {
       method: 'POST',
@@ -337,26 +347,27 @@ async function handleSubscribe(e) {
       body: JSON.stringify({ email: email })
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      btn.textContent = '✓ ' + data.message;
+    const data = await res.json();
+    if (res.ok && data.success) {
+      btn.textContent = '✓ ' + (data.message || 'Tersubscribe!');
       btn.style.background = '#10b981';
       input.value = '';
+      if (typeof Toast !== 'undefined') Toast.show('Berhasil subscribe!', 'success');
     } else {
-      throw new Error('Server error');
+      throw new Error(data.error || 'Server error');
     }
   } catch (err) {
-    // Fallback: show success without storing email locally
     btn.textContent = '✓ Tersubscribe!';
     btn.style.background = '#10b981';
     input.value = '';
+  } finally {
+    setTimeout(() => {
+      btn.textContent = origText;
+      btn.style.background = '';
+      btn.disabled = false;
+      btn.classList.remove('btn-loading');
+    }, 3500);
   }
-
-  setTimeout(() => {
-    btn.textContent = 'Subscribe';
-    btn.style.background = '';
-    btn.disabled = false;
-  }, 3500);
 }
 
 // === Code Copy Button ===
@@ -464,11 +475,11 @@ function initReadingProgress() {
   const progressBar = document.getElementById('readingProgress');
   if (!progressBar) return;
 
-  window.addEventListener('scroll', () => {
+  window.addEventListener('scroll', debounce(() => {
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
     const scrolled = (window.pageYOffset / docHeight) * 100;
     progressBar.style.width = scrolled + '%';
-  });
+  }, 16));
 }
 
 // === Initialize ===
@@ -968,8 +979,12 @@ const AuthSystem = {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
+    const btn = e.target.querySelector('.auth-submit');
 
-    // Login via Netlify Function backend
+    // Add loading state
+    if (btn) { btn.classList.add('btn-loading'); btn.disabled = true; }
+
+    // Login via backend
     try {
       const res = await fetch(this.AUTH_ENDPOINT, {
         method: 'POST',
@@ -987,6 +1002,8 @@ const AuthSystem = {
       }
     } catch (err) {
       this.showError('Gagal terhubung ke server. Coba lagi nanti.');
+    } finally {
+      if (btn) { btn.classList.remove('btn-loading'); btn.disabled = false; }
     }
   },
 
@@ -1017,7 +1034,10 @@ const AuthSystem = {
       return;
     }
 
-    // Register via Netlify Function backend
+    // Register via backend
+    const btn = e.target.querySelector('.auth-submit');
+    if (btn) { btn.classList.add('btn-loading'); btn.disabled = true; }
+
     try {
       const res = await fetch(this.AUTH_ENDPOINT, {
         method: 'POST',
@@ -1035,6 +1055,8 @@ const AuthSystem = {
       }
     } catch (err) {
       this.showError('Gagal terhubung ke server. Coba lagi nanti.');
+    } finally {
+      if (btn) { btn.classList.remove('btn-loading'); btn.disabled = false; }
     }
   },
 
@@ -1262,13 +1284,21 @@ function injectArticleExtras() {
 function initTOC() {
   const content = document.querySelector('.article-content');
   if (!content) return;
+  // FIX: Don't generate TOC if article is paywalled (content replaced by lock screen)
+  if (content.querySelector('[style*="text-align:center"]') && !content.querySelector('h2:not([style])')) return;
   const headings = content.querySelectorAll('h2, h3');
   if (headings.length < 2) return;
+  // Filter out non-article headings (paywall messages, share buttons, related articles)
+  const realHeadings = Array.from(headings).filter(h => {
+    const text = h.textContent.trim();
+    return !text.includes('Artikel Terkunci') && !text.includes('Artikel Terkait') && !text.includes('Bagikan');
+  });
+  if (realHeadings.length < 2) return;
 
   // Create TOC sidebar
   const toc = document.createElement('nav');
   toc.className = 'toc-sidebar';
-  toc.innerHTML = '<h4>Daftar Isi</h4><ul>' + Array.from(headings).map((h, i) => {
+  toc.innerHTML = '<h4>Daftar Isi</h4><ul>' + realHeadings.map((h, i) => {
     const id = 'toc-' + i;
     h.id = id;
     const isH3 = h.tagName === 'H3';
@@ -1292,7 +1322,7 @@ function initTOC() {
       }
     });
   }, { rootMargin: '-80px 0px -70% 0px' });
-  headings.forEach(h => observer.observe(h));
+  realHeadings.forEach(h => observer.observe(h));
 }
 
 // === COPY CODE BUTTON ===
