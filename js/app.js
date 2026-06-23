@@ -1,4 +1,4 @@
-/* v2.2.0 - Token System */
+/* v7.11.0 - Token System */
 /* ============================================
    BeebaneLabs - Main JavaScript
    ============================================ */
@@ -480,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // === CONFIGURATION ===
 const SITE_CONFIG = {
   API_BASE: window.location.origin,
-  APP_VERSION: '3.0.0',
+  APP_VERSION: '7.11.0',
   TOKEN_PRICE: 10000,
   INITIAL_TOKENS: 5
 };
@@ -912,7 +912,7 @@ const AuthSystem = {
           </div>
           <div class="auth-form-group">
             <label>Password</label>
-            <input type="password" id="regPassword" placeholder="Minimal 6 karakter" required minlength="6">
+            <input type="password" id="regPassword" placeholder="Min 8 karakter, huruf besar, angka, simbol" required minlength="8">
           </div>
           <button type="submit" class="auth-submit">Daftar Sekarang</button>
         </form>
@@ -996,8 +996,24 @@ const AuthSystem = {
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
 
-    if (!name || !email || password.length < 6) {
-      this.showError('Semua field harus diisi, password minimal 6 karakter');
+    if (!name || !email) {
+      this.showError('Semua field harus diisi');
+      return;
+    }
+    if (password.length < 8) {
+      this.showError('Password minimal 8 karakter');
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      this.showError('Password harus mengandung huruf besar');
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      this.showError('Password harus mengandung angka');
+      return;
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      this.showError('Password harus mengandung simbol (!@#$%^&*)');
       return;
     }
 
