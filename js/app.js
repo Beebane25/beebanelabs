@@ -410,10 +410,99 @@ function copyToClipboard(text) {
 }
 
 // === Quiz System ===
+// QuizManager: handles quiz validation, server-side save, retry, and best score tracking
+const QuizManager = {
+  STORAGE_KEY: 'beebanelabs_quiz_cache',
+
+  // Get cached quiz results from localStorage
+  getCache() {
+    try {
+      return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '{}');
+    } catch { return {}; }
+  },
+
+  // Save to localStorage cache
+  saveCache(articleSlug, quizId, result) {
+    try {
+      const cache = this.getCache();
+      const key = `${articleSlug}:${quizId}`;
+      if (!cache[key] || result.score > cache[key].score) {
+        cache[key] = result;
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cache));
+      }
+    } catch (e) { console.warn('Quiz cache save failed:', e); }
+  },
+
+  // Get cached result for a quiz
+  getCachedResult(articleSlug, quizId) {
+    const cache = this.getCache();
+    return cache[`${articleSlug}:${quizId}`] || null;
+  },
+
+  // Save quiz result to server
+  async saveToServer(articleSlug, quizId, score, total, percent, passed, answers) {
+    try {
+      const sessionToken = AuthSystem.getSessionToken ? AuthSystem.getSessionToken() :
+        (JSON.parse(localStorage.getItem('beebanelabs_auth') || '{}').token);
+      if (!sessionToken) return { success: false, reason: 'no_session' };
+
+      const resp = await fetch('/api/quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: sessionToken,
+          action: 'save',
+          articleSlug,
+          quizId,
+          score,
+          total,
+          percent,
+          passed,
+          answers
+        })
+      });
+      return await resp.json();
+    } catch (e) {
+      console.warn('Quiz server save failed:', e);
+      return { success: false, reason: 'network_error' };
+    }
+  },
+
+  // Check if quiz already completed on server
+  async checkServer(articleSlug, quizId) {
+    try {
+      const sessionToken = AuthSystem.getSessionToken ? AuthSystem.getSessionToken() :
+        (JSON.parse(localStorage.getItem('beebanelabs_auth') || '{}').token);
+      if (!sessionToken) return null;
+
+      const resp = await fetch('/api/quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: sessionToken,
+          action: 'check',
+          articleSlug,
+          quizId
+        })
+      });
+      const data = await resp.json();
+      return data.hasCompleted ? data.result : null;
+    } catch { return null; }
+  },
+
+  // Get article slug from current URL
+  getArticleSlug() {
+    const path = window.location.pathname;
+    const match = path.match(/articles\/([^/.]+)\.html/);
+    return match ? match[1] : path.split('/').pop().replace('.html', '');
+  }
+};
+
 function initQuiz(quizId, answers) {
   const container = document.getElementById(quizId);
   if (!container) return;
 
+  const articleSlug = QuizManager.getArticleSlug();
   let score = 0;
   let answered = 0;
   const total = answers.length;
@@ -422,6 +511,58 @@ function initQuiz(quizId, answers) {
   const submitBtn = container.querySelector('.quiz-btn');
   const selected = {};
 
+  // Standardize button text
+  if (submitBtn) {
+    submitBtn.textContent = '📝 Periksa Jawaban';
+  }
+
+  // Add retry button (hidden initially)
+  let retryBtn = container.querySelector('.quiz-retry-btn');
+  if (!retryBtn && submitBtn) {
+    retryBtn = document.createElement('button');
+    retryBtn.className = 'quiz-retry-btn quiz-btn';
+    retryBtn.textContent = '🔄 Coba Lagi';
+    retryBtn.style.display = 'none';
+    retryBtn.style.marginLeft = '10px';
+    submitBtn.parentNode.insertBefore(retryBtn, submitBtn.nextSibling);
+  }
+
+  // Add best score indicator
+  let bestScoreEl = container.querySelector('.quiz-best-score');
+  if (!bestScoreEl) {
+    bestScoreEl = document.createElement('div');
+    bestScoreEl.className = 'quiz-best-score';
+    bestScoreEl.style.cssText = 'text-align:center;margin-top:8px;font-size:0.85em;color:var(--text-subtle,#80848b);';
+    if (resultEl) resultEl.parentNode.insertBefore(bestScoreEl, resultEl);
+  }
+
+  // Check cached result and show best score
+  const cached = QuizManager.getCachedResult(articleSlug, quizId);
+  if (cached) {
+    bestScoreEl.textContent = `🏆 Skor terbaik: ${cached.score}/${cached.total} (${cached.percent}%)`;
+    if (cached.passed) {
+      bestScoreEl.style.color = '#22c55e';
+    }
+  }
+
+  // Check server for completion (async, non-blocking)
+  QuizManager.checkServer(articleSlug, quizId).then(serverResult => {
+    if (serverResult) {
+      const srvScore = serverResult.score;
+      const srvTotal = serverResult.total;
+      const srvPercent = Math.round(parseFloat(serverResult.percent));
+      bestScoreEl.textContent = `🏆 Skor terbaik: ${srvScore}/${srvTotal} (${srvPercent}%)`;
+      if (serverResult.passed) {
+        bestScoreEl.style.color = '#22c55e';
+      }
+      // Also update local cache
+      QuizManager.saveCache(articleSlug, quizId, {
+        score: srvScore, total: srvTotal, percent: srvPercent, passed: serverResult.passed
+      });
+    }
+  });
+
+  // Option click handler
   options.forEach(opt => {
     opt.addEventListener('click', () => {
       const qIndex = opt.dataset.question;
@@ -432,14 +573,39 @@ function initQuiz(quizId, answers) {
     });
   });
 
+  // Reset quiz function
+  function resetQuiz() {
+    score = 0;
+    answered = 0;
+    Object.keys(selected).forEach(k => delete selected[k]);
+
+    options.forEach(o => {
+      o.classList.remove('selected', 'correct', 'wrong');
+      o.style.pointerEvents = '';
+    });
+
+    resultEl.className = 'quiz-result';
+    resultEl.innerHTML = '';
+    submitBtn.style.display = '';
+    if (retryBtn) retryBtn.style.display = 'none';
+  }
+
+  // Retry button handler
+  if (retryBtn) {
+    retryBtn.addEventListener('click', resetQuiz);
+  }
+
+  // Submit button handler
   if (submitBtn) {
-    submitBtn.addEventListener('click', () => {
+    submitBtn.addEventListener('click', async () => {
       if (Object.keys(selected).length < total) {
         Toast.show('Silakan jawab semua pertanyaan terlebih dahulu!', 'warning');
         return;
       }
 
+      // Calculate score
       score = 0;
+      const userAnswers = [];
       answers.forEach((correct, i) => {
         const qOptions = container.querySelectorAll(`.quiz-option[data-question="${i}"]`);
         qOptions.forEach(o => {
@@ -452,18 +618,53 @@ function initQuiz(quizId, answers) {
           o.style.pointerEvents = 'none';
         });
         if (selected[i] === correct) score++;
+        userAnswers.push({ question: i, selected: selected[i], correct });
       });
 
       const percent = Math.round((score / total) * 100);
-      if (percent >= 60) {
+      const passed = percent >= 60;
+
+      // Show result
+      if (passed) {
         resultEl.className = 'quiz-result pass';
-        resultEl.innerHTML = `🎉 Selamat! Kamu menjawab benar ${score}/${total} (${percent}%). Keamanan: LOLOS!`;
+        resultEl.innerHTML = `🎉 Selamat! Kamu menjawab benar ${score}/${total} (${percent}%). Quiz: LOLOS!`;
       } else {
         resultEl.className = 'quiz-result fail';
         resultEl.innerHTML = `😢 Kamu menjawab benar ${score}/${total} (${percent}%). Coba baca ulang materinya ya!`;
       }
 
+      // Hide submit, show retry
       submitBtn.style.display = 'none';
+      if (retryBtn) retryBtn.style.display = '';
+
+      // Save to localStorage cache
+      QuizManager.saveCache(articleSlug, quizId, { score, total, percent, passed });
+
+      // Update best score display
+      const currentBest = QuizManager.getCachedResult(articleSlug, quizId);
+      if (currentBest) {
+        bestScoreEl.textContent = `🏆 Skor terbaik: ${currentBest.score}/${currentBest.total} (${currentBest.percent}%)`;
+        bestScoreEl.style.color = currentBest.passed ? '#22c55e' : '';
+      }
+
+      // Save to server (async, non-blocking)
+      const serverResult = await QuizManager.saveToServer(
+        articleSlug, quizId, score, total, percent, passed, userAnswers
+      );
+
+      if (serverResult.success) {
+        if (serverResult.isNewRecord) {
+          Toast.show('🏆 Rekor baru! Skor terbaik tercatat.', 'success');
+        }
+        // Update best score from server
+        if (serverResult.bestScore !== undefined) {
+          bestScoreEl.textContent = `🏆 Skor terbaik: ${serverResult.bestScore}/${total} (${serverResult.bestPercent}%)`;
+          bestScoreEl.style.color = serverResult.passed ? '#22c55e' : '';
+        }
+      } else if (serverResult.reason === 'no_session') {
+        // Not logged in - only local save
+        console.log('Quiz saved locally (not logged in)');
+      }
     });
   }
 }
