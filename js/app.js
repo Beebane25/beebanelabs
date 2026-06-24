@@ -705,11 +705,97 @@ function initReadingProgress() {
 // NOTE: initReadingProgress() is called from the main DOMContentLoaded handler below
 // to avoid running it twice.
 
+// === SCROLL REVEAL ANIMATION ===
+function initScrollReveal() {
+  const revealElements = document.querySelectorAll('.reveal');
+  if (!revealElements.length) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+  revealElements.forEach(el => observer.observe(el));
+}
+
+// === ADD REVEAL CLASSES TO SECTIONS ===
+function addRevealClasses() {
+  // Add reveal class to main sections
+  const sections = document.querySelectorAll('.categories-section, .learning-path, .articles-section, .newsletter-section, .tags-section');
+  sections.forEach((section, index) => {
+    section.classList.add('reveal');
+    if (index > 0) section.classList.add(`reveal-delay-${Math.min(index, 5)}`);
+  });
+
+  // Add reveal to category cards with stagger
+  const categoryCards = document.querySelectorAll('.category-card');
+  categoryCards.forEach((card, index) => {
+    card.classList.add('reveal', `reveal-delay-${(index % 5) + 1}`);
+  });
+
+  // Add reveal to article cards with stagger
+  const articleCards = document.querySelectorAll('.article-card');
+  articleCards.forEach((card, index) => {
+    card.classList.add('reveal', `reveal-delay-${(index % 3) + 1}`);
+  });
+
+  // Add reveal to path cards with stagger
+  const pathCards = document.querySelectorAll('.path-card');
+  pathCards.forEach((card, index) => {
+    card.classList.add('reveal', `reveal-delay-${index + 1}`);
+  });
+}
+
+// === PARTICLE EFFECT ===
+function initParticles() {
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+
+  // Create particles container
+  const particlesContainer = document.createElement('div');
+  particlesContainer.className = 'particles';
+
+  // Create 5 particles
+  for (let i = 0; i < 5; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = `${Math.random() * 100}%`;
+    particlesContainer.appendChild(particle);
+  }
+
+  hero.style.position = 'relative';
+  hero.insertBefore(particlesContainer, hero.firstChild);
+}
+
+// === COUNTER ANIMATION ===
+function animateCounters() {
+  const counters = document.querySelectorAll('.stat-number');
+  counters.forEach(counter => {
+    const target = parseInt(counter.textContent.replace(/\D/g, ''));
+    const suffix = counter.textContent.replace(/\d/g, '');
+    let current = 0;
+    const increment = target / 50;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        counter.textContent = target + suffix;
+        clearInterval(timer);
+      } else {
+        counter.textContent = Math.floor(current) + suffix;
+      }
+    }, 30);
+  });
+}
+
 
 // === CONFIGURATION ===
 const SITE_CONFIG = {
   API_BASE: window.location.origin,
-  APP_VERSION: '7.17',
+  APP_VERSION: '7.18',
   TOKEN_PRICE: 10000,
   INITIAL_TOKENS: 5
 };
@@ -1687,6 +1773,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   ThemeToggle.init();
   injectArticleExtras();
   initTOC();
+
+  // Visual enhancements
+  addRevealClasses();
+  initScrollReveal();
+  initParticles();
+  animateCounters();
   initCopyCode();
   injectLearningPath();
   renderGroupedArticles('all');
