@@ -2,7 +2,7 @@
 // URL: /api/unlocked-articles
 // Returns all articles a user has unlocked
 
-const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id', 'https://www.beebanelabs.id'];
+const ALLOWED_ORIGINS = ['https://beebanelabs.pages.dev', 'https://beebanelabs.id', 'https://www.beebanelabs.id'];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
