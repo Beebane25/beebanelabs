@@ -148,6 +148,7 @@
           <button class="profile-tab active" onclick="switchTab('overview')">📊 Ringkasan</button>
           <button class="profile-tab" onclick="switchTab('articles')">📖 Artikel Saya</button>
           <button class="profile-tab" onclick="switchTab('activity')">📋 Aktivitas</button>
+          <button class="profile-tab" onclick="switchTab('quiz')">📝 Quiz</button>
           <button class="profile-tab" onclick="switchTab('settings')">⚙️ Pengaturan</button>
         </div>
 
@@ -221,6 +222,41 @@
             <div class="empty-state" id="emptyActivity" style="display:none;">
               <div class="icon">📋</div>
               <p>Belum ada aktivitas.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Quiz -->
+        <div class="profile-section" id="tab-quiz">
+          <div class="profile-card">
+            <h3>🏆 Statistik Quiz</h3>
+            <div id="quizStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px;margin-bottom:24px;">
+              <div style="text-align:center;padding:16px;background:rgba(59,130,246,0.1);border-radius:12px;">
+                <div style="font-size:1.8rem;font-weight:700;color:#3b82f6;" id="quizTotalCount">0</div>
+                <div style="font-size:0.8rem;color:var(--text-muted);">Total Quiz</div>
+              </div>
+              <div style="text-align:center;padding:16px;background:rgba(34,197,94,0.1);border-radius:12px;">
+                <div style="font-size:1.8rem;font-weight:700;color:#22c55e;" id="quizPassedCount">0</div>
+                <div style="font-size:0.8rem;color:var(--text-muted);">Lulus</div>
+              </div>
+              <div style="text-align:center;padding:16px;background:rgba(239,68,68,0.1);border-radius:12px;">
+                <div style="font-size:1.8rem;font-weight:700;color:#ef4444;" id="quizFailedCount">0</div>
+                <div style="font-size:0.8rem;color:var(--text-muted);">Gagal</div>
+              </div>
+              <div style="text-align:center;padding:16px;background:rgba(251,146,60,0.1);border-radius:12px;">
+                <div style="font-size:1.8rem;font-weight:700;color:#fb923c;" id="quizAvgPercent">0%</div>
+                <div style="font-size:0.8rem;color:var(--text-muted);">Rata-rata</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-card" style="margin-top:16px;">
+            <h3>📋 Riwayat Quiz</h3>
+            <div id="quizHistoryList"></div>
+            <div class="empty-state" id="emptyQuizHistory" style="display:none;">
+              <div class="icon">📝</div>
+              <p>Belum ada quiz yang diselesaikan.</p>
+              <a href="index.html#articles" class="btn-save" style="text-decoration:none;margin-top:12px;">Mulai Belajar</a>
             </div>
           </div>
         </div>
@@ -490,6 +526,122 @@
               '<div class="activity-time">' + new Date(a.time).toLocaleString('id-ID') + '</div>' +
             '</div>' +
           '</div>';
+        }).join('');
+      }
+
+      // Quiz stats and history
+      await loadQuizData(session);
+    }
+
+    async function loadQuizData(session) {
+      const quizHistoryList = document.getElementById('quizHistoryList');
+      const emptyQuizHistory = document.getElementById('emptyQuizHistory');
+
+      // First try from localStorage cache
+      let quizCache = {};
+      try {
+        quizCache = JSON.parse(localStorage.getItem('beebanelabs_quiz_cache') || '{}');
+      } catch {}
+
+      let allResults = Object.entries(quizCache).map(([key, r]) => {
+        const [slug, quizId] = key.split(':');
+        return { article_slug: slug, quiz_id: quizId, ...r };
+      });
+
+      // Try to get from server
+      try {
+        const sessionToken = session.token || (JSON.parse(localStorage.getItem('beebanelabs_auth') || '{}').token);
+        if (sessionToken) {
+          const resp = await fetch('/api/quiz', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: sessionToken, action: 'history' })
+          });
+          const data = await resp.json();
+          if (data.success && data.history && data.history.length > 0) {
+            allResults = data.history;
+            // Update cache
+            data.history.forEach(r => {
+              const key = `${r.article_slug}:${r.quiz_id}`;
+              quizCache[key] = { score: r.score, total: r.total, percent: parseFloat(r.percent), passed: r.passed };
+            });
+            localStorage.setItem('beebanelabs_quiz_cache', JSON.stringify(quizCache));
+          }
+        }
+      } catch (e) {
+        console.warn('Quiz history fetch failed, using cache:', e);
+      }
+
+      // Update stats
+      const totalCount = allResults.length;
+      const passedCount = allResults.filter(r => r.passed).length;
+      const failedCount = totalCount - passedCount;
+      const avgPercent = totalCount > 0
+        ? Math.round(allResults.reduce((sum, r) => sum + parseFloat(r.percent || 0), 0) / totalCount)
+        : 0;
+
+      document.getElementById('quizTotalCount').textContent = totalCount;
+      document.getElementById('quizPassedCount').textContent = passedCount;
+      document.getElementById('quizFailedCount').textContent = failedCount;
+      document.getElementById('quizAvgPercent').textContent = avgPercent + '%';
+
+      // Render history
+      if (allResults.length === 0) {
+        quizHistoryList.style.display = 'none';
+        emptyQuizHistory.style.display = 'block';
+      } else {
+        quizHistoryList.style.display = 'block';
+        emptyQuizHistory.style.display = 'none';
+
+        // Article titles mapping
+        const ARTICLE_TITLES = {
+          'esp32-fundamentals': 'Panduan Lengkap ESP32',
+          'esp8266-nodemcu': 'ESP8266 NodeMCU untuk Pemula',
+          'sensor-dht-esp32': 'Sensor DHT dengan ESP32',
+          'mikrotik-routing': 'Konfigurasi Routing MikroTik',
+          'mikrotik-firewall': 'MikroTik Firewall',
+          'mikrotik-queue': 'MikroTik Queue Management',
+          'lora-communication': 'Jaringan Sensor LoRa',
+          'python-iot-automation': 'Otomasi IoT dengan Python',
+          'network-security': 'Keamanan Jaringan IoT',
+          'dashboard-monitoring': 'Dashboard Monitoring Real-time',
+          'node-red-iot': 'Node-RED untuk IoT',
+          'grafana-influxdb': 'Grafana + InfluxDB',
+          'mqtt-protocol': 'Protokol MQTT',
+          'iot-protocols-comparison': 'Perbandingan Protokol IoT',
+          'raspberry-pi-iot': 'Raspberry Pi untuk IoT',
+          'firebase-iot': 'Firebase untuk IoT',
+          'telegram-bot-iot': 'Telegram Bot untuk IoT',
+          'blynk-iot': 'Blynk IoT',
+          'arduino-ide-setup': 'Arduino IDE 2.x Setup',
+          'deep-sleep-esp32': 'Deep Sleep ESP32',
+          'web-server-esp32': 'Web Server ESP32'
+        };
+
+        quizHistoryList.innerHTML = allResults.map(r => {
+          const title = ARTICLE_TITLES[r.article_slug] || r.article_slug;
+          const score = r.score;
+          const total = r.total;
+          const percent = Math.round(parseFloat(r.percent || 0));
+          const passed = r.passed;
+          const date = r.completed_at ? new Date(r.completed_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+          const statusIcon = passed ? '✅' : '❌';
+          const statusColor = passed ? '#22c55e' : '#ef4444';
+
+          return `<div class="activity-item">
+            <div class="activity-icon" style="background:${passed ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)'};">
+              <span style="font-size:1.2rem;">${statusIcon}</span>
+            </div>
+            <div class="activity-content" style="flex:1;">
+              <div class="activity-text">
+                <a href="articles/${r.article_slug}.html" style="color:var(--text-primary);text-decoration:none;font-weight:500;">${title}</a>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+                <span style="font-size:0.8rem;color:${statusColor};font-weight:600;">${score}/${total} (${percent}%)</span>
+                <span class="activity-time">${date}</span>
+              </div>
+            </div>
+          </div>`;
         }).join('');
       }
     }
