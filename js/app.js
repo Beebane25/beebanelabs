@@ -714,6 +714,20 @@ const SITE_CONFIG = {
   INITIAL_TOKENS: 5
 };
 
+// === PATH HELPER (fix relative links in subdirectories) ===
+function getBasePath() {
+  const path = window.location.pathname;
+  // If in /articles/ or /kategori/ subdirectory, go up one level
+  if (path.includes('/articles/') || path.includes('/kategori/')) {
+    return '../';
+  }
+  return '';
+}
+
+function getAbsolutePage(page) {
+  return getBasePath() + page;
+}
+
 // === CSRF TOKEN (double-submit pattern) ===
 const CSRF = {
   _KEY: 'beebanelabs_csrf',
@@ -1157,7 +1171,7 @@ const AuthSystem = {
 
         <div class="auth-divider">atau</div>
         <p style="text-align:center; font-size:0.8rem; color:var(--text-subtle);">
-          Dengan mendaftar, kamu setuju dengan <a href="terms.html">Syarat & Ketentuan</a>
+          Dengan mendaftar, kamu setuju dengan <a href="${getAbsolutePage('terms.html')}">Syarat & Ketentuan</a>
         </p>
       </div>
     `;
@@ -1322,7 +1336,7 @@ const AuthSystem = {
               <span class="chevron">▼</span>
             </div>
             <div class="dropdown-menu">
-              <a href="profile.html">👤 Profil Saya</a>
+              <a href="${getAbsolutePage('profile.html')}">👤 Profil Saya</a>
               <div class="menu-divider"></div>
               <button class="logout-item" onclick="AuthSystem.logout()">🚪 Keluar</button>
             </div>
@@ -1441,7 +1455,7 @@ const CookieConsent = {
   show() {
     const banner = document.createElement('div');
     banner.className = 'cookie-consent';
-    banner.innerHTML = '<p>🍪 Kami menggunakan cookie untuk meningkatkan pengalaman Anda. <a href="privacy-policy.html">Pelajari lebih lanjut</a></p><div class="cookie-btns"><button class="cookie-decline" onclick="CookieConsent.dismiss(this)">Tolak</button><button class="cookie-accept" onclick="CookieConsent.accept(this)">Terima</button></div>';
+    banner.innerHTML = '<p>🍪 Kami menggunakan cookie untuk meningkatkan pengalaman Anda. <a href="' + getAbsolutePage('privacy-policy.html') + '">Pelajari lebih lanjut</a></p><div class="cookie-btns"><button class="cookie-decline" onclick="CookieConsent.dismiss(this)">Tolak</button><button class="cookie-accept" onclick="CookieConsent.accept(this)">Terima</button></div>';
     document.body.appendChild(banner);
     requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('show')));
   },
