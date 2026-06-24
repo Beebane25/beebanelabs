@@ -750,25 +750,25 @@ function addRevealClasses() {
   });
 }
 
-// === PARTICLE EFFECT ===
+// === PARTICLE EFFECT (Global - covers entire page) ===
 function initParticles() {
-  const hero = document.querySelector('.hero');
-  if (!hero) return;
-
-  // Create particles container
+  // Create a fixed-position particle container for the ENTIRE page
   const particlesContainer = document.createElement('div');
-  particlesContainer.className = 'particles';
+  particlesContainer.className = 'global-particles';
+  particlesContainer.setAttribute('aria-hidden', 'true');
 
-  // Create 5 particles
-  for (let i = 0; i < 5; i++) {
+  // Create 15 particles with random positions
+  for (let i = 0; i < 15; i++) {
     const particle = document.createElement('div');
-    particle.className = 'particle';
+    particle.className = 'global-particle';
     particle.style.left = `${Math.random() * 100}%`;
+    particle.style.animationDuration = `${15 + Math.random() * 25}s`;
+    particle.style.animationDelay = `${-Math.random() * 20}s`;
     particlesContainer.appendChild(particle);
   }
 
-  hero.style.position = 'relative';
-  hero.insertBefore(particlesContainer, hero.firstChild);
+  // Insert as first child of body so it's behind everything
+  document.body.insertBefore(particlesContainer, document.body.firstChild);
 }
 
 // === COUNTER ANIMATION ===
