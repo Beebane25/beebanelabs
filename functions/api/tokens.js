@@ -78,7 +78,7 @@ export async function onRequestPost(context) {
         await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'article_unlocks', '', 'POST', {
           user_id: userId, article_slug: articleSlug
         });
-        return cors(200, { success: true, message: 'Premium access', tokens: user.tokens, premium: true }, origin);
+        return cors(200, { success: true, message: 'Akses premium (unlimited tokens)', tokens: user.tokens, unlimited: true }, origin);
       }
 
       if (user.tokens <= 0) return cors(403, { error: 'Token habis. Beli token tambahan.', tokens: 0 }, origin);
