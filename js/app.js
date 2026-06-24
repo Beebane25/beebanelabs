@@ -1128,12 +1128,10 @@ const AuthSystem = {
           </div>
         `;
       } else {
-        // Not logged in - show token count for guests
-        const tokens = PaywallSystem.getTokens();
+        // Not logged in - show only login button (token badge hidden to reduce clutter)
         authContainer.innerHTML = `
           <div style="display:flex;align-items:center;gap:8px;">
-            <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.25);border-radius:12px;padding:3px 8px;font-size:0.7rem;font-weight:600;color:#fb923c;">🔑 ${tokens} Token</div>
-            <button onclick="AuthSystem.showModal()" style="background:var(--bg-card); border:1px solid var(--border-standard); color:var(--text-primary); padding:5px 12px; font-size:0.75rem; border-radius:var(--radius-pill); cursor:pointer; font-weight:500;">Masuk</button>
+            <button onclick="AuthSystem.showModal()" style="background:var(--accent-primary); border:none; color:#0f0f0f; padding:6px 16px; font-size:0.8rem; border-radius:var(--radius-pill); cursor:pointer; font-weight:600; transition:all 0.15s ease;">Masuk</button>
           </div>
         `;
       }
