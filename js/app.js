@@ -1549,23 +1549,25 @@ const CookieConsent = {
   dismiss(btn) { localStorage.setItem(this.KEY, 'declined'); btn.closest('.cookie-consent').classList.remove('show'); setTimeout(() => btn.closest('.cookie-consent').remove(), 400); }
 };
 
-// === THEME TOGGLE ===
+// === THEME TOGGLE (Global - applies to ALL pages via html element) ===
 const ThemeToggle = {
   KEY: 'beebanelabs_theme',
   init() {
-    const saved = localStorage.getItem(this.KEY);
-    if (saved === 'light') document.body.classList.add('light-theme');
+    const saved = localStorage.getItem(this.KEY) || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
     this.updateButton();
   },
   toggle() {
-    document.body.classList.toggle('light-theme');
-    const isLight = document.body.classList.contains('light-theme');
-    localStorage.setItem(this.KEY, isLight ? 'light' : 'dark');
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem(this.KEY, next);
     this.updateButton();
   },
   updateButton() {
     const btn = document.querySelector('.theme-toggle');
-    if (btn) btn.textContent = document.body.classList.contains('light-theme') ? '🌙' : '☀️';
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    if (btn) btn.textContent = isLight ? '🌙' : '☀️';
   }
 };
 
