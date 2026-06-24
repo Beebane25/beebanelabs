@@ -497,7 +497,7 @@ function initReadingProgress() {
 // === CONFIGURATION ===
 const SITE_CONFIG = {
   API_BASE: window.location.origin,
-  APP_VERSION: '7.11.0',
+  APP_VERSION: '7.17',
   TOKEN_PRICE: 10000,
   INITIAL_TOKENS: 5
 };
