@@ -515,7 +515,7 @@ const SITE_CONFIG = {
 
 // === CSRF TOKEN (double-submit pattern) ===
 const CSRF = {
-  _KEY: 'iothub_csrf',
+  _KEY: 'beebanelabs_csrf',
   getToken() {
     let token = sessionStorage.getItem(this._KEY);
     if (!token) {
@@ -735,8 +735,8 @@ const PaywallSystem = {
 const AuthSystem = {
   API_BASE: window.location.origin,
   AUTH_ENDPOINT: '/api/auth',
-  STORAGE_KEY: 'iothub_auth',
-  VIEW_KEY: 'iothub_views',
+  STORAGE_KEY: 'beebanelabs_auth',
+  VIEW_KEY: 'beebanelabs_views',
   INITIAL_TOKENS: 5,
 
   // Email obfuscation - never store plain email in localStorage
@@ -761,25 +761,25 @@ const AuthSystem = {
     // === AGGRESSIVE CLEANUP: Remove ALL old/insecure localStorage data ===
     // Remove legacy user data (insecure plaintext auth from old versions)
     try {
-      localStorage.removeItem('iothub_users');
+      localStorage.removeItem('beebanelabs_users');
     } catch(e) {}
 
     // Version-based cleanup: if app version changed, clear ALL old data
     try {
-      const storedVersion = localStorage.getItem('iothub_app_version');
+      const storedVersion = localStorage.getItem('beebanelabs_app_version');
       if (storedVersion !== SITE_CONFIG.APP_VERSION) {
         // New version detected — clear stale auth and cache data
-        const keysToKeep = new Set(['iothub_auth', 'iothub_session_id', 'iothub_viewed', 'iothub_csrf', 'iothub_tokens']);
+        const keysToKeep = new Set(['beebanelabs_auth', 'beebanelabs_session_id', 'beebanelabs_viewed', 'beebanelabs_csrf', 'beebanelabs_tokens']);
         const allKeys = [];
         for (let i = 0; i < localStorage.length; i++) {
           allKeys.push(localStorage.key(i));
         }
         allKeys.forEach(key => {
-          if (key && key.startsWith('iothub_') && !keysToKeep.has(key)) {
+          if (key && key.startsWith('beebanelabs_') && !keysToKeep.has(key)) {
             localStorage.removeItem(key);
           }
         });
-        localStorage.setItem('iothub_app_version', SITE_CONFIG.APP_VERSION);
+        localStorage.setItem('beebanelabs_app_version', SITE_CONFIG.APP_VERSION);
       }
     } catch(e) {}
 
@@ -848,7 +848,7 @@ const AuthSystem = {
         if (ageMs > SEVEN_DAYS_MS) {
           // Session expired — clear it silently
           localStorage.removeItem(this.STORAGE_KEY);
-          localStorage.removeItem('iothub_access');
+          localStorage.removeItem('beebanelabs_access');
           // Also invalidate server-side session (fire-and-forget)
           if (session.token) {
             try {
@@ -890,7 +890,7 @@ const AuthSystem = {
       }
     }
     localStorage.removeItem(this.STORAGE_KEY);
-    localStorage.removeItem('iothub_access');
+    localStorage.removeItem('beebanelabs_access');
     // Clear in-memory cache (NOT localStorage)
     if (typeof PaywallSystem !== 'undefined') {
       PaywallSystem._serverTokens = null;
@@ -1232,7 +1232,7 @@ const Loading = {
 
 // === COOKIE CONSENT ===
 const CookieConsent = {
-  KEY: 'iothub_cookie_consent',
+  KEY: 'beebanelabs_cookie_consent',
   init() {
     if (localStorage.getItem(this.KEY)) return;
     setTimeout(() => this.show(), 2000);
@@ -1250,7 +1250,7 @@ const CookieConsent = {
 
 // === THEME TOGGLE ===
 const ThemeToggle = {
-  KEY: 'iothub_theme',
+  KEY: 'beebanelabs_theme',
   init() {
     const saved = localStorage.getItem(this.KEY);
     if (saved === 'light') document.body.classList.add('light-theme');

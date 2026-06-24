@@ -2,7 +2,7 @@
 // URL: /api/auth
 // Security-hardened version with input sanitization, CORS whitelist, rate limiting
 
-const ALLOWED_ORIGINS = ['https://iothub.pages.dev', 'https://beebanelabs.id', 'https://www.beebanelabs.id'];
+const ALLOWED_ORIGINS = ['https://beebanelabs.pages.dev', 'https://beebanelabs.id', 'https://www.beebanelabs.id'];
 
 // Simple in-memory rate limiting
 const loginAttempts = new Map();
