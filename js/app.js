@@ -1749,7 +1749,48 @@ const ALL_ARTICLES = [
   { slug: 'prometheus-monitoring', title: 'Prometheus & Grafana', icon: '📊', cat: 'Protokol', desc: 'Monitoring infrastructure', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
   { slug: 'iot-industrial', title: 'Industrial IoT', icon: '🏭', cat: 'IoT', desc: 'Dari sensor ke cloud', diff: 'lanjut', time: '15', access: 'Token', date: '25 Juni 2026' },
   { slug: 'home-assistant-iot', title: 'Home Assistant', icon: '🏠', cat: 'IoT', desc: 'Platform otomasi rumah pintar', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'vps-deployment', title: 'Deploy ke VPS', icon: '🖥️', cat: 'Dashboard', desc: 'Panduan deploy ke VPS', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' }
+  { slug: 'vps-deployment', title: 'Deploy ke VPS', icon: '🖥️', cat: 'Dashboard', desc: 'Panduan deploy ke VPS', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
+
+  // === Web Development ===
+  { slug: 'html-css-dasar', title: 'HTML & CSS Dasar', icon: '📄', cat: 'Web Development', desc: 'Fondasi membangun website', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'javascript-dasar', title: 'JavaScript untuk Pemula', icon: '⚡', cat: 'Web Development', desc: 'Bahasa pemrograman web', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'responsive-web-design', title: 'Responsive Web Design', icon: '📱', cat: 'Web Development', desc: 'Mobile-first design', diff: 'menengah', time: '10', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'react-dasar', title: 'React.js untuk Pemula', icon: '⚛️', cat: 'Web Development', desc: 'Framework UI populer', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'nodejs-express', title: 'Node.js & Express', icon: '🟢', cat: 'Web Development', desc: 'Backend JavaScript', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'rest-api-design', title: 'REST API Design', icon: '🔌', cat: 'Web Development', desc: 'Desain API yang baik', diff: 'menengah', time: '11', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'typescript-dasar', title: 'TypeScript Dasar', icon: '🔷', cat: 'Web Development', desc: 'JS dengan tipe statis', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'vuejs-dasar', title: 'Vue.js untuk Pemula', icon: '💚', cat: 'Web Development', desc: 'Framework progresif', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+
+  // === Database ===
+  { slug: 'sql-dasar', title: 'SQL Dasar untuk Pemula', icon: '🗃️', cat: 'Database', desc: 'Query database dari nol', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'mongodb-dasar', title: 'MongoDB untuk Pemula', icon: '🍃', cat: 'Database', desc: 'Database NoSQL dokumen', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'database-design', title: 'Database Design & Normalisasi', icon: '📐', cat: 'Database', desc: 'Desain schema efisien', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'redis-caching', title: 'Redis & Caching Strategy', icon: '🔴', cat: 'Database', desc: 'In-memory untuk performa', diff: 'menengah', time: '10', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'supabase-dasar', title: 'Supabase untuk Developer', icon: '⚡', cat: 'Database', desc: 'Backend PostgreSQL instan', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
+
+  // === AI & Data Science ===
+  { slug: 'python-data-science', title: 'Python untuk Data Science', icon: '🐍', cat: 'AI & Data Science', desc: 'Python untuk analisis data', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'machine-learning-dasar', title: 'Machine Learning Dasar', icon: '🧠', cat: 'AI & Data Science', desc: 'Pengenalan ML dari nol', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'chatgpt-ai-tools', title: 'ChatGPT & AI Tools', icon: '💬', cat: 'AI & Data Science', desc: 'AI untuk produktivitas', diff: 'pemula', time: '10', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'data-visualization', title: 'Data Visualization', icon: '📊', cat: 'AI & Data Science', desc: 'Visualisasi data Python', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'pandas-numpy', title: 'Pandas & NumPy', icon: '🐼', cat: 'AI & Data Science', desc: 'Data manipulation Python', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+
+  // === Mobile Development ===
+  { slug: 'flutter-dasar', title: 'Flutter untuk Pemula', icon: '💙', cat: 'Mobile Development', desc: 'App cross-platform', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'react-native-dasar', title: 'React Native Dasar', icon: '⚛️', cat: 'Mobile Development', desc: 'Mobile dengan JavaScript', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'android-kotlin', title: 'Android dengan Kotlin', icon: '🤖', cat: 'Mobile Development', desc: 'Native Android development', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'mobile-uiux', title: 'Mobile UI/UX Design', icon: '🎨', cat: 'Mobile Development', desc: 'Desain antarmuka mobile', diff: 'pemula', time: '10', access: 'Token', date: '25 Juni 2026' },
+
+  // === DevOps & Cloud ===
+  { slug: 'docker-dasar', title: 'Docker untuk Developer', icon: '🐳', cat: 'DevOps & Cloud', desc: 'Containerize aplikasi', diff: 'pemula', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'cicd-github-actions', title: 'CI/CD GitHub Actions', icon: '🔄', cat: 'DevOps & Cloud', desc: 'Automasi build & deploy', diff: 'menengah', time: '11', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'cloud-aws-dasar', title: 'AWS untuk Pemula', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Cloud computing AWS', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'kubernetes-dasar', title: 'Kubernetes untuk Pemula', icon: '⎈', cat: 'DevOps & Cloud', desc: 'Orchestrate container', diff: 'lanjut', time: '15', access: 'Token', date: '25 Juni 2026' },
+
+  // === IT Career ===
+  { slug: 'roadmap-belajar-it', title: 'Roadmap Belajar IT 2026', icon: '🗺️', cat: 'IT Career', desc: 'Jalur belajar IT lengkap', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'sertifikasi-it', title: 'Sertifikasi IT Populer', icon: '📜', cat: 'IT Career', desc: 'Sertifikasi industri IT', diff: 'pemula', time: '10', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'portfolio-developer', title: 'Portfolio & CV Developer', icon: '💼', cat: 'IT Career', desc: 'Bangun portfolio menarik', diff: 'pemula', time: '9', access: 'Token', date: '25 Juni 2026' }
 ];
 
 function renderArticleCard(a) {
