@@ -62,23 +62,24 @@ window.MobileQuickMenu = {
   },
 
   applyZoom: function() {
-    // Use CSS zoom property (works on Chrome & Safari mobile)
-    // This actually changes layout size, not just visual
-    var body = document.body;
-    if (!body) return;
-    
+    // Use meta viewport to control zoom - works on ALL mobile browsers
+    var viewport = document.querySelector('meta[name="viewport"]');
+    if (!viewport) return;
+
     if (this.currentZoom === 100) {
-      body.style.zoom = '';
-      body.style.width = '';
+      viewport.setAttribute('content', 
+        'width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.5, maximum-scale=3.0, user-scalable=yes');
     } else {
-      body.style.zoom = String(this.currentZoom / 100);
-      body.style.width = (100 / (this.currentZoom / 100)) + '%';
+      // Set initial-scale to zoom level - this is the standard mobile zoom
+      viewport.setAttribute('content', 
+        'width=device-width, initial-scale=' + (this.currentZoom / 100) + 
+        ', minimum-scale=0.5, maximum-scale=3.0, user-scalable=yes, viewport-fit=cover');
     }
-    
+
     // Update display
     var level = document.getElementById('quickMenuZoomLevel');
     if (level) level.textContent = this.currentZoom + '%';
-    
+
     // Save
     localStorage.setItem('beebanelabs_mobile_zoom', String(this.currentZoom));
   },
