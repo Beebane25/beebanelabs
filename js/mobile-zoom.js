@@ -1,6 +1,6 @@
 // === MOBILE QUICK MENU (Zoom + Theme) ===
 window.MobileQuickMenu = {
-  currentZoom: 100,
+  currentZoom: 50,
   minZoom: 10,
   maxZoom: 150,
   step: 10,
@@ -12,11 +12,14 @@ window.MobileQuickMenu = {
       if (btn) btn.style.display = 'none';
       return;
     }
+    // Load saved zoom or use default 50%
     var saved = localStorage.getItem('beebanelabs_mobile_zoom');
     if (saved) {
       this.currentZoom = parseInt(saved);
-      this.applyZoom();
+    } else {
+      this.currentZoom = 50;
     }
+    this.applyZoom();
     this.updateThemeIcon();
   },
 
@@ -57,24 +60,19 @@ window.MobileQuickMenu = {
   },
 
   resetZoom: function() {
-    this.currentZoom = 100;
+    this.currentZoom = 50;
     this.applyZoom();
   },
 
   applyZoom: function() {
-    // Use meta viewport to control zoom - works on ALL mobile browsers
     var viewport = document.querySelector('meta[name="viewport"]');
     if (!viewport) return;
 
-    if (this.currentZoom === 100) {
-      viewport.setAttribute('content', 
-        'width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.5, maximum-scale=3.0, user-scalable=yes');
-    } else {
-      // Set initial-scale to zoom level - this is the standard mobile zoom
-      viewport.setAttribute('content', 
-        'width=device-width, initial-scale=' + (this.currentZoom / 100) + 
-        ', minimum-scale=0.5, maximum-scale=3.0, user-scalable=yes, viewport-fit=cover');
-    }
+    var scale = this.currentZoom / 100;
+    // Remove minimum-scale restriction so zoom below 50% works
+    viewport.setAttribute('content', 
+      'width=device-width, initial-scale=' + scale + 
+      ', minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes, viewport-fit=cover');
 
     // Update display
     var level = document.getElementById('quickMenuZoomLevel');
