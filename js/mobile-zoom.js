@@ -1,5 +1,4 @@
 // === MOBILE QUICK MENU (Zoom + Theme) ===
-// Use window object to ensure global accessibility from onclick handlers
 window.MobileQuickMenu = {
   currentZoom: 100,
   minZoom: 70,
@@ -8,21 +7,16 @@ window.MobileQuickMenu = {
   isOpen: false,
 
   init: function() {
-    // Only on mobile
     if (window.innerWidth > 768) {
       var btn = document.getElementById('quickMenuBtn');
       if (btn) btn.style.display = 'none';
       return;
     }
-
-    // Load saved zoom
     var saved = localStorage.getItem('beebanelabs_mobile_zoom');
     if (saved) {
       this.currentZoom = parseInt(saved);
       this.applyZoom();
     }
-
-    // Update theme icon
     this.updateThemeIcon();
   },
 
@@ -68,20 +62,23 @@ window.MobileQuickMenu = {
   },
 
   applyZoom: function() {
-    var content = document.querySelector('.article-content');
-    if (content) {
-      if (this.currentZoom === 100) {
-        content.style.transform = '';
-        content.style.width = '';
-      } else {
-        content.style.transform = 'scale(' + (this.currentZoom / 100) + ')';
-        content.style.transformOrigin = 'top left';
-        content.style.width = (100 / (this.currentZoom / 100)) + '%';
-      }
+    // Use CSS zoom property (works on Chrome & Safari mobile)
+    // This actually changes layout size, not just visual
+    var body = document.body;
+    if (!body) return;
+    
+    if (this.currentZoom === 100) {
+      body.style.zoom = '';
+      body.style.width = '';
+    } else {
+      body.style.zoom = String(this.currentZoom / 100);
+      body.style.width = (100 / (this.currentZoom / 100)) + '%';
     }
+    
     // Update display
     var level = document.getElementById('quickMenuZoomLevel');
     if (level) level.textContent = this.currentZoom + '%';
+    
     // Save
     localStorage.setItem('beebanelabs_mobile_zoom', String(this.currentZoom));
   },
@@ -102,7 +99,6 @@ window.MobileQuickMenu = {
   }
 };
 
-// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
   window.MobileQuickMenu.init();
 });
