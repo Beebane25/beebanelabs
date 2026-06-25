@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08090a">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes">
+  <title>NextAuth.js: Authentication untuk Next.js | BeebaneLabs</title>
+  <meta name="description" content="Tutorial lengkap NextAuth.js — providers, sessions, callbacks, database adapters, JWT, dan OAuth integration untuk Next.js applications.">
+  <meta name="keywords" content="NextAuth.js, authentication, Next.js, OAuth, login, session, JWT, providers, Google login, GitHub login">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="og:title" content="NextAuth.js: Authentication untuk Next.js">
+  <meta property="og:description" content="Panduan lengkap NextAuth.js — providers, sessions, callbacks, database adapters, dan OAuth integration.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://beebanelabs.pages.dev/articles/nextauth-basics.html">
+  <meta property="og:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="NextAuth.js: Authentication untuk Next.js">
+  <meta name="twitter:description" content="Panduan lengkap NextAuth.js — providers, sessions, callbacks, database adapters, dan OAuth integration.">
+  <meta name="twitter:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta property="article:published_time" content="2026-06-26">
+  <meta property="article:section" content="Web Development">
+  <meta property="article:tag" content="NextAuth.js">
+  <meta property="article:tag" content="Next.js">
+  <meta property="article:tag" content="Authentication">
+  <meta property="article:tag" content="OAuth">
+  <link rel="canonical" href="https://beebanelabs.pages.dev/articles/nextauth-basics.html">
+  <link rel="stylesheet" href="../css/style.css?v=9.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "NextAuth.js: Authentication untuk Next.js",
+    "description": "Panduan lengkap NextAuth.js — providers, sessions, callbacks, database adapters, dan OAuth integration.",
+    "author": { "@type": "Organization", "name": "BeebaneLabs" },
+    "datePublished": "2026-06-26",
+    "publisher": { "@type": "Organization", "name": "BeebaneLabs" }
+  }
+  </script>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+
+  <!-- ========== READING PROGRESS ========== -->
+  <div class="reading-progress-bar" id="readingProgress"></div>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="navbar-brand">
+        <img src="../images/logo_beebane.png" alt="BeebaneLabs" class="brand-logo">
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="../index.html">Beranda</a></li>
+        <li><a href="../kategori.html">Kategori</a></li>
+        <li><a href="../kategori.html">Artikel</a></li>
+        <li><a href="../pricing.html">Harga</a></li>
+      </ul>
+      <div class="navbar-search" id="searchTrigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Cari tutorial...</span>
+        <kbd>/</kbd>
+      </div>
+      <div id="authNavArea"></div>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." autocomplete="off">
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Tekan <kbd>Esc</kbd> untuk menutup</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Web Development</a>
+        <span class="separator">/</span>
+        <span class="current">NextAuth.js</span>
+      </div>
+      <span class="category-tag">Web Development</span>
+      <h1>NextAuth.js: Authentication untuk Next.js</h1>
+      <p class="article-subtitle">Tutorial lengkap NextAuth.js — providers, sessions, callbacks, database adapters, OAuth integration, credentials login, JWT strategy, dan best practices keamanan</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <!-- AdSense: Top Banner 728x90 / Responsive -->
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-nextauth">Pengenalan NextAuth.js</a></li>
+          <li><a href="#instalasi">Instalasi &amp; Setup</a></li>
+          <li><a href="#providers">Authentication Providers</a></li>
+          <li><a href="#sessions">Session Management</a></li>
+          <li><a href="#callbacks">Callbacks</a></li>
+          <li><a href="#database">Database Adapters</a></li>
+          <li><a href="#credentials">Credentials Provider</a></li>
+          <li><a href="#middleware">Protecting Routes</a></li>
+          <li><a href="#best-practices">Best Practices &amp; Keamanan</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-nextauth">1. Pengenalan NextAuth.js</h2>
+
+      <p><strong>NextAuth.js</strong> (sekarang bernama <strong>Auth.js</strong>) adalah library autentikasi open-source yang dirancang khusus untuk aplikasi <strong>Next.js</strong>. Library ini menyediakan solusi autentikasi yang lengkap — mulai dari OAuth social login (Google, GitHub, Facebook, dll.), credentials-based login, hingga manajemen sesi — dengan konfigurasi minimal.</p>
+
+      <p>Dibuat oleh <strong>Iain Collins</strong>, NextAuth.js telah menjadi standar de facto untuk autentikasi di ekosistem Next.js. Dengan lebih dari 20.000+ stars di GitHub dan digunakan oleh ribuan aplikasi production.</p>
+
+      <h3>Fitur Utama NextAuth.js</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>OAuth Providers</td><td>Dukungan 80+ provider: Google, GitHub, Facebook, Twitter, Apple, dll.</td></tr>
+          <tr><td>Email/Password</td><td>Support credentials-based login (username/password)</td></tr>
+          <tr><td>Magic Link</td><td>Login via email tanpa password (passwordless)</td></tr>
+          <tr><td>Session Strategy</td><td>JWT (default) atau database sessions</td></tr>
+          <tr><td>Database Adapters</td><td>Prisma, Drizzle, MongoDB, Fauna, Supabase, dll.</td></tr>
+          <tr><td>Callbacks</td><td>Kustomisasi alur autentikasi: sign-in, session, JWT, redirect</td></tr>
+          <tr><td>CSRF Protection</td><td>Perlindungan CSRF built-in</td></tr>
+          <tr><td>Secure Cookies</td><td>HttpOnly, Secure, SameSite cookies otomatis</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Arsitektur NextAuth.js</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Arsitektur NextAuth.js</div>
+<pre>
+┌──────────────────────────────────────────────────────────┐
+│                   CLIENT (Browser)                        │
+│                                                          │
+│  ┌──────────────┐   ┌──────────────┐   ┌─────────────┐  │
+│  │ signIn()     │   │ useSession() │   │ signOut()   │  │
+│  │ Login/Logout │   │ Get Session  │   │ Logout      │  │
+│  └──────┬───────┘   └──────┬───────┘   └──────┬──────┘  │
+│         │                  │                   │          │
+│         └──────────────────┼───────────────────┘          │
+│                            │                              │
+│                   ┌────────▼────────┐                     │
+│                   │  Secure Cookies │                     │
+│                   │  (HttpOnly,     │                     │
+│                   │   SameSite)     │                     │
+│                   └────────┬────────┘                     │
+└────────────────────────────┼──────────────────────────────┘
+                             │
+┌────────────────────────────┼──────────────────────────────┐
+│                    Next.js Server                          │
+│                      ┌─────▼─────┐                        │
+│                      │ NextAuth  │                        │
+│                      │ API Route │                        │
+│                      └─────┬─────┘                        │
+│                            │                              │
+│       ┌────────────────────┼────────────────────┐         │
+│  ┌────▼─────┐    ┌─────────▼────────┐   ┌──────▼──────┐  │
+│  │ OAuth    │    │    Callbacks     │   │  Database   │  │
+│  │ Providers│    │  (jwt, session,  │   │  Adapter    │  │
+│  │ (Google, │    │   signIn, redirect│  │  (Prisma,   │  │
+│  │  GitHub) │    │   )              │   │   MongoDB)  │  │
+│  └──────────┘    └──────────────────┘   └─────────────┘  │
+└───────────────────────────────────────────────────────────┘
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Instalasi & Setup    -->
+      <!-- ============================== -->
+      <h2 id="instalasi">2. Instalasi &amp; Setup</h2>
+
+      <p>Mari kita mulai dengan menginstal dan mengkonfigurasi NextAuth.js di proyek Next.js. Pastikan Anda sudah memiliki proyek Next.js yang berjalan.</p>
+
+      <h3>Instalasi</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Instal NextAuth.js
+npm install next-auth
+
+# Untuk database adapter (opsional, jika menggunakan database)
+npm install @prisma/client prisma @auth/prisma-adapter
+
+# Untuk Next.js App Router (v13+)
+# Sudah termasuk dalam next-auth@latest
+</pre>
+      </div>
+
+      <h3>Konfigurasi Environment Variables</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.env.local</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># NextAuth.js
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=rahasia-super-panjang-dan-acak-untuk-produksi
+
+# Google OAuth (dapatkan dari console.cloud.google.com)
+GOOGLE_CLIENT_ID=xxxxxxxxxxxx-xxxxxxxxxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxxxxxxxxxx
+
+# GitHub OAuth (dapatkan dari github.com/settings/developers)
+GITHUB_CLIENT_ID=xxxxxxxxxxxxxxxxxxxx
+GITHUB_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Database URL (jika menggunakan Prisma)
+DATABASE_URL="postgresql://user:password@localhost:5432/mydb"
+</pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ NEXTAUTH_SECRET</div>
+        <p><code>NEXTAUTH_SECRET</code> adalah string acak yang panjang (minimal 32 karakter). Ini digunakan untuk mengenkripsi JWT tokens dan cookies. Di production, gunakan <code>openssl rand -base64 32</code> untuk generate secret yang aman.</p>
+      </div>
+
+      <h3>API Route — NextAuth Configuration</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — app/api/auth/[...nextauth]/route.js</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>import NextAuth from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
+import GitHubProvider from 'next-auth/providers/github';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
+
+const handler = NextAuth({
+  // Adapter untuk menyimpan user/session di database
+  adapter: PrismaAdapter(prisma),
+
+  // Authentication providers
+  providers: [
+    // Google OAuth
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      authorization: {
+        params: {
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+        },
+      },
+    }),
+
+    // GitHub OAuth
+    GitHubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    }),
+
+    // Credentials (username/password)
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: {
+          label: 'Email',
+          type: 'email',
+          placeholder: 'email@kamu.com',
+        },
+        password: {
+          label: 'Password',
+          type: 'password',
+        },
+      },
+      async authorize(credentials) {
+        // Cari user di database
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
+
+        if (!user || !user.hashedPassword) {
+          throw new Error('Email atau password salah');
+        }
+
+        // Verifikasi password
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          user.hashedPassword
+        );
+
+        if (!isValid) {
+          throw new Error('Email atau password salah');
+        }
+
+        // Kembalikan user object (akan masuk ke jwt callback)
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          role: user.role,
+        };
+      },
+    }),
+  ],
+
+  // Session strategy
+  session: {
+    strategy: 'jwt', // 'jwt' atau 'database'
+    maxAge: 30 * 24 * 60 * 60, // 30 hari
+    updateAge: 24 * 60 * 60, // 24 jam
+  },
+
+  // Halaman custom
+  pages: {
+    signIn: '/auth/login',       // Custom login page
+    signOut: '/auth/logout',     // Custom logout page
+    error: '/auth/error',        // Error page
+    newUser: '/auth/register',   // Redirect new user setelah sign up
+  },
+
+  // Callbacks
+  callbacks: {
+    // 1. Sign In Callback — kontrol apakah user boleh login
+    async signIn({ user, account, profile }) {
+      if (account.provider === 'google') {
+        // Contoh: hanya izinkan email tertentu
+        // return profile.email.endsWith('@beebane.com');
+        return true;
+      }
+      if (account.provider === 'credentials') {
+        return !!user; // Pastikan authorize() mengembalikan user
+      }
+      return true;
+    },
+
+    // 2. JWT Callback — kustomisasi isi JWT token
+    async jwt({ token, user, account, profile, trigger }) {
+      // Saat pertama kali sign in
+      if (user) {
+        token.id = user.id;
+        token.role = user.role || 'user';
+      }
+
+      // Refresh token saat session di-update
+      if (trigger === 'update') {
+        const refreshedUser = await prisma.user.findUnique({
+          where: { id: token.id },
+        });
+        token.role = refreshedUser.role;
+      }
+
+      return token;
+    },
+
+    // 3. Session Callback — kustomisasi data yang dikirim ke client
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+      }
+      return session;
+    },
+
+    // 4. Redirect Callback — kustomisasi URL redirect
+    async redirect({ url, baseUrl }) {
+      // Redirect ke halaman yang diminta setelah login
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
+  },
+
+  // Events — hook untuk berbagai tahap autentikasi
+  events: {
+    async signIn({ user, account, profile }) {
+      console.log(`User ${user.email} logged in via ${account.provider}`);
+    },
+    async signOut({ token }) {
+      console.log(`User ${token.email} logged out`);
+    },
+    async createUser({ user }) {
+      console.log(`New user created: ${user.email}`);
+      // Kirim email selamat datang, dll.
+    },
+    async linkAccount({ user, account }) {
+      console.log(`Account ${account.provider} linked to ${user.email}`);
+    },
+  },
+
+  // Debug mode (matikan di production!)
+  debug: process.env.NODE_ENV === 'development',
+});
+
+export { handler as GET, handler as POST };
+</pre>
+      </div>
+
+      <h3>Session Provider di Layout</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSX — app/layout.js</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>import { SessionProvider } from '@/components/SessionProvider';
+import './globals.css';
+
+export const metadata = {
+  title: 'Aplikasi Saya',
+  description: 'Dengan NextAuth.js authentication',
+};
+
+export default function RootLayout({ children }) {
+  return (
+    &lt;html lang="id"&gt;
+      &lt;body&gt;
+        &lt;SessionProvider&gt;
+          {children}
+        &lt;/SessionProvider&gt;
+      &lt;/body&gt;
+    &lt;/html&gt;
+  );
+}
+</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSX — components/SessionProvider.js</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>'use client';
+
+import { SessionProvider as NextAuthSessionProvider } from 'next-auth/react';
+
+export function SessionProvider({ children }) {
+  return (
+    &lt;NextAuthSessionProvider&gt;
+      {children}
+    &lt;/NextAuthSessionProvider&gt;
+  );
+}
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Providers            -->
+      <!-- ============================== -->
+      <h2 id="providers">3. Authentication Providers</h2>
+
+      <p>NextAuth.js mendukung berbagai authentication providers. Berikut adalah beberapa yang paling umum digunakan:</p>
+
+      <h3>Google OAuth Provider</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Setup Google OAuth</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>Langkah-langkah setup Google OAuth:
+
+1. Buka https://console.cloud.google.com
+2. Buat project baru atau pilih project yang ada
+3. Aktifkan "Google+ API" di Library
+4. Buka "Credentials" → "Create Credentials" → "OAuth client ID"
+5. Pilih "Web application"
+6. Tambahkan Authorized redirect URIs:
+   - http://localhost:3000/api/auth/callback/google
+   - https://domain-anda.com/api/auth/callback/google
+7. Salin Client ID dan Client Secret ke .env.local
+</pre>
+      </div>
+
+      <h3>GitHub OAuth Provider</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Setup GitHub OAuth</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>Langkah-langkah setup GitHub OAuth:
+
+1. Buka https://github.com/settings/developers
+2. Klik "New OAuth App"
+3. Isi form:
+   - Application name: Nama aplikasi Anda
+   - Homepage URL: http://localhost:3000
+   - Authorization callback URL: http://localhost:3000/api/auth/callback/github
+4. Klik "Register application"
+5. Generate Client Secret
+6. Salin Client ID dan Client Secret ke .env.local
+</pre>
+      </div>
+
+      <h3>Menambah Provider Lain</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Berbagai Providers</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>import GoogleProvider from 'next-auth/providers/google';
+import GitHubProvider from 'next-auth/providers/github';
+import FacebookProvider from 'next-auth/providers/facebook';
+import TwitterProvider from 'next-auth/providers/twitter';
+import AppleProvider from 'next-auth/providers/apple';
+import DiscordProvider from 'next-auth/providers/discord';
+import EmailProvider from 'next-auth/providers/email';
+
+// Di dalam NextAuth config:
+providers: [
+  // OAuth Providers
+  GoogleProvider({
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  }),
+
+  GitHubProvider({
+    clientId: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    // Scope tambahan untuk mengakses data lebih banyak
+    // profile(profile) {
+    //   return {
+    //     id: profile.id.toString(),
+    //     name: profile.name || profile.login,
+    //     email: profile.email,
+    //     image: profile.avatar_url,
+    //   };
+    // },
+  }),
+
+  FacebookProvider({
+    clientId: process.env.FACEBOOK_CLIENT_ID,
+    clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+  }),
+
+  TwitterProvider({
+    clientId: process.env.TWITTER_CLIENT_ID,
+    clientSecret: process.env.TWITTER_CLIENT_SECRET,
+    version: '2.0',
+  }),
+
+  AppleProvider({
+    clientId: process.env.APPLE_CLIENT_ID,
+    clientSecret: process.env.APPLE_CLIENT_SECRET,
+  }),
+
+  DiscordProvider({
+    clientId: process.env.DISCORD_CLIENT_ID,
+    clientSecret: process.env.DISCORD_CLIENT_SECRET,
+  }),
+
+  // Magic Link / Passwordless
+  EmailProvider({
+    server: {
+      host: process.env.EMAIL_SERVER_HOST,
+      port: process.env.EMAIL_SERVER_PORT,
+      auth: {
+        user: process.env.EMAIL_SERVER_USER,
+        pass: process.env.EMAIL_SERVER_PASSWORD,
+      },
+    },
+    from: process.env.EMAIL_FROM,
+    // maxAge: 24 * 60 * 60, // Token berlaku 24 jam
+  }),
+],
+</pre>
+      </div>
+
+      <h3>Login Buttons Component</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSX — components/LoginButtons.jsx</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>'use client';
+
+import { signIn } from 'next-auth/react';
+
+function LoginButtons() {
+  return (
+    &lt;div className="login-buttons"&gt;
+      &lt;button
+        onClick={() =&gt; signIn('google', { callbackUrl: '/dashboard' })}
+        className="btn-google"
+      &gt;
+        🔵 Masuk dengan Google
+      &lt;/button&gt;
+
+      &lt;button
+        onClick={() =&gt; signIn('github', { callbackUrl: '/dashboard' })}
+        className="btn-github"
+      &gt;
+        ⚫ Masuk dengan GitHub
+      &lt;/button&gt;
+
+      &lt;button
+        onClick={() =&gt; signIn('facebook', { callbackUrl: '/dashboard' })}
+        className="btn-facebook"
+      &gt;
+        🔷 Masuk dengan Facebook
+      &lt;/button&gt;
+
+      &lt;div className="divider"&gt;atau&lt;/div&gt;
+
+      &lt;a href="/auth/login" className="btn-credentials"&gt;
+        📧 Masuk dengan Email &amp; Password
+      &lt;/a&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default LoginButtons;
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Sessions             -->
+      <!-- ============================== -->
+      <h2 id="sessions">4. Session Management</h2>
+
+      <p>NextAuth.js mendukung dua strategi session: <strong>JWT</strong> (default) dan <strong>Database</strong>. Pilihan ini mempengaruhi bagaimana data session disimpan dan diakses.</p>
+
+      <h3>JWT vs Database Sessions</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>JWT Strategy</th>
+            <th>Database Strategy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Penyimpanan</td><td>Di cookie (encrypted)</td><td>Di database</td></tr>
+          <tr><td>Database Required?</td><td>Tidak</td><td>Ya</td></tr>
+          <tr><td>Server-side Logout</td><td>Tidak bisa (token valid sampai expired)</td><td>Bisa (hapus dari DB)</td></tr>
+          <tr><td>Performa</td><td>🟢 Lebih cepat (tidak perlu DB query)</td><td>🟡 Perlu query DB setiap request</td></tr>
+          <tr><td>Ukuran Token</td><td>~400 bytes (di cookie)</td><td>Hanya session token kecil</td></tr>
+          <tr><td>Rekomendasi</td><td>App tanpa database adapter</td><td>App dengan database, perlu revoke session</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Menggunakan Session di Komponen</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSX — components/Navbar.jsx</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>'use client';
+
+import { useSession, signIn, signOut } from 'next-auth/react';
+
+function Navbar() {
+  const { data: session, status } = useSession();
+  // status: 'loading' | 'authenticated' | 'unauthenticated'
+
+  return (
+    &lt;nav className="navbar"&gt;
+      &lt;a href="/" className="logo"&gt;BeebaneLabs&lt;/a&gt;
+
+      &lt;div className="nav-right"&gt;
+        {status === 'loading' && (
+          &lt;span className="loading-text"&gt;Memuat...&lt;/span&gt;
+        )}
+
+        {status === 'unauthenticated' && (
+          &lt;button onClick={() =&gt; signIn()}&gt;
+            Masuk
+          &lt;/button&gt;
+        )}
+
+        {status === 'authenticated' && session && (
+          &lt;div className="user-menu"&gt;
+            &lt;img
+              src={session.user.image || '/default-avatar.png'}
+              alt={session.user.name}
+              className="avatar"
+            /&gt;
+            &lt;span&gt;{session.user.name}&lt;/span&gt;
+            {session.user.role === 'admin' && (
+              &lt;span className="badge-admin"&gt;Admin&lt;/span&gt;
+            )}
+            &lt;button onClick={() =&gt; signOut({ callbackUrl: '/' })}&gt;
+              Keluar
+            &lt;/button&gt;
+          &lt;/div&gt;
+        )}
+      &lt;/div&gt;
+    &lt;/nav&gt;
+  );
+}
+
+export default Navbar;
+</pre>
+      </div>
+
+      <h3>Server-side Session (App Router)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Server Components &amp; API Routes</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// Server Component — mendapatkan session di server
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { redirect } from 'next/navigation';
+
+export default async function DashboardPage() {
+  const session = await getServerSession(authOptions);
+
+  // Redirect jika belum login
+  if (!session) {
+    redirect('/auth/login');
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;h1&gt;Dashboard&lt;/h1&gt;
+      &lt;p&gt;Selamat datang, {session.user.name}!&lt;/p&gt;
+      &lt;p&gt;Role: {session.user.role}&lt;/p&gt;
+      &lt;img src={session.user.image} alt="Avatar" /&gt;
+    &lt;/div&gt;
+  );
+}
+
+// API Route — proteksi API endpoint
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { NextResponse } from 'next/server';
+
+export async function GET() {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return NextResponse.json(
+      { error: 'Tidak terautentikasi' },
+      { status: 401 }
+    );
+  }
+
+  // Hanya admin yang boleh akses
+  if (session.user.role !== 'admin') {
+    return NextResponse.json(
+      { error: 'Akses ditolak' },
+      { status: 403 }
+    );
+  }
+
+  // Lanjutkan proses...
+  return NextResponse.json({ data: 'Data rahasia admin' });
+}
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Callbacks            -->
+      <!-- ============================== -->
+      <h2 id="callbacks">5. Callbacks</h2>
+
+      <p><strong>Callbacks</strong> adalah fungsi yang dijalankan pada berbagai tahap proses autentikasi. Mereka memungkinkan Anda mengkustomisasi perilaku default NextAuth.js.</p>
+
+      <h3>Empat Jenis Callbacks</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Callbacks Detail</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>callbacks: {
+  // ═══════════════════════════════════════════════
+  // 1. signIn — kontrol apakah user boleh login
+  // Dipanggil saat user mencoba sign in
+  // Return true = izinkan, false/error = tolak
+  // ═══════════════════════════════════════════════
+  async signIn({ user, account, profile, email, credentials }) {
+    // user: data user dari provider atau authorize()
+    // account: info provider (provider, type, accessToken)
+    // profile: profil dari provider OAuth
+    // email: info verifikasi email (untuk Email provider)
+    // credentials: data dari Credentials provider
+
+    // Contoh: blacklist email tertentu
+    const blacklist = ['spam@example.com'];
+    if (blacklist.includes(user.email)) {
+      return false; // Tolak login
+    }
+
+    // Contoh: hanya izinkan email verified dari Google
+    if (account.provider === 'google' && !profile.email_verified) {
+      return '/auth/error?error=EmailNotVerified';
+    }
+
+    return true; // Izinkan login
+  },
+
+  // ═══════════════════════════════════════════════
+  // 2. redirect — kustomisasi URL setelah sign in/out
+  // ═══════════════════════════════════════════════
+  async redirect({ url, baseUrl }) {
+    // url: URL yang diminta (dari callbackUrl parameter)
+    // baseUrl: URL dasar aplikasi (NEXTAUTH_URL)
+
+    // Default: redirect ke halaman yang diminta
+    if (url.startsWith('/')) return `${baseUrl}${url}`;
+
+    // Pastikan hanya redirect ke domain sendiri
+    if (new URL(url).origin === baseUrl) return url;
+
+    // Fallback ke homepage
+    return baseUrl;
+  },
+
+  // ═══════════════════════════════════════════════
+  // 3. jwt — kustomisasi isi JWT token
+  // Hanya dipanggil jika strategy: 'jwt'
+  // ═══════════════════════════════════════════════
+  async jwt({ token, user, account, profile, trigger, isNewUser, session }) {
+    // token: JWT token saat ini (persisted antar requests)
+    // user: data user (hanya ada saat sign in pertama)
+    // account: info provider (hanya ada saat sign in)
+    // trigger: 'signIn', 'update', atau 'signUp'
+
+    // Saat pertama kali sign in, tambahkan data ke token
+    if (user) {
+      token.id = user.id;
+      token.role = user.role || 'user';
+      token.provider = account?.provider;
+    }
+
+    // Saat session.update() dipanggil dari client
+    if (trigger === 'update' && session) {
+      token.name = session.name;
+      token.image = session.image;
+    }
+
+    return token;
+  },
+
+  // ═══════════════════════════════════════════════
+  // 4. session — kustomisasi data yang dikirim ke client
+  // Dipanggil setiap kali useSession() atau getServerSession()
+  // ═══════════════════════════════════════════════
+  async session({ session, token, user }) {
+    // session: objek session yang akan dikirim ke client
+    // token: JWT token (jika strategy: 'jwt')
+    // user: data user dari database (jika strategy: 'database')
+
+    // Tambahkan data dari token ke session
+    if (token) {
+      session.user.id = token.id;
+      session.user.role = token.role;
+      session.user.provider = token.provider;
+    }
+
+    // Bisa juga tambahkan data dari database
+    // const dbUser = await prisma.user.findUnique({
+    //   where: { id: token.id }
+    // });
+    // session.user.subscription = dbUser.subscription;
+
+    return session;
+  },
+},
+</pre>
+      </div>
+
+      <h3>Update Session dari Client</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSX — Update Session</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>'use client';
+
+import { useSession } from 'next-auth/react';
+
+function EditProfil() {
+  const { data: session, update } = useSession();
+
+  const handleUpdateNama = async (newName) => {
+    // Update session — trigger jwt callback dengan trigger: 'update'
+    await update({
+      ...session,
+      user: {
+        ...session.user,
+        name: newName,
+      },
+    });
+    // Session akan di-refresh dengan data baru
+  };
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Nama: {session?.user?.name}&lt;/p&gt;
+      &lt;button onClick={() =&gt; handleUpdateNama('Nama Baru')}&gt;
+        Ubah Nama
+      &lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Database Adapters    -->
+      <!-- ============================== -->
+      <h2 id="database">6. Database Adapters</h2>
+
+      <p><strong>Database Adapter</strong> memungkinkan NextAuth.js menyimpan data user, akun, session, dan verification token ke database. Ini diperlukan saat menggunakan database session strategy atau ketika Anda ingin menyimpan data user di database sendiri.</p>
+
+      <h3>Prisma Adapter Setup</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Prisma Schema — prisma/schema.prisma</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Tabel ini dibuat otomatis oleh Prisma Adapter
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
+  hashedPassword String?   // Untuk credentials provider
+  role           String    @default("user")
+  createdAt      DateTime  @default(now())
+
+  accounts Account[]
+  sessions Session[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — lib/prisma.js</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>import { PrismaClient } from '@prisma/client';
+
+// Prevent multiple instances in development
+const globalForPrisma = globalThis;
+
+export const prisma = globalForPrisma.prisma || new PrismaClient();
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
+</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Prisma Commands</div>
+        <p>Setelah membuat schema, jalankan:</p>
+        <ul>
+          <li><code>npx prisma migrate dev</code> — buat migration dan update database</li>
+          <li><code>npx prisma generate</code> — generate Prisma Client</li>
+          <li><code>npx prisma studio</code> — buka visual database editor di browser</li>
+        </ul>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Credentials Provider -->
+      <!-- ============================== -->
+      <h2 id="credentials">7. Credentials Provider</h2>
+
+      <p><strong>Credentials Provider</strong> memungkinkan login dengan email dan password. Ini berguna ketika Anda ingin sistem autentikasi sendiri selain OAuth.</p>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan Credentials Provider</div>
+        <p>NextAuth.js merekomendasikan OAuth providers karena lebih aman. Credentials Provider <strong>tidak mendukung</strong> database sessions dan fitur tertentu seperti account linking. Gunakan hanya jika benar-benar diperlukan.</p>
+      </div>
+
+      <h3>Register &amp; Login Flow</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSX — app/auth/register/page.js</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+function RegisterPage() {
+  const [formData, setFormData] = useState({
+    name: '', email: '', password: '', confirmPassword: '',
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Password tidak cocok');
+      return;
+    }
+
+    if (formData.password.length &lt; 8) {
+      setError('Password minimal 8 karakter');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal mendaftar');
+      }
+
+      // Redirect ke login setelah berhasil
+      router.push('/auth/login?registered=true');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    &lt;div className="auth-page"&gt;
+      &lt;h1&gt;Daftar Akun Baru&lt;/h1&gt;
+
+      {error && &lt;p className="error"&gt;{error}&lt;/p&gt;}
+
+      &lt;form onSubmit={handleSubmit}&gt;
+        &lt;div className="form-group"&gt;
+          &lt;label&gt;Nama Lengkap&lt;/label&gt;
+          &lt;input
+            type="text"
+            value={formData.name}
+            onChange={(e) =&gt; setFormData({ ...formData, name: e.target.value })}
+            required
+          /&gt;
+        &lt;/div&gt;
+
+        &lt;div className="form-group"&gt;
+          &lt;label&gt;Email&lt;/label&gt;
+          &lt;input
+            type="email"
+            value={formData.email}
+            onChange={(e) =&gt; setFormData({ ...formData, email: e.target.value })}
+            required
+          /&gt;
+        &lt;/div&gt;
+
+        &lt;div className="form-group"&gt;
+          &lt;label&gt;Password&lt;/label&gt;
+          &lt;input
+            type="password"
+            value={formData.password}
+            onChange={(e) =&gt; setFormData({ ...formData, password: e.target.value })}
+            required
+            minLength={8}
+          /&gt;
+        &lt;/div&gt;
+
+        &lt;div className="form-group"&gt;
+          &lt;label&gt;Konfirmasi Password&lt;/label&gt;
+          &lt;input
+            type="password"
+            value={formData.confirmPassword}
+            onChange={(e) =&gt; setFormData({ ...formData, confirmPassword: e.target.value })}
+            required
+          /&gt;
+        &lt;/div&gt;
+
+        &lt;button type="submit" disabled={loading}&gt;
+          {loading ? 'Mendaftar...' : '📝 Daftar'}
+        &lt;/button&gt;
+      &lt;/form&gt;
+
+      &lt;p className="auth-link"&gt;
+        Sudah punya akun? &lt;a href="/auth/login"&gt;Masuk di sini&lt;/a&gt;
+      &lt;/p&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default RegisterPage;
+</pre>
+      </div>
+
+      <h3>Register API Route</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — app/api/auth/register/route.js</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
+import { prisma } from '@/lib/prisma';
+
+export async function POST(request) {
+  try {
+    const { name, email, password } = await request.json();
+
+    // Validasi input
+    if (!name || !email || !password) {
+      return NextResponse.json(
+        { error: 'Semua field wajib diisi' },
+        { status: 400 }
+      );
+    }
+
+    if (password.length &lt; 8) {
+      return NextResponse.json(
+        { error: 'Password minimal 8 karakter' },
+        { status: 400 }
+      );
+    }
+
+    // Cek apakah email sudah terdaftar
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'Email sudah terdaftar' },
+        { status: 409 }
+      );
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Buat user baru
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        hashedPassword,
+        role: 'user',
+      },
+    });
+
+    return NextResponse.json(
+      {
+        message: 'Registrasi berhasil',
+        user: { id: user.id, name: user.name, email: user.email },
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('Register error:', error);
+    return NextResponse.json(
+      { error: 'Terjadi kesalahan server' },
+      { status: 500 }
+    );
+  }
+}
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Protecting Routes    -->
+      <!-- ============================== -->
+      <h2 id="middleware">8. Protecting Routes</h2>
+
+      <p>NextAuth.js mendukung proteksi route menggunakan <strong>Next.js Middleware</strong>. Ini memungkinkan Anda melindungi halaman dan API routes dari akses yang tidak sah.</p>
+
+      <h3>Middleware untuk Auth Protection</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — middleware.js (root project)</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>import { withAuth } from 'next-auth/middleware';
+import { NextResponse } from 'next/server';
+
+// Proteksi semua route yang cocok dengan matcher
+export default withAuth(
+  function middleware(req) {
+    const { token } = req.nextauth;
+    const { pathname } = req.nextUrl;
+
+    // Proteksi route admin — hanya untuk role admin
+    if (pathname.startsWith('/admin') && token?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/unauthorized', req.url));
+    }
+
+    // Proteksi route premium — untuk role premium atau admin
+    if (pathname.startsWith('/premium') &&
+        !['admin', 'premium'].includes(token?.role)) {
+      return NextResponse.redirect(new URL('/upgrade', req.url));
+    }
+
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      // Return true = izinkan akses, false = redirect ke signIn
+      authorized: ({ token }) => {
+        return !!token; // User harus terautentikasi
+      },
+    },
+  }
+);
+
+// Tentukan route mana yang dilindungi
+export const config = {
+  matcher: [
+    '/dashboard/:path*',
+    '/admin/:path*',
+    '/premium/:path*',
+    '/settings/:path*',
+    '/api/protected/:path*',
+  ],
+};
+</pre>
+      </div>
+
+      <h3>HOC untuk Client-side Protection</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — lib/withAuth.jsx</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>'use client';
+
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+
+// Higher-Order Component untuk proteksi halaman
+export function withAuth(WrappedComponent, requiredRole = null) {
+  return function ProtectedComponent(props) {
+    const { data: session, status } = useSession();
+    const router = useRouter();
+
+    useEffect(() => {
+      if (status === 'unauthenticated') {
+        router.push('/auth/login');
+      }
+
+      if (status === 'authenticated' && requiredRole) {
+        if (session.user.role !== requiredRole &&
+            session.user.role !== 'admin') {
+          router.push('/unauthorized');
+        }
+      }
+    }, [status, session, router]);
+
+    if (status === 'loading') {
+      return &lt;div className="loading"&gt;Memuat...&lt;/div&gt;;
+    }
+
+    if (!session) return null;
+
+    return &lt;WrappedComponent {...props} session={session} /&gt;;
+  };
+}
+
+// Penggunaan:
+// const ProtectedDashboard = withAuth(DashboardPage);
+// const AdminPage = withAuth(AdminPanel, 'admin');
+</pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Best Practices       -->
+      <!-- ============================== -->
+      <h2 id="best-practices">9. Best Practices &amp; Keamanan</h2>
+
+      <h3>Checklist Keamanan</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Best Practice</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>NEXTAUTH_SECRET</td><td>Gunakan string acak minimal 32 karakter, simpan di env vars</td></tr>
+          <tr><td>CSRF</td><td>NextAuth.js menangani CSRF otomatis — jangan disable</td></tr>
+          <tr><td>HTTPS</td><td>Selalu gunakan HTTPS di production</td></tr>
+          <tr><td>Password Hashing</td><td>Gunakan bcrypt dengan salt rounds ≥ 12</td></tr>
+          <tr><td>Session Max Age</td><td>Atur maxAge sesuai kebutuhan (default 30 hari)</td></tr>
+          <tr><td>Rate Limiting</td><td>Terapkan rate limiting pada endpoint login/register</td></tr>
+          <tr><td>Input Validation</td><td>Validasi semua input di server-side</td></tr>
+          <tr><td>Error Messages</td><td>Jangan reveal info sensitif di error message</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Production</div>
+        <ul>
+          <li>Matikan <code>debug: true</code> di production</li>
+          <li>Gunakan <code>NEXTAUTH_URL</code> yang benar (https://domain-anda.com)</li>
+          <li>Monitoring: log semua sign-in events untuk audit trail</li>
+          <li>Implementasikan rate limiting (misal: 5 attempts per 15 menit)</li>
+          <li>Gunakan HTTP-only cookies (default NextAuth.js)</li>
+          <li>Pertimbangkan 2FA untuk akun admin</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article bottom -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+      <p>Uji pemahaman Anda tentang NextAuth.js:</p>
+
+      <div class="quiz-container" id="quizNextAuth01">
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1. Apa perbedaan utama antara JWT dan Database session strategy?</strong></p>
+          <div class="quiz-options">
+            <label class="quiz-option" data-value="a">
+              <input type="radio" name="q1"> JWT lebih lambat dari Database session
+            </label>
+            <label class="quiz-option" data-value="b">
+              <input type="radio" name="q1"> JWT disimpan di cookie terenkripsi, Database disimpan di server
+            </label>
+            <label class="quiz-option" data-value="c">
+              <input type="radio" name="q1"> JWT tidak bisa dikustomisasi
+            </label>
+            <label class="quiz-option" data-value="d">
+              <input type="radio" name="q1"> Tidak ada perbedaan
+            </label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2. Callback apa yang digunakan untuk menambahkan role ke session?</strong></p>
+          <div class="quiz-options">
+            <label class="quiz-option" data-value="a">
+              <input type="radio" name="q2"> signIn callback
+            </label>
+            <label class="quiz-option" data-value="b">
+              <input type="radio" name="q2"> redirect callback
+            </label>
+            <label class="quiz-option" data-value="c">
+              <input type="radio" name="q2"> jwt dan session callbacks
+            </label>
+            <label class="quiz-option" data-value="d">
+              <input type="radio" name="q2"> authorize callback
+            </label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Mengapa NEXTAUTH_SECRET penting?</strong></p>
+          <div class="quiz-options">
+            <label class="quiz-option" data-value="a">
+              <input type="radio" name="q3"> Untuk mengenkripsi JWT tokens dan cookies
+            </label>
+            <label class="quiz-option" data-value="b">
+              <input type="radio" name="q3"> Untuk menghubungkan ke database
+            </label>
+            <label class="quiz-option" data-value="c">
+              <input type="radio" name="q3"> Untuk mengkonfigurasi OAuth providers
+            </label>
+            <label class="quiz-option" data-value="d">
+              <input type="radio" name="q3"> Untuk mengatur URL redirect
+            </label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4. Di mana NextAuth API route ditempatkan di Next.js App Router?</strong></p>
+          <div class="quiz-options">
+            <label class="quiz-option" data-value="a">
+              <input type="radio" name="q4"> /src/auth/route.js
+            </label>
+            <label class="quiz-option" data-value="b">
+              <input type="radio" name="q4"> /pages/api/auth.js
+            </label>
+            <label class="quiz-option" data-value="c">
+              <input type="radio" name="q4"> /app/auth/route.js
+            </label>
+            <label class="quiz-option" data-value="d">
+              <input type="radio" name="q4"> /app/api/auth/[...nextauth]/route.js
+            </label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>5. Fungsi apa yang digunakan untuk mendapatkan session di server (App Router)?</strong></p>
+          <div class="quiz-options">
+            <label class="quiz-option" data-value="a">
+              <input type="radio" name="q5"> getSession()
+            </label>
+            <label class="quiz-option" data-value="b">
+              <input type="radio" name="q5"> getServerSession(authOptions)
+            </label>
+            <label class="quiz-option" data-value="c">
+              <input type="radio" name="q5"> useSession()
+            </label>
+            <label class="quiz-option" data-value="d">
+              <input type="radio" name="q5"> fetchSession()
+            </label>
+          </div>
+        </div>
+
+        <button class="quiz-submit" onclick="submitQuiz('quizNextAuth01')">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article bottom -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="stripe-integration.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Stripe Payment Integration</span>
+        </a>
+        <a href="cypress-e2e.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Cypress: End-to-End Testing</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="../images/logo_beebane.png" alt="BeebaneLabs" class="footer-logo">
+          <p>Portal tutorial teknologi &amp; IT Indonesia. Pemrograman, IoT, cybersecurity, networking — mulai belajar gratis, konten original.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Kategori</h4>
+          <ul>
+            <li><a href="../kategori/iot.html">IoT &amp; Embedded</a></li>
+            <li><a href="../kategori/mikrotik.html">Networking</a></li>
+            <li><a href="../kategori/python.html">Pemrograman</a></li>
+            <li><a href="../kategori/keamanan.html">Cybersecurity</a></li>
+            <li><a href="../kategori/dashboard.html">Dashboard &amp; Cloud</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Populer</h4>
+          <ul>
+            <li><a href="esp32-fundamentals.html">Tutorial ESP32</a></li>
+            <li><a href="mikrotik-routing.html">Konfigurasi MikroTik</a></li>
+            <li><a href="lora-communication.html">Proyek LoRa</a></li>
+            <li><a href="dashboard-monitoring.html">Dashboard IoT</a></li>
+            <li><a href="mqtt-protocol.html">MQTT untuk Pemula</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Lainnya</h4>
+          <ul>
+            <li><a href="../about.html">Tentang Kami</a></li>
+            <li><a href="../privacy-policy.html">Kebijakan Privasi</a></li>
+            <li><a href="../contact.html">Kontak</a></li>
+            <li><a href="../rss.xml">RSS Feed</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-social">
+          <a href="https://github.com/Beebane25" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <p>&copy; 2026 BeebaneLabs. Semua hak dilindungi.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== BACK TO TOP ========== -->
+  <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
+
+  <!-- ========== SCRIPTS ========== -->
+  <script src="../js/app.js?v=8.0"></script>
+  <script src="../js/mobile-zoom.js?v=9.2"></script>
+  <script>
+    initQuiz('quizNextAuth01', ['b', 'c', 'a', 'd', 'b']);
+  </script>
+<button class="theme-toggle-floating" onclick="ThemeToggle.toggle()" title="Ganti tema">☀️</button>
+<!-- MOBILE QUICK MENU -->
+  <div id="quickMenuBackdrop" class="quick-menu-backdrop" onclick="MobileQuickMenu.close()"></div>
+  <button id="quickMenuBtn" class="quick-menu-btn" onclick="MobileQuickMenu.toggle()" title="Menu">⚙️</button>
+  <div id="quickMenuPanel" class="quick-menu-panel">
+    <div class="quick-menu-section">
+      <span class="quick-menu-label">🔍 Zoom</span>
+      <div class="quick-menu-row">
+        <button onclick="MobileQuickMenu.zoomOut()">−</button>
+        <span id="quickMenuZoomLevel" class="zoom-level">100%</span>
+        <button onclick="MobileQuickMenu.zoomIn()">+</button>
+        <button onclick="MobileQuickMenu.resetZoom()" style="font-size:0.8rem">↺</button>
+      </div>
+    </div>
+    <div class="quick-menu-section">
+      <span class="quick-menu-label">🎨 Tema</span>
+      <button class="quick-menu-row quick-menu-theme-btn" onclick="MobileQuickMenu.toggleTheme()">
+        <span id="quickMenuThemeIcon">☀️</span> <span>Ganti Tema</span>
+      </button>
+    </div>
+  </div>
+</body>
+</html>
