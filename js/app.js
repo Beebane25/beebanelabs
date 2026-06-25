@@ -1584,20 +1584,7 @@ function injectArticleExtras() {
   articleContent.insertAdjacentHTML('beforeend', shareHTML);
 
   // Related articles
-  const allArticles = [
-    { slug: 'esp32-fundamentals', title: 'Panduan Lengkap ESP32', icon: '🔧', cat: 'ESP32' },
-    { slug: 'mikrotik-routing', title: 'Konfigurasi Routing MikroTik', icon: '🌐', cat: 'MikroTik' },
-    { slug: 'lora-communication', title: 'Jaringan Sensor LoRa', icon: '📡', cat: 'LoRa' },
-    { slug: 'python-iot-automation', title: 'Otomasi IoT dengan Python', icon: '🐍', cat: 'Python' },
-    { slug: 'network-security', title: 'Keamanan Jaringan IoT', icon: '🔐', cat: 'Keamanan' },
-    { slug: 'dashboard-monitoring', title: 'Dashboard Monitoring', icon: '📊', cat: 'Dashboard' },
-    { slug: 'esp8266-nodemcu', title: 'ESP8266 NodeMCU', icon: '📶', cat: 'ESP8266' },
-    { slug: 'mqtt-protocol', title: 'Protokol MQTT', icon: '📨', cat: 'Protokol' },
-    { slug: 'sensor-dht-esp32', title: 'Sensor DHT dengan ESP32', icon: '🌡️', cat: 'Sensor' },
-    { slug: 'raspberry-pi-iot', title: 'Raspberry Pi untuk IoT', icon: '🍓', cat: 'RPi' },
-    { slug: 'firebase-iot', title: 'Firebase untuk IoT', icon: '🔥', cat: 'Cloud' },
-    { slug: 'telegram-bot-iot', title: 'Telegram Bot untuk IoT', icon: '🤖', cat: 'IoT' }
-  ];
+  const allArticles = ALL_ARTICLES;
   const currentSlug = window.location.pathname.split('/').pop().replace('.html', '');
   const related = allArticles.filter(a => a.slug !== currentSlug).sort(() => 0.5 - Math.random()).slice(0, 3);
   if (related.length) {
@@ -1741,7 +1728,27 @@ const ALL_ARTICLES = [
   { slug: 'firebase-iot', title: 'Firebase untuk IoT', icon: '🔥', cat: 'Cloud', desc: 'Realtime database dan cloud functions', diff: 'menengah', time: '12', access: 'Token', date: '3 Juni 2026' },
   { slug: 'telegram-bot-iot', title: 'Telegram Bot untuk IoT', icon: '🤖', cat: 'IoT', desc: 'Notifikasi dan kontrol jarak jauh', diff: 'pemula', time: '9', access: 'Token', date: '1 Juni 2026' },
   { slug: 'blynk-iot', title: 'Blynk IoT', icon: '📱', cat: 'IoT', desc: 'Kontrol perangkat dari mobile app', diff: 'pemula', time: '8', access: 'Token', date: '23 Mei 2026' },
-  { slug: 'arduino-ide-setup', title: 'Arduino IDE 2.x Setup', icon: '💻', cat: 'Tools', desc: 'Instalasi dan konfigurasi lengkap', diff: 'pemula', time: '6', access: 'Token', date: '27 Mei 2026' }
+  { slug: 'arduino-ide-setup', title: 'Arduino IDE 2.x Setup', icon: '💻', cat: 'Tools', desc: 'Instalasi dan konfigurasi lengkap', diff: 'pemula', time: '6', access: 'Token', date: '27 Mei 2026' },
+  { slug: 'esp32-bluetooth-ble', title: 'ESP32 Bluetooth BLE', icon: '📶', cat: 'ESP32', desc: 'Komunikasi nirkabel energi rendah', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'esp32-freertos', title: 'FreeRTOS pada ESP32', icon: '⚙️', cat: 'ESP32', desc: 'Multitasking real-time', diff: 'lanjut', time: '15', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'esp32-sensor-kalibrasi', title: 'Kalibrasi Sensor ESP32', icon: '🎯', cat: 'ESP32', desc: 'Akurasi data IoT', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'esp32-battery-management', title: 'Battery Management IoT', icon: '🔋', cat: 'ESP32', desc: 'Hemat energi maksimal', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'mikrotik-ospf', title: 'OSPF Routing MikroTik', icon: '🗺️', cat: 'MikroTik', desc: 'Konfigurasi & optimasi OSPF', diff: 'lanjut', time: '16', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'mikrotik-vpn', title: 'VPN pada MikroTik', icon: '🔒', cat: 'MikroTik', desc: 'Site-to-site & remote access', diff: 'lanjut', time: '15', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'networking-osi-subnetting', title: 'OSI Model & Subnetting', icon: '🌐', cat: 'Networking', desc: 'Dasar jaringan komputer', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'python-oop', title: 'OOP Python untuk IoT', icon: '🐍', cat: 'Python', desc: 'Object-oriented programming', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'python-async', title: 'Async Python untuk IoT', icon: '⚡', cat: 'Python', desc: 'Pemrograman asinkron', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'python-web-scraping', title: 'Web Scraping Python', icon: '🕷️', cat: 'Python', desc: 'BeautifulSoup & Selenium', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'web-security-sql-xss', title: 'SQL Injection & XSS', icon: '💉', cat: 'Keamanan', desc: 'Serangan web umum', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'linux-firewall-hardening', title: 'Firewall Hardening Linux', icon: '🛡️', cat: 'Keamanan', desc: 'Mengamankan server Linux', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'ssl-tls-guide', title: 'SSL/TLS & HTTPS', icon: '🔐', cat: 'Keamanan', desc: 'Mengamankan komunikasi', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'nginx-reverse-proxy', title: 'Nginx Reverse Proxy', icon: '🔀', cat: 'Dashboard', desc: 'Load balancing & SSL', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'firebase-auth-firestore', title: 'Firebase Auth & Firestore', icon: '🔥', cat: 'Dashboard', desc: 'Auth & database untuk IoT', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'websocket-guide', title: 'WebSocket untuk IoT', icon: '🔌', cat: 'Protokol', desc: 'Komunikasi real-time', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'wireshark-network-analysis', title: 'Wireshark: Analisis Jaringan', icon: '🔍', cat: 'Protokol', desc: 'Network analysis untuk IoT', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'prometheus-monitoring', title: 'Prometheus & Grafana', icon: '📊', cat: 'Protokol', desc: 'Monitoring infrastructure', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'iot-industrial', title: 'Industrial IoT', icon: '🏭', cat: 'IoT', desc: 'Dari sensor ke cloud', diff: 'lanjut', time: '15', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'home-assistant-iot', title: 'Home Assistant', icon: '🏠', cat: 'IoT', desc: 'Platform otomasi rumah pintar', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' }
 ];
 
 function renderArticleCard(a) {
@@ -1765,7 +1772,7 @@ function renderGroupedArticles(filter) {
   });
 
   let html = '';
-  const catOrder = ['ESP32', 'MikroTik', 'LoRa', 'Python', 'Keamanan', 'Dashboard', 'Protokol', 'Raspberry Pi', 'Cloud', 'IoT', 'Tools'];
+  const catOrder = ['ESP32', 'MikroTik', 'Networking', 'LoRa', 'Python', 'Keamanan', 'Dashboard', 'Protokol', 'Raspberry Pi', 'Cloud', 'IoT', 'Tools'];
   catOrder.forEach(cat => {
     if (!groups[cat]) return;
     const items = groups[cat].slice(0, 3);
