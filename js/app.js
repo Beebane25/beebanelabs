@@ -1748,7 +1748,8 @@ const ALL_ARTICLES = [
   { slug: 'wireshark-network-analysis', title: 'Wireshark: Analisis Jaringan', icon: '🔍', cat: 'Protokol', desc: 'Network analysis untuk IoT', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
   { slug: 'prometheus-monitoring', title: 'Prometheus & Grafana', icon: '📊', cat: 'Protokol', desc: 'Monitoring infrastructure', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
   { slug: 'iot-industrial', title: 'Industrial IoT', icon: '🏭', cat: 'IoT', desc: 'Dari sensor ke cloud', diff: 'lanjut', time: '15', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'home-assistant-iot', title: 'Home Assistant', icon: '🏠', cat: 'IoT', desc: 'Platform otomasi rumah pintar', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' }
+  { slug: 'home-assistant-iot', title: 'Home Assistant', icon: '🏠', cat: 'IoT', desc: 'Platform otomasi rumah pintar', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'vps-deployment', title: 'Deploy ke VPS', icon: '🖥️', cat: 'Dashboard', desc: 'Panduan deploy ke VPS', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' }
 ];
 
 function renderArticleCard(a) {
