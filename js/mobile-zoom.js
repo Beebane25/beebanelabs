@@ -1,7 +1,7 @@
 // === MOBILE QUICK MENU (Zoom + Theme) ===
 window.MobileQuickMenu = {
   currentZoom: 50,
-  minZoom: 10,
+  minZoom: 50,
   maxZoom: 150,
   step: 10,
   isOpen: false,
