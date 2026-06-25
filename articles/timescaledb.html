@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08090a">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes">
+  <title>TimescaleDB: Time-Series SQL Database Lengkap | BeebaneLabs</title>
+  <meta name="description" content="Tutorial lengkap TimescaleDB — hypertables, compression, continuous aggregates, retention policies, dan time-series queries di PostgreSQL.">
+  <meta name="keywords" content="TimescaleDB, time-series, PostgreSQL, hypertables, compression, continuous aggregates, monitoring, IoT">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="og:title" content="TimescaleDB: Time-Series SQL Database Lengkap">
+  <meta property="og:description" content="Tutorial lengkap TimescaleDB — hypertables, compression, continuous aggregates, retention policies, dan time-series queries di PostgreSQL.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://beebanelabs.pages.dev/articles/timescaledb.html">
+  <meta property="og:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TimescaleDB: Time-Series SQL Database Lengkap">
+  <meta name="twitter:description" content="Tutorial lengkap TimescaleDB — hypertables, compression, continuous aggregates, retention policies, dan time-series queries di PostgreSQL.">
+  <meta name="twitter:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta property="article:published_time" content="2026-06-26">
+  <meta property="article:section" content="Database">
+  <meta property="article:tag" content="TimescaleDB">
+  <meta property="article:tag" content="Time-Series">
+  <meta property="article:tag" content="PostgreSQL">
+  <meta property="article:tag" content="IoT">
+  <link rel="canonical" href="https://beebanelabs.pages.dev/articles/timescaledb.html">
+  <link rel="stylesheet" href="../css/style.css?v=9.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "TimescaleDB: Time-Series SQL Database Lengkap",
+    "description": "Tutorial lengkap TimescaleDB — hypertables, compression, continuous aggregates, retention policies, dan time-series queries di PostgreSQL.",
+    "author": { "@type": "Organization", "name": "BeebaneLabs" },
+    "datePublished": "2026-06-26",
+    "publisher": { "@type": "Organization", "name": "BeebaneLabs" }
+  }
+  </script>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+  <div class="reading-progress-bar" id="readingProgress"></div>
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="navbar-brand">
+        <img src="../images/logo_beebane.png" alt="BeebaneLabs" class="brand-logo">
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="../index.html">Beranda</a></li>
+        <li><a href="../kategori.html">Kategori</a></li>
+        <li><a href="../kategori.html">Artikel</a></li>
+        <li><a href="../pricing.html">Harga</a></li>
+      </ul>
+      <div class="navbar-search" id="searchTrigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Cari tutorial...</span>
+        <kbd>/</kbd>
+      </div>
+      <div id="authNavArea"></div>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." autocomplete="off">
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Tekan <kbd>Esc</kbd> untuk menutup</div>
+      </div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Database</a>
+        <span class="separator">/</span>
+        <span class="current">TimescaleDB</span>
+      </div>
+      <span class="category-tag">Database</span>
+      <h1>TimescaleDB: Time-Series SQL Database Lengkap</h1>
+      <p class="article-subtitle">Pelajari TimescaleDB secara mendalam — hypertables, compression, continuous aggregates, retention policies, dan optimasi query time-series di PostgreSQL</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 20 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+  <div class="container">
+    <div class="ad-slot ad-slot-wide"></div>
+  </div>
+  <article class="article-content" id="main-content">
+    <div class="container">
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan TimescaleDB</a></li>
+          <li><a href="#install">Instalasi &amp; Setup</a></li>
+          <li><a href="#hypertables">Hypertables</a></li>
+          <li><a href="#queries">Time-Series Queries</a></li>
+          <li><a href="#compression">Compression</a></li>
+          <li><a href="#continuous-aggregates">Continuous Aggregates</a></li>
+          <li><a href="#retention">Retention Policies</a></li>
+          <li><a href="#use-cases">Use Cases: IoT, Monitoring, Finance</a></li>
+          <li><a href="#best-practices">Best Practices &amp; Performance</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <h2 id="pengenalan">1. Pengenalan TimescaleDB</h2>
+      <p><strong>TimescaleDB</strong> adalah ekstensi PostgreSQL untuk data time-series. Dibangun di atas PostgreSQL, TimescaleDB menambahkan fitur khusus untuk data berbasis waktu — hypertables, compression, dan continuous aggregates — sambil mempertahankan kompatibilitas penuh dengan SQL dan ekosistem PostgreSQL.</p>
+
+      <h3>Mengapa Time-Series Data Berbeda?</h3>
+      <table class="net-table">
+        <thead><tr><th>Karakteristik</th><th>Database Relasional Biasa</th><th>Time-Series Database</th></tr></thead>
+        <tbody>
+          <tr><td>Pola Insert</td><td>Bervariasi (CRUD campur)</td><td>Insert-heavy (append-only)</td></tr>
+          <tr><td>Pola Query</td><td>Point lookup, join kompleks</td><td>Range scan, aggregation per waktu</td></tr>
+          <tr><td>Data Volume</td><td>Jutaan baris</td><td>Miliaran baris</td></tr>
+          <tr><td>Retensi</td><td>Tidak terbatas</td><td>Perlu auto-expire data lama</td></tr>
+          <tr><td>Indexing</td><td>B-tree, hash, GIN</td><td>Time-based partitioning</td></tr>
+          <tr><td>Compression</td><td>Opsional</td><td>Kritis (hemat storage)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>TimescaleDB vs Alternatif</h3>
+      <table class="net-table">
+        <thead><tr><th>Aspek</th><th>TimescaleDB</th><th>InfluxDB</th><th>Apache Druid</th></tr></thead>
+        <tbody>
+          <tr><td>Base</td><td>PostgreSQL</td><td>Custom</td><td>Custom</td></tr>
+          <tr><td>Query Language</td><td>SQL</td><td>Flux / InfluxQL</td><td>SQL (Druid SQL)</td></tr>
+          <tr><td>Full SQL Support</td><td>Ya (100%)</td><td>Terbatas</td><td>Terbatas</td></tr>
+          <tr><td>JOIN dengan tabel lain</td><td>Ya</td><td>Tidak</td><td>Terbatas</td></tr>
+          <tr><td>ACID Transactions</td><td>Ya</td><td>Tidak</td><td>Tidak</td></tr>
+          <tr><td>Compression</td><td>95%+ ratio</td><td>Baik</td><td>Sangat baik</td></tr>
+          <tr><td>Ecosystem</td><td>Seluruh PostgreSQL</td><td>Grafana, Telegraf</td><td>Grafana, Superset</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Arsitektur TimescaleDB</div>
+<pre>
++--------------------------------------------------------------------+
+|                  ARSITEKTUR TIMESCALEDB                              |
+|                                                                    |
+|  +----------------------------------------------------------+      |
+|  |                    PostgreSQL                             |      |
+|  |  +----------------------------------------------------+  |      |
+|  |  |              TimescaleDB Extension                  |  |      |
+|  |  |                                                    |  |      |
+|  |  |  +----------+  +----------+  +----------+         |  |      |
+|  |  |  |Hypertable|  |Continuous|  |Compression|         |  |      |
+|  |  |  | (tabel)  |  |Aggregate |  | Policies  |         |  |      |
+|  |  |  +----------+  +----------+  +----------+         |  |      |
+|  |  |       |              |              |              |  |      |
+|  |  |  +----------+  +----------+  +----------+         |  |      |
+|  |  |  | Chunk 1  |  | Chunk 2  |  | Chunk N  |         |  |      |
+|  |  |  | (partisi)|  | (partisi)|  | (partisi)|         |  |      |
+|  |  |  +----------+  +----------+  +----------+         |  |      |
+|  |  +----------------------------------------------------+  |      |
+|  |                                                          |      |
+|  |  Standard PostgreSQL: tables, indexes, views, functions  |      |
+|  +----------------------------------------------------------+      |
++--------------------------------------------------------------------+
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="install">2. Instalasi &amp; Setup</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Instalasi TimescaleDB</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># =============================================
+# Docker (recommended untuk development)
+# =============================================
+docker run -d --name timescaledb \
+  -p 5432:5432 \
+  -e POSTGRES_PASSWORD=*** \
+  timescale/timescaledb:latest-pg16
+
+# =============================================
+# Ubuntu/Debian
+# =============================================
+# Tambah repository Timescale
+sudo add-apt-repository ppa:timescale/timescaledb-ppa
+sudo apt update
+sudo apt install timescaledb-2-postgresql-16
+
+# Atau gunakan script setup
+# https://docs.timescale.com/install/latest/installation-linux/
+
+# =============================================
+# Aktifkan ekstensi di PostgreSQL
+# =============================================
+psql -U postgres -d your_database
+
+-- Aktifkan ekstensi
+CREATE EXTENSION IF NOT EXISTS timescaledb;
+
+-- Verifikasi
+SELECT default_version, installed_version
+FROM pg_available_extensions
+WHERE name = 'timescaledb';</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="hypertables">3. Hypertables</h2>
+      <p><strong>Hypertable</strong> adalah konsep inti TimescaleDB. Secara luar, hypertable terlihat seperti tabel PostgreSQL biasa. Di balik layar, TimescaleDB otomatis mempartisi data berdasarkan kolom waktu (time column) menjadi <strong>chunks</strong> yang lebih kecil.</p>
+
+      <h3>Membuat Hypertable</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Hypertables</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>-- =============================================
+-- BUAT TABEL STANDAR dulu, lalu convert ke hypertable
+-- =============================================
+
+-- Tabel sensor readings (IoT)
+CREATE TABLE sensor_readings (
+    time         TIMESTAMPTZ NOT NULL,
+    sensor_id    INTEGER NOT NULL,
+    temperature  DOUBLE PRECISION,
+    humidity     DOUBLE PRECISION,
+    pressure     DOUBLE PRECISION,
+    battery      DOUBLE PRECISION
+);
+
+-- Convert ke hypertable (time_column = 'time')
+SELECT create_hypertable('sensor_readings', 'time');
+
+-- =============================================
+-- HYPERTABLE dengan partisi tambahan
+-- =============================================
+
+-- Partition by time DAN sensor_id (multi-dimensional)
+CREATE TABLE sensor_data (
+    time         TIMESTAMPTZ NOT NULL,
+    location_id  INTEGER NOT NULL,
+    sensor_id    INTEGER NOT NULL,
+    metric_name  TEXT NOT NULL,
+    metric_value DOUBLE PRECISION
+);
+
+SELECT create_hypertable(
+    'sensor_data',
+    'time',
+    partitioning_column => 'location_id',
+    number_partitions => 4
+);
+
+-- =============================================
+-- TABEL LAINNYA: metrik aplikasi
+-- =============================================
+CREATE TABLE app_metrics (
+    time         TIMESTAMPTZ NOT NULL,
+    service      TEXT NOT NULL,
+    endpoint     TEXT NOT NULL,
+    response_ms  DOUBLE PRECISION,
+    status_code  INTEGER,
+    is_error     BOOLEAN DEFAULT FALSE
+);
+
+SELECT create_hypertable('app_metrics', 'time');
+
+-- =============================================
+-- TABEL: transaksi keuangan
+-- =============================================
+CREATE TABLE financial_ticks (
+    time         TIMESTAMPTZ NOT NULL,
+    symbol       TEXT NOT NULL,
+    price        NUMERIC(15,4),
+    volume       BIGINT,
+    bid          NUMERIC(15,4),
+    ask          NUMERIC(15,4)
+);
+
+SELECT create_hypertable('financial_ticks', 'time');
+
+-- Cek hypertables
+SELECT * FROM timescaledb_information.hypertables;</pre>
+      </div>
+
+      <h3>Mengelola Chunks</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Chunk Management</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>-- Lihat semua chunks dari sebuah hypertable
+SELECT chunk_name, range_start, range_end, is_compressed
+FROM timescaledb_information.chunks
+WHERE hypertable_name = 'sensor_readings'
+ORDER BY range_start DESC;
+
+-- Lihat ukuran hypertable (termasuk index dan chunks)
+SELECT
+    hypertable_name,
+    pg_size_pretty(hypertable_size(format('%I.%I', hypertable_schema, hypertable_name)::regclass)) AS total_size,
+    num_chunks
+FROM timescaledb_information.hypertables;
+
+-- Set chunk interval (default 7 hari)
+SELECT set_chunk_time_interval('sensor_readings', INTERVAL '1 day');
+
+-- Add compression policy (otomatis compress chunk lama)
+SELECT add_compression_policy('sensor_readings', INTERVAL '7 days');</pre>
+      </div>
+
+      <h3>Insert Data ke Hypertable</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Insert Data</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>-- Insert data biasa (sama seperti PostgreSQL)
+INSERT INTO sensor_readings (time, sensor_id, temperature, humidity, pressure, battery)
+VALUES
+    (NOW() - INTERVAL '5 minutes', 1, 25.5, 65.2, 1013.25, 85.0),
+    (NOW() - INTERVAL '4 minutes', 1, 25.7, 64.8, 1013.20, 84.5),
+    (NOW() - INTERVAL '3 minutes', 2, 22.3, 70.1, 1013.30, 92.0),
+    (NOW() - INTERVAL '2 minutes', 2, 22.5, 69.8, 1013.28, 91.5),
+    (NOW() - INTERVAL '1 minute',  1, 26.0, 63.5, 1013.15, 84.0);
+
+-- Generate data untuk testing (1 juta baris)
+INSERT INTO sensor_readings (time, sensor_id, temperature, humidity, pressure, battery)
+SELECT
+    NOW() - (random() * INTERVAL '30 days'),
+    (random() * 100)::INT + 1,
+    20 + random() * 15,
+    40 + random() * 40,
+    1000 + random() * 30,
+    50 + random() * 50
+FROM generate_series(1, 1000000);
+
+-- Bulk insert untuk performa
+-- Gunakan COPY atau INSERT ... VALUES batch
+COPY sensor_readings (time, sensor_id, temperature, humidity, pressure, battery)
+FROM '/path/to/data.csv'
+WITH (FORMAT csv, HEADER true);</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="queries">4. Time-Series Queries</h2>
+      <p>TimescaleDB menambahkan fungsi-fungsi khusus untuk query time-series yang tidak ada di PostgreSQL standar.</p>
+
+      <h3>Fungsi TimeBucket</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Time-Series Queries</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>-- =============================================
+-- time_bucket: Group by interval waktu
+-- (mirip date_trunc tapi lebih fleksibel)
+-- =============================================
+
+-- Rata-rata per 5 menit
+SELECT
+    time_bucket('5 minutes', time) AS bucket,
+    sensor_id,
+    AVG(temperature) AS avg_temp,
+    AVG(humidity) AS avg_humidity,
+    MAX(temperature) AS max_temp,
+    MIN(temperature) AS min_temp,
+    COUNT(*) AS readings
+FROM sensor_readings
+WHERE time &gt;= NOW() - INTERVAL '1 day'
+GROUP BY bucket, sensor_id
+ORDER BY bucket DESC, sensor_id;
+
+-- Rata-rata per jam
+SELECT
+    time_bucket('1 hour', time) AS jam,
+    AVG(temperature) AS avg_temp,
+    MAX(temperature) AS max_temp,
+    MIN(temperature) AS min_temp
+FROM sensor_readings
+WHERE time &gt;= NOW() - INTERVAL '7 days'
+GROUP BY jam
+ORDER BY jam DESC;
+
+-- Rata-rata per hari (dengan custom origin)
+SELECT
+    time_bucket('1 day', time, TIMESTAMPTZ '2026-01-01') AS hari,
+    AVG(temperature) AS avg_temp
+FROM sensor_readings
+GROUP BY hari
+ORDER BY hari DESC;</pre>
+      </div>
+
+      <h3>Fungsi Time-Series Lainnya</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Advanced Time-Series Functions</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>-- =============================================
+-- first() dan last(): Ambil nilai pertama/terakhir
+-- dalam interval
+-- =============================================
+SELECT
+    time_bucket('1 hour', time) AS jam,
+    sensor_id,
+    first(temperature, time) AS temp_awal,
+    last(temperature, time)  AS temp_akhir,
+    last(temperature, time) - first(temperature, time) AS perubahan
+FROM sensor_readings
+WHERE time &gt;= NOW() - INTERVAL '24 hours'
+GROUP BY jam, sensor_id
+ORDER BY jam DESC;
+
+-- =============================================
+-- time_bucket_gapfill: Isi gap waktu yang kosong
+-- =============================================
+SELECT
+    time_bucket_gapfill('1 hour', time) AS jam,
+    sensor_id,
+    AVG(temperature) AS avg_temp,
+    interpolate(AVG(temperature)) AS interpolated_temp,
+    locf(AVG(temperature)) AS last_known_temp
+FROM sensor_readings
+WHERE time &gt;= NOW() - INTERVAL '24 hours'
+  AND sensor_id = 1
+GROUP BY jam, sensor_id
+ORDER BY jam;
+
+-- =============================================
+-- Moving Average dengan window function
+-- =============================================
+SELECT
+    time,
+    sensor_id,
+    temperature,
+    AVG(temperature) OVER (
+        PARTITION BY sensor_id
+        ORDER BY time
+        ROWS BETWEEN 9 PRECEDING AND CURRENT ROW
+    ) AS moving_avg_10,
+    temperature - LAG(temperature) OVER (
+        PARTITION BY sensor_id ORDER BY time
+    ) AS delta
+FROM sensor_readings
+WHERE sensor_id = 1
+  AND time &gt;= NOW() - INTERVAL '2 hours'
+ORDER BY time DESC;</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="compression">5. Compression</h2>
+      <p>Kompression adalah fitur kritis untuk time-series data karena volume data yang sangat besar. TimescaleDB menawarkan native columnar compression yang bisa mengurangi storage hingga <strong>95%+</strong>.</p>
+
+      <h3>Aktifkan Compression</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Compression</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>-- =============================================
+-- LANGKAH 1: Tentukan segmentby dan orderby
+-- =============================================
+ALTER TABLE sensor_readings SET (
+    timescaledb.compress,
+    timescaledb.compress_segmentby = 'sensor_id',
+    timescaledb.compress_orderby = 'time DESC'
+);
+
+-- =============================================
+-- LANGKAH 2: Auto-compress chunk yang lebih lama
+-- dari 7 hari
+-- =============================================
+SELECT add_compression_policy('sensor_readings', INTERVAL '7 days');
+
+-- =============================================
+-- Manual compress: compress chunk tertentu
+-- =============================================
+-- Cari chunk yang belum di-compress
+SELECT chunk_name, range_start, range_end, is_compressed
+FROM timescaledb_information.chunks
+WHERE hypertable_name = 'sensor_readings'
+  AND is_compressed = FALSE
+ORDER BY range_start;
+
+-- Compress secara manual
+SELECT compress_chunk('_timescaledb_internal._hyper_1_1_chunk');
+SELECT compress_chunk('_timescaledb_internal._hyper_1_2_chunk');
+
+-- =============================================
+-- Lihat hasil kompresi
+-- =============================================
+SELECT
+    pg_size_pretty(before_compression_total_bytes) AS sebelum,
+    pg_size_pretty(after_compression_total_bytes) AS sesudah,
+    ROUND(
+        (1.0 - after_compression_total_bytes::float / before_compression_total_bytes) * 100,
+        2
+    ) AS persen_penghematan
+FROM hypertable_compression_stats('sensor_readings');</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Compression Strategy</div>
+        <p>Atur <code>segmentby</code> berdasarkan kolom yang sering di-group atau filter. Atur <code>orderby</code> berdasarkan kolom yang sering di-sort. Misal: <code>segmentby = 'sensor_id'</code> dan <code>orderby = 'time DESC'</code> untuk query per sensor dalam rentang waktu.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="continuous-aggregates">6. Continuous Aggregates</h2>
+      <p><strong>Continuous Aggregate</strong> adalah materialized view yang otomatis di-update saat data baru masuk. Berbeda dari materialized view biasa yang harus di-refresh manual, continuous aggregate hanya meng-update chunk yang berubah.</p>
+
+      <h3>Membuat Continuous Aggregate</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Continuous Aggregates</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>-- =============================================
+-- CONTINUOUS AGGREGATE: Statistik per jam
+-- =============================================
+CREATE MATERIALIZED VIEW stats_per_jam
+WITH (timescaledb.continuous) AS
+SELECT
+    time_bucket('1 hour', time) AS jam,
+    sensor_id,
+    AVG(temperature) AS avg_temp,
+    MIN(temperature) AS min_temp,
+    MAX(temperature) AS max_temp,
+    AVG(humidity) AS avg_humidity,
+    AVG(pressure) AS avg_pressure,
+    COUNT(*) AS jumlah_pembacaan
+FROM sensor_readings
+GROUP BY jam, sensor_id;
+
+-- Query continuous aggregate (sangat cepat!)
+SELECT * FROM stats_per_jam
+WHERE jam &gt;= NOW() - INTERVAL '24 hours'
+  AND sensor_id = 1
+ORDER BY jam DESC;
+
+
+-- =============================================
+-- CONTINUOUS AGGREGATE: Statistik per hari
+-- =============================================
+CREATE MATERIALIZED VIEW stats_per_hari
+WITH (timescaledb.continuous) AS
+SELECT
+    time_bucket('1 day', time) AS hari,
+    sensor_id,
+    AVG(temperature) AS avg_temp,
+    MIN(temperature) AS min_temp,
+    MAX(temperature) AS max_temp,
+    STDDEV(temperature) AS std_temp,
+    COUNT(*) AS readings_count
+FROM sensor_readings
+GROUP BY hari, sensor_id;
+
+
+-- =============================================
+-- Auto-refresh policy
+-- =============================================
+-- Refresh otomatis setiap 1 jam
+SELECT add_continuous_aggregate_policy('stats_per_jam',
+    start_offset    =&gt; INTERVAL '3 days',
+    end_offset      =&gt; INTERVAL '1 hour',
+    schedule_interval =&gt; INTERVAL '1 hour'
+);
+
+-- Refresh otomatis setiap 1 hari
+SELECT add_continuous_aggregate_policy('stats_per_hari',
+    start_offset    =&gt; INTERVAL '30 days',
+    end_offset      =&gt; INTERVAL '1 day',
+    schedule_interval =&gt; INTERVAL '1 day'
+);
+
+-- Manual refresh
+CALL refresh_continuous_aggregate('stats_per_jam', NOW() - INTERVAL '1 day', NOW());
+
+-- Lihat semua continuous aggregates
+SELECT * FROM timescaledb_information.continuous_aggregates;</pre>
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Continuous Aggregates Hierarchy</div>
+<pre>
++--------------------------------------------------------------------+
+|            CONTINUOUS AGGREGATES HIERARCHY                           |
+|                                                                    |
+|  Raw Data (Hypertable)                                             |
+|  +--------------------------------------------------------------+  |
+|  | sensor_readings: Miliaran baris                              |  |
+|  | Per-second / per-minute data                                 |  |
+|  +--------------------------------------------------------------+  |
+|                          |                                         |
+|                          v                                         |
+|  stats_per_jam (Continuous Aggregate)                              |
+|  +--------------------------------------------------------------+  |
+|  | Rata-rata per jam per sensor                                 |  |
+|  | Jauh lebih sedikit baris                                     |  |
+|  +--------------------------------------------------------------+  |
+|                          |                                         |
+|                          v                                         |
+|  stats_per_hari (Continuous Aggregate)                             |
+|  +--------------------------------------------------------------+  |
+|  | Rata-rata per hari per sensor                                |  |
+|  | Paling cepat untuk query jangka panjang                      |  |
+|  +--------------------------------------------------------------+  |
++--------------------------------------------------------------------+
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="retention">7. Retention Policies</h2>
+      <p>Data time-series sering memiliki masa retensi — data lama tidak lagi relevan dan harus dihapus untuk menghemat storage.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Retention Policies</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>-- =============================================
+-- Auto-drop chunk yang lebih lama dari 90 hari
+-- =============================================
+SELECT add_retention_policy('sensor_readings', INTERVAL '90 days');
+
+-- Retensi berbeda per hypertable
+SELECT add_retention_policy('app_metrics', INTERVAL '30 days');
+SELECT add_retention_policy('financial_ticks', INTERVAL '365 days');
+
+-- Lihat semua retention policies
+SELECT * FROM timescaledb_information.jobs
+WHERE proc_name = 'policy_retention';
+
+-- Manual drop chunk lama
+SELECT drop_chunks('sensor_readings', INTERVAL '90 days');
+
+-- Preview chunk yang akan di-drop (tanpa benar-benar drop)
+SELECT show_chunks('sensor_readings', older_than =&gt; INTERVAL '90 days');
+
+-- Hapus retention policy
+SELECT remove_retention_policy('sensor_readings');
+
+
+-- =============================================
+-- Data Tiering: Pindahkan data lama ke storage murah
+-- =============================================
+-- TimescaleDB mendukung multi-tier storage
+-- Data panas (recent) di SSD, data dingin (lama) di object storage
+
+-- Contoh setup tiering (memerlukan license Tiered)
+-- SELECT add_tiering_policy('sensor_readings', INTERVAL '30 days');</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="use-cases">8. Use Cases: IoT, Monitoring, Finance</h2>
+
+      <h3>IoT: Monitoring Sensor</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — IoT Monitoring</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>-- Deteksi anomali: sensor dengan temperatur di atas rata-rata
+WITH sensor_avg AS (
+    SELECT
+        sensor_id,
+        AVG(temperature) AS avg_temp,
+        STDDEV(temperature) AS std_temp
+    FROM sensor_readings
+    WHERE time &gt;= NOW() - INTERVAL '24 hours'
+    GROUP BY sensor_id
+)
+SELECT
+    sr.time,
+    sr.sensor_id,
+    sr.temperature,
+    sa.avg_temp,
+    sa.std_temp,
+    (sr.temperature - sa.avg_temp) / NULLIF(sa.std_temp, 0) AS z_score
+FROM sensor_readings sr
+JOIN sensor_avg sa ON sr.sensor_id = sa.sensor_id
+WHERE sr.time &gt;= NOW() - INTERVAL '1 hour'
+  AND ABS((sr.temperature - sa.avg_temp) / NULLIF(sa.std_temp, 0)) &gt; 3
+ORDER BY ABS((sr.temperature - sa.avg_temp) / NULLIF(sa.std_temp, 0)) DESC
+LIMIT 20;
+
+-- Sensor yang offline (tidak ada data dalam 30 menit terakhir)
+SELECT
+    s.sensor_id,
+    MAX(s.time) AS last_reading,
+    NOW() - MAX(s.time) AS offline_duration
+FROM sensor_readings s
+WHERE time &gt;= NOW() - INTERVAL '2 hours'
+GROUP BY s.sensor_id
+HAVING NOW() - MAX(s.time) &gt; INTERVAL '30 minutes'
+ORDER BY offline_duration DESC;</pre>
+      </div>
+
+      <h3>Monitoring: Aplikasi Performance</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — App Monitoring</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>-- Endpoint terlambat (response time &gt; 1 detik)
+SELECT
+    time_bucket('5 minutes', time) AS bucket,
+    endpoint,
+    AVG(response_ms) AS avg_ms,
+    PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY response_ms) AS p95_ms,
+    PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY response_ms) AS p99_ms,
+    COUNT(*) AS total_requests,
+    SUM(CASE WHEN is_error THEN 1 ELSE 0 END) AS errors,
+    ROUND(SUM(CASE WHEN is_error THEN 1 ELSE 0 END)::NUMERIC / COUNT(*) * 100, 2) AS error_rate
+FROM app_metrics
+WHERE time &gt;= NOW() - INTERVAL '1 hour'
+GROUP BY bucket, endpoint
+HAVING AVG(response_ms) &gt; 1000
+ORDER BY avg_ms DESC;
+
+-- Status code distribution per jam
+SELECT
+    time_bucket('1 hour', time) AS jam,
+    status_code,
+    COUNT(*) AS jumlah
+FROM app_metrics
+WHERE time &gt;= NOW() - INTERVAL '24 hours'
+GROUP BY jam, status_code
+ORDER BY jam DESC, jumlah DESC;</pre>
+      </div>
+
+      <h3>Finance: Stock Ticks</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Financial Data</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>-- OHLCV (Open, High, Low, Close, Volume) per 5 menit
+SELECT
+    time_bucket('5 minutes', time) AS bucket,
+    symbol,
+    first(price, time) AS open,
+    MAX(price) AS high,
+    MIN(price) AS low,
+    last(price, time) AS close,
+    SUM(volume) AS volume
+FROM financial_ticks
+WHERE time &gt;= NOW() - INTERVAL '1 day'
+  AND symbol = 'BBCA'
+GROUP BY bucket, symbol
+ORDER BY bucket DESC;
+
+-- VWAP (Volume Weighted Average Price)
+SELECT
+    time_bucket('1 hour', time) AS jam,
+    symbol,
+    SUM(price * volume)::NUMERIC / NULLIF(SUM(volume), 0) AS vwap,
+    SUM(volume) AS total_volume
+FROM financial_ticks
+WHERE time &gt;= NOW() - INTERVAL '24 hours'
+GROUP BY jam, symbol
+ORDER BY jam DESC;</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="best-practices">9. Best Practices &amp; Performance</h2>
+      <table class="net-table">
+        <thead><tr><th>Praktik</th><th>Penjelasan</th></tr></thead>
+        <tbody>
+          <tr><td>Chunk interval yang tepat</td><td>Default 7 hari. Untuk data volume sangat tinggi, gunakan 1 hari atau bahkan 1 jam</td></tr>
+          <tr><td>Segmentby yang tepat</td><td>Pilih kolom yang sering di-GROUP BY atau filter untuk compression</td></tr>
+          <tr><td>Continuous aggregates</td><td>Buat aggregate per jam/hari untuk query yang sering diulang</td></tr>
+          <tr><td>Retention policies</td><td>Hapus data lama secara otomatis untuk hemat storage</td></tr>
+          <tr><td>Bulk insert</td><td>Gunakan COPY atau batch INSERT, bukan satu-satu</td></tr>
+          <tr><td>Jangan UPDATE/DELETE frequent</td><td>Time-series data bersifat append-only. Update jarang terjadi</td></tr>
+          <tr><td>Index minimal</td><td>Tambah index hanya pada kolom yang sering di-filter (selain time)</td></tr>
+          <tr><td>EXPLAIN ANALYZE</td><td>Selalu cek execution plan untuk query besar</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Hindari Kesalahan Umum</div>
+        <p>Jangan gunakan <code>SELECT *</code> pada hypertable dengan miliaran baris. Selalu filter berdasarkan rentang waktu (<code>WHERE time BETWEEN ...</code>) agar query memanfaatkan chunk pruning. Tanpa filter waktu, query scan semua chunks — sangat lambat.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+      <div class="info-box info">
+        <div class="info-box-title">📝 Quiz: TimescaleDB</div>
+        <ol>
+          <li><strong>Apa itu hypertable dan bagaimana cara membuatnya?</strong>
+            <br><em>Jawaban: Hypertable adalah tabel yang otomatis dipartisi berdasarkan waktu menjadi chunks. Dibuat dengan SELECT create_hypertable('nama_tabel', 'kolom_waktu').</em></li>
+          <li><strong>Apa keuntungan continuous aggregate dibanding materialized view biasa?</strong>
+            <br><em>Jawaban: Continuous aggregate otomatis meng-update hanya chunk yang berubah, sedangkan materialized view biasa harus di-refresh manual (full refresh).</em></li>
+          <li><strong>Apa fungsi time_bucket()?</strong>
+            <br><em>Jawaban: Mengelompokkan timestamp ke interval tertentu (5 menit, 1 jam, 1 hari) untuk aggregation. Lebih fleksibel dari date_trunc().</em></li>
+          <li><strong>Apa itu segmentby dalam compression?</strong>
+            <br><em>Jawaban: Kolom yang digunakan untuk membagi data sebelum dikompres. Query yang filter berdasarkan segmentby kolom akan lebih cepat karena hanya decompress segmen yang relevan.</em></li>
+          <li><strong>Mengapa filter waktu sangat penting di hypertable?</strong>
+            <br><em>Jawaban: Tanpa filter waktu, query harus scan semua chunks (full table scan). Dengan filter waktu, TimescaleDB hanya membaca chunks yang relevan (chunk pruning).</em></li>
+        </ol>
+      </div>
+      <div class="info-box tip">
+        <div class="info-box-title">🎯 Langkah Selanjutnya</div>
+        <p>Pelajari <strong>Database Sharding</strong> untuk strategi skalabilitas horizontal, atau kembali ke <strong>SQL Stored Procedures</strong> untuk membuat fungsi-fungsi yang berinteraksi dengan data time-series.</p>
+      </div>
+    </div>
+  </article>
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <img src="../images/logo_beebane.png" alt="BeebaneLabs" class="brand-logo">
+          <p>Platform tutorial teknologi untuk developer Indonesia.</p>
+        </div>
+        <div class="footer-links">
+          <h4>Menu</h4>
+          <ul>
+            <li><a href="../index.html">Beranda</a></li>
+            <li><a href="../kategori.html">Kategori</a></li>
+            <li><a href="../pricing.html">Harga</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 BeebaneLabs. Semua hak dilindungi.</p>
+      </div>
+    </div>
+  </footer>
+  <script src="../js/app.js?v=8.0"></script>
+</body>
+</html>
