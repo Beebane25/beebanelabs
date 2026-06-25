@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08090a">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes">
+  <title>Web Workers: Multithreading di JavaScript | BeebaneLabs</title>
+  <meta name="description" content="Tutorial lengkap Web Workers — dedicated workers, shared workers, transferable objects, dan paralel computing di JavaScript.">
+  <meta name="keywords" content="Web Workers, dedicated worker, shared worker, multithreading JavaScript, transferable objects, postMessage, paralel computing">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="og:title" content="Web Workers: Multithreading di JavaScript">
+  <meta property="og:description" content="Panduan komprehensif Web Workers — dedicated, shared, transferable objects, dan paralel computing.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://beebanelabs.pages.dev/articles/javascript-workers-web.html">
+  <meta property="og:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Web Workers: Multithreading di JavaScript">
+  <meta name="twitter:description" content="Panduan komprehensif Web Workers — dedicated, shared, transferable objects.">
+  <meta name="twitter:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta property="article:published_time" content="2026-06-26">
+  <meta property="article:section" content="Web Development">
+  <meta property="article:tag" content="JavaScript">
+  <meta property="article:tag" content="Web Workers">
+  <meta property="article:tag" content="Multithreading">
+  <link rel="canonical" href="https://beebanelabs.pages.dev/articles/javascript-workers-web.html">
+  <link rel="stylesheet" href="../css/style.css?v=9.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Web Workers: Multithreading di JavaScript",
+    "description": "Panduan komprehensif Web Workers — dedicated, shared, transferable objects.",
+    "author": { "@type": "Organization", "name": "BeebaneLabs" },
+    "datePublished": "2026-06-26",
+    "publisher": { "@type": "Organization", "name": "BeebaneLabs" }
+  }
+  </script>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+
+  <!-- ========== READING PROGRESS ========== -->
+  <div class="reading-progress-bar" id="readingProgress"></div>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="navbar-brand">
+        <img src="../images/logo_beebane.png" alt="BeebaneLabs" class="brand-logo">
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="../index.html">Beranda</a></li>
+        <li><a href="../kategori.html">Kategori</a></li>
+        <li><a href="../kategori.html">Artikel</a></li>
+        <li><a href="../pricing.html">Harga</a></li>
+      </ul>
+      <div class="navbar-search" id="searchTrigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Cari tutorial...</span>
+        <kbd>/</kbd>
+      </div>
+      <div id="authNavArea"></div>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." autocomplete="off">
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Tekan <kbd>Esc</kbd> untuk menutup</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Web Development</a>
+        <span class="separator">/</span>
+        <span class="current">Web Workers</span>
+      </div>
+      <span class="category-tag">Web Development</span>
+      <h1>Web Workers: Multithreading di JavaScript</h1>
+      <p class="article-subtitle">Jalankan proses berat di background tanpa memblokir UI — dedicated workers, shared workers, transferable objects, dan paralel computing di browser</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <!-- AdSense: Top Banner -->
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-workers">Pengenalan Web Workers</a></li>
+          <li><a href="#dedicated-worker">Dedicated Worker</a></li>
+          <li><a href="#komunikasi">Komunikasi postMessage</a></li>
+          <li><a href="#shared-worker">Shared Worker</a></li>
+          <li><a href="#transferable">Transferable Objects</a></li>
+          <li><a href="#inline-worker">Inline Workers (Blob URL)</a></li>
+          <li><a href="#error-handling">Error Handling</a></li>
+          <li><a href="#use-cases">Use Cases Nyata</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-workers">1. Pengenalan Web Workers</h2>
+
+      <p>JavaScript secara default berjalan di <strong>single thread</strong> — satu thread utama yang menangani semua hal: rendering UI, event handling, dan eksekusi kode. Jika ada proses berat (heavy computation), seluruh UI akan <strong>freeze</strong> (macet).</p>
+
+      <p><strong>Web Workers</strong> memecahkan masalah ini dengan memungkinkan Anda menjalankan JavaScript di <strong>thread terpisah</strong> di background. Thread utama tetap responsif sementara worker melakukan komputasi berat.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Single Thread vs Multi Thread</div>
+<pre>
+  TANPA Web Workers (Single Thread):
+  ┌─────────────────────────────────────┐
+  │ Main Thread                          │
+  │ [Render UI] → [Heavy Task] → [Event] │
+  │                 ↑ FREEZE! ↑           │
+  │                 (UI tidak responsif)  │
+  └─────────────────────────────────────┘
+
+  DENGAN Web Workers (Multi Thread):
+  ┌────────────────────────┐    ┌──────────────┐
+  │ Main Thread             │    │ Worker Thread │
+  │ [Render UI] → [Events]  │◄──►│ [Heavy Task]  │
+  │ (tetap responsif!)      │    │ (di background)│
+  └────────────────────────┘    └──────────────┘
+          ↕ postMessage()            ↕ postMessage()
+        (komunikasi async)
+</pre>
+      </div>
+
+      <h3>Jenis-Jenis Web Workers</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Jenis</th>
+            <th>Deskripsi</th>
+            <th>Akses DOM?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Dedicated Worker</td><td>Dimiliki oleh satu tab/halaman saja</td><td>❌ Tidak</td></tr>
+          <tr><td>Shared Worker</td><td>Bisa dibagi antar tab/halaman yang sama origin</td><td>❌ Tidak</td></tr>
+          <tr><td>Service Worker</td><td>Proxy jaringan untuk caching &amp; offline (topik terpisah)</td><td>❌ Tidak</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Batasan Web Workers</div>
+        <p>Web Workers <strong>tidak bisa mengakses DOM</strong>, <code>window</code>, <code>document</code>, atau <code>parent</code> object. Mereka berjalan di konteks terpisah. Komunikasi dengan thread utama hanya bisa melalui <code>postMessage()</code> dan <code>onmessage</code>. Workers juga tidak bisa mengakses <code>localStorage</code> (tapi bisa <code>IndexedDB</code>).</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Dedicated Worker     -->
+      <!-- ============================== -->
+      <h2 id="dedicated-worker">2. Dedicated Worker</h2>
+
+      <p>Dedicated Worker adalah jenis worker yang paling umum. Satu worker dimiliki oleh satu halaman web dan tidak bisa diakses dari tab lain.</p>
+
+      <h3>Membuat Dedicated Worker</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — main.js (Thread Utama)</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== Membuat Dedicated Worker =====
+// File worker dipisah: 'worker.js'
+
+const worker = new Worker('worker.js');
+
+// Kirim pesan ke worker
+worker.postMessage({
+    command: 'hitung',
+    data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+});
+
+// Terima hasil dari worker
+worker.onmessage = function(event) {
+    console.log('Hasil dari worker:', event.data);
+};
+
+// Handle error
+worker.onerror = function(error) {
+    console.error('Worker error:', error.message);
+};
+
+// Terminasi worker jika sudah tidak dibutuhkan
+// worker.terminate();</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — worker.js (Thread Worker)</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== worker.js =====
+// File ini berjalan di thread terpisah!
+
+// Terima pesan dari main thread
+self.onmessage = function(event) {
+    const { command, data } = event.data;
+
+    if (command === 'hitung') {
+        // Proses berat di sini — tidak memblokir UI!
+        let total = 0;
+        for (let i = 0; i < data.length; i++) {
+            total += data[i];
+        }
+
+        // Kirim hasil kembali ke main thread
+        self.postMessage({
+            result: total,
+            processed: data.length
+        });
+    }
+};
+
+// 'self' merujuk ke worker global scope (mirip 'window' di main thread)
+console.log('Worker siap menerima tugas!');</pre>
+      </div>
+
+      <h3>Worker dengan Structured Clone</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Structured Clone</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== Data yang bisa dikirim ke worker =====
+// postMessage menggunakan "structured clone algorithm"
+// Data di-CLONE, bukan di-reference!
+
+const worker = new Worker('data-worker.js');
+
+// ✅ Bisa dikirim:
+worker.postMessage({ nama: 'Beebane', umur: 25 });      // Object
+worker.postMessage([1, 2, 3, { nested: true }]);         // Array
+worker.postMessage('Hello World');                         // String
+worker.postMessage(42);                                    // Number
+worker.postMessage(new Date());                            // Date
+worker.postMessage(new Map([['key', 'value']]));           // Map
+worker.postMessage(new Set([1, 2, 3]));                    // Set
+worker.postMessage(new Blob(['data']));                     // Blob
+worker.postMessage(new ArrayBuffer(8));                    // ArrayBuffer
+
+// ❌ TIDAK bisa dikirim:
+// worker.postMessage(function() {});   // Function (non-cloneable)
+// worker.postMessage(document);         // DOM nodes
+// worker.postMessage(window);           // Window object
+// worker.postMessage(new WeakMap());    // WeakMap/WeakSet</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Komunikasi           -->
+      <!-- ============================== -->
+      <h2 id="komunikasi">3. Komunikasi postMessage</h2>
+
+      <p>Komunikasi antara main thread dan worker menggunakan <code>postMessage()</code> dan <code>onmessage</code> (atau <code>addEventListener('message', ...)</code>). Data dikirim secara <strong>asynchronous</strong> dan di-clone.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — MessageChannel</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== MessageChannel: Direct Communication =====
+// Channel memberikan 2 port yang terhubung
+
+const channel = new MessageChannel();
+const port1 = channel.port1;
+const port2 = channel.port2;
+
+// Kirim worker dengan salah satu port
+const worker = new Worker('channel-worker.js');
+worker.postMessage('init', [channel.port2]);
+
+// Gunakan port1 untuk komunikasi langsung
+port1.onmessage = function(event) {
+    console.log('Dari worker via channel:', event.data);
+};
+
+port1.postMessage({ task: 'kalkulasi', value: 100 });</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — channel-worker.js</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== channel-worker.js =====
+let port;
+
+self.onmessage = function(event) {
+    if (event.data === 'init') {
+        // Terima port dari main thread
+        port = event.ports[0];
+
+        port.onmessage = function(e) {
+            const { task, value } = e.data;
+
+            if (task === 'kalkulasi') {
+                const hasil = Math.pow(value, 2);
+                port.postMessage({ task, result: hasil });
+            }
+        };
+    }
+};</pre>
+      </div>
+
+      <h3>Pola Request-Response</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Request-Response Pattern</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== WorkerPool: Manager untuk Banyak Worker =====
+class WorkerPool {
+    constructor(workerScript, poolSize = navigator.hardwareConcurrency || 4) {
+        this.workers = [];
+        this.queue = [];
+        this.activeWorkers = 0;
+
+        for (let i = 0; i < poolSize; i++) {
+            const worker = new Worker(workerScript);
+            worker.busy = false;
+            this.workers.push(worker);
+        }
+
+        console.log(`Worker pool dibuat: ${poolSize} workers`);
+    }
+
+    exec(data) {
+        return new Promise((resolve, reject) => {
+            const task = { data, resolve, reject };
+            const idleWorker = this.workers.find(w => !w.busy);
+
+            if (idleWorker) {
+                this._runTask(idleWorker, task);
+            } else {
+                this.queue.push(task);
+            }
+        });
+    }
+
+    _runTask(worker, task) {
+        worker.busy = true;
+        this.activeWorkers++;
+
+        const handler = (event) => {
+            worker.removeEventListener('message', handler);
+            worker.removeEventListener('error', errorHandler);
+            worker.busy = false;
+            this.activeWorkers--;
+
+            task.resolve(event.data);
+
+            // Proses task berikutnya dari queue
+            if (this.queue.length > 0) {
+                const next = this.queue.shift();
+                this._runTask(worker, next);
+            }
+        };
+
+        const errorHandler = (error) => {
+            worker.removeEventListener('message', handler);
+            worker.removeEventListener('error', errorHandler);
+            worker.busy = false;
+            this.activeWorkers--;
+            task.reject(error);
+        };
+
+        worker.addEventListener('message', handler);
+        worker.addEventListener('error', errorHandler);
+        worker.postMessage(task.data);
+    }
+
+    terminate() {
+        this.workers.forEach(w => w.terminate());
+        this.workers = [];
+    }
+}
+
+// Penggunaan:
+const pool = new WorkerPool('compute-worker.js', 4);
+
+// Jalankan 10 tugas secara paralel
+const tasks = Array.from({ length: 10 }, (_, i) =>
+    pool.exec({ type: 'faktorial', value: i + 1 })
+);
+
+Promise.all(tasks).then(results => {
+    console.log('Semua hasil:', results);
+    pool.terminate();
+});</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Shared Worker        -->
+      <!-- ============================== -->
+      <h2 id="shared-worker">4. Shared Worker</h2>
+
+      <p><strong>Shared Worker</strong> bisa digunakan bersama oleh beberapa tab atau halaman dari origin yang sama. Ini berguna untuk berbagi state antar tab atau mengurangi resource.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — shared-worker.js</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== shared-worker.js =====
+let connections = 0;
+let sharedState = { counter: 0, messages: [] };
+
+self.onconnect = function(event) {
+    connections++;
+    const port = event.ports[0];
+
+    console.log(`Tab baru terkoneksi! Total: ${connections}`);
+
+    // Kirim state saat ini ke tab baru
+    port.postMessage({
+        type: 'init',
+        state: sharedState,
+        connections
+    });
+
+    port.onmessage = function(e) {
+        const { type, payload } = e.data;
+
+        switch (type) {
+            case 'increment':
+                sharedState.counter++;
+                broadcastToAll({ type: 'update', state: sharedState });
+                break;
+
+            case 'sendMessage':
+                sharedState.messages.push(payload);
+                broadcastToAll({ type: 'update', state: sharedState });
+                break;
+
+            case 'getState':
+                port.postMessage({ type: 'state', state: sharedState });
+                break;
+        }
+    };
+
+    port.start();
+};
+
+function broadcastToAll(message) {
+    // Broadcast ke semua port yang terhubung
+    // (perlu menyimpan port dalam array)
+    self.clients?.forEach(client => client.postMessage(message));
+}</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Menggunakan Shared Worker</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== main.js — Menggunakan Shared Worker =====
+
+// SharedWorker API mirip Dedicated Worker
+const sharedWorker = new SharedWorker('shared-worker.js');
+
+// Akses port dan mulai komunikasi
+sharedWorker.port.start();
+
+// Terima pesan dari shared worker
+sharedWorker.port.onmessage = function(event) {
+    const { type, state, connections } = event.data;
+
+    if (type === 'init') {
+        console.log(`Terhubung! Total tab: ${connections}`);
+        updateUI(state);
+    }
+
+    if (type === 'update') {
+        console.log('State berubah:', state);
+        updateUI(state);
+    }
+};
+
+// Kirim perintah ke shared worker
+function incrementCounter() {
+    sharedWorker.port.postMessage({ type: 'increment' });
+}
+
+function sendChatMessage(text) {
+    sharedWorker.port.postMessage({
+        type: 'sendMessage',
+        payload: { text, timestamp: Date.now() }
+    });
+}
+
+function updateUI(state) {
+    document.getElementById('counter').textContent = state.counter;
+    document.getElementById('messages').innerHTML =
+        state.messages.map(m => `&lt;p&gt;${m.text}&lt;/p&gt;`).join('');
+}</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Dedicated vs Shared Worker</div>
+        <p>Gunakan <strong>Dedicated Worker</strong> untuk tugas yang spesifik untuk satu halaman (proses gambar, kalkulasi). Gunakan <strong>Shared Worker</strong> ketika beberapa tab perlu berbagi state atau koneksi (WebSocket, data sinkronisasi).</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Transferable Objects -->
+      <!-- ============================== -->
+      <h2 id="transferable">5. Transferable Objects</h2>
+
+      <p>Secara default, <code>postMessage()</code> <strong>mengclone</strong> data. Untuk data besar (buffer gambar, data audio), cloning lambat. <strong>Transferable Objects</strong> memindahkan kepemilikan data tanpa cloning — jauh lebih cepat.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Transferable Objects</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== Transfer vs Clone =====
+
+// CLONE (default) — data di-copy, lambat untuk data besar
+worker.postMessage(bigArray); // Data di-clone → lambat
+
+// TRANSFER — data dipindahkan, sangat cepat
+const buffer = new ArrayBuffer(1024 * 1024); // 1MB
+worker.postMessage(buffer, [buffer]);
+// buffer sekarang "neutered" (kosong) di sender
+console.log(buffer.byteLength); // → 0 (sudah dipindahkan!)
+
+// ===== Contoh: Proses Data Gambar =====
+async function processImageInWorker(imageData) {
+    const worker = new Worker('image-worker.js');
+
+    return new Promise((resolve) => {
+        // Kirim data gambar dengan transfer (zero-copy!)
+        const buffer = imageData.data.buffer;
+
+        worker.postMessage(
+            { type: 'process', data: buffer },
+            [buffer] // Transfer list — buffer dipindahkan!
+        );
+
+        worker.onmessage = (event) => {
+            const { processedBuffer, width, height } = event.data;
+
+            // Terima hasil dan buat ImageData baru
+            const result = new ImageData(
+                new Uint8ClampedArray(processedBuffer),
+                width,
+                height
+            );
+
+            worker.terminate();
+            resolve(result);
+        };
+    });
+}</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — image-worker.js</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== image-worker.js =====
+self.onmessage = function(event) {
+    const { type, data } = event.data;
+
+    if (type === 'process') {
+        const pixels = new Uint8ClampedArray(data);
+
+        // Proses setiap pixel (contoh: grayscale)
+        for (let i = 0; i < pixels.length; i += 4) {
+            const avg = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+            pixels[i] = avg;     // R
+            pixels[i + 1] = avg; // G
+            pixels[i + 2] = avg; // B
+            // pixels[i + 3] = Alpha (tidak diubah)
+        }
+
+        // Kirim hasil dengan transfer
+        self.postMessage(
+            {
+                processedBuffer: data,
+                width: event.data.width || 0,
+                height: event.data.height || 0
+            },
+            [data] // Transfer kembali!
+        );
+    }
+};</pre>
+      </div>
+
+      <h3>Tipe Transferable yang Didukung</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Tipe</th>
+            <th>Penggunaan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>ArrayBuffer</td><td>Binary data — gambar, audio, video buffer</td></tr>
+          <tr><td>MessagePort</td><td>Port untuk MessageChannel</td></tr>
+          <tr><td>OffscreenCanvas</td><td>Canvas rendering di worker</td></tr>
+          <tr><td>ReadableStream</td><td>Stream data baca</td></tr>
+          <tr><td>WritableStream</td><td>Stream data tulis</td></tr>
+          <tr><td>TransformStream</td><td>Stream transform data</td></tr>
+          <tr><td>ImageBitmap</td><td>Decoded image data</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Inline Workers       -->
+      <!-- ============================== -->
+      <h2 id="inline-worker">6. Inline Workers (Blob URL)</h2>
+
+      <p>Tidak selalu perlu file terpisah untuk worker. Anda bisa membuat worker dari <strong>Blob URL</strong> — cocok untuk worker yang kecil atau dibuat dinamis.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Inline Worker dari Blob</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== Inline Worker dari String =====
+const workerCode = `
+    self.onmessage = function(event) {
+        const { num } = event.data;
+
+        // Fungsi fibonacci berat
+        function fib(n) {
+            if (n <= 1) return n;
+            return fib(n - 1) + fib(n - 2);
+        }
+
+        const result = fib(num);
+        self.postMessage({ num, result });
+    };
+`;
+
+// Buat Blob dari kode string
+const blob = new Blob([workerCode], { type: 'application/javascript' });
+const blobURL = URL.createObjectURL(blob);
+
+// Buat worker dari Blob URL
+const worker = new Worker(blobURL);
+
+worker.postMessage({ num: 40 });
+worker.onmessage = function(event) {
+    console.log(`fib(${event.data.num}) = ${event.data.result}`);
+    URL.revokeObjectURL(blobURL); // Bersihkan URL
+    worker.terminate();
+};
+
+// ===== Inline Worker dari Function =====
+function createWorkerFromFunction(fn) {
+    const code = `(${fn.toString()})()`;
+    const blob = new Blob([code], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    const worker = new Worker(url);
+    URL.revokeObjectURL(url);
+    return worker;
+}
+
+const sortWorker = createWorkerFromFunction(function() {
+    self.onmessage = function(e) {
+        const data = e.data;
+        // Sort berat di worker
+        data.sort((a, b) => a - b);
+        self.postMessage(data);
+    };
+});
+
+sortWorker.postMessage([5, 3, 8, 1, 9, 2, 7, 4, 6]);
+sortWorker.onmessage = (e) => console.log('Sorted:', e.data);</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Error Handling       -->
+      <!-- ============================== -->
+      <h2 id="error-handling">7. Error Handling</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Error Handling di Workers</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== Menangkap Error dari Worker =====
+const worker = new Worker('risky-worker.js');
+
+// Method 1: onerror
+worker.onerror = function(event) {
+    console.error('Worker error:');
+    console.error('  Message:', event.message);
+    console.error('  File:', event.filename);
+    console.error('  Line:', event.lineno);
+    console.error('  Column:', event.colno);
+    event.preventDefault(); // Cegah error propagate ke window
+};
+
+// Method 2: addEventListener
+worker.addEventListener('error', (event) => {
+    console.error('Error di worker:', event.message);
+});
+
+// ===== Di dalam Worker: =====
+self.onerror = function(message, source, lineno, colno, error) {
+    console.error(`Worker error at ${source}:${lineno} — ${message}`);
+    // Kirim info error ke main thread
+    self.postMessage({
+        type: 'error',
+        message: message,
+        stack: error?.stack
+    });
+};
+
+// Atau gunakan try/catch
+self.onmessage = function(event) {
+    try {
+        const result = prosesData(event.data);
+        self.postMessage({ type: 'success', result });
+    } catch (error) {
+        self.postMessage({
+            type: 'error',
+            message: error.message,
+            stack: error.stack
+        });
+    }
+};</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Use Cases Nyata      -->
+      <!-- ============================== -->
+      <h2 id="use-cases">8. Use Cases Nyata</h2>
+
+      <h3>Kalkulasi Matematika Berat</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Prime Number Calculator</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== Cari Bilangan Prima — Proses di Worker =====
+// prime-worker.js
+self.onmessage = function(event) {
+    const { max } = event.data;
+    const primes = [];
+
+    function isPrime(n) {
+        if (n < 2) return false;
+        for (let i = 2; i <= Math.sqrt(n); i++) {
+            if (n % i === 0) return false;
+        }
+        return true;
+    }
+
+    for (let i = 2; i <= max; i++) {
+        if (isPrime(i)) {
+            primes.push(i);
+        }
+
+        // Progress update setiap 10000 iterasi
+        if (i % 10000 === 0) {
+            self.postMessage({
+                type: 'progress',
+                current: i,
+                max: max,
+                percent: Math.round((i / max) * 100)
+            });
+        }
+    }
+
+    self.postMessage({
+        type: 'complete',
+        primes: primes,
+        count: primes.length
+    });
+};
+
+// Main thread
+const primeWorker = new Worker('prime-worker.js');
+
+primeWorker.postMessage({ max: 1000000 });
+
+primeWorker.onmessage = function(event) {
+    if (event.data.type === 'progress') {
+        updateProgressBar(event.data.percent);
+    }
+    if (event.data.type === 'complete') {
+        console.log(`Ditemukan ${event.data.count} bilangan prima`);
+        primeWorker.terminate();
+    }
+};
+
+function updateProgressBar(percent) {
+    document.getElementById('progress').style.width = percent + '%';
+    document.getElementById('progress-text').textContent = percent + '%';
+}</pre>
+      </div>
+
+      <h3>Parsing JSON Besar</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — JSON Parser Worker</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== Parse JSON besar di worker agar UI tidak freeze =====
+function parseLargeJSON(jsonString) {
+    return new Promise((resolve, reject) => {
+        const worker = createWorkerFromFunction(function() {
+            self.onmessage = function(e) {
+                try {
+                    const data = JSON.parse(e.data);
+                    self.postMessage({ success: true, data });
+                } catch (err) {
+                    self.postMessage({ success: false, error: err.message });
+                }
+            };
+        });
+
+        worker.onmessage = function(e) {
+            worker.terminate();
+            if (e.data.success) {
+                resolve(e.data.data);
+            } else {
+                reject(new Error(e.data.error));
+            }
+        };
+
+        worker.onerror = function(e) {
+            worker.terminate();
+            reject(e);
+        };
+
+        worker.postMessage(jsonString);
+    });
+}
+
+// UI tetap responsif saat parse file besar!
+const response = await fetch('/data/massive-dataset.json');
+const text = await response.text();
+const data = await parseLargeJSON(text);
+console.log('Data diparse tanpa freeze!');</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Best Practices       -->
+      <!-- ============================== -->
+      <h2 id="best-practices">9. Best Practices</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Worker Wrapper dengan Promise</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// ===== Wrapper yang Clean untuk Worker =====
+class TaskWorker {
+    constructor(workerScript) {
+        this.worker = new Worker(workerScript);
+        this.taskId = 0;
+        this.pendingTasks = new Map();
+        this._setupListener();
+    }
+
+    _setupListener() {
+        this.worker.onmessage = (event) => {
+            const { taskId, result, error } = event.data;
+            const task = this.pendingTasks.get(taskId);
+
+            if (task) {
+                this.pendingTasks.delete(taskId);
+                if (error) {
+                    task.reject(new Error(error));
+                } else {
+                    task.resolve(result);
+                }
+            }
+        };
+
+        this.worker.onerror = (event) => {
+            event.preventDefault();
+            // Reject semua pending tasks
+            this.pendingTasks.forEach((task) => {
+                task.reject(new Error(event.message));
+            });
+            this.pendingTasks.clear();
+        };
+    }
+
+    run(data, transferables = []) {
+        return new Promise((resolve, reject) => {
+            const taskId = ++this.taskId;
+            this.pendingTasks.set(taskId, { resolve, reject });
+
+            this.worker.postMessage(
+                { taskId, data },
+                transferables
+            );
+        });
+    }
+
+    terminate() {
+        this.worker.terminate();
+        this.pendingTasks.forEach(task =>
+            task.reject(new Error('Worker terminated'))
+        );
+        this.pendingTasks.clear();
+    }
+}
+
+// Penggunaan:
+const worker = new TaskWorker('compute-worker.js');
+
+try {
+    const result = await worker.run({ type: 'heavy', data: bigArray });
+    console.log('Selesai:', result);
+} catch (err) {
+    console.error('Gagal:', err);
+}
+
+worker.terminate();</pre>
+      </div>
+
+      <h3>Checklist Best Practices</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr><th>Praktik</th><th>Penjelasan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Gunakan Transferable</td><td>Untuk data &gt; 100KB, gunakan transfer daripada clone</td></tr>
+          <tr><td>Worker Pool</td><td>Jangan buat worker baru untuk setiap tugas — reuse!</td></tr>
+          <tr><td>Terminate</td><td>Selalu terminate worker jika sudah tidak dibutuhkan</td></tr>
+          <tr><td>Error Handling</td><td>Selalu tangkap error dari worker</td></tr>
+          <tr><td>Progress Report</td><td>Kirim progress update untuk tugas berat</td></tr>
+          <tr><td>Minimize Data</td><td>Kirim hanya data yang diperlukan, bukan object besar</td></tr>
+          <tr><td>Feature Detection</td><td>Cek <code>typeof Worker</code> sebelum membuat worker</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article bottom -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quiz21">
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Bisakah Web Worker mengakses DOM halaman?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Ya, bisa mengakses semua elemen DOM</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Ya, tapi hanya bisa membaca, tidak bisa menulis</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Tidak, worker tidak bisa mengakses DOM</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Tergantung jenis browser</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa perbedaan utama antara Dedicated Worker dan Shared Worker?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Dedicated Worker lebih cepat dari Shared Worker</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Shared Worker bisa dibagi antar tab, Dedicated Worker tidak</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Dedicated Worker bisa mengakses DOM</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Tidak ada perbedaan</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi dari "transferable objects" di postMessage?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Mengenkripsi data saat dikirim</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Memindahkan data tanpa cloning untuk performa lebih cepat</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Mengkompresi data sebelum dikirim</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Mengubah tipe data otomatis</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa yang terjadi pada ArrayBuffer setelah ditransfer ke worker?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Tetap bisa diakses di main thread</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Menjadi "neutered" — byteLength menjadi 0</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Dihapus secara otomatis</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Menjadi read-only</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Method apa yang digunakan untuk komunikasi dari main thread ke worker?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) worker.send()</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) worker.emit()</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) worker.postMessage()</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) worker.dispatch()</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article bottom -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="javascript-proxy-reflect.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">JavaScript Proxy &amp; Reflect: Metaprogramming</span>
+        </a>
+        <a href="javascript-service-workers.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Service Workers: Offline &amp; PWA</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="../images/logo_beebane.png" alt="BeebaneLabs" class="footer-logo">
+          <p>Portal tutorial teknologi &amp; IT Indonesia. Pemrograman, IoT, cybersecurity, networking — mulai belajar gratis, konten original.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Kategori</h4>
+          <ul>
+            <li><a href="../kategori/iot.html">IoT &amp; Embedded</a></li>
+            <li><a href="../kategori/mikrotik.html">Networking</a></li>
+            <li><a href="../kategori/python.html">Pemrograman</a></li>
+            <li><a href="../kategori/keamanan.html">Cybersecurity</a></li>
+            <li><a href="../kategori/dashboard.html">Dashboard &amp; Cloud</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Populer</h4>
+          <ul>
+            <li><a href="esp32-fundamentals.html">Tutorial ESP32</a></li>
+            <li><a href="mikrotik-routing.html">Konfigurasi MikroTik</a></li>
+            <li><a href="lora-communication.html">Proyek LoRa</a></li>
+            <li><a href="dashboard-monitoring.html">Dashboard IoT</a></li>
+            <li><a href="mqtt-protocol.html">MQTT untuk Pemula</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Lainnya</h4>
+          <ul>
+            <li><a href="../about.html">Tentang Kami</a></li>
+            <li><a href="../privacy-policy.html">Kebijakan Privasi</a></li>
+            <li><a href="../contact.html">Kontak</a></li>
+            <li><a href="../rss.xml">RSS Feed</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-social">
+          <a href="https://github.com/Beebane25" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <p>&copy; 2026 BeebaneLabs. Semua hak dilindungi.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== BACK TO TOP ========== -->
+  <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
+
+  <!-- ========== SCRIPTS ========== -->
+  <script src="../js/app.js?v=8.0"></script>
+  <script src="../js/mobile-zoom.js?v=9.2"></script>
+  <script>
+    initQuiz('quiz21', ['c', 'b', 'b', 'b', 'c']);
+  </script>
+<button class="theme-toggle-floating" onclick="ThemeToggle.toggle()" title="Ganti tema">☀️</button>
+<!-- MOBILE QUICK MENU -->
+  <div id="quickMenuBackdrop" class="quick-menu-backdrop" onclick="MobileQuickMenu.close()"></div>
+  <button id="quickMenuBtn" class="quick-menu-btn" onclick="MobileQuickMenu.toggle()" title="Menu">⚙️</button>
+  <div id="quickMenuPanel" class="quick-menu-panel">
+    <div class="quick-menu-section">
+      <span class="quick-menu-label">🔍 Zoom</span>
+      <div class="quick-menu-row">
+        <button onclick="MobileQuickMenu.zoomOut()">−</button>
+        <span id="quickMenuZoomLevel" class="zoom-level">100%</span>
+        <button onclick="MobileQuickMenu.zoomIn()">+</button>
+        <button onclick="MobileQuickMenu.resetZoom()" style="font-size:0.8rem">↺</button>
+      </div>
+    </div>
+    <div class="quick-menu-section">
+      <span class="quick-menu-label">🎨 Tema</span>
+      <button class="quick-menu-row quick-menu-theme-btn" onclick="MobileQuickMenu.toggleTheme()">
+        <span id="quickMenuThemeIcon">☀️</span> <span>Ganti Tema</span>
+      </button>
+    </div>
+  </div>
+</body>
+</html>
