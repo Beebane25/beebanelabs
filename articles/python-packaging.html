@@ -234,9 +234,6 @@ pip show flask
 # Summary: A simple framework for building web applications.
 # Location: /path/to/lib/python3.12/site-packages
 
-# Cari package di PyPI
-pip search "web framework"  # (dinonaktifkan, gunakan pypi.org)
-
 # Freeze requirements (export dependencies)
 pip freeze > requirements.txt
 # Output format:
@@ -511,7 +508,7 @@ python -m build
 
 # Output:
 # Successfully built my-awesome-library-1.0.0.tar.gz
-#                 and my-awesome_library-1.0.0-py3-none-any.whl
+#                 and my_awesome_library-1.0.0-py3-none-any.whl
 
 # Struktur output:
 # dist/
@@ -566,7 +563,7 @@ def main():
     if args.output:
         with open(args.output, 'w') as f:
             f.write(hasil)
-        print(f"✅ Output disimpan ke {args.output}")
+        print(f"Output disimpan ke {args.output}")
     else:
         print(hasil)
 
@@ -604,10 +601,9 @@ pip install twine
 
 # Verifikasi package sebelum upload
 twine check dist/*
-# Output: PASSED 'dist/my_awesome_library-1.0.0-py3-none-any.whl'
+# Output: PASSED dist/my_awesome_library-1.0.0-py3-none-any.whl
 
 # Upload ke TestPyPI dulu (testing)
-pip install twine
 twine upload --repository testpypi dist/*
 
 # Upload ke PyPI (production)
@@ -688,7 +684,7 @@ WORKDIR /app
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    && rm -rf /var/lib/apt/lists/*
+    &amp;&amp; rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
 COPY requirements.txt .
@@ -743,18 +739,14 @@ services:
       - "5000:5000"
     environment:
       - DATABASE_URL=postgresql://postgres:secret@db:5432/myapp
-      - SECRET_KEY=your-secret-key-here
+      - SECRET_KEY=my-secret-key-change-this
       - REDIS_URL=redis://redis:6379/0
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    volumes:
-      - ./uploads:/app/uploads
-    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
 
   db:
-    image: postgres:15-alpine
+    image: postgres:15
     environment:
       - POSTGRES_DB=myapp
       - POSTGRES_USER=postgres
@@ -763,18 +755,12 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
 
-  # Celery worker (async tasks)
   worker:
     build: .
     command: celery -A app.celery worker --loglevel=info
@@ -829,12 +815,12 @@ docker run -p 5000:5000 my-python-app:latest
 
 # Jalankan dengan docker-compose
 docker-compose up -d           # Background
-docker-compose up --build      # Rebuild & start
-docker-compose down            # Stop & remove
+docker-compose up --build      # Rebuild and start
+docker-compose down            # Stop and remove
 docker-compose logs -f web     # Lihat logs
 
 # Masuk ke container (debugging)
-docker exec -it <container_id> /bin/bash
+docker exec -it container_id /bin/bash
 
 # Cek ukuran image
 docker images my-python-app
@@ -843,6 +829,11 @@ docker system df               # Cek disk usage Docker
 # Cleanup
 docker system prune -a         # Hapus semua yang tidak terpakai
 </pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Docker Python</div>
+        <p>Gunakan <code>python:3.12-slim</code> sebagai base image (bukan <code>python:3.12</code> yang full) untuk mengurangi ukuran image. Selalu gunakan <code>--no-cache-dir</code> saat pip install di Docker. Gunakan multi-stage build untuk production image yang lebih kecil.</p>
       </div>
 
       <!-- AD SLOT -->
@@ -903,7 +894,7 @@ poetry publish
             <th>Tool</th>
             <th>Lock File</th>
             <th>Kecepatan</th>
-            <th>Build-in Build</th>
+            <th>Built-in Build</th>
             <th>Learning Curve</th>
           </tr>
         </thead>
@@ -935,56 +926,56 @@ poetry publish
 
         <!-- Pertanyaan 1 -->
         <div class="quiz-question">
-          <h3>Pertanyaan 1: Apa fungsi dari virtual environment (venv)?</h3>
+          <h3>Pertanyaan 1: Apa itu PyPI?</h3>
           <div class="quiz-options">
-            <div class="quiz-option" data-question="0" data-answer="a">a) Mempercepat instalasi package Python</div>
-            <div class="quiz-option" data-question="0" data-answer="b">b) Mengisolasi dependencies proyek agar tidak konflik dengan proyek lain</div>
-            <div class="quiz-option" data-question="0" data-answer="c">c) Mengenkripsi kode Python</div>
-            <div class="quiz-option" data-question="0" data-answer="d">d) Menyimpan backup kode Python</div>
+            <div class="quiz-option" data-question="0" data-answer="a">a) Python Package Installer — tool untuk menginstal package</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Python Package Index — repositori online untuk package Python</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Python Programming Interface — API untuk Python</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Python Package Integration — tool untuk integrasi package</div>
           </div>
         </div>
 
         <!-- Pertanyaan 2 -->
         <div class="quiz-question">
-          <h3>Pertanyaan 2: Apa itu file <code>pyproject.toml</code>?</h3>
+          <h3>Pertanyaan 2: Mengapa virtual environment penting?</h3>
           <div class="quiz-options">
-            <div class="quiz-option" data-question="1" data-answer="a">a) File konfigurasi database</div>
-            <div class="quiz-option" data-question="1" data-answer="b">b) File konfigurasi standar untuk proyek Python yang mendefinisikan metadata, dependencies, dan tool settings</div>
-            <div class="quiz-option" data-question="1" data-answer="c">c) File yang hanya berisi daftar package</div>
-            <div class="quiz-option" data-question="1" data-answer="d">d) File khusus untuk CI/CD</div>
+            <div class="quiz-option" data-question="1" data-answer="a">a) Agar Python berjalan lebih cepat</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Untuk mengisolasi dependensi setiap proyek dan menghindari konflik versi</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Untuk mengenkripsi kode Python</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Tidak penting, hanya opsional</div>
           </div>
         </div>
 
         <!-- Pertanyaan 3 -->
         <div class="quiz-question">
-          <h3>Pertanyaan 3: Apa perbedaan antara wheel (.whl) dan sdist (.tar.gz)?</h3>
+          <h3>Pertanyaan 3: Apa perbedaan antara .whl dan .tar.gz?</h3>
           <div class="quiz-options">
-            <div class="quiz-option" data-question="2" data-answer="a">a) Wheel lebih besar dari sdist</div>
-            <div class="quiz-option" data-question="2" data-answer="b">b) Wheel adalah format binary (cepat diinstal), sdist adalah source distribution (perlu di-build saat instal)</div>
+            <div class="quiz-option" data-question="2" data-answer="a">a) .whl lebih besar ukurannya dari .tar.gz</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) .whl adalah format binary (cepat diinstal), .tar.gz adalah source distribution</div>
             <div class="quiz-option" data-question="2" data-answer="c">c) Tidak ada perbedaan</div>
-            <div class="quiz-option" data-question="2" data-answer="d">d) Wheel untuk Windows, sdist untuk Linux</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) .tar.gz hanya untuk Linux</div>
           </div>
         </div>
 
         <!-- Pertanyaan 4 -->
         <div class="quiz-question">
-          <h3>Pertanyaan 4: Perintah apa yang digunakan untuk mengupload package ke PyPI?</h3>
+          <h3>Pertanyaan 4: File apa yang menggantikan setup.py dalam packaging modern?</h3>
           <div class="quiz-options">
-            <div class="quiz-option" data-question="3" data-answer="a">a) <code>pip upload dist/*</code></div>
-            <div class="quiz-option" data-question="3" data-answer="b">b) <code>python -m upload</code></div>
-            <div class="quiz-option" data-question="3" data-answer="c">c) <code>twine upload dist/*</code></div>
-            <div class="quiz-option" data-question="3" data-answer="d">d) <code>pyproject publish</code></div>
+            <div class="quiz-option" data-question="3" data-answer="a">a) setup.cfg</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) requirements.txt</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) pyproject.toml</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) MANIFEST.in</div>
           </div>
         </div>
 
         <!-- Pertanyaan 5 -->
         <div class="quiz-question">
-          <h3>Pertanyaan 5: Mengapa Docker bermanfaat untuk aplikasi Python?</h3>
+          <h3>Pertanyaan 5: Mengapa menggunakan multi-stage build dalam Dockerfile Python?</h3>
           <div class="quiz-options">
-            <div class="quiz-option" data-question="4" data-answer="a">a) Membuat kode Python berjalan lebih cepat</div>
-            <div class="quiz-option" data-question="4" data-answer="b">b) Mengemas aplikasi beserta semua dependensinya agar berjalan konsisten di mana saja</div>
-            <div class="quiz-option" data-question="4" data-answer="c">c) Menggantikan kebutuhan virtual environment</div>
-            <div class="quiz-option" data-question="4" data-answer="d">d) Hanya berguna untuk aplikasi web</div>
+            <div class="quiz-option" data-question="4" data-answer="a">a) Agar kode Python berjalan lebih cepat</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Untuk mengurangi ukuran final image dengan tidak menyertakan build tools</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Agar bisa menjalankan beberapa Python sekaligus</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Untuk mengenkripsi source code</div>
           </div>
         </div>
 
@@ -1007,7 +998,7 @@ poetry publish
         </a>
         <a href="python-fastapi.html" class="next">
           <span class="nav-label">Selanjutnya →</span>
-          <span class="nav-title">FastAPI: REST API Modern dengan Python</span>
+          <span class="nav-title">FastAPI: REST API Modern Python</span>
         </a>
       </div>
 
