@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08090a">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes">
+  <title>AWS S3: Object Storage | BeebaneLabs</title>
+  <meta name="description" content="Tutorial lengkap AWS S3 — buckets, object lifecycle, policies, presigned URLs, versioning, static hosting, dan best practices keamanan.">
+  <meta name="keywords" content="AWS, S3, Simple Storage Service, Object Storage, Bucket, IAM Policy, Presigned URL, Cloud Storage, AWS Tutorial">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="og:title" content="AWS S3: Object Storage">
+  <meta property="og:description" content="Tutorial komprehensif AWS S3 — buckets, policies, lifecycle, presigned URLs, dan best practices keamanan.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://beebanelabs.pages.dev/articles/aws-s3-storage.html">
+  <meta property="og:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AWS S3: Object Storage">
+  <meta name="twitter:description" content="Tutorial komprehensif AWS S3 — buckets, policies, lifecycle, presigned URLs, dan best practices keamanan.">
+  <meta name="twitter:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta property="article:published_time" content="2026-06-26">
+  <meta property="article:section" content="DevOps & Cloud">
+  <meta property="article:tag" content="AWS">
+  <meta property="article:tag" content="S3">
+  <meta property="article:tag" content="Cloud Storage">
+  <meta property="article:tag" content="DevOps">
+  <link rel="canonical" href="https://beebanelabs.pages.dev/articles/aws-s3-storage.html">
+  <link rel="stylesheet" href="../css/style.css?v=9.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "AWS S3: Object Storage",
+    "description": "Tutorial komprehensif AWS S3 — buckets, policies, lifecycle, presigned URLs, dan best practices keamanan.",
+    "author": { "@type": "Organization", "name": "BeebaneLabs" },
+    "datePublished": "2026-06-26",
+    "publisher": { "@type": "Organization", "name": "BeebaneLabs" }
+  }
+  </script>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+  <div class="reading-progress-bar" id="readingProgress"></div>
+
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="navbar-brand"><img src="../images/logo_beebane.png" alt="BeebaneLabs" class="brand-logo"></a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="../index.html">Beranda</a></li>
+        <li><a href="../kategori.html">Kategori</a></li>
+        <li><a href="../kategori.html">Artikel</a></li>
+        <li><a href="../pricing.html">Harga</a></li>
+      </ul>
+      <div class="navbar-search" id="searchTrigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Cari tutorial...</span><kbd>/</kbd>
+      </div>
+      <div id="authNavArea"></div>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." autocomplete="off">
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Tekan <kbd>Esc</kbd> untuk menutup</div></div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a><span class="separator">/</span>
+        <a href="../index.html#categories">DevOps & Cloud</a><span class="separator">/</span>
+        <span class="current">AWS S3</span>
+      </div>
+      <span class="category-tag">DevOps & Cloud</span>
+      <h1>AWS S3: Object Storage</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Tutorial lengkap AWS S3 — buckets, object lifecycle, IAM policies, presigned URLs, versioning, static website hosting, replication, dan best practices keamanan</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty pemula">Pemula - Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-s3">Pengenalan AWS S3</a></li>
+          <li><a href="#membuat-bucket">Membuat &amp; Mengelola Bucket</a></li>
+          <li><a href="#objects">Objects: Upload &amp; Manage</a></li>
+          <li><a href="#storage-classes">Storage Classes</a></li>
+          <li><a href="#versioning">Versioning</a></li>
+          <li><a href="#lifecycle">Lifecycle Management</a></li>
+          <li><a href="#policies">IAM Policies &amp; Bucket Policies</a></li>
+          <li><a href="#presigned-urls">Presigned URLs</a></li>
+          <li><a href="#static-hosting">Static Website Hosting</a></li>
+          <li><a href="#encryption">Encryption &amp; Keamanan</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz-s3">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-s3">1. Pengenalan AWS S3</h2>
+
+      <p><strong>Amazon Simple Storage Service (S3)</strong> adalah layanan object storage yang disediakan oleh Amazon Web Services (AWS). S3 dirancang untuk menyimpan dan mengambil data dalam jumlah besar — dari beberapa byte hingga 5 TB per object — dengan durability 99.999999999% (11 nines).</p>
+
+      <p>S3 menggunakan model <strong>key-value store</strong> dimana setiap object disimpan dengan key (nama file) unik di dalam sebuah <strong>bucket</strong> (container). S3 menawarkan virtually unlimited storage, high availability, dan berbagai fitur keamanan yang membuatnya menjadi standar industri untuk cloud storage.</p>
+
+      <h3>Mengapa S3 Penting?</h3>
+      <table class="net-table">
+        <thead>
+          <tr><th>Keunggulan</th><th>Penjelasan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Durability</td><td>99.999999999% (11 nines) — data hampir tidak mungkin hilang</td></tr>
+          <tr><td>Availability</td><td>99.99% — selalu bisa diakses kapan saja</td></tr>
+          <tr><td>Scalability</td><td>Tanpa batas — dari byte hingga exabytes</td></tr>
+          <tr><td>Security</td><td>Enkripsi at-rest dan in-transit, fine-grained access control</td></tr>
+          <tr><td>Performance</td><td>High throughput, low latency untuk semua storage class</td></tr>
+          <tr><td>Cost-Effective</td><td>Pay-as-you-go, tiered pricing berdasarkan akses pattern</td></tr>
+          <tr><td>Integration</td><td>Terintegrasi dengan seluruh layanan AWS (Lambda, CloudFront, dll)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Arsitektur AWS S3</div>
+<pre>
+┌──────────────────────────────────────────────────────────────┐
+│                     AWS S3 ARCHITECTURE                       │
+│                                                              │
+│  ┌──────────┐    ┌──────────────┐    ┌───────────────────┐  │
+│  │ Client   │    │  S3 API      │    │  S3 Buckets       │  │
+│  │ (App/    │───►│  (REST)      │───►│                   │  │
+│  │  Browser)│    │              │    │  ┌──────────────┐ │  │
+│  └──────────┘    └──────────────┘    │  │ Bucket A     │ │  │
+│                                      │  │ /photos/     │ │  │
+│  ┌──────────┐                       │  │ /documents/  │ │  │
+│  │ AWS CLI  │───────────────────────►│  └──────────────┘ │  │
+│  └──────────┘                       │                   │  │
+│                                      │  ┌──────────────┐ │  │
+│  ┌──────────┐                       │  │ Bucket B     │ │  │
+│  │ AWS SDK  │───────────────────────►│  │ /backups/    │ │  │
+│  │ (boto3)  │                       │  │ /logs/       │ │  │
+│  └──────────┘                       │  └──────────────┘ │  │
+│                                      └───────────────────┘  │
+│                                                              │
+│  Setiap object disimpan di minimal 3 AZ                     │
+│  → Durability 99.999999999% (11 nines)                      │
+└──────────────────────────────────────────────────────────────┘
+</pre>
+      </div>
+
+      <p>Konsep dasar S3:</p>
+      <ul>
+        <li><strong>Bucket</strong> — container untuk objects (seperti folder root)</li>
+        <li><strong>Object</strong> — file yang disimpan (data + metadata + key)</li>
+        <li><strong>Key</strong> — nama unik untuk setiap object di dalam bucket</li>
+        <li><strong>Region</strong> — lokasi geografis dimana bucket dibuat</li>
+        <li><strong>ARN</strong> — Amazon Resource Name untuk identifikasi resource</li>
+      </ul>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Membuat Bucket       -->
+      <!-- ============================== -->
+      <h2 id="membuat-bucket">2. Membuat &amp; Mengelola Bucket</h2>
+
+      <h3>Menggunakan AWS CLI</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Pastikan AWS CLI sudah dikonfigurasi
+aws configure
+# AWS Access Key ID: AKIAIOSFODNN7EXAMPLE
+# AWS Secret Access Key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+# Default region name: ap-southeast-1
+# Default output format: json
+
+# Buat bucket baru
+aws s3api create-bucket \
+  --bucket my-app-storage-2026 \
+  --region ap-southeast-1 \
+  --create-bucket-configuration LocationConstraint=ap-southeast-1
+
+# List semua buckets
+aws s3 ls
+
+# Lihat detail bucket
+aws s3api get-bucket-location --bucket my-app-storage-2026
+aws s3api head-bucket --bucket my-app-storage-2026
+
+# Hapus bucket (harus kosong dulu)
+aws s3 rb s3://my-app-storage-2026
+
+# Hapus bucket beserta semua isinya (FORCE)
+aws s3 rb s3://my-app-storage-2026 --force
+</pre>
+      </div>
+
+      <h3>Menggunakan Python (boto3)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>import boto3
+
+# Inisialisasi S3 client
+s3 = boto3.client('s3', region_name='ap-southeast-1')
+
+# Buat bucket
+s3.create_bucket(
+    Bucket='my-app-storage-2026',
+    CreateBucketConfiguration={
+        'LocationConstraint': 'ap-southeast-1'
+    }
+)
+
+# List semua buckets
+response = s3.list_buckets()
+for bucket in response['Buckets']:
+    print(f"Bucket: {bucket['Name']}, Created: {bucket['CreationDate']}")
+
+# Cek apakah bucket ada
+def bucket_exists(bucket_name):
+    try:
+        s3.head_bucket(Bucket=bucket_name)
+        return True
+    except:
+        return False
+
+print(bucket_exists('my-app-storage-2026'))  # True
+
+# Hapus bucket
+s3.delete_bucket(Bucket='my-app-storage-2026')
+</pre>
+      </div>
+
+      <h3>Pengaturan Bucket Penting</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Block public access (keamanan default)
+aws s3api put-public-access-block \
+  --bucket my-app-storage-2026 \
+  --public-access-block-configuration \
+    BlockPublicAcls=true,\
+    IgnorePublicAcls=true,\
+    BlockPublicPolicy=true,\
+    RestrictPublicBuckets=true
+
+# Enable default encryption (AES-256)
+aws s3api put-bucket-encryption \
+  --bucket my-app-storage-2026 \
+  --server-side-encryption-configuration '{
+    "Rules": [
+      {
+        "ApplyServerSideEncryptionByDefault": {
+          "SSEAlgorithm": "aws:kms"
+        },
+        "BucketKeyEnabled": true
+      }
+    ]
+  }'
+
+# Enable access logging
+aws s3api put-bucket-logging \
+  --bucket my-app-storage-2026 \
+  --bucket-logging-status '{
+    "LoggingEnabled": {
+      "TargetBucket": "my-s3-access-logs",
+      "TargetPrefix": "my-app-storage-2026/"
+    }
+  }'
+
+# Set CORS configuration
+aws s3api put-bucket-cors \
+  --bucket my-app-storage-2026 \
+  --cors-configuration '{
+    "CORSRules": [
+      {
+        "AllowedHeaders": ["*"],
+        "AllowedMethods": ["GET", "PUT", "POST"],
+        "AllowedOrigins": ["https://app.example.com"],
+        "ExposeHeaders": ["ETag"],
+        "MaxAgeSeconds": 3600
+      }
+    ]
+  }'
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Objects              -->
+      <!-- ============================== -->
+      <h2 id="objects">3. Objects: Upload &amp; Manage</h2>
+
+      <h3>Upload Files</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Upload file biasa
+aws s3 cp ./photo.jpg s3://my-app-storage-2026/photos/photo.jpg
+
+# Upload dengan metadata
+aws s3 cp ./document.pdf s3://my-app-storage-2026/docs/ \
+  --metadata '{"author":"BeebaneLabs","category":"tutorial"}'
+
+# Upload dengan content-type
+aws s3 cp ./style.css s3://my-app-storage-2026/css/style.css \
+  --content-type "text/css"
+
+# Upload seluruh direktori (recursive)
+aws s3 sync ./public/ s3://my-app-storage-2026/website/ \
+  --exclude "*.tmp" \
+  --exclude ".git/*"
+
+# Upload dengan progress
+aws s3 cp ./large-file.zip s3://my-app-storage-2026/ \
+  --only-show-errors
+
+# Upload dengan storage class
+aws s3 cp ./archive.tar.gz s3://my-app-storage-2026/archives/ \
+  --storage-class GLACIER
+
+# Multipart upload untuk file besar (&gt;100MB)
+aws s3 cp ./huge-file.zip s3://my-app-storage-2026/ \
+  --expected-size 5368709120
+</pre>
+      </div>
+
+      <h3>Download &amp; Manage Files</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Download file
+aws s3 cp s3://my-app-storage-2026/photos/photo.jpg ./downloaded.jpg
+
+# Download seluruh direktori
+aws s3 sync s3://my-app-storage-2026/website/ ./website-backup/
+
+# List objects di bucket
+aws s3 ls s3://my-app-storage-2026/
+
+# List objects dengan prefix
+aws s3 ls s3://my-app-storage-2026/photos/ --recursive
+
+# List objects dengan ukuran
+aws s3api list-objects-v2 \
+  --bucket my-app-storage-2026 \
+  --query 'Contents[].{Key: Key, Size: Size, Modified: LastModified}' \
+  --output table
+
+# Hapus object
+aws s3 rm s3://my-app-storage-2026/photos/old-photo.jpg
+
+# Hapus semua objects dengan prefix
+aws s3 rm s3://my-app-storage-2026/temp/ --recursive
+
+# Pindahkan object (copy + delete)
+aws s3 mv s3://my-app-storage-2026/temp/file.txt \
+  s3://my-app-storage-2026/archive/file.txt
+
+# Copy antar bucket
+aws s3 sync s3://source-bucket/ s3://destination-bucket/
+</pre>
+      </div>
+
+      <h3>Menggunakan Python (boto3)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>import boto3
+from botocore.exceptions import ClientError
+
+s3 = boto3.client('s3')
+BUCKET = 'my-app-storage-2026'
+
+# Upload file
+def upload_file(file_path, s3_key):
+    try:
+        s3.upload_file(
+            file_path, BUCKET, s3_key,
+            ExtraArgs={
+                'ContentType': 'image/jpeg',
+                'Metadata': {
+                    'uploaded-by': 'beebanelabs',
+                    'purpose': 'tutorial'
+                }
+            }
+        )
+        print(f"Uploaded: {s3_key}")
+        return True
+    except ClientError as e:
+        print(f"Error: {e}")
+        return False
+
+# Upload dari memory (tanpa file)
+import io
+def upload_from_memory(data, s3_key, content_type='text/plain'):
+    s3.put_object(
+        Bucket=BUCKET,
+        Key=s3_key,
+        Body=data,
+        ContentType=content_type
+    )
+
+# Download file
+def download_file(s3_key, local_path):
+    s3.download_file(BUCKET, s3_key, local_path)
+
+# List objects
+def list_objects(prefix=''):
+    response = s3.list_objects_v2(
+        Bucket=BUCKET,
+        Prefix=prefix
+    )
+    for obj in response.get('Contents', []):
+        print(f"{obj['Key']} — {obj['Size']} bytes — {obj['LastModified']}")
+
+# Generate presigned URL
+def get_presigned_url(s3_key, expiration=3600):
+    url = s3.generate_presigned_url(
+        'get_object',
+        Params={'Bucket': BUCKET, 'Key': s3_key},
+        ExpiresIn=expiration
+    )
+    return url
+
+# Multipart upload untuk file besar
+from boto3.s3.transfer import TransferConfig
+
+config = TransferConfig(
+    multipart_threshold=1024 * 1024 * 100,  # 100MB
+    max_concurrency=10,
+    multipart_chunksize=1024 * 1024 * 100
+)
+
+s3.upload_file(
+    'large-file.zip', BUCKET, 'uploads/large-file.zip',
+    Config=config
+)
+
+# Contoh penggunaan
+upload_file('./photo.jpg', 'photos/photo.jpg')
+download_file('photos/photo.jpg', './downloaded.jpg')
+list_objects('photos/')
+print(get_presigned_url('photos/photo.jpg'))
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Storage Classes      -->
+      <!-- ============================== -->
+      <h2 id="storage-classes">4. Storage Classes</h2>
+
+      <p>AWS S3 menyediakan beberapa storage class yang dioptimalkan untuk berbagai use case dan akses pattern. Memilih storage class yang tepat bisa menghemat biaya secara signifikan.</p>
+
+      <h3>Perbandingan Storage Classes</h3>
+      <table class="net-table">
+        <thead>
+          <tr><th>Storage Class</th><th>Akses</th><th>Availability</th><th>Min Duration</th><th>Harga/GB/Bulan*</th><th>Best For</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>S3 Standard</td><td>Frequently</td><td>99.99%</td><td>-</td><td>$0.023</td><td>Hot data, web apps, content delivery</td></tr>
+          <tr><td>S3 Intelligent-Tiering</td><td>Unknown/Changing</td><td>99.9%</td><td>-</td><td>$0.023 + monitoring</td><td>Unknown access patterns</td></tr>
+          <tr><td>S3 Standard-IA</td><td>Infrequent</td><td>99.9%</td><td>30 hari</td><td>$0.0125</td><td>Backups, disaster recovery</td></tr>
+          <tr><td>S3 One Zone-IA</td><td>Infrequent</td><td>99.5%</td><td>30 hari</td><td>$0.01</td><td>Recreatable data, secondary backups</td></tr>
+          <tr><td>S3 Glacier Instant</td><td>Rare (ms retrieval)</td><td>99.9%</td><td>90 hari</td><td>$0.004</td><td>Archive yang perlu akses cepat</td></tr>
+          <tr><td>S3 Glacier Flexible</td><td>Archive (min 1min)</td><td>99.99%</td><td>90 hari</td><td>$0.0036</td><td>Long-term archive</td></tr>
+          <tr><td>S3 Glacier Deep Archive</td><td>Cold (12hr retrieval)</td><td>99.99%</td><td>180 hari</td><td>$0.00099</td><td>Compliance, long-term retention</td></tr>
+          <tr><td>S3 Express One Zone</td><td>Frequently (single AZ)</td><td>99.95%</td><td>-</td><td>$0.16</td><td>Ultra-low latency, ML training</td></tr>
+        </tbody>
+      </table>
+      <p><em>* Harga untuk region US East, bisa berbeda di region lain</em></p>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Gunakan <strong>S3 Intelligent-Tiering</strong> jika Anda tidak yakin pola akses data. Layanan ini otomatis memindahkan data ke tier yang lebih murah jika tidak diakses selama 30 hari, tanpa biaya retrieval penalty.</p>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Upload dengan storage class tertentu
+aws s3 cp ./archive.tar.gz s3://my-bucket/ --storage-class GLACIER
+
+# Cek storage class object
+aws s3api head-object --bucket my-bucket --key archive.tar.gz \
+  --query 'StorageClass'
+
+# Pindahkan object ke storage class berbeda (copy ke diri sendiri)
+aws s3api copy-object \
+  --bucket my-bucket \
+  --key archive.tar.gz \
+  --copy-source my-bucket/archive.tar.gz \
+  --storage-class STANDARD_IA \
+  --metadata-directive COPY
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Versioning           -->
+      <!-- ============================== -->
+      <h2 id="versioning">5. Versioning</h2>
+
+      <p><strong>Versioning</strong> memungkinkan Anda menyimpan multiple versi dari setiap object. Ini sangat penting untuk melindungi data dari penghapusan atau overwrite yang tidak disengaja.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Enable versioning
+aws s3api put-bucket-versioning \
+  --bucket my-app-storage-2026 \
+  --versioning-configuration Status=Enabled
+
+# Cek status versioning
+aws s3api get-bucket-versioning --bucket my-app-storage-2026
+# {
+#     "Status": "Enabled",
+#     "MFADelete": "Disabled"
+# }
+
+# List semua versi object
+aws s3api list-object-versions \
+  --bucket my-app-storage-2026 \
+  --prefix "photos/photo.jpg"
+# {
+#     "Versions": [
+#         {"Key": "photos/photo.jpg", "VersionId": "v3_abc123", ...},
+#         {"Key": "photos/photo.jpg", "VersionId": "v2_def456", ...},
+#         {"Key": "photos/photo.jpg", "VersionId": "v1_ghi789", ...}
+#     ]
+# }
+
+# Download versi spesifik
+aws s3api get-object \
+  --bucket my-app-storage-2026 \
+  --key photos/photo.jpg \
+  --version-id v2_def456 \
+  ./photo-v2.jpg
+
+# Hapus versi spesifik (permanent delete)
+aws s3api delete-object \
+  --bucket my-app-storage-2026 \
+  --key photos/photo.jpg \
+  --version-id v3_abc123
+
+# Suspend versioning (tidak menghapus versi lama)
+aws s3api put-bucket-versioning \
+  --bucket my-app-storage-2026 \
+  --versioning-configuration Status=Suspended
+</pre>
+      </div>
+
+      <h3>MFA Delete</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Enable MFA Delete (membutuhkan root account)
+# Memerlukan MFA token untuk menghapus versi atau mengubah versioning
+aws s3api put-bucket-versioning \
+  --bucket my-app-storage-2026 \
+  --versioning-configuration Status=Enabled,MFADelete=Enabled \
+  --mfa "arn:aws:iam::123456789012:mfa/root-account-mfa-device 123456"
+</pre>
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: S3 Versioning</div>
+<pre>
+┌──────────────────────────────────────────────────────────────┐
+│                    S3 VERSIONING                              │
+│                                                              │
+│  Bucket: my-app-storage-2026                                │
+│  Versioning: Enabled                                         │
+│                                                              │
+│  Key: photos/photo.jpg                                      │
+│  ┌────────────────────────────────────────────┐             │
+│  │  v3 (latest)  │ content_v3.jpg │ 2026-06-26│             │
+│  │  v2           │ content_v2.jpg │ 2026-06-20│             │
+│  │  v1           │ content_v1.jpg │ 2026-06-15│             │
+│  └────────────────────────────────────────────┘             │
+│                                                              │
+│  Key: documents/report.pdf (DELETED)                        │
+│  ┌────────────────────────────────────────────┐             │
+│  │  v3 (delete   │ [delete marker]│ 2026-06-26│             │
+│  │   marker)     │               │            │             │
+│  │  v2           │ report_v2.pdf │ 2026-06-20│             │
+│  │  v1           │ report_v1.pdf │ 2026-06-15│             │
+│  └────────────────────────────────────────────┘             │
+│                                                              │
+│  Delete marker bisa dihapus untuk "restore" object           │
+└──────────────────────────────────────────────────────────────┘
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Lifecycle            -->
+      <!-- ============================== -->
+      <h2 id="lifecycle">6. Lifecycle Management</h2>
+
+      <p><strong>Lifecycle rules</strong> mengotomatiskan transisi object antar storage class dan penghapusan object yang sudah tidak diperlukan. Ini sangat penting untuk mengelola biaya storage.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>{
+  "Rules": [
+    {
+      "ID": "TransitionToIA",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "logs/"
+      },
+      "Transitions": [
+        {
+          "Days": 30,
+          "StorageClass": "STANDARD_IA"
+        },
+        {
+          "Days": 90,
+          "StorageClass": "GLACIER"
+        },
+        {
+          "Days": 365,
+          "StorageClass": "DEEP_ARCHIVE"
+        }
+      ],
+      "Expiration": {
+        "Days": 730
+      }
+    },
+    {
+      "ID": "CleanupTempFiles",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "temp/"
+      },
+      "Expiration": {
+        "Days": 7
+      }
+    },
+    {
+      "ID": "ManageOldVersions",
+      "Status": "Enabled",
+      "Filter": {},
+      "NoncurrentVersionTransitions": [
+        {
+          "NoncurrentDays": 30,
+          "StorageClass": "STANDARD_IA"
+        },
+        {
+          "NoncurrentDays": 90,
+          "StorageClass": "GLACIER"
+        }
+      ],
+      "NoncurrentVersionExpiration": {
+        "NoncurrentDays": 365
+      }
+    },
+    {
+      "ID": "RemoveIncompleteMultipart",
+      "Status": "Enabled",
+      "Filter": {},
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 7
+      }
+    }
+  ]
+}
+</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Terapkan lifecycle rules
+aws s3api put-bucket-lifecycle-configuration \
+  --bucket my-app-storage-2026 \
+  --lifecycle-configuration file://lifecycle.json
+
+# Lihat lifecycle rules
+aws s3api get-bucket-lifecycle-configuration \
+  --bucket my-app-storage-2026
+
+# Hapus lifecycle rules
+aws s3api delete-bucket-lifecycle \
+  --bucket my-app-storage-2026
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Policies             -->
+      <!-- ============================== -->
+      <h2 id="policies">7. IAM Policies &amp; Bucket Policies</h2>
+
+      <p>Keamanan S3 diatur melalui dua jenis policy: <strong>IAM Policy</strong> (attached ke user/role) dan <strong>Bucket Policy</strong> (attached ke bucket). Keduanya bekerja bersama untuk menentukan siapa yang bisa mengakses apa.</p>
+
+      <h3>Bucket Policy — Contoh Umum</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowAppReadAccess",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::123456789012:role/app-role"
+      },
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::my-app-storage-2026",
+        "arn:aws:s3:::my-app-storage-2026/*"
+      ]
+    },
+    {
+      "Sid": "DenyPublicAccess",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::my-app-storage-2026",
+        "arn:aws:s3:::my-app-storage-2026/*"
+      ],
+      "Condition": {
+        "Bool": {
+          "aws:SecureTransport": "false"
+        }
+      }
+    },
+    {
+      "Sid": "AllowCloudFrontAccess",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "cloudfront.amazonaws.com"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::my-app-storage-2026/public/*",
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceArn": "arn:aws:cloudfront::123456789012:distribution/E1234567890"
+        }
+      }
+    }
+  ]
+}
+</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Terapkan bucket policy
+aws s3api put-bucket-policy \
+  --bucket my-app-storage-2026 \
+  --policy file://bucket-policy.json
+
+# Lihat bucket policy
+aws s3api get-bucket-policy --bucket my-app-storage-2026
+
+# Hapus bucket policy
+aws s3api delete-bucket-policy --bucket my-app-storage-2026
+</pre>
+      </div>
+
+      <h3>IAM Policy untuk User/Role</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowS3Access",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::my-app-storage-2026",
+        "arn:aws:s3:::my-app-storage-2026/uploads/*",
+        "arn:aws:s3:::my-app-storage-2026/public/*"
+      ]
+    },
+    {
+      "Sid": "DenyDeleteProduction",
+      "Effect": "Deny",
+      "Action": "s3:DeleteObject",
+      "Resource": "arn:aws:s3:::my-app-storage-2026/production/*"
+    }
+  ]
+}
+</pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Jangan pernah membuat bucket S3 public kecuali Anda benar-benar tahu apa yang Anda lakukan. Banyak kebocoran data terjadi karena bucket S3 yang tidak sengaja di-public-kan. Selalu gunakan <code>BlockPublicAcls</code> dan akses melalui CloudFront atau presigned URLs.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Presigned URLs       -->
+      <!-- ============================== -->
+      <h2 id="presigned-urls">8. Presigned URLs</h2>
+
+      <p><strong>Presigned URLs</strong> memungkinkan Anda memberikan akses sementara ke object S3 tanpa perlu membuat object tersebut public. URL ini memiliki waktu kedaluwarsa dan bisa digunakan untuk upload maupun download.</p>
+
+      <h3>Menggunakan AWS CLI</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Generate presigned URL untuk download (berlaku 1 jam)
+aws s3 presign s3://my-app-storage-2026/photos/photo.jpg \
+  --expires-in 3600
+# https://my-app-storage-2026.s3.ap-southeast-1.amazonaws.com/photos/photo.jpg?...
+
+# Generate presigned URL untuk download (berlaku 7 hari)
+aws s3 presign s3://my-app-storage-2026/documents/report.pdf \
+  --expires-in 604800
+
+# Generate presigned URL untuk upload
+aws s3 presign s3://my-app-storage-2026/uploads/new-file.jpg \
+  --expires-in 3600
+
+# Gunakan URL untuk upload via curl
+curl -X PUT \
+  -H "Content-Type: image/jpeg" \
+  --data-binary @photo.jpg \
+  "https://presigned-url-here"
+</pre>
+      </div>
+
+      <h3>Menggunakan Python (boto3)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>import boto3
+from botocore.config import Config
+
+s3 = boto3.client('s3',
+    region_name='ap-southeast-1',
+    config=Config(signature_version='s3v4')
+)
+
+BUCKET = 'my-app-storage-2026'
+
+# Generate presigned URL untuk GET (download)
+def generate_download_url(key, expires_in=3600):
+    url = s3.generate_presigned_url(
+        'get_object',
+        Params={
+            'Bucket': BUCKET,
+            'Key': key,
+            'ResponseContentDisposition': f'attachment; filename="{key.split("/")[-1]}"'
+        },
+        ExpiresIn=expires_in
+    )
+    return url
+
+# Generate presigned URL untuk PUT (upload)
+def generate_upload_url(key, content_type='application/octet-stream', expires_in=3600):
+    url = s3.generate_presigned_url(
+        'put_object',
+        Params={
+            'Bucket': BUCKET,
+            'Key': key,
+            'ContentType': content_type
+        },
+        ExpiresIn=expires_in
+    )
+    return url
+
+# Generate presigned POST (untuk browser upload — lebih fleksibel)
+def generate_presigned_post(key, content_type='image/jpeg', max_size=10*1024*1024):
+    conditions = [
+        ['content-length-range', 1, max_size],
+        ['starts-with', '$Content-Type', content_type.split('/')[0]]
+    ]
+
+    fields = {
+        'Content-Type': content_type,
+        'x-amz-meta-uploaded-by': 'beebanelabs'
+    }
+
+    response = s3.generate_presigned_post(
+        Bucket=BUCKET,
+        Key=key,
+        Fields=fields,
+        Conditions=conditions,
+        ExpiresIn=3600
+    )
+    return response
+    # Returns: {'url': 'https://...', 'fields': {...}}
+
+# Contoh penggunaan
+download_url = generate_download_url('photos/photo.jpg', expires_in=7200)
+upload_url = generate_upload_url('uploads/new-photo.jpg')
+post_data = generate_presigned_post('uploads/user-avatar.jpg')
+
+print(f"Download URL: {download_url}")
+print(f"Upload URL: {upload_url}")
+print(f"POST URL: {post_data['url']}")
+print(f"POST Fields: {post_data['fields']}")
+</pre>
+      </div>
+
+      <h3>Browser Upload dengan Presigned POST</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>// Upload file langsung dari browser ke S3
+async function uploadToS3(file) {
+  // 1. Dapatkan presigned POST dari backend
+  const response = await fetch('/api/get-upload-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      filename: file.name,
+      contentType: file.type
+    })
+  });
+
+  const { url, fields } = await response.json();
+
+  // 2. Upload langsung ke S3
+  const formData = new FormData();
+  Object.entries(fields).forEach(([key, value]) => {
+    formData.append(key, value);
+  });
+  formData.append('file', file);
+
+  const uploadResponse = await fetch(url, {
+    method: 'POST',
+    body: formData
+  });
+
+  if (uploadResponse.ok) {
+    console.log('Upload berhasil!');
+  } else {
+    console.error('Upload gagal');
+  }
+}
+
+// Gunakan
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  uploadToS3(e.target.files[0]);
+});
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Static Hosting       -->
+      <!-- ============================== -->
+      <h2 id="static-hosting">9. Static Website Hosting</h2>
+
+      <p>S3 bisa digunakan untuk meng-host static website (HTML, CSS, JavaScript) tanpa perlu server. Dipadukan dengan CloudFront untuk CDN global dan custom domain.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Enable static website hosting
+aws s3 website s3://my-website-bucket \
+  --index-document index.html \
+  --error-document error.html
+
+# Upload website files
+aws s3 sync ./public/ s3://my-website-bucket/ \
+  --acl public-read
+
+# Set content types
+aws s3 cp ./public/index.html s3://my-website-bucket/ \
+  --content-type "text/html" --acl public-read
+
+aws s3 cp ./public/css/style.css s3://my-website-bucket/css/ \
+  --content-type "text/css" --acl public-read
+
+aws s3 cp ./public/js/app.js s3://my-website-bucket/js/ \
+  --content-type "application/javascript" --acl public-read
+
+# Dapatkan website URL
+echo "Website URL: http://my-website-bucket.s3-website-ap-southeast-1.amazonaws.com"
+</pre>
+      </div>
+
+      <h3>Redirect Rules</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">XML</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre>&lt;!-- website-redirect-rules.xml --&gt;
+&lt;RoutingRules&gt;
+  &lt;RoutingRule&gt;
+    &lt;Condition&gt;
+      &lt;KeyPrefixEquals&gt;old-page/&lt;/KeyPrefixEquals&gt;
+    &lt;/Condition&gt;
+    &lt;Redirect&gt;
+      &lt;ReplaceKeyPrefixWith&gt;new-page/&lt;/ReplaceKeyPrefixWith&gt;
+      &lt;HttpRedirectCode&gt;301&lt;/HttpRedirectCode&gt;
+    &lt;/Redirect&gt;
+  &lt;/RoutingRule&gt;
+  &lt;RoutingRule&gt;
+    &lt;Condition&gt;
+      &lt;HttpErrorCodeReturnedEquals&gt;404&lt;/HttpErrorCodeReturnedEquals&gt;
+    &lt;/Condition&gt;
+    &lt;Redirect&gt;
+      &lt;HostName&gt;app.example.com&lt;/HostName&gt;
+      &lt;ReplaceKeyWith&gt;index.html&lt;/ReplaceKeyWith&gt;
+    &lt;/Redirect&gt;
+  &lt;/RoutingRule&gt;
+&lt;/RoutingRules&gt;
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Encryption          -->
+      <!-- ============================== -->
+      <h2 id="encryption">10. Encryption &amp; Keamanan</h2>
+
+      <h3>Enkripsi di S3</h3>
+      <table class="net-table">
+        <thead>
+          <tr><th>Enkripsi</th><th>Penjelasan</th><th>Kapan Digunakan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>SSE-S3</td><td>S3 manage encryption keys (AES-256)</td><td>Kebanyakan use case standar</td></tr>
+          <tr><td>SSE-KMS</td><td>AWS KMS manage keys (audit trail)</td><td>Compliance, audit requirement</td></tr>
+          <tr><td>SSE-C</td><td>Customer provide encryption keys</td><td>Kontrol penuh atas keys</td></tr>
+          <tr><td>Client-Side</td><td>Enkripsi sebelum upload ke S3</td><td>Zero-trust, end-to-end encryption</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Set default encryption (SSE-S3)
+aws s3api put-bucket-encryption \
+  --bucket my-app-storage-2026 \
+  --server-side-encryption-configuration '{
+    "Rules": [
+      {
+        "ApplyServerSideEncryptionByDefault": {
+          "SSEAlgorithm": "AES256"
+        }
+      }
+    ]
+  }'
+
+# Upload dengan KMS encryption
+aws s3 cp ./sensitive-data.csv s3://my-app-storage-2026/secure/ \
+  --sse aws:kms \
+  --sse-kms-key-id alias/my-s3-key
+
+# Upload dengan AES-256 encryption
+aws s3 cp ./data.csv s3://my-app-storage-2026/ \
+  --sse AES256
+
+# Enable Object Lock (WORM — Write Once Read Many)
+# Berguna untuk compliance
+aws s3api put-object-lock-configuration \
+  --bucket my-app-storage-2026 \
+  --object-lock-configuration '{
+    "ObjectLockEnabled": true,
+    "Rule": {
+      "DefaultRetention": {
+        "Mode": "COMPLIANCE",
+        "Days": 365
+      }
+    }
+  }'
+
+# Enable Transfer Acceleration (upload cepat via edge locations)
+aws s3api put-bucket-accelerate-configuration \
+  --bucket my-app-storage-2026 \
+  --accelerate-configuration Status=Enabled
+
+# Enable server access logging
+aws s3api put-bucket-logging \
+  --bucket my-app-storage-2026 \
+  --bucket-logging-status '{
+    "LoggingEnabled": {
+      "TargetBucket": "my-s3-logs",
+      "TargetPrefix": "access-logs/"
+    }
+  }'
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Best Practices      -->
+      <!-- ============================== -->
+      <h2 id="best-practices">11. Best Practices</h2>
+
+      <h3>Keamanan</h3>
+      <table class="net-table">
+        <thead>
+          <tr><th>Praktik</th><th>Rekomendasi</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Block Public Access</td><td>Selalu aktifkan Block Public Access di level bucket</td></tr>
+          <tr><td>Enkripsi Default</td><td>Aktifkan SSE-S3 atau SSE-KMS sebagai default encryption</td></tr>
+          <tr><td>Enforce HTTPS</td><td>Tambahkan bucket policy yang menolak request non-HTTPS</td></tr>
+          <tr><td>Versioning</td><td>Selalu aktifkan versioning untuk bucket production</td></tr>
+          <tr><td>MFA Delete</td><td>Aktifkan MFA Delete untuk bucket kritis</td></tr>
+          <tr><td>Access Logging</td><td>Aktifkan server access logging untuk audit</td></tr>
+          <tr><td>Least Privilege</td><td>Berikan permission seminimal mungkin sesuai kebutuhan</td></tr>
+          <tr><td>Object Lock</td><td>Gunakan untuk data compliance (WORM)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Biaya &amp; Performance</h3>
+      <ul>
+        <li>Gunakan <strong>lifecycle rules</strong> untuk transisi data ke storage class yang lebih murah</li>
+        <li>Hapus incomplete multipart upload secara otomatis</li>
+        <li>Gunakan <strong>S3 Intelligent-Tiering</strong> jika pola akses tidak diketahui</li>
+        <li>Gunakan <strong>CloudFront</strong> sebagai CDN untuk akses global yang cepat</li>
+        <li>Gunakan <strong>S3 Transfer Acceleration</strong> untuk upload lintas benua</li>
+        <li>Monitor biaya dengan <strong>AWS Cost Explorer</strong> dan S3 Storage Lens</li>
+        <li>Gunakan <strong>prefix naming</strong> yang baik untuk high-throughput workloads</li>
+      </ul>
+
+      <h3>Naming Conventions</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Prefix yang baik (mudah di-manage)
+photos/2026/06/26/photo.jpg
+documents/reports/quarterly-report-q2-2026.pdf
+users/{user_id}/avatars/avatar.jpg
+backups/database/2026-06-26-dump.sql.gz
+logs/app/2026/06/26/app-log-001.gz
+
+# Hindari
+PHOTO.JPG                    # Tidak ada hierarchy
+a/b/c/d/e/f/file.txt         # Terlalu dalam
+file with spaces.txt          # Spasi menyulitkan
+</pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Catatan</div>
+        <p>S3 dirancang untuk durability 99.999999999% (11 nines) yang berarti jika Anda menyimpan 10 juta object, statistiknya hanya 1 object yang hilang per 10.000 tahun. Tapi ini bukan backup — tetap gunakan cross-region replication untuk disaster recovery.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz-s3">12. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quizS301">
+        <div class="quiz-question" data-answer="c">
+          <p><strong>1. Berapa durability S3 Standard?</strong></p>
+          <label class="quiz-option"><input type="radio" name="q1" value="a"> 99.99% (4 nines)</label>
+          <label class="quiz-option"><input type="radio" name="q1" value="b"> 99.999% (5 nines)</label>
+          <label class="quiz-option"><input type="radio" name="q1" value="c"> 99.999999999% (11 nines)</label>
+          <label class="quiz-option"><input type="radio" name="q1" value="d"> 100% (tidak pernah hilang)</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question" data-answer="a">
+          <p><strong>2. Apa itu Presigned URL?</strong></p>
+          <label class="quiz-option"><input type="radio" name="q2" value="a"> URL sementara yang memberikan akses terbatas ke object S3 tanpa membuatnya public</label>
+          <label class="quiz-option"><input type="radio" name="q2" value="b"> URL permanen untuk mengakses bucket S3</label>
+          <label class="quiz-option"><input type="radio" name="q2" value="c"> URL untuk mengakses AWS Console</label>
+          <label class="quiz-option"><input type="radio" name="q2" value="d"> URL redirect dari S3 ke CloudFront</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question" data-answer="b">
+          <p><strong>3. Apa fungsi S3 Versioning?</strong></p>
+          <label class="quiz-option"><input type="radio" name="q3" value="a"> Mengenkripsi semua versi object</label>
+          <label class="quiz-option"><input type="radio" name="q3" value="b"> Menyimpan multiple versi dari setiap object untuk proteksi dari penghapusan/overwrite</label>
+          <label class="quiz-option"><input type="radio" name="q3" value="c"> Mengompresi object untuk menghemat storage</label>
+          <label class="quiz-option"><input type="radio" name="q3" value="d"> Menyalin object ke region lain secara otomatis</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question" data-answer="d">
+          <p><strong>4. Storage class mana yang paling murah untuk data yang sangat jarang diakses?</strong></p>
+          <label class="quiz-option"><input type="radio" name="q4" value="a"> S3 Standard</label>
+          <label class="quiz-option"><input type="radio" name="q4" value="b"> S3 Standard-IA</label>
+          <label class="quiz-option"><input type="radio" name="q4" value="c"> S3 Glacier Flexible</label>
+          <label class="quiz-option"><input type="radio" name="q4" value="d"> S3 Glacier Deep Archive</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question" data-answer="a">
+          <p><strong>5. Mengapa bucket S3 sebaiknya tidak di-public-kan?</strong></p>
+          <label class="quiz-option"><input type="radio" name="q5" value="a"> Bisa menyebabkan kebocoran data sensitif — banyak kasus kebocoran data terjadi karena bucket public</label>
+          <label class="quiz-option"><input type="radio" name="q5" value="b"> Public bucket tidak mendukung enkripsi</label>
+          <label class="quiz-option"><input type="radio" name="q5" value="c"> Public bucket lebih lambat dari private bucket</label>
+          <label class="quiz-option"><input type="radio" name="q5" value="d"> Public bucket otomatis dihapus setelah 30 hari</label>
+          <div class="quiz-feedback"></div>
+        </div>
+      </div>
+
+    </div>
+  </article>
+
+  <section class="related-articles">
+    <div class="container">
+      <h2>Artikel Terkait</h2>
+      <div class="related-grid">
+        <a href="docker-dasar.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <h3>Docker untuk Developer</h3>
+          <p>Panduan praktis containers, Dockerfile, dan Docker Compose</p>
+        </a>
+        <a href="prometheus-grafana-advanced.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <h3>Prometheus &amp; Grafana Advanced</h3>
+          <p>Custom metrics, alerts, dan dashboards</p>
+        </a>
+        <a href="ansible-basics.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <h3>Ansible: Automation Platform</h3>
+          <p>Playbooks, roles, inventory, dan modules</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand"><img src="../images/logo_beebane.png" alt="BeebaneLabs" class="footer-logo"><p>Portal tutorial teknologi &amp; IT Indonesia. Pemrograman, IoT, cybersecurity, networking — mulai belajar gratis, konten original.</p></div>
+        <div class="footer-col"><h4>Kategori</h4><ul><li><a href="../kategori/iot.html">IoT &amp; Embedded</a></li><li><a href="../kategori/mikrotik.html">Networking</a></li><li><a href="../kategori/python.html">Pemrograman</a></li><li><a href="../kategori/keamanan.html">Cybersecurity</a></li><li><a href="../kategori/dashboard.html">Dashboard &amp; Cloud</a></li></ul></div>
+        <div class="footer-col"><h4>Populer</h4><ul><li><a href="esp32-fundamentals.html">Tutorial ESP32</a></li><li><a href="mikrotik-routing.html">Konfigurasi MikroTik</a></li><li><a href="lora-communication.html">Proyek LoRa</a></li><li><a href="dashboard-monitoring.html">Dashboard IoT</a></li><li><a href="mqtt-protocol.html">MQTT untuk Pemula</a></li></ul></div>
+        <div class="footer-col"><h4>Lainnya</h4><ul><li><a href="../about.html">Tentang Kami</a></li><li><a href="../privacy-policy.html">Kebijakan Privasi</a></li><li><a href="../contact.html">Kontak</a></li><li><a href="../rss.xml">RSS Feed</a></li></ul></div>
+      </div>
+      <div class="footer-bottom"><div class="footer-social"><a href="https://github.com/Beebane25" target="_blank" rel="noopener">GitHub</a></div><p>&copy; 2026 BeebaneLabs. Semua hak dilindungi.</p></div>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
+
+  <script src="../js/app.js?v=8.0"></script>
+  <script src="../js/mobile-zoom.js?v=9.2"></script>
+  <script>
+    initQuiz('quizS301', ['c', 'a', 'b', 'd', 'a']);
+  </script>
+<button class="theme-toggle-floating" onclick="ThemeToggle.toggle()" title="Ganti tema">☀️</button>
+  <div id="quickMenuBackdrop" class="quick-menu-backdrop" onclick="MobileQuickMenu.close()"></div>
+  <button id="quickMenuBtn" class="quick-menu-btn" onclick="MobileQuickMenu.toggle()" title="Menu">⚙️</button>
+  <div id="quickMenuPanel" class="quick-menu-panel">
+    <div class="quick-menu-section"><span class="quick-menu-label">🔍 Zoom</span><div class="quick-menu-row"><button onclick="MobileQuickMenu.zoomOut()">−</button><span id="quickMenuZoomLevel" class="zoom-level">100%</span><button onclick="MobileQuickMenu.zoomIn()">+</button><button onclick="MobileQuickMenu.resetZoom()" style="font-size:0.8rem">↺</button></div></div>
+    <div class="quick-menu-section"><span class="quick-menu-label">🎨 Tema</span><button class="quick-menu-row quick-menu-theme-btn" onclick="MobileQuickMenu.toggleTheme()"><span id="quickMenuThemeIcon">☀️</span> <span>Ganti Tema</span></button></div>
+  </div>
+</body>
+</html>
