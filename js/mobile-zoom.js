@@ -1,21 +1,22 @@
 // === MOBILE QUICK MENU (Zoom + Theme) ===
-const MobileQuickMenu = {
+// Use window object to ensure global accessibility from onclick handlers
+window.MobileQuickMenu = {
   currentZoom: 100,
   minZoom: 70,
   maxZoom: 150,
   step: 10,
   isOpen: false,
 
-  init() {
+  init: function() {
     // Only on mobile
     if (window.innerWidth > 768) {
-      const btn = document.getElementById('quickMenuBtn');
+      var btn = document.getElementById('quickMenuBtn');
       if (btn) btn.style.display = 'none';
       return;
     }
 
     // Load saved zoom
-    const saved = localStorage.getItem('beebanelabs_mobile_zoom');
+    var saved = localStorage.getItem('beebanelabs_mobile_zoom');
     if (saved) {
       this.currentZoom = parseInt(saved);
       this.applyZoom();
@@ -25,42 +26,49 @@ const MobileQuickMenu = {
     this.updateThemeIcon();
   },
 
-  toggle() {
-    const menu = document.getElementById('quickMenuPanel');
+  toggle: function() {
+    var menu = document.getElementById('quickMenuPanel');
+    var backdrop = document.getElementById('quickMenuBackdrop');
     if (!menu) return;
     this.isOpen = !this.isOpen;
-    menu.style.display = this.isOpen ? 'flex' : 'none';
-  },
-
-  close() {
-    const menu = document.getElementById('quickMenuPanel');
-    if (menu) {
+    if (this.isOpen) {
+      menu.style.display = 'flex';
+      if (backdrop) backdrop.style.display = 'block';
+    } else {
       menu.style.display = 'none';
-      this.isOpen = false;
+      if (backdrop) backdrop.style.display = 'none';
     }
   },
 
-  zoomIn() {
+  close: function() {
+    var menu = document.getElementById('quickMenuPanel');
+    var backdrop = document.getElementById('quickMenuBackdrop');
+    if (menu) menu.style.display = 'none';
+    if (backdrop) backdrop.style.display = 'none';
+    this.isOpen = false;
+  },
+
+  zoomIn: function() {
     if (this.currentZoom < this.maxZoom) {
       this.currentZoom += this.step;
       this.applyZoom();
     }
   },
 
-  zoomOut() {
+  zoomOut: function() {
     if (this.currentZoom > this.minZoom) {
       this.currentZoom -= this.step;
       this.applyZoom();
     }
   },
 
-  resetZoom() {
+  resetZoom: function() {
     this.currentZoom = 100;
     this.applyZoom();
   },
 
-  applyZoom() {
-    const content = document.querySelector('.article-content');
+  applyZoom: function() {
+    var content = document.querySelector('.article-content');
     if (content) {
       if (this.currentZoom === 100) {
         content.style.transform = '';
@@ -72,29 +80,29 @@ const MobileQuickMenu = {
       }
     }
     // Update display
-    const level = document.getElementById('quickMenuZoomLevel');
+    var level = document.getElementById('quickMenuZoomLevel');
     if (level) level.textContent = this.currentZoom + '%';
     // Save
-    localStorage.setItem('beebanelabs_mobile_zoom', this.currentZoom);
+    localStorage.setItem('beebanelabs_mobile_zoom', String(this.currentZoom));
   },
 
-  toggleTheme() {
-    if (typeof ThemeToggle !== 'undefined') {
+  toggleTheme: function() {
+    if (typeof ThemeToggle !== 'undefined' && ThemeToggle.toggle) {
       ThemeToggle.toggle();
       this.updateThemeIcon();
     }
   },
 
-  updateThemeIcon() {
-    const icon = document.getElementById('quickMenuThemeIcon');
+  updateThemeIcon: function() {
+    var icon = document.getElementById('quickMenuThemeIcon');
     if (icon) {
-      const current = document.documentElement.getAttribute('data-theme') || 'dark';
-      icon.textContent = current === 'dark' ? '☀️' : '🌙';
+      var current = document.documentElement.getAttribute('data-theme') || 'dark';
+      icon.textContent = current === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
     }
   }
 };
 
-// Initialize
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-  MobileQuickMenu.init();
+  window.MobileQuickMenu.init();
 });
