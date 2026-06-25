@@ -1790,7 +1790,61 @@ const ALL_ARTICLES = [
   // === IT Career ===
   { slug: 'roadmap-belajar-it', title: 'Roadmap Belajar IT 2026', icon: '🗺️', cat: 'IT Career', desc: 'Jalur belajar IT lengkap', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
   { slug: 'sertifikasi-it', title: 'Sertifikasi IT Populer', icon: '📜', cat: 'IT Career', desc: 'Sertifikasi industri IT', diff: 'pemula', time: '10', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'portfolio-developer', title: 'Portfolio & CV Developer', icon: '💼', cat: 'IT Career', desc: 'Bangun portfolio menarik', diff: 'pemula', time: '9', access: 'Token', date: '25 Juni 2026' }
+  { slug: 'portfolio-developer', title: 'Portfolio & CV Developer', icon: '💼', cat: 'IT Career', desc: 'Bangun portfolio menarik', diff: 'pemula', time: '9', access: 'Token', date: '25 Juni 2026' },
+  // === Web Development (expanded) ===
+  { slug: 'nextjs-dasar', title: 'Next.js untuk Pemula', icon: '▲', cat: 'Web Development', desc: 'React framework full-stack', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'tailwind-css', title: 'Tailwind CSS', icon: '🎨', cat: 'Web Development', desc: 'Utility-first CSS framework', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'testing-jest', title: 'Testing JavaScript dengan Jest', icon: '🧪', cat: 'Web Development', desc: 'Unit testing JavaScript', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'pwa-dasar', title: 'Progressive Web App', icon: '📲', cat: 'Web Development', desc: 'Website yang seperti app', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'web-performance', title: 'Web Performance Optimization', icon: '⚡', cat: 'Web Development', desc: 'Optimasi performa web', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'auth-authorization', title: 'Authentication & Authorization', icon: '🔐', cat: 'Web Development', desc: 'Keamanan autentikasi web', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
+
+  // === Database (expanded) ===
+  { slug: 'postgresql-dasar', title: 'PostgreSQL untuk Developer', icon: '🐘', cat: 'Database', desc: 'Database PostgreSQL', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'mysql-dasar', title: 'MySQL untuk Pemula', icon: '🐬', cat: 'Database', desc: 'Database MySQL', diff: 'pemula', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'prisma-orm', title: 'Prisma ORM', icon: '💎', cat: 'Database', desc: 'Database ORM modern', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'graphql-database', title: 'GraphQL untuk Pemula', icon: '◼️', cat: 'Database', desc: 'Query language untuk API', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
+
+  // === AI & Data Science (expanded) ===
+  { slug: 'deep-learning-tensorflow', title: 'Deep Learning dengan TensorFlow', icon: '🧬', cat: 'AI & Data Science', desc: 'Neural networks & deep learning', diff: 'lanjut', time: '15', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'nlp-dasar', title: 'NLP: Natural Language Processing', icon: '📝', cat: 'AI & Data Science', desc: 'Pemrosesan bahasa alami', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'computer-vision-opencv', title: 'Computer Vision dengan OpenCV', icon: '👁️', cat: 'AI & Data Science', desc: 'Pengenalan gambar & video', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'langchain-ai-agent', title: 'LangChain & AI Agent', icon: '🔗', cat: 'AI & Data Science', desc: 'Build AI agent dengan LLM', diff: 'lanjut', time: '15', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'mlops-deployment', title: 'MLOps: Deploy Model ML', icon: '🚀', cat: 'AI & Data Science', desc: 'Deploy model ke production', diff: 'lanjut', time: '14', access: 'Token', date: '25 Juni 2026' },
+
+  // === Mobile Development (expanded) ===
+  { slug: 'swift-ios', title: 'Swift untuk iOS', icon: '🍎', cat: 'Mobile Development', desc: 'iOS development dengan Swift', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'jetpack-compose', title: 'Jetpack Compose', icon: '🤖', cat: 'Mobile Development', desc: 'UI modern Android', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'flutter-state-management', title: 'State Management Flutter', icon: '🔄', cat: 'Mobile Development', desc: 'Riverpod & BLoC pattern', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'app-store-publishing', title: 'Publish ke App Store', icon: '🏪', cat: 'Mobile Development', desc: 'Deploy ke Play Store & App Store', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+
+  // === DevOps & Cloud (expanded) ===
+  { slug: 'terraform-iac', title: 'Terraform: Infrastructure as Code', icon: '🏗️', cat: 'DevOps & Cloud', desc: 'Infrastruktur sebagai kode', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'monitoring-observability', title: 'Monitoring & Observability', icon: '📊', cat: 'DevOps & Cloud', desc: 'Metrics, logs, traces', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'linux-server-admin', title: 'Linux Server Administration', icon: '🐧', cat: 'DevOps & Cloud', desc: 'Kelola server Linux', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'nginx-load-balancing', title: 'Nginx: Web Server & Load Balancer', icon: '🔄', cat: 'DevOps & Cloud', desc: 'Web server & reverse proxy', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'gitops-argocd', title: 'GitOps dengan ArgoCD', icon: '🎯', cat: 'DevOps & Cloud', desc: 'Git-based deployment', diff: 'lanjut', time: '13', access: 'Token', date: '25 Juni 2026' },
+
+  // === IT Career (expanded) ===
+  { slug: 'interview-teknis', title: 'Interview Teknis IT', icon: '🎤', cat: 'IT Career', desc: 'Persiapan interview teknis', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'freelance-developer', title: 'Freelance Developer', icon: '💻', cat: 'IT Career', desc: 'Panduan freelance IT', diff: 'pemula', time: '11', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'soft-skill-developer', title: 'Soft Skill untuk Developer', icon: '🤝', cat: 'IT Career', desc: 'Komunikasi & teamwork', diff: 'pemula', time: '10', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'open-source-contribution', title: 'Open Source Contribution', icon: '🌍', cat: 'IT Career', desc: 'Kontribusi ke open source', diff: 'pemula', time: '10', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'gaji-negosiasi-it', title: 'Gaji & Negosiasi IT', icon: '💰', cat: 'IT Career', desc: 'Negosiasi gaji IT Indonesia', diff: 'pemula', time: '9', access: 'Token', date: '25 Juni 2026' },
+
+  // === Keamanan (expanded) ===
+  { slug: 'owasp-top10', title: 'OWASP Top 10', icon: '🛡️', cat: 'Keamanan', desc: 'Vulnerability web umum', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'penetration-testing', title: 'Penetration Testing', icon: '🔍', cat: 'Keamanan', desc: 'Ethical hacking & pentest', diff: 'lanjut', time: '15', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'cryptography-developer', title: 'Kriptografi untuk Developer', icon: '🔒', cat: 'Keamanan', desc: 'Enkripsi & hashing', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'incident-response', title: 'Incident Response & Forensik', icon: '🚨', cat: 'Keamanan', desc: 'Respons insiden keamanan', diff: 'lanjut', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'security-audit', title: 'Security Audit & Compliance', icon: '📋', cat: 'Keamanan', desc: 'Audit keamanan & compliance', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
+
+  // === Python (expanded) ===
+  { slug: 'python-pemula', title: 'Python untuk Pemula', icon: '🐍', cat: 'Python', desc: 'Dasar Python dari nol', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'django-web', title: 'Django Web Framework', icon: '🎸', cat: 'Python', desc: 'Full-stack Python web', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'flask-pemula', title: 'Flask: Micro Web Framework', icon: '🧪', cat: 'Python', desc: 'Web framework ringan', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'python-testing-pytest', title: 'Python Testing dengan pytest', icon: '✅', cat: 'Python', desc: 'Testing framework Python', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'python-packaging', title: 'Python Packaging & Distribution', icon: '📦', cat: 'Python', desc: 'Publish package ke PyPI', diff: 'menengah', time: '11', access: 'Token', date: '25 Juni 2026' },
 ];
 
 function renderArticleCard(a) {
