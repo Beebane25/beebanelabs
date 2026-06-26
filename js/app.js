@@ -224,7 +224,7 @@ function closeSearch() {
   if (!searchOverlay || !searchInput || !searchResults) return;
   searchOverlay.classList.remove('active');
   searchInput.value = '';
-  searchResults.innerHTML = '<div class="search-hint">Ketik untuk mencari<button class="search-hint-close" onclick="document.getElementById(\'searchOverlay\').classList.remove(\'active\')">✕ Tutup</button></div>';
+  searchResults.innerHTML = '<div class="search-hint">Ketik untuk mencari</div>';
 }
 
 if (searchTrigger) {
