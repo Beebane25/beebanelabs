@@ -362,8 +362,12 @@ async function handleSubscribe(e) {
       body: JSON.stringify({ email: email })
     });
 
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: 'Server error' }));
+      throw new Error(data.error || 'Server error');
+    }
     const data = await res.json();
-    if (res.ok && data.success) {
+    if (data.success) {
       btn.textContent = '✓ ' + (data.message || 'Tersubscribe!');
       btn.style.background = '#10b981';
       input.value = '';
@@ -1266,9 +1270,10 @@ const AuthSystem = {
 
   switchTab(tab) {
     document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
-    document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
-    // FIX: Use event parameter instead of implicit global
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    if (loginForm) loginForm.style.display = tab === 'login' ? 'block' : 'none';
+    if (registerForm) registerForm.style.display = tab === 'register' ? 'block' : 'none';
     const activeTab = document.querySelector('.auth-tab[data-tab="' + tab + '"]') ||
                       document.querySelectorAll('.auth-tab')[tab === 'login' ? 0 : 1];
     if (activeTab) activeTab.classList.add('active');
