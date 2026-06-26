@@ -79,12 +79,6 @@ export async function onRequestPost(context) {
   const origin = request.headers.get('origin') || '';
   const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
-  // Rate limiting check (Supabase-backed, persistent across cold starts)
-  const rateCheck = await checkRateLimit(SUPABASE_URL, SUPABASE_KEY, ip, 'login');
-  if (!rateCheck.allowed) {
-    return cors(429, { error: 'Terlalu banyak percobaan login. Silakan coba lagi dalam 5 menit.' }, origin);
-  }
-
   try {
     const body = await request.json();
     const action = body.action;
@@ -144,6 +138,12 @@ export async function onRequestPost(context) {
       const password = body.password || '';
       if (!email || !password) return cors(400, { error: 'Email dan password harus diisi' }, origin);
       if (password.length > 128) return cors(400, { error: 'Password terlalu panjang' }, origin);
+
+      // Rate limiting check (Supabase-backed, 5 attempts per 5 minutes)
+      const rateCheck = await checkRateLimit(SUPABASE_URL, SUPABASE_KEY, ip, 'login');
+      if (!rateCheck.allowed) {
+        return cors(429, { error: 'Terlalu banyak percobaan login. Silakan coba lagi dalam 5 menit.' }, origin);
+      }
 
       const encodedEmail = encodeURIComponent(email);
       const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${encodedEmail}&select=id,email,name,password_hash,plan,tokens,is_active`);
