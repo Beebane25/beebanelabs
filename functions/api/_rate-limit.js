@@ -1,3 +1,8 @@
+// DEPRECATED: This file is not imported by any endpoint.
+// Rate limiting is now implemented directly in auth.js using Supabase.
+// See: functions/api/auth.js - checkRateLimit() and recordAttempt()
+// Kept for reference only.
+
 // Rate Limiting Helper for Cloudflare Functions
 // Uses Cloudflare's built-in rate limiting or in-memory tracking
 

@@ -4,23 +4,55 @@
 
 const ALLOWED_ORIGINS = ['https://beebanelabs.pages.dev', 'https://beebanelabs.id', 'https://www.beebanelabs.id'];
 
-// Simple in-memory rate limiting
-const loginAttempts = new Map();
-const MAX_LOGIN_ATTEMPTS = 10;
-const LOGIN_WINDOW_MS = 60000; // 1 minute
+// Rate limiting configuration
+const MAX_LOGIN_ATTEMPTS = 5;
+const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 
-function checkLoginRateLimit(ip) {
+// In-memory rate limit cache (best-effort, supplemented by Supabase)
+const rateLimitCache = new Map();
+
+async function checkRateLimit(supabaseUrl, supabaseKey, ip, endpoint = 'login') {
   const now = Date.now();
-  const attempts = loginAttempts.get(ip) || [];
-  const recentAttempts = attempts.filter(t => now - t < LOGIN_WINDOW_MS);
-  loginAttempts.set(ip, recentAttempts);
-  return recentAttempts.length < MAX_LOGIN_ATTEMPTS;
+  const windowStart = new Date(now - RATE_LIMIT_WINDOW_MS).toISOString();
+  
+  // Check Supabase for persistent rate limit data
+  try {
+    const encodedIp = encodeURIComponent(ip);
+    const attempts = await supabaseQuery(
+      supabaseUrl, supabaseKey, 'rate_limit_log',
+      `?ip=eq.${encodedIp}&endpoint=eq.${endpoint}&created_at=gte.${windowStart}&select=id`
+    );
+    if (attempts && Array.isArray(attempts) && attempts.length >= MAX_LOGIN_ATTEMPTS) {
+      return { allowed: false, remaining: 0 };
+    }
+    return { allowed: true, remaining: MAX_LOGIN_ATTEMPTS - (attempts?.length || 0) };
+  } catch (e) {
+    // Fallback to in-memory if Supabase unavailable
+    const key = `${ip}:${endpoint}`;
+    const cached = rateLimitCache.get(key) || [];
+    const recent = cached.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+    if (recent.length >= MAX_LOGIN_ATTEMPTS) {
+      return { allowed: false, remaining: 0 };
+    }
+    return { allowed: true, remaining: MAX_LOGIN_ATTEMPTS - recent.length };
+  }
 }
 
-function recordLoginAttempt(ip) {
-  const attempts = loginAttempts.get(ip) || [];
-  attempts.push(Date.now());
-  loginAttempts.set(ip, attempts);
+async function recordAttempt(supabaseUrl, supabaseKey, ip, endpoint = 'login') {
+  const now = Date.now();
+  
+  // Record in Supabase (persistent)
+  try {
+    await supabaseQuery(supabaseUrl, supabaseKey, 'rate_limit_log', '', 'POST', {
+      ip, endpoint, created_at: new Date(now).toISOString()
+    });
+  } catch (e) {
+    // Fallback to in-memory
+    const key = `${ip}:${endpoint}`;
+    const cached = rateLimitCache.get(key) || [];
+    cached.push(now);
+    rateLimitCache.set(key, cached);
+  }
 }
 
 export async function onRequestPost(context) {
@@ -30,9 +62,10 @@ export async function onRequestPost(context) {
   const origin = request.headers.get('origin') || '';
   const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
-  // Rate limiting check for login
-  if (!checkLoginRateLimit(ip)) {
-    return cors(429, { error: 'Terlalu banyak percobaan. Silakan coba lagi dalam 1 menit.' }, origin);
+  // Rate limiting check (Supabase-backed, persistent across cold starts)
+  const rateCheck = await checkRateLimit(SUPABASE_URL, SUPABASE_KEY, ip, 'login');
+  if (!rateCheck.allowed) {
+    return cors(429, { error: 'Terlalu banyak percobaan login. Silakan coba lagi dalam 5 menit.' }, origin);
   }
 
   try {
@@ -50,11 +83,11 @@ export async function onRequestPost(context) {
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return cors(400, { error: 'Email tidak valid' }, origin);
       if (!name || name.length < 2) return cors(400, { error: 'Nama harus diisi (minimal 2 karakter)' }, origin);
       if (name.length > 100) return cors(400, { error: 'Nama maksimal 100 karakter' }, origin);
-      if (password.length < 8) return cors(400, { error: 'Password minimal 8 karakter' }, origin);
+      if (password.length < 8) return cors(400, { error: 'Password tidak memenuhi syarat (minimal 8 karakter, huruf besar, angka, dan simbol)' }, origin);
       if (password.length > 128) return cors(400, { error: 'Password maksimal 128 karakter' }, origin);
-      if (!/[A-Z]/.test(password)) return cors(400, { error: 'Password harus mengandung huruf besar' }, origin);
-      if (!/[0-9]/.test(password)) return cors(400, { error: 'Password harus mengandung angka' }, origin);
-      if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return cors(400, { error: 'Password harus mengandung simbol' }, origin);
+      if (!/[A-Z]/.test(password)) return cors(400, { error: 'Password tidak memenuhi syarat' }, origin);
+      if (!/[0-9]/.test(password)) return cors(400, { error: 'Password tidak memenuhi syarat' }, origin);
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return cors(400, { error: 'Password tidak memenuhi syarat' }, origin);
 
       // Check existing (URL-encoded email)
       const encodedEmail = encodeURIComponent(email);
@@ -98,7 +131,7 @@ export async function onRequestPost(context) {
       const encodedEmail = encodeURIComponent(email);
       const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${encodedEmail}&select=id,email,name,password_hash,plan,tokens,is_active`);
       if (!users || users.length === 0) {
-        recordLoginAttempt(ip);
+        await recordAttempt(SUPABASE_URL, SUPABASE_KEY, ip, 'login');
         return cors(401, { error: 'Email atau password salah' }, origin);
       }
 
@@ -118,7 +151,7 @@ export async function onRequestPost(context) {
       }
 
       if (!valid) {
-        recordLoginAttempt(ip);
+        await recordAttempt(SUPABASE_URL, SUPABASE_KEY, ip, 'login');
         return cors(401, { error: 'Email atau password salah' }, origin);
       }
 
