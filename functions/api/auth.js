@@ -91,7 +91,7 @@ export async function onRequestPost(context) {
       const password = body.password || '';
 
       // Input validation
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return cors(400, { error: 'Email tidak valid' }, origin);
+      if (!email || !/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email)) return cors(400, { error: 'Email tidak valid' }, origin);
       if (!name || name.length < 2) return cors(400, { error: 'Nama harus diisi (minimal 2 karakter)' }, origin);
       if (name.length > 100) return cors(400, { error: 'Nama maksimal 100 karakter' }, origin);
       if (password.length < 8) return cors(400, { error: 'Password tidak memenuhi syarat (minimal 8 karakter, huruf besar, angka, dan simbol)' }, origin);

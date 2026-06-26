@@ -18,7 +18,7 @@ export async function onRequestPost(context) {
     const plan = body.plan;
 
     // Input validation
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return cors(400, { error: 'Email tidak valid' }, origin);
+    if (!email || !/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email)) return cors(400, { error: 'Email tidak valid' }, origin);
     if (email.length > 254) return cors(400, { error: 'Email terlalu panjang' }, origin);
     if (!plan || !PLAN_PRICES[plan]) return cors(400, { error: 'Plan tidak valid. Pilih: token5 atau token10' }, origin);
     if (!MIDTRANS_SERVER_KEY) return cors(500, { error: 'Payment gateway tidak terkonfigurasi' }, origin);
