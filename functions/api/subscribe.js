@@ -14,8 +14,8 @@ export async function onRequestPost(context) {
     const body = await request.json();
     const email = (body.email || '').trim().toLowerCase();
 
-    // Validate email
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    // Validate email (strict — only allow valid email characters)
+    if (!email || !/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email)) {
       return cors(400, { error: 'Email tidak valid' }, origin);
     }
     if (email.length > 254) {
