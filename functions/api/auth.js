@@ -5,6 +5,16 @@
 const ALLOWED_ORIGINS = ['https://beebanelabs.pages.dev', 'https://beebanelabs.id', 'https://www.beebanelabs.id'];
 
 // Rate limiting configuration
+// Supabase table required: rate_limit_log (see SQL below)
+// If table doesn't exist, falls back to in-memory (per-instance, less reliable)
+// CREATE TABLE rate_limit_log (
+//   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+//   ip text NOT NULL,
+//   endpoint text NOT NULL DEFAULT 'login',
+//   created_at timestamptz DEFAULT now()
+// );
+// CREATE INDEX idx_rate_limit_ip_endpoint ON rate_limit_log(ip, endpoint, created_at);
+
 const MAX_LOGIN_ATTEMPTS = 5;
 const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -15,27 +25,34 @@ async function checkRateLimit(supabaseUrl, supabaseKey, ip, endpoint = 'login') 
   const now = Date.now();
   const windowStart = new Date(now - RATE_LIMIT_WINDOW_MS).toISOString();
   
-  // Check Supabase for persistent rate limit data
+  // Try Supabase first (persistent across cold starts)
   try {
     const encodedIp = encodeURIComponent(ip);
     const attempts = await supabaseQuery(
       supabaseUrl, supabaseKey, 'rate_limit_log',
       `?ip=eq.${encodedIp}&endpoint=eq.${endpoint}&created_at=gte.${windowStart}&select=id`
     );
-    if (attempts && Array.isArray(attempts) && attempts.length >= MAX_LOGIN_ATTEMPTS) {
-      return { allowed: false, remaining: 0 };
+    // If Supabase returns an array (table exists), use it
+    if (Array.isArray(attempts)) {
+      if (attempts.length >= MAX_LOGIN_ATTEMPTS) {
+        return { allowed: false, remaining: 0 };
+      }
+      return { allowed: true, remaining: MAX_LOGIN_ATTEMPTS - attempts.length };
     }
-    return { allowed: true, remaining: MAX_LOGIN_ATTEMPTS - (attempts?.length || 0) };
+    // If Supabase returns error (table doesn't exist), fall through to in-memory
   } catch (e) {
-    // Fallback to in-memory if Supabase unavailable
-    const key = `${ip}:${endpoint}`;
-    const cached = rateLimitCache.get(key) || [];
-    const recent = cached.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
-    if (recent.length >= MAX_LOGIN_ATTEMPTS) {
-      return { allowed: false, remaining: 0 };
-    }
-    return { allowed: true, remaining: MAX_LOGIN_ATTEMPTS - recent.length };
+    // Supabase unavailable, fall through to in-memory
   }
+  
+  // Fallback: in-memory rate limiting (per-instance, best-effort)
+  const key = `${ip}:${endpoint}`;
+  const cached = rateLimitCache.get(key) || [];
+  const recent = cached.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+  rateLimitCache.set(key, recent);
+  if (recent.length >= MAX_LOGIN_ATTEMPTS) {
+    return { allowed: false, remaining: 0 };
+  }
+  return { allowed: true, remaining: MAX_LOGIN_ATTEMPTS - recent.length };
 }
 
 async function recordAttempt(supabaseUrl, supabaseKey, ip, endpoint = 'login') {
