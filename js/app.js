@@ -2060,6 +2060,7 @@ const ALL_ARTICLES = [
   { slug: 'typescript-generics', title: 'TypeScript Generics: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap TypeScript Generics — generic functions, generic classes, co...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'typescript-pemula', title: 'TypeScript untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap TypeScript untuk pemula — instalasi, type annotations, inter...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'vpn-panduan', title: 'VPN: Virtual Private Network Panduan Lengkap', icon: '🔗', cat: 'Networking', desc: 'Panduan lengkap VPN — protokol VPN, tunneling, OpenVPN, WireGuard, IPSec, set...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
+  { slug: 'wifi-security', title: 'WiFi Security: Keamanan Jaringan Nirkabel', icon: '🔗', cat: 'Networking', desc: 'Panduan lengkap WiFi security — WPA3, WPA2, rogue AP, WiFi pen testing, hard...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
 ];
 
 function renderArticleCard(a) {
