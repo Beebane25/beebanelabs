@@ -1,5 +1,5 @@
 // BeebaneLabs Service Worker v2.0 — Enhanced caching strategy
-const CACHE_NAME = 'beebanelabs-v2';
+const CACHE_NAME = 'beebanelabs-v3';
 const FONT_CACHE = 'beebanelabs-fonts-v1';
 const IMAGE_CACHE = 'beebanelabs-images-v1';
 
