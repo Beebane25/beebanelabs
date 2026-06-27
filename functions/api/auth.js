@@ -142,8 +142,10 @@ export async function onRequestPost(context) {
       // Cloudflare Turnstile verification (if secret key configured)
       const turnstileToken = body.turnstile_token || '';
       const turnstileSecret = env.TURNSTILE_SECRET_KEY || '';
-      if (turnstileSecret && turnstileToken) {
-        // Only verify if token is present (fail-open if widget fails to load)
+      if (turnstileSecret) {
+        if (!turnstileToken) {
+          return cors(400, { error: 'Verifikasi CAPTCHA diperlukan. Muat ulang halaman.' }, origin);
+        }
         try {
           const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
             method: 'POST',
@@ -155,8 +157,8 @@ export async function onRequestPost(context) {
             return cors(400, { error: 'Verifikasi CAPTCHA gagal. Coba lagi.' }, origin);
           }
         } catch (e) {
-          // If Turnstile verification fails, allow registration (fail-open for availability)
           console.error('Turnstile verification error:', e.message);
+          return cors(500, { error: 'Gagal verifikasi CAPTCHA. Coba lagi.' }, origin);
         }
       }
 
