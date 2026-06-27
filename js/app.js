@@ -795,6 +795,67 @@ function animateCounters() {
   });
 }
 
+// === PREMIUM VISUAL ENHANCEMENTS (v8.0) ===
+
+// Scroll Progress Bar
+function initScrollProgress() {
+  const bar = document.createElement('div');
+  bar.className = 'scroll-progress';
+  document.body.prepend(bar);
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    bar.style.width = progress + '%';
+  }, { passive: true });
+}
+
+// Mouse-Follow Glow on Category Cards
+function initMouseGlow() {
+  document.querySelectorAll('.category-card').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
+      card.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
+    });
+  });
+}
+
+// Enhanced Staggered Reveal for Cards
+function initStaggeredCards() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, idx) => {
+      if (entry.isIntersecting) {
+        // Stagger delay based on position within parent
+        const parent = entry.target.parentElement;
+        const siblings = parent ? Array.from(parent.querySelectorAll('.category-card, .article-card')) : [];
+        const index = siblings.indexOf(entry.target);
+        const delay = Math.min(index * 60, 300);
+        setTimeout(() => {
+          entry.target.classList.add('active');
+        }, delay);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.05, rootMargin: '0px 0px -30px 0px' });
+
+  document.querySelectorAll('.category-card, .article-card').forEach(card => {
+    card.classList.add('reveal');
+    observer.observe(card);
+  });
+}
+
+// Section Dividers (auto-insert between major sections)
+function initSectionDividers() {
+  const sections = document.querySelectorAll('.categories-section, .learning-path, .articles-section, .newsletter-section');
+  sections.forEach(section => {
+    if (!section.previousElementSibling?.classList.contains('section-divider')) {
+      const hr = document.createElement('hr');
+      hr.className = 'section-divider';
+      section.parentNode.insertBefore(hr, section);
+    }
+  });
+}
 
 // === CONFIGURATION ===
 const SITE_CONFIG = {
@@ -2112,6 +2173,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   initParticles();
   animateCounters();
   initCopyCode();
+  initScrollProgress();
+  initMouseGlow();
+  initStaggeredCards();
+  initSectionDividers();
   injectLearningPath();
   renderGroupedArticles('all');
   initArticleFilter();
