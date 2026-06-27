@@ -116,7 +116,7 @@ export async function onRequestPost(context) {
       );
     } catch (e) {
       console.error('Supabase users query failed:', e.message);
-      return new Response(JSON.stringify({ error: 'Database error', detail: e.message }), {
+      return new Response(JSON.stringify({ error: 'Database error' }), {
         status: 500, headers
       });
     }
