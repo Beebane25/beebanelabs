@@ -667,7 +667,6 @@ function initQuiz(quizId, answers) {
         }
       } else if (serverResult.reason === 'no_session') {
         // Not logged in - only local save
-        console.log('Quiz saved locally (not logged in)');
       }
     });
   }
