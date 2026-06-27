@@ -1171,7 +1171,7 @@ const PaywallSystem = {
 // === SUPABASE CLIENT FOR GOOGLE AUTH ===
 // Replace these with your actual Supabase project values
 const SUPABASE_URL = 'https://nbungbznljbiddlwyvbd.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbG...rgwk';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5idW5nYnpubGpiaWRkbHd5dmJkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NjM3NTksImV4cCI6MjA5NzUzOTc1OX0.FGe3OLY0iQ5DJuWU9kGcEt2JQH2TQARdShqfftMrgwk';
 
 let supabaseClient = null;
 function getSupabaseClient() {
