@@ -1175,8 +1175,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 let supabaseClient = null;
 function getSupabaseClient() {
-  if (!supabaseClient && window.supabase && window.supabase.createClient) {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  // Try multiple global names (UMD builds vary)
+  const sb = window.supabase || window.Supabase || null;
+  const factory = sb && (sb.createClient || sb.create_client || null);
+  if (!supabaseClient && factory) {
+    supabaseClient = factory(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
