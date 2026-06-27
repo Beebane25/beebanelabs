@@ -593,7 +593,6 @@
 
   <script defer src="js/app.js?v=8.0"></script>
   <script defer src="js/mobile-zoom.js?v=9.2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
     // Article data mapping
     const ARTICLE_DATA = {
@@ -1077,14 +1076,17 @@
       const completed = entries.filter(e => e.status === 'completed').length;
       const opened = entries.filter(e => e.status === 'opened').length;
 
-      // Category breakdown
-      const CATEGORY_NAMES = { iot: 'IoT & Embedded', networking: 'Networking', programming: 'Programming', security: 'Cybersecurity', dashboard: 'Dashboard & Cloud' };
-      const CATEGORY_MAP = { 'esp32-fundamentals':'iot','esp8266-nodemcu':'iot','sensor-dht-esp32':'iot','deep-sleep-esp32':'iot','web-server-esp32':'iot','lora-communication':'iot','raspberry-pi-iot':'iot','mqtt-protocol':'iot','iot-protocols-comparison':'iot','telegram-bot-iot':'iot','mikrotik-routing':'networking','mikrotik-firewall':'networking','mikrotik-queue':'networking','python-iot-automation':'programming','arduino-ide-setup':'programming','network-security':'security','dashboard-monitoring':'dashboard','node-red-iot':'dashboard','grafana-influxdb':'dashboard','firebase-iot':'dashboard','blynk-iot':'dashboard' };
-
+      // Category breakdown — uses unified ARTICLE_CATEGORIES from app.js
       const catStats = {};
-      unlocked.forEach(slug => {
-        const cat = CATEGORY_MAP[slug] || 'other';
-        catStats[cat] = (catStats[cat] || 0) + 1;
+      unlocked.forEach(function(slug) {
+        var article = ALL_ARTICLES.find(function(a) { return a.slug === slug; });
+        if (!article) return;
+        for (var key in ARTICLE_CATEGORIES) {
+          if (ARTICLE_CATEGORIES[key].match.includes(article.cat)) {
+            catStats[key] = (catStats[key] || 0) + 1;
+            break;
+          }
+        }
       });
 
       // Weekly activity (last 7 days)
@@ -1116,11 +1118,11 @@
       // Category chart
       html += '<h4 style="margin-bottom:12px;font-size:0.9rem;">📊 Artikel per Kategori</h4>';
       html += '<div style="margin-bottom:24px;">';
-      Object.entries(CATEGORY_NAMES).forEach(([key, name]) => {
+      Object.entries(ARTICLE_CATEGORIES).forEach(([key, cat]) => {
         const count = catStats[key] || 0;
         const pct = Math.min(100, (count / 5) * 100);
         html += '<div style="margin-bottom:8px;">';
-        html += '<div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:4px;"><span>' + name + '</span><span style="color:var(--text-muted);">' + count + '</span></div>';
+        html += '<div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:4px;"><span>' + cat.name + '</span><span style="color:var(--text-muted);">' + count + '</span></div>';
         html += '<div style="height:8px;background:var(--bg-secondary);border-radius:4px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);border-radius:4px;transition:width 0.3s;"></div></div>';
         html += '</div>';
       });
@@ -1162,12 +1164,22 @@
         else { if (currentStreak > 0) break; }
       }
 
-      // Category completion
-      const CATEGORY_MAP = { 'esp32-fundamentals':'iot','esp8266-nodemcu':'iot','sensor-dht-esp32':'iot','deep-sleep-esp32':'iot','web-server-esp32':'iot','lora-communication':'iot','raspberry-pi-iot':'iot','mqtt-protocol':'iot','iot-protocols-comparison':'iot','telegram-bot-iot':'iot','mikrotik-routing':'networking','mikrotik-firewall':'networking','mikrotik-queue':'networking','python-iot-automation':'programming','arduino-ide-setup':'programming','network-security':'security','dashboard-monitoring':'dashboard','node-red-iot':'dashboard','grafana-influxdb':'dashboard','firebase-iot':'dashboard','blynk-iot':'dashboard' };
+      // Category completion — uses unified ARTICLE_CATEGORIES from app.js
       const CATEGORY_TOTALS = {};
-      Object.entries(CATEGORY_MAP).forEach(([slug, cat]) => { CATEGORY_TOTALS[cat] = (CATEGORY_TOTALS[cat] || 0) + 1; });
       const catUnlocked = {};
-      unlocked.forEach(slug => { const cat = CATEGORY_MAP[slug]; if (cat) catUnlocked[cat] = (catUnlocked[cat] || 0) + 1; });
+      for (const [key, cat] of Object.entries(ARTICLE_CATEGORIES)) {
+        CATEGORY_TOTALS[key] = ALL_ARTICLES.filter(a => cat.match.includes(a.cat)).length;
+      }
+      unlocked.forEach(slug => {
+        const article = ALL_ARTICLES.find(a => a.slug === slug);
+        if (!article) return;
+        for (const [key, cat] of Object.entries(ARTICLE_CATEGORIES)) {
+          if (cat.match.includes(article.cat)) {
+            catUnlocked[key] = (catUnlocked[key] || 0) + 1;
+            break;
+          }
+        }
+      });
       const categoryMaster = Object.keys(CATEGORY_TOTALS).some(cat => (catUnlocked[cat] || 0) >= CATEGORY_TOTALS[cat]);
 
       const badges = [
@@ -1183,32 +1195,124 @@
         { icon: '👑', name: 'Category Master', desc: 'Selesaikan 1 kategori', earned: categoryMaster }
       ];
 
-      grid.innerHTML = badges.map(b => {
-        return '<div style="text-align:center;padding:20px 12px;background:' + (b.earned ? 'rgba(59,130,246,0.1)' : 'rgba(39,39,42,0.5)') + ';border:1px solid ' + (b.earned ? 'rgba(59,130,246,0.3)' : '#27272a') + ';border-radius:12px;opacity:' + (b.earned ? '1' : '0.4') + ';transition:all 0.3s;">' +
+      grid.innerHTML = badges.map((b, idx) => {
+        const badgeId = 'badge-' + idx;
+        return '<div id="' + badgeId + '" style="text-align:center;padding:20px 12px;background:' + (b.earned ? 'rgba(59,130,246,0.1)' : 'rgba(39,39,42,0.5)') + ';border:1px solid ' + (b.earned ? 'rgba(59,130,246,0.3)' : '#27272a') + ';border-radius:12px;opacity:' + (b.earned ? '1' : '0.4') + ';transition:all 0.3s;">' +
           '<div style="font-size:2rem;margin-bottom:8px;">' + b.icon + '</div>' +
           '<div style="font-size:0.85rem;font-weight:600;color:' + (b.earned ? 'var(--text-primary)' : 'var(--text-muted)') + ';">' + b.name + '</div>' +
           '<div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;">' + b.desc + '</div>' +
-          (b.earned ? '<div style="font-size:0.65rem;color:#3b82f6;margin-top:6px;">✅ Diraih</div>' : '') +
+          (b.earned ? '<div style="font-size:0.65rem;color:#3b82f6;margin-top:6px;">✅ Diraih</div><button onclick="downloadBadge(\'' + b.icon + '\',\'' + b.name + '\',\'' + b.desc + '\')" style="margin-top:8px;padding:4px 12px;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:rgba(59,130,246,0.1);color:#60a5fa;cursor:pointer;font-size:0.7rem;">📥 Download</button>' : '') +
         '</div>';
       }).join('');
     }
 
+    // Badge download with auto-fill user data
+    function downloadBadge(icon, name, desc) {
+      const session = AuthSystem.getSession();
+      const userName = (session && session.user) ? session.user.name : 'User';
+      const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      const badgeId = 'BLB-BDG-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 90000) + 10000);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
+
+      // Background
+      const grad = ctx.createRadialGradient(200, 200, 50, 200, 200, 200);
+      grad.addColorStop(0, '#1e293b');
+      grad.addColorStop(1, '#0f172a');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(200, 200, 190, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Border ring
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(200, 200, 185, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Inner ring
+      ctx.strokeStyle = 'rgba(59,130,246,0.3)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(200, 200, 170, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Icon (emoji)
+      ctx.font = '64px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(icon, 200, 160);
+
+      // Badge name
+      ctx.font = 'bold 20px Inter, sans-serif';
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillText(name, 200, 210);
+
+      // Description
+      ctx.font = '12px Inter, sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText(desc, 200, 235);
+
+      // Divider
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(100, 255);
+      ctx.lineTo(300, 255);
+      ctx.stroke();
+
+      // User name
+      ctx.font = 'bold 16px Inter, sans-serif';
+      ctx.fillStyle = '#60a5fa';
+      ctx.fillText(userName, 200, 280);
+
+      // Platform
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillStyle = '#64748b';
+      ctx.fillText('BeebaneLabs', 200, 300);
+
+      // Date
+      ctx.font = '10px Inter, sans-serif';
+      ctx.fillStyle = '#475569';
+      ctx.fillText(today, 200, 320);
+
+      // Badge ID
+      ctx.font = '9px monospace';
+      ctx.fillStyle = '#334155';
+      ctx.fillText(badgeId, 200, 345);
+
+      // Download
+      const link = document.createElement('a');
+      link.download = 'badge-' + name.toLowerCase().replace(/\s+/g, '-') + '-' + (userName || 'user').replace(/\s+/g, '-') + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      Toast.show('Badge berhasil di-download!', 'success');
+    }
+
     // ===== CERTIFICATES =====
     var currentCertCategory = null;
-    const CERT_CATEGORY_MAP = { 'esp32-fundamentals':'iot','esp8266-nodemcu':'iot','sensor-dht-esp32':'iot','deep-sleep-esp32':'iot','web-server-esp32':'iot','lora-communication':'iot','raspberry-pi-iot':'iot','mqtt-protocol':'iot','iot-protocols-comparison':'iot','telegram-bot-iot':'iot','mikrotik-routing':'networking','mikrotik-firewall':'networking','mikrotik-queue':'networking','python-iot-automation':'programming','arduino-ide-setup':'programming','network-security':'security','dashboard-monitoring':'dashboard','node-red-iot':'dashboard','grafana-influxdb':'dashboard','firebase-iot':'dashboard','blynk-iot':'dashboard' };
-    const CERT_CATEGORY_NAMES = { iot: 'IoT & Embedded', networking: 'Networking (MikroTik)', programming: 'Programming', security: 'Cybersecurity', dashboard: 'Dashboard & Cloud' };
 
     function loadCertificates() {
       const container = document.getElementById('certificateList');
       if (!container) return;
       const unlocked = (typeof PaywallSystem !== 'undefined') ? PaywallSystem.getUnlocked() : [];
 
+      // Uses unified ARTICLE_CATEGORIES from app.js
       const catTotal = {};
-      Object.entries(CERT_CATEGORY_MAP).forEach(([slug, cat]) => { catTotal[cat] = (catTotal[cat] || 0) + 1; });
       const catDone = {};
-      unlocked.forEach(slug => { const cat = CERT_CATEGORY_MAP[slug]; if (cat) catDone[cat] = (catDone[cat] || 0) + 1; });
+      for (const [key, cat] of Object.entries(ARTICLE_CATEGORIES)) {
+        catTotal[key] = ALL_ARTICLES.filter(a => cat.match.includes(a.cat)).length;
+        catDone[key] = unlocked.filter(slug => {
+          const article = ALL_ARTICLES.find(a => a.slug === slug);
+          return article && cat.match.includes(article.cat);
+        }).length;
+      }
 
-      container.innerHTML = Object.entries(CERT_CATEGORY_NAMES).map(([key, name]) => {
+      container.innerHTML = Object.entries(ARTICLE_CATEGORIES).map(([key, cat]) => {
+        const name = cat.name;
         const done = catDone[key] || 0;
         const total = catTotal[key] || 1;
         const pct = Math.round((done / total) * 100);
@@ -1229,7 +1333,7 @@
       const session = AuthSystem.getSession();
       if (!session || !session.user) return;
       const name = session.user.name || 'User';
-      const catName = CERT_CATEGORY_NAMES[category] || category;
+      const catName = (ARTICLE_CATEGORIES[category] && ARTICLE_CATEGORIES[category].name) || category;
       const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
       const certId = 'CERT-BLB-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 90000) + 10000);
 
@@ -1263,36 +1367,157 @@
     function downloadCertPNG() { downloadCertificate(); }
 
     function downloadCertificate() {
-      const cert = document.getElementById('certRender');
-      if (!cert) { Toast.show('Generate sertifikat dulu', 'error'); return; }
+      if (!currentCertCategory) { Toast.show('Generate sertifikat dulu', 'error'); return; }
+      const session = AuthSystem.getSession();
+      const userName = (session && session.user) ? session.user.name : 'User';
+      const catName = (typeof ARTICLE_CATEGORIES !== 'undefined' && ARTICLE_CATEGORIES[currentCertCategory]) ? ARTICLE_CATEGORIES[currentCertCategory].name : currentCertCategory;
+      const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      const certId = 'CERT-BLB-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 90000) + 10000);
 
       const btn = document.getElementById('btnDownloadCert');
       if (btn) { btn.disabled = true; btn.textContent = '⏳ Memproses...'; }
 
-      // Try html2canvas
-      if (typeof html2canvas !== 'undefined') {
-        html2canvas(cert, { scale: 2, backgroundColor: null }).then(canvas => {
-          const link = document.createElement('a');
-          link.download = 'sertifikat-beebanelabs-' + (currentCertCategory || 'cert') + '.png';
-          link.href = canvas.toDataURL('image/png');
-          link.click();
-          if (btn) { btn.disabled = false; btn.textContent = '📥 Unduh PNG'; }
-          Toast.show('Sertifikat berhasil diunduh!', 'success');
-        }).catch(function() {
-          if (btn) { btn.disabled = false; btn.textContent = '📥 Unduh PNG'; }
-          window.print();
-        });
-      } else {
-        // Fallback: load html2canvas dynamically
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-        script.onload = () => { downloadCertificate(); };
-        script.onerror = () => {
-          if (btn) { btn.disabled = false; btn.textContent = '📥 Unduh PNG'; }
-          Toast.show('Gagal memuat library. Gunakan Print (Ctrl+P) sebagai alternatif.', 'error');
-        };
-        document.head.appendChild(script);
-      }
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 800;
+      const ctx = canvas.getContext('2d');
+
+      // Background gradient
+      const grad = ctx.createLinearGradient(0, 0, 1200, 800);
+      grad.addColorStop(0, '#0f172a');
+      grad.addColorStop(0.5, '#1e293b');
+      grad.addColorStop(1, '#0f172a');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1200, 800);
+
+      // Gold border (outer)
+      ctx.strokeStyle = '#d4a843';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(20, 20, 1160, 760);
+
+      // Gold border (inner)
+      ctx.strokeStyle = 'rgba(212,168,67,0.4)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(35, 35, 1130, 730);
+
+      // Top gold bar
+      const topGrad = ctx.createLinearGradient(0, 0, 1200, 0);
+      topGrad.addColorStop(0, '#d4a843');
+      topGrad.addColorStop(0.5, '#f59e0b');
+      topGrad.addColorStop(1, '#d4a843');
+      ctx.fillStyle = topGrad;
+      ctx.fillRect(20, 20, 1160, 5);
+
+      // Bottom gold bar
+      ctx.fillStyle = topGrad;
+      ctx.fillRect(20, 775, 1160, 5);
+
+      // Corner ornaments
+      const drawCorner = (x, y, flip) => {
+        ctx.save();
+        ctx.translate(x, y);
+        if (flip) ctx.scale(-1, 1);
+        ctx.strokeStyle = '#d4a843';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 30);
+        ctx.quadraticCurveTo(0, 0, 30, 0);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(5, 25);
+        ctx.quadraticCurveTo(5, 5, 25, 5);
+        ctx.stroke();
+        ctx.restore();
+      };
+      drawCorner(45, 45, false);
+      drawCorner(1155, 45, true);
+      drawCorner(45, 755, false);
+      drawCorner(1155, 755, true);
+
+      // Platform name
+      ctx.font = '16px Georgia, serif';
+      ctx.fillStyle = '#d4a843';
+      ctx.textAlign = 'center';
+      ctx.letterSpacing = '4px';
+      ctx.fillText('B E E B A N E L A B S', 600, 100);
+
+      // Title
+      ctx.font = 'bold 36px Georgia, serif';
+      ctx.fillStyle = '#d4a843';
+      ctx.fillText('SERTIFIKAT PENYELESAIAN', 600, 160);
+
+      // Subtitle
+      ctx.font = '14px Inter, sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('Dengan ini menyatakan bahwa', 600, 220);
+
+      // User name
+      ctx.font = 'italic bold 40px Georgia, serif';
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillText(userName, 600, 290);
+
+      // Gold divider
+      ctx.strokeStyle = '#d4a843';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(450, 315);
+      ctx.lineTo(750, 315);
+      ctx.stroke();
+
+      // Description
+      ctx.font = '14px Inter, sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('Telah menyelesaikan semua artikel dalam kategori', 600, 360);
+
+      // Category name
+      ctx.font = 'bold 24px Inter, sans-serif';
+      ctx.fillStyle = '#60a5fa';
+      ctx.fillText(catName, 600, 400);
+
+      // Decorative line
+      ctx.strokeStyle = 'rgba(212,168,67,0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(200, 450);
+      ctx.lineTo(1000, 450);
+      ctx.stroke();
+
+      // Stats row
+      ctx.font = '12px Inter, sans-serif';
+      ctx.fillStyle = '#64748b';
+      ctx.textAlign = 'left';
+      ctx.fillText('Tanggal', 150, 520);
+      ctx.textAlign = 'center';
+      ctx.fillText('ID Sertifikat', 600, 520);
+      ctx.textAlign = 'right';
+      ctx.fillText('Platform', 1050, 520);
+
+      ctx.font = '14px Inter, sans-serif';
+      ctx.fillStyle = '#e2e8f0';
+      ctx.textAlign = 'left';
+      ctx.fillText(today, 150, 545);
+      ctx.textAlign = 'center';
+      ctx.font = '13px monospace';
+      ctx.fillText(certId, 600, 545);
+      ctx.textAlign = 'right';
+      ctx.font = '14px Inter, sans-serif';
+      ctx.fillText('BeebaneLabs', 1050, 545);
+
+      // Footer
+      ctx.font = '10px Inter, sans-serif';
+      ctx.fillStyle = '#475569';
+      ctx.textAlign = 'center';
+      ctx.fillText('Sertifikat ini diberikan oleh BeebaneLabs — Portal Tutorial Teknologi & IT Indonesia', 600, 650);
+      ctx.fillText('https://beebanelabs.pages.dev', 600, 670);
+
+      // Download
+      const link = document.createElement('a');
+      link.download = 'sertifikat-beebanelabs-' + (currentCertCategory || 'cert') + '-' + (userName || 'user').replace(/\s+/g, '-') + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+
+      if (btn) { btn.disabled = false; btn.textContent = '📥 Unduh PNG'; }
+      Toast.show('Sertifikat berhasil diunduh!', 'success');
     }
 
     // ===== LOGOUT ALL DEVICES =====

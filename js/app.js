@@ -2146,6 +2146,125 @@ function injectLearningPath() {
   articlesSection.insertAdjacentHTML('beforebegin', pathHTML);
 }
 
+// === UNIFIED CATEGORY SYSTEM ===
+const ARTICLE_CATEGORIES = {
+  'iot': {
+    name: 'IoT & Embedded',
+    icon: '🤖',
+    slug: 'iot',
+    match: ['ESP32', 'IoT', 'Raspberry Pi', 'LoRa'],
+    color: '#00e5ff'
+  },
+  'networking': {
+    name: 'Networking',
+    icon: '🌐',
+    slug: 'mikrotik',
+    match: ['Networking', 'MikroTik'],
+    color: '#fb923c'
+  },
+  'programming': {
+    name: 'Pemrograman',
+    icon: '💻',
+    slug: 'python',
+    match: ['Python', 'Tools'],
+    color: '#ffeb00'
+  },
+  'security': {
+    name: 'Cybersecurity',
+    icon: '🔐',
+    slug: 'keamanan',
+    match: ['Keamanan'],
+    color: '#f43f5e'
+  },
+  'dashboard': {
+    name: 'Dashboard & Cloud',
+    icon: '📊',
+    slug: 'dashboard',
+    match: ['Dashboard', 'Cloud'],
+    color: '#8b5cf6'
+  },
+  'protocol': {
+    name: 'Protokol & Tools',
+    icon: '📡',
+    slug: 'protokol',
+    match: ['Protokol'],
+    color: '#06b6d4'
+  },
+  'webdev': {
+    name: 'Web Development',
+    icon: '🌐',
+    slug: 'web-dev',
+    match: ['Web Development'],
+    color: '#3b82f6'
+  },
+  'database': {
+    name: 'Database',
+    icon: '🗄️',
+    slug: 'database',
+    match: ['Database'],
+    color: '#10b981'
+  },
+  'ai': {
+    name: 'AI & Data Science',
+    icon: '🤖',
+    slug: 'ai-ml',
+    match: ['AI & Data Science'],
+    color: '#a855f7'
+  },
+  'mobile': {
+    name: 'Mobile Development',
+    icon: '📱',
+    slug: 'mobile',
+    match: ['Mobile Development'],
+    color: '#ec4899'
+  },
+  'devops': {
+    name: 'DevOps & Cloud',
+    icon: '⚙️',
+    slug: 'devops',
+    match: ['DevOps & Cloud'],
+    color: '#f97316'
+  },
+  'career': {
+    name: 'IT Career',
+    icon: '💼',
+    slug: 'it-career',
+    match: ['IT Career'],
+    color: '#6366f1'
+  }
+};
+
+function getCategoryCounts() {
+  const counts = {};
+  for (const key of Object.keys(ARTICLE_CATEGORIES)) {
+    counts[key] = 0;
+  }
+  for (const article of ALL_ARTICLES) {
+    for (const [key, cat] of Object.entries(ARTICLE_CATEGORIES)) {
+      if (cat.match.includes(article.cat)) {
+        counts[key]++;
+        break;
+      }
+    }
+  }
+  return counts;
+}
+
+function getCategoryForSlug(slug) {
+  const article = ALL_ARTICLES.find(a => a.slug === slug);
+  if (!article) return null;
+  for (const [key, cat] of Object.entries(ARTICLE_CATEGORIES)) {
+    if (cat.match.includes(article.cat)) return key;
+  }
+  return null;
+}
+
+function getArticlesByCategory(catKey) {
+  const cat = ARTICLE_CATEGORIES[catKey];
+  if (!cat) return [];
+  return ALL_ARTICLES.filter(a => cat.match.includes(a.cat)).map(a => a.slug);
+}
+
 // === GROUPED ARTICLES (3 per category) ===
 const ALL_ARTICLES = [
   { slug: 'esp32-fundamentals', title: 'Panduan Lengkap ESP32', icon: '🔧', cat: 'ESP32', desc: 'Tutorial komprehensif ESP32 untuk pemula', diff: 'pemula', time: '15', access: 'Token', date: '20 Juni 2026' },
