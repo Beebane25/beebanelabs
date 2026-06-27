@@ -844,7 +844,7 @@ function initSectionDividers() {
 // === CONFIGURATION ===
 const SITE_CONFIG = {
   API_BASE: window.location.origin,
-  APP_VERSION: '7.18',
+  APP_VERSION: '8.0',
   TOKEN_PRICE: 10000,
   INITIAL_TOKENS: 5
 };
