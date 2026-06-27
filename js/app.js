@@ -303,18 +303,7 @@ if (searchInput) {
   });
 }
 
-// === Back to Top ===
-const backToTop = document.getElementById('backToTop');
-
-window.addEventListener('scroll', debounce(() => {
-  if (!backToTop) return;
-  if (window.pageYOffset > 400) {
-    backToTop.classList.add('visible');
-  } else {
-    backToTop.classList.remove('visible');
-  }
-}, 50));
-
+// Back to top click handler
 if (backToTop) {
   backToTop.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
