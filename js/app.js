@@ -724,6 +724,14 @@ function initScrollReveal() {
   }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
   revealElements.forEach(el => observer.observe(el));
+
+  // Fallback: force all .reveal to .active after 1.5s
+  // (IntersectionObserver can miss elements on some browsers/devices)
+  setTimeout(() => {
+    document.querySelectorAll('.reveal:not(.active)').forEach(el => {
+      el.classList.add('active');
+    });
+  }, 1500);
 }
 
 // === ADD REVEAL CLASSES TO SECTIONS ===
