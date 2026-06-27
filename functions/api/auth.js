@@ -324,6 +324,186 @@ export async function onRequestPost(context) {
       return cors(200, { access: true, plan: users[0].plan }, origin);
     }
 
+    // === CHANGE PASSWORD ===
+    if (action === 'change-password') {
+      const { token, oldPassword, newPassword } = body;
+      if (!token || typeof token !== 'string' || token.length > 128) return cors(400, { error: 'Token tidak valid' }, origin);
+      if (!oldPassword || !newPassword) return cors(400, { error: 'Password lama dan baru harus diisi' }, origin);
+      if (newPassword.length < 8) return cors(400, { error: 'Password baru minimal 8 karakter' }, origin);
+      if (newPassword.length > 128) return cors(400, { error: 'Password baru maksimal 128 karakter' }, origin);
+      if (!/[A-Z]/.test(newPassword)) return cors(400, { error: 'Password harus mengandung huruf besar' }, origin);
+      if (!/[0-9]/.test(newPassword)) return cors(400, { error: 'Password harus mengandung angka' }, origin);
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) return cors(400, { error: 'Password harus mengandung simbol' }, origin);
+
+      // Rate limiting
+      const pwRateCheck = await checkRateLimit(SUPABASE_URL, SUPABASE_KEY, ip, 'change-password');
+      if (!pwRateCheck.allowed) return cors(429, { error: 'Terlalu banyak percobaan. Coba lagi dalam 5 menit.' }, origin);
+
+      // Validate session
+      const encodedToken = encodeURIComponent(token);
+      const sessions = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', `?token=eq.${encodedToken}&select=id,user_id,expires_at`);
+      if (!sessions || sessions.length === 0) return cors(401, { error: 'Session tidak valid' }, origin);
+      if (new Date(sessions[0].expires_at) < new Date()) return cors(401, { error: 'Session expired' }, origin);
+
+      const userId = sessions[0].user_id;
+      const encodedUserId = encodeURIComponent(userId);
+
+      // Get user with password hash
+      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}&select=id,password_hash`);
+      if (!users || users.length === 0) return cors(404, { error: 'User tidak ditemukan' }, origin);
+
+      // Verify old password
+      const stored = users[0].password_hash;
+      if (stored === 'google_oauth') return cors(400, { error: 'Akun Google tidak bisa ganti password. Gunakan login Google.' }, origin);
+
+      let valid = false;
+      if (stored && stored.includes(':')) {
+        const [saltHex, pwHash] = stored.split(':');
+        const salt = new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b, 16)));
+        const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(oldPassword), { name: 'PBKDF2' }, false, ['deriveBits']);
+        const hashBits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' }, key, 256);
+        const checkHash = Array.from(new Uint8Array(hashBits)).map(b => b.toString(16).padStart(2, '0')).join('');
+        valid = constantTimeCompare(checkHash, pwHash);
+      }
+      if (!valid) {
+        await recordAttempt(SUPABASE_URL, SUPABASE_KEY, ip, 'change-password');
+        return cors(401, { error: 'Password lama salah' }, origin);
+      }
+
+      // Hash new password
+      const newSalt = crypto.getRandomValues(new Uint8Array(16));
+      const newSaltHex = Array.from(newSalt).map(b => b.toString(16).padStart(2, '0')).join('');
+      const newKey = await crypto.subtle.importKey('raw', new TextEncoder().encode(newPassword), { name: 'PBKDF2' }, false, ['deriveBits']);
+      const newHashBits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: newSalt, iterations: 100000, hash: 'SHA-256' }, newKey, 256);
+      const newHashHex = Array.from(new Uint8Array(newHashBits)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+      // Update password
+      await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}`, 'PATCH', {
+        password_hash: `${newSaltHex}:${newHashHex}`
+      });
+
+      // Invalidate all OTHER sessions (security: force re-login everywhere)
+      await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', `?user_id=eq.${encodedUserId}&token=neq.${encodedToken}`, 'DELETE');
+
+      return cors(200, { success: true, message: 'Password berhasil diubah!' }, origin);
+    }
+
+    // === UPDATE PROFILE ===
+    if (action === 'update-profile') {
+      const { token, name, dob } = body;
+      if (!token || typeof token !== 'string' || token.length > 128) return cors(400, { error: 'Token tidak valid' }, origin);
+
+      // Validate session
+      const encodedToken = encodeURIComponent(token);
+      const sessions = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', `?token=eq.${encodedToken}&select=id,user_id,expires_at`);
+      if (!sessions || sessions.length === 0) return cors(401, { error: 'Session tidak valid' }, origin);
+      if (new Date(sessions[0].expires_at) < new Date()) return cors(401, { error: 'Session expired' }, origin);
+
+      const userId = sessions[0].user_id;
+      const encodedUserId = encodeURIComponent(userId);
+
+      // Build update object
+      const updates = {};
+      if (name !== undefined) {
+        const sanitizedName = sanitizeName(name);
+        if (sanitizedName.length < 2) return cors(400, { error: 'Nama minimal 2 karakter' }, origin);
+        if (sanitizedName.length > 100) return cors(400, { error: 'Nama maksimal 100 karakter' }, origin);
+        updates.name = sanitizedName;
+      }
+      if (dob !== undefined) {
+        // Validate date format (YYYY-MM-DD)
+        if (dob && !/^\d{4}-\d{2}-\d{2}$/.test(dob)) return cors(400, { error: 'Format tanggal lahir tidak valid' }, origin);
+        updates.dob = dob || null;
+      }
+
+      if (Object.keys(updates).length === 0) return cors(400, { error: 'Tidak ada data yang diubah' }, origin);
+
+      // Update user
+      const result = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}`, 'PATCH', updates);
+
+      // Return updated user data
+      const updatedUsers = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}&select=id,email,name,plan,tokens,dob,created_at`);
+      const updatedUser = updatedUsers && updatedUsers[0] ? updatedUsers[0] : {};
+
+      return cors(200, {
+        success: true,
+        message: 'Profil berhasil diupdate!',
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          plan: updatedUser.plan,
+          tokens: updatedUser.tokens,
+          dob: updatedUser.dob,
+          created_at: updatedUser.created_at
+        }
+      }, origin);
+    }
+
+    // === DELETE ACCOUNT ===
+    if (action === 'delete-account') {
+      const { token, password } = body;
+      if (!token || typeof token !== 'string' || token.length > 128) return cors(400, { error: 'Token tidak valid' }, origin);
+      if (!password) return cors(400, { error: 'Password diperlukan untuk hapus akun' }, origin);
+
+      // Rate limiting
+      const delRateCheck = await checkRateLimit(SUPABASE_URL, SUPABASE_KEY, ip, 'delete-account');
+      if (!delRateCheck.allowed) return cors(429, { error: 'Terlalu banyak percobaan. Coba lagi dalam 5 menit.' }, origin);
+
+      // Validate session
+      const encodedToken = encodeURIComponent(token);
+      const sessions = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', `?token=eq.${encodedToken}&select=id,user_id,expires_at`);
+      if (!sessions || sessions.length === 0) return cors(401, { error: 'Session tidak valid' }, origin);
+      if (new Date(sessions[0].expires_at) < new Date()) return cors(401, { error: 'Session expired' }, origin);
+
+      const userId = sessions[0].user_id;
+      const encodedUserId = encodeURIComponent(userId);
+
+      // Get user with password hash
+      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}&select=id,password_hash,email`);
+      if (!users || users.length === 0) return cors(404, { error: 'User tidak ditemukan' }, origin);
+
+      // Verify password (re-authentication)
+      const stored = users[0].password_hash;
+      if (stored === 'google_oauth') {
+        // Google users: skip password check, but require confirmation
+        if (body.confirm !== 'HAPUS AKUN SAYA') {
+          return cors(400, { error: 'Ketik "HAPUS AKUN SAYA" untuk konfirmasi' }, origin);
+        }
+      } else {
+        // Regular users: verify password
+        let valid = false;
+        if (stored && stored.includes(':')) {
+          const [saltHex, pwHash] = stored.split(':');
+          const salt = new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b, 16)));
+          const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), { name: 'PBKDF2' }, false, ['deriveBits']);
+          const hashBits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' }, key, 256);
+          const checkHash = Array.from(new Uint8Array(hashBits)).map(b => b.toString(16).padStart(2, '0')).join('');
+          valid = constantTimeCompare(checkHash, pwHash);
+        }
+        if (!valid) {
+          await recordAttempt(SUPABASE_URL, SUPABASE_KEY, ip, 'delete-account');
+          return cors(401, { error: 'Password salah' }, origin);
+        }
+      }
+
+      // Delete user data (order matters for foreign keys)
+      await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', `?user_id=eq.${encodedUserId}`, 'DELETE');
+      await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'article_unlocks', `?user_id=eq.${encodedUserId}`, 'DELETE');
+      try {
+        await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'quiz_results', `?user_id=eq.${encodedUserId}`, 'DELETE');
+        await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'reading_history', `?user_id=eq.${encodedUserId}`, 'DELETE');
+        await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'user_activity', `?user_id=eq.${encodedUserId}`, 'DELETE');
+      } catch (e) {
+        // Tables might not exist, continue
+      }
+
+      // Delete user record
+      await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}`, 'DELETE');
+
+      return cors(200, { success: true, message: 'Akun berhasil dihapus. Semua data telah dihapus permanen.' }, origin);
+    }
+
     return cors(400, { error: 'Action tidak valid' }, origin);
   } catch (e) {
     // Error logged for debugging

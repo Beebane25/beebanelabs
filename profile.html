@@ -690,14 +690,37 @@
       const dob = document.getElementById('settingsDob').value;
       
       const session = AuthSystem.getSession();
-      if (session && session.user) {
-        session.user.name = name;
-        session.user.dob = dob;
-        AuthSystem.saveSession(session);
-        document.getElementById('profileName').textContent = name || 'User';
-        const initial = (name || session.user.email || 'U')[0].toUpperCase();
-        document.getElementById('profileAvatar').textContent = initial;
-        Toast.show('Profil berhasil diupdate!', 'success');
+      if (!session || !session.token) {
+        Toast.show('Session tidak valid', 'error');
+        return false;
+      }
+
+      const btn = e.target.querySelector('.btn-save');
+      if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+
+      try {
+        const res = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update-profile', token: session.token, name, dob })
+        });
+        const data = await res.json();
+        if (data.success && data.user) {
+          // Update local session with server response
+          session.user.name = data.user.name;
+          session.user.dob = data.user.dob;
+          AuthSystem.saveSession(session);
+          document.getElementById('profileName').textContent = data.user.name || 'User';
+          const initial = (data.user.name || session.user.email || 'U')[0].toUpperCase();
+          document.getElementById('profileAvatar').textContent = initial;
+          Toast.show(data.message || 'Profil berhasil diupdate!', 'success');
+        } else {
+          Toast.show(data.error || 'Gagal update profil', 'error');
+        }
+      } catch(e) {
+        Toast.show('Gagal terhubung ke server', 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Simpan Perubahan'; }
       }
       return false;
     }
@@ -739,9 +762,71 @@
     }
 
     function confirmDeleteAccount() {
-      if (confirm('Apakah Anda yakin ingin menghapus akun? Semua data akan hilang permanen.')) {
-        Toast.show('Fitur hapus akun akan segera tersedia', 'info');
+      const session = AuthSystem.getSession();
+      if (!session || !session.token) {
+        Toast.show('Session tidak valid', 'error');
+        return;
       }
+
+      const isGoogleUser = session.user && session.user.auth_provider === 'google';
+      
+      // Create modal for confirmation
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:10000;';
+      modal.innerHTML = `
+        <div style="background:#1a1a1a;border:1px solid #3f3f46;border-radius:16px;padding:32px;max-width:420px;width:90%;text-align:center;">
+          <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+          <h2 style="color:#ef4444;margin-bottom:12px;font-size:1.2rem;">Hapus Akun Permanen</h2>
+          <p style="color:#a1a1aa;font-size:0.85rem;margin-bottom:20px;line-height:1.5;">
+            Semua data akan dihapus permanen: token, artikel yang dibuka, riwayat quiz, dan aktivitas. <strong>Tindakan ini tidak bisa dibatalkan.</strong>
+          </p>
+          ${isGoogleUser 
+            ? '<p style="color:#a1a1aa;font-size:0.85rem;margin-bottom:12px;">Ketik <strong style="color:#ef4444;">HAPUS AKUN SAYA</strong> untuk konfirmasi:</p><input type="text" id="deleteConfirmInput" placeholder="HAPUS AKUN SAYA" style="width:100%;padding:12px;border-radius:8px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7;font-size:0.9rem;margin-bottom:16px;">'
+            : '<p style="color:#a1a1aa;font-size:0.85rem;margin-bottom:12px;">Masukkan password untuk konfirmasi:</p><input type="password" id="deletePasswordInput" placeholder="Password" style="width:100%;padding:12px;border-radius:8px;border:1px solid #3f3f46;background:#09090b;color:#e4e4e7;font-size:0.9rem;margin-bottom:16px;">'
+          }
+          <div style="display:flex;gap:12px;justify-content:center;">
+            <button onclick="this.closest('div[style]').remove()" style="padding:10px 24px;border-radius:8px;border:1px solid #3f3f46;background:transparent;color:#e4e4e7;cursor:pointer;font-size:0.9rem;">Batal</button>
+            <button id="confirmDeleteBtn" style="padding:10px 24px;border-radius:8px;border:none;background:#ef4444;color:white;cursor:pointer;font-size:0.9rem;font-weight:600;">🗑️ Hapus Akun</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      document.getElementById('confirmDeleteBtn').onclick = async function() {
+        const btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Menghapus...';
+        
+        const body = { action: 'delete-account', token: session.token };
+        if (isGoogleUser) {
+          body.confirm = document.getElementById('deleteConfirmInput')?.value || '';
+        } else {
+          body.password = document.getElementById('deletePasswordInput')?.value || '';
+        }
+        
+        try {
+          const res = await fetch('/api/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          const data = await res.json();
+          if (data.success) {
+            localStorage.removeItem('beebanelabs_auth');
+            localStorage.removeItem('beebanelabs_access');
+            Toast.show('Akun berhasil dihapus', 'success');
+            setTimeout(() => window.location.href = '/', 1500);
+          } else {
+            Toast.show(data.error || 'Gagal menghapus akun', 'error');
+            btn.disabled = false;
+            btn.textContent = '🗑️ Hapus Akun';
+          }
+        } catch(e) {
+          Toast.show('Gagal terhubung ke server', 'error');
+          btn.disabled = false;
+          btn.textContent = '🗑️ Hapus Akun';
+        }
+      };
     }
 
     function handleLogout() {
