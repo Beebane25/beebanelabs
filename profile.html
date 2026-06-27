@@ -750,7 +750,7 @@
       // Quiz stats and history
       await loadQuizData(session);
 
-      // Load new feature data
+      // Load new features
       loadBookmarks();
       loadStats();
       loadBadges();
@@ -1194,6 +1194,7 @@
     }
 
     // ===== CERTIFICATES =====
+    var currentCertCategory = null;
     const CERT_CATEGORY_MAP = { 'esp32-fundamentals':'iot','esp8266-nodemcu':'iot','sensor-dht-esp32':'iot','deep-sleep-esp32':'iot','web-server-esp32':'iot','lora-communication':'iot','raspberry-pi-iot':'iot','mqtt-protocol':'iot','iot-protocols-comparison':'iot','telegram-bot-iot':'iot','mikrotik-routing':'networking','mikrotik-firewall':'networking','mikrotik-queue':'networking','python-iot-automation':'programming','arduino-ide-setup':'programming','network-security':'security','dashboard-monitoring':'dashboard','node-red-iot':'dashboard','grafana-influxdb':'dashboard','firebase-iot':'dashboard','blynk-iot':'dashboard' };
     const CERT_CATEGORY_NAMES = { iot: 'IoT & Embedded', networking: 'Networking (MikroTik)', programming: 'Programming', security: 'Cybersecurity', dashboard: 'Dashboard & Cloud' };
 
@@ -1224,6 +1225,7 @@
     }
 
     function generateCertificate(category) {
+      currentCertCategory = category;
       const session = AuthSystem.getSession();
       if (!session || !session.user) return;
       const name = session.user.name || 'User';
@@ -1248,39 +1250,47 @@
         '</div>' +
       '</div>';
 
-      const preview = document.getElementById('certificatePreview');
-      preview.style.display = 'block';
-      preview.innerHTML = '<div style="margin-top:24px;">' +
-        '<h4 style="margin-bottom:16px;">Preview Sertifikat</h4>' +
-        '<div style="overflow-x:auto;">' + certHTML + '</div>' +
-        '<div style="margin-top:16px;display:flex;gap:12px;">' +
-          '<button onclick="downloadCertPNG()" class="btn-save" style="font-size:0.85rem;">📥 Download PNG</button>' +
-          '<button onclick="window.print()" class="btn-save" style="font-size:0.85rem;background:#27272a;">🖨️ Print</button>' +
-        '</div>' +
-      '</div>';
-
-      preview.scrollIntoView({ behavior: 'smooth' });
+      const preview = document.getElementById('certificatePreviewContent');
+      const container = document.getElementById('certPreviewContainer');
+      if (preview && container) {
+        container.style.display = 'block';
+        preview.innerHTML = '<div style="overflow-x:auto;">' + certHTML + '</div>';
+        container.scrollIntoView({ behavior: 'smooth' });
+      }
       Toast.show('Sertifikat berhasil di-generate!', 'success');
     }
 
-    function downloadCertPNG() {
+    function downloadCertPNG() { downloadCertificate(); }
+
+    function downloadCertificate() {
       const cert = document.getElementById('certRender');
       if (!cert) { Toast.show('Generate sertifikat dulu', 'error'); return; }
+
+      const btn = document.getElementById('btnDownloadCert');
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Memproses...'; }
 
       // Try html2canvas
       if (typeof html2canvas !== 'undefined') {
         html2canvas(cert, { scale: 2, backgroundColor: null }).then(canvas => {
           const link = document.createElement('a');
-          link.download = 'sertifikat-beebanelabs.png';
+          link.download = 'sertifikat-beebanelabs-' + (currentCertCategory || 'cert') + '.png';
           link.href = canvas.toDataURL('image/png');
           link.click();
+          if (btn) { btn.disabled = false; btn.textContent = '📥 Unduh PNG'; }
+          Toast.show('Sertifikat berhasil diunduh!', 'success');
+        }).catch(function() {
+          if (btn) { btn.disabled = false; btn.textContent = '📥 Unduh PNG'; }
+          window.print();
         });
       } else {
         // Fallback: load html2canvas dynamically
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-        script.onload = () => downloadCertPNG();
-        script.onerror = () => { Toast.show('Gagal memuat library. Gunakan Print (Ctrl+P) sebagai alternatif.', 'error'); };
+        script.onload = () => { downloadCertificate(); };
+        script.onerror = () => {
+          if (btn) { btn.disabled = false; btn.textContent = '📥 Unduh PNG'; }
+          Toast.show('Gagal memuat library. Gunakan Print (Ctrl+P) sebagai alternatif.', 'error');
+        };
         document.head.appendChild(script);
       }
     }
