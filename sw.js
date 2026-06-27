@@ -53,10 +53,11 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       caches.open(FONT_CACHE).then(cache =>
         cache.match(event.request).then(cached => {
-          return cached || fetch(event.request).then(response => {
+          if (cached) return cached;
+          return fetch(event.request).then(response => {
             if (response.ok) cache.put(event.request, response.clone());
             return response;
-          });
+          }).catch(() => cached); // Graceful fallback on CSP/network errors
         })
       )
     );
@@ -79,15 +80,16 @@ self.addEventListener('fetch', event => {
   }
 
   // Static assets (CSS/JS): stale-while-revalidate
-  if (url.pathname.endsWith('.css') || url.pathname.endsWith('.js')) {
+  if (url.pathname.endsWith('.css') || url.pathname.endsWith('.js') ||
+      url.hostname.includes('cdn.jsdelivr.net') || url.hostname.includes('unpkg.com')) {
     event.respondWith(
       caches.open(CACHE_NAME).then(cache =>
         cache.match(event.request).then(cached => {
-          const fetched = fetch(event.request).then(response => {
+          if (cached) return cached;
+          return fetch(event.request).then(response => {
             if (response.ok) cache.put(event.request, response.clone());
             return response;
-          }).catch(() => cached);
-          return cached || fetched;
+          }).catch(() => cached || new Response('', { status: 408 })); // Graceful fallback
         })
       )
     );
