@@ -840,6 +840,93 @@ function initSectionDividers() {
   });
 }
 
+// === v9.7 PREMIUM FEATURES ===
+
+// Reading Progress Bar (article pages only)
+function initReadingProgressBar() {
+  const articleContent = document.querySelector('.article-content');
+  if (!articleContent) return;
+  const bar = document.createElement('div');
+  bar.className = 'reading-progress';
+  document.body.prepend(bar);
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    bar.style.width = progress + '%';
+  }, { passive: true });
+}
+
+// Social Share Buttons (article pages only)
+function initSocialShareButtons() {
+  const articleContent = document.querySelector('.article-content');
+  if (!articleContent) return;
+  const title = document.title.split(' | ')[0].trim();
+  const url = window.location.href;
+  const shareHTML = '<div class="share-section">' +
+    '<span class="share-label">Bagikan:</span>' +
+    '<a class="share-btn whatsapp" href="https://wa.me/?text=' + encodeURIComponent(title + ' ' + url) + '" target="_blank" rel="noopener">WhatsApp</a>' +
+    '<a class="share-btn twitter" href="https://twitter.com/intent/tweet?text=' + encodeURIComponent(title) + '&url=' + encodeURIComponent(url) + '" target="_blank" rel="noopener">Twitter</a>' +
+    '<a class="share-btn telegram" href="https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(title) + '" target="_blank" rel="noopener">Telegram</a>' +
+    '<button class="share-btn copy-link" onclick="navigator.clipboard.writeText(window.location.href).then(()=>{this.textContent=\'Copied!\';setTimeout(()=>{this.textContent=\'Copy Link\'},2000)})">Copy Link</button>' +
+    '</div>';
+  const articleNav = document.querySelector('.article-nav');
+  if (articleNav) {
+    articleNav.insertAdjacentHTML('beforebegin', shareHTML);
+  }
+}
+
+// Reading Time Estimate (article pages)
+function initReadingTimeEstimate() {
+  const articleContent = document.querySelector('.article-content');
+  if (!articleContent) return;
+  const totalWords = articleContent.textContent.split(/\s+/).length;
+  const totalMinutes = Math.ceil(totalWords / 200);
+  const indicator = document.createElement('div');
+  indicator.className = 'reading-time-remaining';
+  indicator.textContent = totalMinutes + ' menit tersisa';
+  document.body.appendChild(indicator);
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? scrollTop / docHeight : 0;
+    const remaining = Math.max(1, Math.ceil(totalMinutes * (1 - progress)));
+    indicator.textContent = remaining + ' menit tersisa';
+    indicator.classList.toggle('visible', scrollTop > 300 && scrollTop < docHeight - 200);
+  }, { passive: true });
+}
+
+// Keyboard Navigation
+function initKeyboardNav() {
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === '/') {
+      e.preventDefault();
+      const overlay = document.getElementById('searchOverlay');
+      if (overlay) { overlay.classList.add('active'); document.getElementById('searchInput')?.focus(); }
+    }
+    if (e.key === 'Escape') {
+      const overlay = document.getElementById('searchOverlay');
+      if (overlay?.classList.contains('active')) { overlay.classList.remove('active'); }
+    }
+    if (e.key === 'ArrowLeft' && e.altKey) {
+      const prev = document.querySelector('.article-nav a:first-child');
+      if (prev) window.location.href = prev.href;
+    }
+    if (e.key === 'ArrowRight' && e.altKey) {
+      const next = document.querySelector('.article-nav a:last-child');
+      if (next && next.href) window.location.href = next.href;
+    }
+  });
+}
+
+// Service Worker Registration
+function initServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+}
+
 // === CONFIGURATION ===
 const SITE_CONFIG = {
   API_BASE: window.location.origin,
@@ -2159,6 +2246,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   initScrollProgress();
   initMouseGlow();
   initSectionDividers();
+  initReadingProgressBar();
+  initSocialShareButtons();
+  initReadingTimeEstimate();
+  initKeyboardNav();
+  initServiceWorker();
   injectLearningPath();
   renderGroupedArticles('all');
   initArticleFilter();
