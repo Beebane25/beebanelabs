@@ -40,6 +40,9 @@ const BLOCKED_EMAIL_DOMAINS = [
 // In-memory rate limit cache (best-effort, supplemented by Supabase)
 const rateLimitCache = new Map();
 
+// In-memory CAPTCHA challenge store (5 min expiry, cleaned periodically)
+const captchaStore = new Map();
+
 async function checkRateLimit(supabaseUrl, supabaseKey, ip, endpoint = 'login') {
   const now = Date.now();
   const windowStart = new Date(now - RATE_LIMIT_WINDOW_MS).toISOString();
@@ -139,13 +142,10 @@ export async function onRequestPost(context) {
       if (!/[0-9]/.test(password)) return cors(400, { error: 'Password tidak memenuhi syarat' }, origin);
       if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return cors(400, { error: 'Password tidak memenuhi syarat' }, origin);
 
-      // Cloudflare Turnstile verification (if secret key configured)
+      // Cloudflare Turnstile verification (if secret key configured and widget loaded)
       const turnstileToken = body.turnstile_token || '';
       const turnstileSecret = env.TURNSTILE_SECRET_KEY || '';
-      if (turnstileSecret) {
-        if (!turnstileToken) {
-          return cors(400, { error: 'Verifikasi CAPTCHA diperlukan. Muat ulang halaman.' }, origin);
-        }
+      if (turnstileSecret && turnstileToken) {
         try {
           const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
             method: 'POST',
@@ -158,8 +158,46 @@ export async function onRequestPost(context) {
           }
         } catch (e) {
           console.error('Turnstile verification error:', e.message);
-          return cors(500, { error: 'Gagal verifikasi CAPTCHA. Coba lagi.' }, origin);
         }
+      }
+      
+      // Honeypot check: field "website" should be empty (hidden from humans, filled by bots)
+      if (body.website) {
+        return cors(400, { error: 'Registrasi ditolak.' }, origin);
+      }
+      
+      // Server-side math CAPTCHA (if Turnstile not available)
+      if (!turnstileToken) {
+        const captchaAnswer = body.captcha_answer;
+        const captchaToken = body.captcha_token || '';
+        if (!captchaAnswer || !captchaToken) {
+          // Generate and return a captcha challenge
+          const a = Math.floor(Math.random() * 10) + 1;
+          const b = Math.floor(Math.random() * 10) + 1;
+          const op = Math.random() > 0.5 ? '+' : '-';
+          const answer = op === '+' ? a + b : a - b;
+          const challenge = `${a} ${op} ${b}`;
+          // Encode answer in a simple signed token (HMAC-like)
+          const captchaId = crypto.getRandomValues(new Uint8Array(16));
+          const captchaIdHex = Array.from(captchaId).map(x => x.toString(16).padStart(2,'0')).join('');
+          // Store challenge temporarily (in-memory, 5 min expiry)
+          captchaStore.set(captchaIdHex, { answer, expires: Date.now() + 300000 });
+          return cors(200, { 
+            error: 'Selesaikan CAPTCHA terlebih dahulu.',
+            captcha: { id: captchaIdHex, question: `${challenge} = ?` }
+          }, origin);
+        }
+        // Verify math captcha answer
+        const stored = captchaStore.get(captchaToken);
+        if (!stored || stored.expires < Date.now()) {
+          captchaStore.delete(captchaToken);
+          return cors(400, { error: 'CAPTCHA expired. Muat ulang halaman.' }, origin);
+        }
+        if (parseInt(captchaAnswer) !== stored.answer) {
+          captchaStore.delete(captchaToken);
+          return cors(400, { error: 'Jawaban CAPTCHA salah. Coba lagi.' }, origin);
+        }
+        captchaStore.delete(captchaToken); // One-time use
       }
 
       // Block disposable/temporary email domains

@@ -1597,7 +1597,18 @@ const AuthSystem = {
           </div>
           <div class="auth-form-group">
             <label>Password</label>
-            <!-- Cloudflare Turnstile CAPTCHA -->
+            <!-- Honeypot field (hidden from humans, filled by bots) -->
+            <div style="position:absolute;left:-9999px;opacity:0;height:0;overflow:hidden;" aria-hidden="true">
+              <label>Website</label>
+              <input type="text" name="website" id="regWebsite" tabindex="-1" autocomplete="off">
+            </div>
+            <!-- Math CAPTCHA (shown when Turnstile not available) -->
+            <div id="mathCaptchaBox" style="display:none;margin:12px 0;padding:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;">
+              <label id="captchaQuestion" style="font-size:0.9rem;font-weight:600;color:#60a5fa;"></label>
+              <input type="number" id="captchaAnswer" placeholder="Jawaban" style="margin-top:6px;width:100%;padding:8px;border-radius:6px;border:1px solid #3f3f46;background:#18181b;color:#e4e4e7;">
+              <input type="hidden" id="captchaToken" value="">
+            </div>
+            <!-- Cloudflare Turnstile widget -->
             <div id="turnstileWidget" style="margin: 12px 0;"></div>
             <input type="password" id="regPassword" placeholder="Min 8 karakter, huruf besar, angka, simbol" required minlength="8">
           </div>
@@ -1753,10 +1764,23 @@ const AuthSystem = {
       const turnstileToken = (typeof turnstile !== 'undefined' && turnstile.getResponse) 
         ? turnstile.getResponse() || '' : '';
       
+      // Get math CAPTCHA answer if visible
+      const captchaAnswer = document.getElementById('captchaAnswer')?.value || '';
+      const captchaToken = document.getElementById('captchaToken')?.value || '';
+      
+      // Honeypot field (should be empty)
+      const website = document.getElementById('regWebsite')?.value || '';
+      
       const res = await fetch(this.AUTH_ENDPOINT, {
         method: 'POST',
         headers: typeof CSRF !== 'undefined' ? CSRF.getHeaders() : { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'register', name, email, password, turnstile_token: turnstileToken })
+        body: JSON.stringify({ 
+          action: 'register', name, email, password, 
+          turnstile_token: turnstileToken,
+          captcha_answer: captchaAnswer,
+          captcha_token: captchaToken,
+          website: website
+        })
       });
       const data = await res.json();
       if (data.success) {
@@ -1764,8 +1788,16 @@ const AuthSystem = {
         this.showSuccess('Registrasi berhasil! Mengalihkan...');
         setTimeout(() => window.location.reload(), 1000);
         return;
+      } else if (data.captcha) {
+        // Server returned a math CAPTCHA challenge
+        this.showError('Selesaikan CAPTCHA terlebih dahulu');
+        document.getElementById('mathCaptchaBox').style.display = 'block';
+        document.getElementById('captchaQuestion').textContent = data.captcha.question;
+        document.getElementById('captchaToken').value = data.captcha.id;
+        document.getElementById('captchaAnswer').value = '';
+        document.getElementById('captchaAnswer').focus();
       } else {
-        this.showError(data.message || 'Gagal mendaftar');
+        this.showError(data.error || data.message || 'Gagal mendaftar');
       }
     } catch (err) {
       this.showError('Gagal terhubung ke server. Coba lagi nanti.');
