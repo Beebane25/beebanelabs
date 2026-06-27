@@ -164,7 +164,7 @@ export async function onRequestPost(context) {
     return cors(400, { error: 'Invalid action. Use: save, history, stats, check' }, origin);
 
   } catch (err) {
-    return cors(500, { error: 'Internal server error', detail: err.message }, origin);
+    return cors(500, { error: 'Internal server error' }, origin);
   }
 }
 

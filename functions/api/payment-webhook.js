@@ -29,11 +29,12 @@ export async function onRequestPost(context) {
 
     // FIX: Constant-time comparison + proper error response
     if (!body.signature_key || !constantTimeCompare(sigHex, body.signature_key)) {
-      console.log('INVALID SIGNATURE:', order_id);
+      console.error('INVALID SIGNATURE: webhook rejected');
       return new Response('Invalid signature', { status: 401 });
     }
 
-    console.log(`Webhook: order=${order_id} status=${transaction_status}`);
+    // Don't log order_id to prevent PII in logs
+    console.error('Webhook processed:', transaction_status);
 
     if (transaction_status === 'capture' || transaction_status === 'settlement') {
       const email = customer_details?.email;
@@ -64,7 +65,7 @@ export async function onRequestPost(context) {
           status: transaction_status, paid_at: new Date().toISOString()
         });
 
-        console.log(`PAYMENT SUCCESS: ${email} +${tokenCount} tokens (total: ${newTokens})`);
+        console.error(`PAYMENT SUCCESS: +${tokenCount} tokens (total: ${newTokens})`);
       }
     }
     return new Response('OK', { status: 200 });
