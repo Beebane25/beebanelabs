@@ -821,30 +821,6 @@ function initMouseGlow() {
   });
 }
 
-// Enhanced Staggered Reveal for Cards
-function initStaggeredCards() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, idx) => {
-      if (entry.isIntersecting) {
-        // Stagger delay based on position within parent
-        const parent = entry.target.parentElement;
-        const siblings = parent ? Array.from(parent.querySelectorAll('.category-card, .article-card')) : [];
-        const index = siblings.indexOf(entry.target);
-        const delay = Math.min(index * 60, 300);
-        setTimeout(() => {
-          entry.target.classList.add('active');
-        }, delay);
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.05, rootMargin: '0px 0px -30px 0px' });
-
-  document.querySelectorAll('.category-card, .article-card').forEach(card => {
-    card.classList.add('reveal');
-    observer.observe(card);
-  });
-}
-
 // Section Dividers (auto-insert between major sections)
 function initSectionDividers() {
   const sections = document.querySelectorAll('.categories-section, .learning-path, .articles-section, .newsletter-section');
@@ -2175,7 +2151,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   initCopyCode();
   initScrollProgress();
   initMouseGlow();
-  initStaggeredCards();
   initSectionDividers();
   injectLearningPath();
   renderGroupedArticles('all');
