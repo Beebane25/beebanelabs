@@ -1193,27 +1193,40 @@ function getSupabaseClient() {
 
 // Handle OAuth redirect callback on page load
 (async function handleOAuthCallback() {
-  // Wait for Supabase JS to load
-  if (!window.supabase) return;
+  // Check URL for OAuth indicators
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+  const queryParams = new URLSearchParams(window.location.search);
+  const hasAccessToken = hashParams.has('access_token');
+  const hasCode = queryParams.has('code');
+  
+  // Only proceed if this is an OAuth callback
+  if (!hasAccessToken && !hasCode) return;
+  
+  // Wait for Supabase JS to load (up to 5 seconds)
+  let attempts = 0;
+  while (!window.supabase && attempts < 50) {
+    await new Promise(r => setTimeout(r, 100));
+    attempts++;
+  }
   
   const client = getSupabaseClient();
-  if (!client) return;
+  if (!client) {
+    console.error('Supabase client not available after waiting');
+    return;
+  }
   
-  // Check if this is an OAuth callback (URL has access_token or code)
-  const urlParams = new URLSearchParams(window.location.hash.substring(1));
-  const hasAccessToken = urlParams.has('access_token');
-  
-  if (hasAccessToken) {
-    try {
-      const { data: { session }, error } = await client.auth.getSession();
-      if (session && session.user) {
-        await handleGoogleAuthSuccess(session);
-        // Clean URL (remove hash fragments)
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    } catch (err) {
-      console.error('OAuth callback error:', err);
+  try {
+    // Supabase JS handles the OAuth callback automatically with detectSessionInUrl
+    const { data: { session }, error } = await client.auth.getSession();
+    if (session && session.user) {
+      await handleGoogleAuthSuccess(session);
+      // Clean URL (remove hash/query fragments)
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (error) {
+      console.error('OAuth session error:', error);
     }
+  } catch (err) {
+    console.error('OAuth callback error:', err);
   }
 })();
 
