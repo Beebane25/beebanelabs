@@ -142,10 +142,8 @@ export async function onRequestPost(context) {
       // Cloudflare Turnstile verification (if secret key configured)
       const turnstileToken = body.turnstile_token || '';
       const turnstileSecret = env.TURNSTILE_SECRET_KEY || '';
-      if (turnstileSecret) {
-        if (!turnstileToken) {
-          return cors(400, { error: 'Verifikasi CAPTCHA diperlukan. Muat ulang halaman.' }, origin);
-        }
+      if (turnstileSecret && turnstileToken) {
+        // Only verify if token is present (fail-open if widget fails to load)
         try {
           const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
             method: 'POST',
