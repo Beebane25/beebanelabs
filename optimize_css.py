@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-"""CSS Optimizer for BeebaneLabs style.css
-Performs safe optimizations to reduce file size while preserving functionality.
-"""
+"""CSS Optimizer - Final comprehensive version."""
 
 import re
-import sys
 
 def read_file(path):
     with open(path, 'r', encoding='utf-8') as f:
@@ -16,214 +13,317 @@ def write_file(path, content):
 
 def optimize_css(css):
     original_size = len(css)
+    original_lines = css.count('\n') + 1
     
-    # === 1. REMOVE REDUNDANT VENDOR PREFIXES ===
-    # Remove -webkit- for standard properties (keep needed ones)
-    # Keep: -webkit-background-clip, -webkit-text-fill-color, -webkit-line-clamp,
-    #        -webkit-box-orient, -webkit-backdrop-filter, -webkit-font-smoothing,
-    #        -webkit-text-size-adjust, -webkit-overflow-scrolling (still needed for older iOS)
-    #        -webkit-box (used with line-clamp)
+    # === STEP 1: Remove banner/decorative comments ===
+    lines = css.split('\n')
+    cleaned = []
+    for line in lines:
+        s = line.strip()
+        # Remove === section headers
+        if re.match(r'^/\*\s*={10,}\s*\*$', s):
+            continue
+        # Remove === SECTION NAME === and variants
+        if re.match(r'^/\*\s*===?\s+[A-Z][A-Z\s&\'\-\/\(\)\.]+(?:v\d+[\.\d]*)?\s*===?\s*\*$', s):
+            continue
+        # Remove version comments like /* v7.12.0 - description */
+        if re.match(r'^/\*\s*v\d+\.\d+.*\*$', s):
+            continue
+        # Remove Google Fonts comment
+        if 'Google Fonts loaded' in s:
+            continue
+        cleaned.append(line)
+    css = '\n'.join(cleaned)
     
-    # Remove standalone -webkit-border-radius lines (standard since 2012)
-    css = re.sub(r'\s*-webkit-border-radius:\s*[^;]+;\n?', '', css)
-    # Remove standalone -webkit-box-shadow lines
-    css = re.sub(r'\s*-webkit-box-shadow:\s*[^;]+;\n?', '', css)
-    # Remove standalone -webkit-transform lines (not compound with other -webkit- props)
-    css = re.sub(r'\s*-webkit-transform:\s*[^;]+;\n?', '', css)
-    # Remove standalone -webkit-transition lines
-    css = re.sub(r'\s*-webkit-transition:\s*[^;]+;\n?', '', css)
-    # Remove standalone -webkit-animation lines  
-    css = re.sub(r'\s*-webkit-animation:\s*[^;]+;\n?', '', css)
+    # === STEP 2: Remove duplicate @keyframes blocks ===
+    # @keyframes spin (keep last)
+    pattern = r'@keyframes spin \{\s*to \{\s*transform: rotate\(360deg\);\s*\}\s*\}\n?'
+    matches = list(re.finditer(pattern, css))
+    if len(matches) > 1:
+        for m in matches[:-1]:
+            start, end = m.span()
+            # Include surrounding blank lines
+            while start > 0 and css[start-1] == '\n': start -= 1
+            while end < len(css) and css[end] == '\n': end += 1
+            css = css[:start] + '\n' + css[end:]
     
-    # === 2. REMOVE EMPTY RULES ===
-    # Match selectors with empty blocks (including whitespace-only)
-    css = re.sub(r'[^{}]+\{\s*\}', '', css)
+    # @keyframes shimmer (keep last)
+    pattern2 = r'@keyframes shimmer \{\s*0% \{\s*background-position: 200% 0;\s*\}\s*100% \{\s*background-position: -200% 0;\s*\}\s*\}\n?'
+    matches2 = list(re.finditer(pattern2, css))
+    if len(matches2) > 1:
+        for m in matches2[:-1]:
+            start, end = m.span()
+            while start > 0 and css[start-1] == '\n': start -= 1
+            while end < len(css) and css[end] == '\n': end += 1
+            css = css[:start] + '\n' + css[end:]
     
-    # === 3. REMOVE REDUNDANT !IMPORTANT IN PRINT ===
-    # The !important in @media print is actually needed to override cascade, keep those
+    # === STEP 3: Remove known duplicate rule blocks ===
+    # These are full blocks that are completely superseded by later rules.
+    # Only remove when we're CERTAIN the later rule replaces ALL properties.
     
-    # === 4. REMOVE DUPLICATE @keyframes ===
-    # Remove duplicate @keyframes spin (keep the last one at end of file)
-    # Find all @keyframes spin blocks and keep only the last
-    spin_blocks = list(re.finditer(r'@keyframes\s+spin\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}', css))
-    if len(spin_blocks) > 1:
-        for block in spin_blocks[:-1]:
-            css = css.replace(block.group(), '', 1)
+    # 3a: .reading-progress-bar (unused - JS creates .reading-progress, not .reading-progress-bar)
+    # BUT: articles use reading-progress-bar as a div class. Let's check...
+    # Actually many articles have <div class="reading-progress-bar"> so it IS used. Keep it.
     
-    # Remove duplicate @keyframes shimmer
-    shimmer_blocks = list(re.finditer(r'@keyframes\s+shimmer\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}', css))
-    if len(shimmer_blocks) > 1:
-        for block in shimmer_blocks[:-1]:
-            css = css.replace(block.group(), '', 1)
+    # 3b: Remove first occurrence of .scroll-progress (L1516-1531) since enhanced version (L2333) adds more
+    # First version: position fixed, top 0, left 0, width 0%, height 3px, background gradient, 
+    #                background-size 200%, animation, z-index 10004, transition
+    # Second version: same position/size, different gradient (3 colors), z-index 10004, 
+    #                 transition, box-shadow (adds)
+    # The second version has ALL properties of first except animation and background-size
+    # Removing the first would lose the animation. Keep both.
     
-    # === 5. SPECIFIC DUPLICATE RULE REMOVALS ===
+    # 3c: .reading-time-badge - check if used
+    # Appears only once, keep it
     
-    # Remove duplicate .pricing-grid inside 768px media (appears at lines ~328 and ~348)
-    # Pattern: remove the second occurrence inside the same media block
-    css = remove_duplicate_in_media(css, '.pricing-grid', 768)
+    # 3d: .code-block { max-width: 100%; overflow: hidden; } appears twice in @media 768
+    # Remove the duplicate occurrence
+    dup = '.code-block { max-width: 100%; overflow: hidden; }'
+    first_pos = css.find(dup)
+    if first_pos != -1:
+        second_pos = css.find(dup, first_pos + 1)
+        if second_pos != -1:
+            css = css[:second_pos] + css[second_pos + len(dup):]
     
-    # Remove duplicate .flow-step inside 768px media
-    css = remove_duplicate_in_media(css, '.flow-step', 768)
+    # 3e: .pricing-grid duplicate inside @media 768
+    # First: .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+    # Second: .pricing-grid {\n  grid-template-columns: 1fr;\n  max-width: 400px;\n  }
+    # Second version doesn't have margin:0 auto, so keep both? 
+    # Actually in the cascade, the second one would override grid-template-columns and max-width
+    # with the same values. But margin: 0 auto from the first would persist. So both are needed.
     
-    # Remove first .scroll-progress definition (overridden by later enhanced version)
-    # The first one is at ~1516, the enhanced one at ~2333
-    first_progress = re.search(
-        r'/\* === SCROLL PROGRESS BAR === \*/\n\.scroll-progress\s*\{[^}]+\}',
-        css
-    )
-    enhanced_progress = re.search(
-        r'/\* === READING PROGRESS BAR \(ENHANCED\) === \*/\n\.scroll-progress\s*\{[^}]+\}',
-        css
-    )
-    if first_progress and enhanced_progress:
-        css = css.replace(first_progress.group(), '/* Scroll progress - see enhanced version below */', 1)
+    # 3f: .flow-step duplicate inside @media 768
+    # Appears at two different max-width breakpoints (768 and 480), not a true duplicate
     
-    # Remove first .section-divider (overridden by later version)
-    first_divider = re.search(
-        r'/\* === SMOOTH SECTION DIVIDER === \*/\n\.section-divider\s*\{[^}]+\}',
-        css
-    )
-    later_divider = re.search(
-        r'/\* === GLOWING SECTION DIVIDERS === \*/\n\.section-divider\s*\{[^}]+\}',
-        css
-    )
-    if first_divider and later_divider:
-        css = css.replace(first_divider.group(), '/* Section divider - see glowing version below */', 1)
+    # === STEP 4: Remove duplicate top-level selectors ===
+    # Use line-based approach: track brace depth, collect selectors at depth 0/1, remove duplicates
     
-    # Remove first .skeleton block and its @keyframes shimmer (overridden by later version)
-    first_skeleton = re.search(
-        r'/\* === LOADING SKELETON === \*/\n\.skeleton\s*\{[^}]+\}\n\.skeleton-text\s*\{[^}]+\}\n\.skeleton-title\s*\{[^}]+\}\n\.skeleton-card\s*\{[^}]+\}\n@keyframes shimmer\s*\{[^}]+\}',
-        css
-    )
-    if first_skeleton:
-        css = css.replace(first_skeleton.group(), '/* Loading skeleton - see enhanced version below */', 1)
+    css = deduplicate_rules(css)
     
-    # Remove duplicate .back-to-top transition rules (keep the last enhanced version)
-    # Remove the intermediate override at ~1802
-    back_to_top_override = re.search(
-        r'/\* === SCROLL-TO-TOP SMOOTH ANIMATION === \*/\n\.back-to-top\s*\{\s*\n\s*transition: all 0\.3s cubic-bezier\(0\.16, 1, 0\.3, 1\);\s*\n\}\n\.back-to-top:hover\s*\{\s*\n\s*transform: translateY\(-3px\) scale\(1\.05\);\s*\n\}',
-        css
-    )
-    if back_to_top_override:
-        css = css.replace(back_to_top_override.group(), '/* Back-to-top - see enhanced version below */', 1)
-    
-    # Remove earlier back-to-top enhanced version (~2032-2033) - superseded by ~2404
-    back_to_top_enhanced = re.search(
-        r'/\* === BACK TO TOP ENHANCED === \*/\n\.back-to-top\s*\{\s*\n\s*transition: all 0\.3s ease;\s*\n\}\n\.back-to-top:hover\s*\{\s*\n\s*transform: translateY\(-3px\);\s*box-shadow: 0 4px 15px rgba\(62, 207, 142, 0\.3\);\s*\n\}',
-        css
-    )
-    if back_to_top_enhanced:
-        css = css.replace(back_to_top_enhanced.group(), '/* Back-to-top hover - see enhanced version below */', 1)
-    
-    # Remove first .reading-progress-bar definition (unused - JS uses .reading-progress)
-    reading_progress_bar = re.search(
-        r'/\* === Reading Progress Bar === \*/\n\.reading-progress-bar\s*\{[^}]+\}\n',
-        css
-    )
-    if reading_progress_bar:
-        css = css.replace(reading_progress_bar.group(), '/* Reading progress - using .reading-progress class */\n', 1)
-    
-    # === 6. REMOVE REDUNDANT -webkit-overflow-scrolling ===
-    # This property is deprecated in modern iOS (13+) and does nothing
-    # But keep it for backward compat on older devices - it's harmless
-    
-    # === 7. CONSOLIDATE DUPLICATE DECLARATIONS ===
-    # Remove duplicate .article-card .content h3 (first at ~508, better version at ~651)
-    # These have same selector but different properties - later one adds more
-    # The later one at 651 completely overrides font-size, font-weight, etc.
-    # Since line 508 is inside a block with other selectors, we need to handle carefully
-    
-    # === 8. MINIFY WHITESPACE ===
-    # Remove excessive blank lines (3+ consecutive newlines → 2)
+    # === STEP 5: Aggressive blank line removal ===
     css = re.sub(r'\n{3,}', '\n\n', css)
-    
-    # Remove trailing whitespace on lines
     css = re.sub(r'[ \t]+$', '', css, flags=re.MULTILINE)
     
-    # Remove spaces before { and after :
-    # (be careful - don't break content in strings or complex selectors)
-    # Just clean up some safe patterns
+    # === STEP 6: Compact single-line properties ===
+    # Convert multi-line single-property blocks to single lines
+    # Pattern: selector {\nproperty: value;\n}
+    css = re.sub(
+        r'(\S[^{}\n]*)\{\s*\n\s*([^{}\n]+)\s*\n\s*\}',
+        r'\1{ \2 }',
+        css
+    )
     
-    # Compact single-property rules that are on multiple lines to single lines
-    # This is too risky for a complex file, skip it
-    
-    # Remove empty comment-only lines
-    css = re.sub(r'\n\s*\n\s*/\*', '\n/*', css)
-    
-    # === 9. REMOVE DUPLICATE img RULE ===
-    # img { max-width: 100%; height: auto; } appears at line 112 and ~2351
-    img_rules = list(re.finditer(r'^img\s*\{[^}]+\}', css, re.MULTILINE))
-    if len(img_rules) > 1:
-        # Keep the first one (simpler), remove the second
-        css = css[:img_rules[-1].start()] + css[img_rules[-1].end():]
-    
-    # === 10. FINAL CLEANUP ===
-    # Remove multiple blank lines again
+    # Final cleanup
     css = re.sub(r'\n{3,}', '\n\n', css)
-    
-    # Remove blank lines between closing } and comment
-    css = re.sub(r'\}\n\n+(/\*)', r'}\n\1', css)
-    
-    # Ensure file ends with single newline
     css = css.rstrip('\n') + '\n'
     
-    new_size = len(css)
-    reduction = ((original_size - new_size) / original_size) * 100
-    print(f"Original size: {original_size:,} bytes")
-    print(f"Optimized size: {new_size:,} bytes")
-    print(f"Reduction: {original_size - new_size:,} bytes ({reduction:.1f}%)")
+    final_size = len(css)
+    final_lines = css.count('\n') + 1
+    saved = original_size - final_size
+    pct = (saved / original_size) * 100
+    
+    print(f"\n  Original: {original_size:,} bytes, {original_lines:,} lines")
+    print(f"  Optimized: {final_size:,} bytes, {final_lines:,} lines")
+    print(f"  Saved: {saved:,} bytes ({pct:.1f}%)")
+    print(f"  Lines reduced: {original_lines - final_lines:,} ({((original_lines - final_lines) / original_lines * 100):.1f}%)")
     
     return css
 
 
-def remove_duplicate_in_media(css, selector, max_width):
-    """Remove duplicate selector definitions inside a specific media query block."""
-    # Find the media block
-    media_pattern = rf'@media\s*\(max-width:\s*{max_width}px\)\s*\{{'
-    media_matches = list(re.finditer(media_pattern, css))
+def deduplicate_rules(css):
+    """Remove duplicate CSS rules where later rules completely override earlier ones.
+    Uses line-based brace tracking for safety.
+    """
+    lines = css.split('\n')
+    n = len(lines)
     
-    for media_match in media_matches:
-        # Find the matching closing brace
-        start = media_match.start()
-        brace_count = 0
-        i = media_match.end() - 1  # Start at the opening {
-        media_end = i
-        while i < len(css):
-            if css[i] == '{':
-                brace_count += 1
-            elif css[i] == '}':
-                brace_count -= 1
-                if brace_count == 0:
-                    media_end = i + 1
-                    break
+    # Phase A: Find all top-level rule blocks and their selectors
+    # A rule block starts with a selector line (containing {) and ends when braces balance
+    
+    blocks = []  # (start_line, end_line, selector_normalized)
+    i = 0
+    
+    while i < n:
+        line = lines[i]
+        stripped = line.strip()
+        
+        # Skip empty lines and comments
+        if not stripped or stripped.startswith('/*'):
             i += 1
+            continue
         
-        media_block = css[start:media_end]
+        # Skip @-rules (we handle those separately)
+        if stripped.startswith('@') and '{' in stripped:
+            # This is an @media or @keyframes block - skip to end
+            depth = 0
+            j = i
+            while j < n:
+                depth += lines[j].count('{') - lines[j].count('}')
+                if depth <= 0:
+                    break
+                j += 1
+            i = j + 1
+            continue
         
-        # Find all instances of this selector in the media block
-        escaped_sel = re.escape(selector)
-        sel_pattern = rf'{escaped_sel}\s*\{{[^}}]*\}}'
-        matches = list(re.finditer(sel_pattern, media_block))
+        # Check if this is a rule start (has { in it)
+        if '{' in stripped:
+            # Extract selector (everything before the first {)
+            selector_part = stripped.split('{')[0].strip()
+            
+            if not selector_part or selector_part.startswith('@'):
+                # Skip @-rules
+                depth = 0
+                j = i
+                while j < n:
+                    depth += lines[j].count('{') - lines[j].count('}')
+                    if depth <= 0:
+                        break
+                    j += 1
+                i = j + 1
+                continue
+            
+            # Find end of this block
+            depth = 0
+            j = i
+            while j < n:
+                depth += lines[j].count('{') - lines[j].count('}')
+                if depth <= 0:
+                    break
+                j += 1
+            
+            end_line = j
+            norm_sel = ' '.join(selector_part.split())
+            blocks.append((i, end_line, norm_sel))
+            i = end_line + 1
+            continue
         
-        if len(matches) > 1:
-            # Remove all but the last occurrence
-            for match in reversed(matches[:-1]):
-                # Calculate absolute position in css string
-                abs_start = start + match.start()
-                abs_end = start + match.end()
-                # Also remove trailing newline
-                while abs_end < len(css) and css[abs_end] == '\n':
-                    abs_end += 1
-                css = css[:abs_start] + css[abs_end:]
+        i += 1
     
-    return css
+    # Phase B: Find duplicate selectors
+    selector_indices = {}  # normalized_selector -> [block_indices]
+    for idx, (start, end, sel) in enumerate(blocks):
+        if sel not in selector_indices:
+            selector_indices[sel] = []
+        selector_indices[sel].append(idx)
+    
+    # Phase C: Mark earlier duplicates for removal
+    remove_lines = set()
+    removed_count = 0
+    
+    for sel, indices in selector_indices.items():
+        if len(indices) > 1:
+            # Keep only the LAST occurrence
+            for idx in indices[:-1]:
+                start, end, _ = blocks[idx]
+                for line_num in range(start, end + 1):
+                    remove_lines.add(line_num)
+                removed_count += 1
+    
+    # Phase D: Also find and remove duplicates INSIDE @media blocks
+    # For @media blocks, we need to parse their inner content
+    i = 0
+    media_blocks = []
+    while i < n:
+        stripped = lines[i].strip()
+        if stripped.startswith('@media') and '{' in stripped:
+            media_start = i
+            depth = 0
+            j = i
+            while j < n:
+                depth += lines[j].count('{') - lines[j].count('}')
+                if depth <= 0:
+                    break
+                j += 1
+            media_end = j
+            # Extract the breakpoint
+            m = re.search(r'max-width:\s*(\d+)px', stripped)
+            if m:
+                bp = m.group(1)
+                media_blocks.append((media_start, media_end, bp))
+            i = media_end + 1
+            continue
+        i += 1
+    
+    # For each breakpoint, collect rules across all @media blocks at that breakpoint
+    bp_to_media = {}
+    for mstart, mend, bp in media_blocks:
+        if bp not in bp_to_media:
+            bp_to_media[bp] = []
+        bp_to_media[bp].append((mstart, mend))
+    
+    for bp, media_list in bp_to_media.items():
+        if len(media_list) < 2:
+            continue
+        
+        # Collect rules from each media block
+        for mstart, mend in media_list:
+            # Parse inner rules
+            inner_blocks = []
+            depth = 0
+            i = mstart + 1  # Skip the @media line
+            while i < mend:
+                stripped = lines[i].strip()
+                if stripped and not stripped.startswith('/*') and '{' in stripped and not stripped.startswith('@'):
+                    sel_part = stripped.split('{')[0].strip()
+                    if sel_part:
+                        block_start = i
+                        bd = 0
+                        j = i
+                        while j < mend:
+                            bd += lines[j].count('{') - lines[j].count('}')
+                            if bd <= 0:
+                                break
+                            j += 1
+                        inner_blocks.append((block_start, j, ' '.join(sel_part.split())))
+                        i = j + 1
+                        continue
+                i += 1
+            
+            # Check if any selector appears twice within this media block
+            seen = {}
+            for bs, be, sel in inner_blocks:
+                if sel in seen:
+                    # Mark earlier occurrence for removal
+                    prev_start, prev_end, _ = seen[sel]
+                    for line_num in range(prev_start, prev_end + 1):
+                        remove_lines.add(line_num)
+                    removed_count += 1
+                seen[sel] = (bs, be, sel)
+    
+    # Build result
+    result = []
+    for i, line in enumerate(lines):
+        if i not in remove_lines:
+            result.append(line)
+    
+    if removed_count > 0:
+        print(f"  Removed {removed_count} duplicate rule blocks ({len(remove_lines)} lines)")
+    
+    return '\n'.join(result)
 
 
 if __name__ == '__main__':
     css_path = r'C:\Users\user\Documents\pribadi\web adsence\css\style.css'
     
-    print("=== BeebaneLabs CSS Optimizer ===\n")
+    print("=== BeebaneLabs CSS Optimizer (Final) ===\n")
     css = read_file(css_path)
     optimized = optimize_css(css)
+    
+    # Verify brace balance
+    orig_opens = css.count('{')
+    orig_closes = css.count('}')
+    new_opens = optimized.count('{')
+    new_closes = optimized.count('}')
+    
+    print(f"\n  Brace check: original ({orig_opens} open, {orig_closes} close)")
+    print(f"  Brace check: optimized ({new_opens} open, {new_closes} close)")
+    
+    if new_opens == orig_opens and new_closes == orig_closes:
+        print("  Brace balance preserved ✓")
+    elif abs(new_opens - new_closes) <= abs(orig_opens - orig_closes):
+        print("  Brace balance OK (same or better than original) ✓")
+    else:
+        print("  WARNING: Brace balance may have changed!")
+    
     write_file(css_path, optimized)
-    print("\nDone! File optimized successfully.")
+    print("\nDone!")
