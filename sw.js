@@ -1,5 +1,5 @@
 // BeebaneLabs Service Worker v2.0 — Enhanced caching strategy
-const CACHE_NAME = 'beebanelabs-v3';
+const CACHE_NAME = 'beebanelabs-v4';
 const FONT_CACHE = 'beebanelabs-fonts-v1';
 const IMAGE_CACHE = 'beebanelabs-images-v1';
 
@@ -46,7 +46,10 @@ self.addEventListener('fetch', event => {
   if (url.hostname.includes('googlesyndication') ||
       url.hostname.includes('google-analytics') ||
       url.hostname.includes('googletagmanager') ||
-      url.hostname.includes('pagead')) return;
+      url.hostname.includes('pagead') ||
+      url.hostname.includes('adtrafficquality') ||
+      url.hostname.includes('doubleclick') ||
+      url.hostname.includes('adservice')) return;
 
   // Google Fonts: cache-first (fonts rarely change)
   if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
