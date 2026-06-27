@@ -83,7 +83,7 @@ export async function onRequestPost(context) {
     try {
       users = await supabaseQuery(
         SUPABASE_URL, SUPABASE_KEY, 'users',
-        `?email=eq.${encodeURIComponent(encodedEmail)}&select=id,email,name,role,tokens`
+        `?email=eq.${encodeURIComponent(encodedEmail)}&select=id,email,name,plan,tokens,is_active`
       );
     } catch (e) {
       console.error('Supabase users query failed:', e.message);
@@ -105,8 +105,7 @@ export async function onRequestPost(context) {
           SUPABASE_URL, SUPABASE_KEY, 'users',
           `?id=eq.${user.id}`, 'PATCH',
           {
-            name: name || user.name,
-            updated_at: new Date().toISOString()
+            name: name || user.name
           }
         );
       } catch (e) {
@@ -124,10 +123,9 @@ export async function onRequestPost(context) {
             email: encodedEmail,
             name: name || email.split('@')[0],
             password_hash: 'google_oauth',  // No password for Google users
-            role: 'user',
+            plan: 'free',
             tokens: INITIAL_TOKENS,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            created_at: new Date().toISOString()
           }
         );
         user = newUsers[0];
@@ -167,7 +165,7 @@ export async function onRequestPost(context) {
           email: email.toLowerCase(),
           name: name || user.name || email.split('@')[0],
           avatar: avatar || '',
-          role: user.role || 'user',
+          plan: user.plan || 'free',
           tokens: user.tokens || 5,
           auth_provider: 'google'
         },
