@@ -1623,7 +1623,7 @@ const AuthSystem = {
         // Render Turnstile widget when script loads
         if (typeof turnstile !== 'undefined') {
           turnstile.render('#turnstileWidget', {
-            sitekey: '0x4AAAAAAA_PLACEHOLDER', // Ganti dengan site key dari CF Dashboard
+            sitekey: '0x4AAAAAADsAL_ZQvxWO7Lsf',
             theme: 'dark',
             callback: function(token) {
               // Token received, enable submit button
@@ -1637,7 +1637,7 @@ const AuthSystem = {
     } else if (typeof turnstile !== 'undefined') {
       // Script already loaded, render widget
       turnstile.render('#turnstileWidget', {
-        sitekey: '0x4AAAAAAA_PLACEHOLDER', // Ganti dengan site key dari CF Dashboard
+        sitekey: '0x4AAAAAADsAL_ZQvxWO7Lsf',
         theme: 'dark'
       });
     }
