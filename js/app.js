@@ -1932,6 +1932,103 @@ const BookmarkSystem = {
   }
 };
 
+// === PROGRESS TRACKER ===
+const ProgressTracker = {
+  STORAGE_KEY: 'beebanelabs_progress',
+
+  getAll() {
+    try { return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '{}'); }
+    catch(e) { return {}; }
+  },
+
+  get(slug) {
+    return this.getAll()[slug] || null;
+  },
+
+  markOpened(slug, title, category) {
+    const progress = this.getAll();
+    if (!progress[slug]) {
+      progress[slug] = {
+        slug, title: title || slug, category: category || '',
+        status: 'opened', position: 0,
+        opened_at: new Date().toISOString(),
+        completed_at: null
+      };
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(progress));
+      // Log activity
+      if (typeof logActivity === 'function') {
+        logActivity('unlock', 'Membaca: ' + (title || slug));
+      }
+    }
+  },
+
+  markCompleted(slug) {
+    const progress = this.getAll();
+    if (progress[slug] && progress[slug].status !== 'completed') {
+      progress[slug].status = 'completed';
+      progress[slug].position = 100;
+      progress[slug].completed_at = new Date().toISOString();
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(progress));
+      if (typeof logActivity === 'function') {
+        logActivity('unlock', 'Selesai membaca: ' + (progress[slug].title || slug));
+      }
+    }
+  },
+
+  updatePosition(slug, position) {
+    const progress = this.getAll();
+    if (progress[slug]) {
+      progress[slug].position = Math.max(progress[slug].position || 0, position);
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(progress));
+    }
+  },
+
+  getStats() {
+    const all = this.getAll();
+    const entries = Object.values(all);
+    return {
+      total: entries.length,
+      opened: entries.filter(e => e.status === 'opened').length,
+      completed: entries.filter(e => e.status === 'completed').length,
+      byCategory: entries.reduce((acc, e) => {
+        const cat = e.category || 'other';
+        acc[cat] = (acc[cat] || 0) + 1;
+        return acc;
+      }, {})
+    };
+  },
+
+  init() {
+    const p = window.location.pathname;
+    if (!p.includes('/articles/')) return;
+    const slug = p.split('/').pop().replace('.html', '');
+    if (!slug) return;
+
+    const titleEl = document.querySelector('.article-content h1, .article-title, h1');
+    const title = titleEl ? titleEl.textContent.trim() : slug;
+    const category = document.querySelector('.article-category, .article-meta span')?.textContent?.trim() || '';
+
+    // Mark as opened
+    this.markOpened(slug, title, category);
+
+    // Track scroll position for completion
+    let scrollTimer = null;
+    window.addEventListener('scroll', () => {
+      if (scrollTimer) clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        if (docHeight > 0) {
+          const pct = Math.round((scrollTop / docHeight) * 100);
+          this.updatePosition(slug, pct);
+          // Auto-mark as completed when scrolled 90%+
+          if (pct >= 90) this.markCompleted(slug);
+        }
+      }, 500);
+    }, { passive: true });
+  }
+};
+
 // === VIEW TRACKER (FIXED) ===
 // === TOKEN DISPLAY ===
 const TokenDisplay = {
@@ -2676,6 +2773,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initReadingProgress();
   AuthSystem.init();
   PaywallSystem.init();
+  ProgressTracker.init();
   BookmarkSystem.init();
   TokenDisplay.showBanner();
   updateArticleCardStatus();
