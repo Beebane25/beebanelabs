@@ -1266,9 +1266,9 @@ async function handleGoogleAuthSuccess(session) {
       // Reload after short delay
       setTimeout(() => window.location.reload(), 1000);
     } else {
-      console.error('Google auth backend error:', result.error);
+      console.error('Google auth backend error:', result.error, result.detail || '');
       if (typeof Toast !== 'undefined') {
-        Toast.show('Gagal login: ' + (result.error || 'Unknown error'), 'error');
+        Toast.show('Gagal login: ' + (result.detail || result.error || 'Unknown error'), 'error');
       }
     }
   } catch (err) {
