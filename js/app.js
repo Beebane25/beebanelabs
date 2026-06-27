@@ -1170,8 +1170,8 @@ const PaywallSystem = {
 // === AUTH SYSTEM ===
 // === SUPABASE CLIENT FOR GOOGLE AUTH ===
 // Replace these with your actual Supabase project values
-const SUPABASE_URL = 'https://YOUR_PROJECT_REF.supabase.co';  // TODO: Replace with your Supabase URL
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';  // TODO: Replace with your Supabase anon key
+const SUPABASE_URL = 'https://nbungbznljbiddlwyvbd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbG...rgwk';
 
 let supabaseClient = null;
 function getSupabaseClient() {
