@@ -190,20 +190,15 @@ function debounce(fn, delay) {
   };
 }
 
-// === Navbar Scroll Effect ===
+// === Navbar Scroll Effect + Back to Top ===
 const navbar = document.getElementById('navbar');
-let lastScroll = 0;
+const backToTop = document.getElementById('backToTop');
 
 window.addEventListener('scroll', debounce(() => {
-  if (!navbar) return;
   const currentScroll = window.pageYOffset;
-  if (currentScroll > 50) {
-    navbar.classList.add('scrolled');
-  } else {
-    navbar.classList.remove('scrolled');
-  }
-  lastScroll = currentScroll;
-}, 10));
+  if (navbar) navbar.classList.toggle('scrolled', currentScroll > 50);
+  if (backToTop) backToTop.classList.toggle('visible', currentScroll > 400);
+}, 16), { passive: true });
 
 // === Mobile Menu Toggle ===
 const menuToggle = document.getElementById('menuToggle');
@@ -461,7 +456,7 @@ const QuizManager = {
         cache[key] = result;
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cache));
       }
-    } catch (e) { console.warn('Quiz cache save failed:', e); }
+    } catch (e) {}
   },
 
   // Get cached result for a quiz
@@ -494,7 +489,6 @@ const QuizManager = {
       });
       return await resp.json();
     } catch (e) {
-      console.warn('Quiz server save failed:', e);
       return { success: false, reason: 'network_error' };
     }
   },
@@ -831,19 +825,6 @@ function animateCounters() {
 
 // === PREMIUM VISUAL ENHANCEMENTS (v8.0) ===
 
-// Scroll Progress Bar
-function initScrollProgress() {
-  const bar = document.createElement('div');
-  bar.className = 'scroll-progress';
-  document.body.prepend(bar);
-  window.addEventListener('scroll', () => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-    bar.style.width = progress + '%';
-  }, { passive: true });
-}
-
 // Mouse-Follow Glow on Category Cards
 function initMouseGlow() {
   document.querySelectorAll('.category-card').forEach(card => {
@@ -884,25 +865,6 @@ function initReadingProgressBar() {
   }, { passive: true });
 }
 
-// Social Share Buttons (article pages only)
-function initSocialShareButtons() {
-  const articleContent = document.querySelector('.article-content');
-  if (!articleContent) return;
-  const title = document.title.split(' | ')[0].trim();
-  const url = window.location.href;
-  const shareHTML = '<div class="share-section">' +
-    '<span class="share-label">Bagikan:</span>' +
-    '<a class="share-btn whatsapp" href="https://wa.me/?text=' + encodeURIComponent(title + ' ' + url) + '" target="_blank" rel="noopener">WhatsApp</a>' +
-    '<a class="share-btn twitter" href="https://twitter.com/intent/tweet?text=' + encodeURIComponent(title) + '&url=' + encodeURIComponent(url) + '" target="_blank" rel="noopener">Twitter</a>' +
-    '<a class="share-btn telegram" href="https://t.me/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(title) + '" target="_blank" rel="noopener">Telegram</a>' +
-    '<button class="share-btn copy-link" onclick="navigator.clipboard.writeText(window.location.href).then(()=>{this.textContent=\'Copied!\';setTimeout(()=>{this.textContent=\'Copy Link\'},2000)})">Copy Link</button>' +
-    '</div>';
-  const articleNav = document.querySelector('.article-nav');
-  if (articleNav) {
-    articleNav.insertAdjacentHTML('beforebegin', shareHTML);
-  }
-}
-
 // Reading Time Estimate (article pages)
 function initReadingTimeEstimate() {
   const articleContent = document.querySelector('.article-content');
@@ -921,30 +883,6 @@ function initReadingTimeEstimate() {
     indicator.textContent = remaining + ' menit tersisa';
     indicator.classList.toggle('visible', scrollTop > 300 && scrollTop < docHeight - 200);
   }, { passive: true });
-}
-
-// Keyboard Navigation
-function initKeyboardNav() {
-  document.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.key === '/') {
-      e.preventDefault();
-      const overlay = document.getElementById('searchOverlay');
-      if (overlay) { overlay.classList.add('active'); document.getElementById('searchInput')?.focus(); }
-    }
-    if (e.key === 'Escape') {
-      const overlay = document.getElementById('searchOverlay');
-      if (overlay?.classList.contains('active')) { overlay.classList.remove('active'); }
-    }
-    if (e.key === 'ArrowLeft' && e.altKey) {
-      const prev = document.querySelector('.article-nav a:first-child');
-      if (prev) window.location.href = prev.href;
-    }
-    if (e.key === 'ArrowRight' && e.altKey) {
-      const next = document.querySelector('.article-nav a:last-child');
-      if (next && next.href) window.location.href = next.href;
-    }
-  });
 }
 
 // Service Worker Registration
@@ -2738,6 +2676,13 @@ const ALL_ARTICLES = [
   { slug: 'wifi-security', title: 'WiFi Security: Keamanan Jaringan Nirkabel', icon: '🔗', cat: 'Networking', desc: 'Panduan lengkap WiFi security — WPA3, WPA2, rogue AP, WiFi pen testing, hard...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
 ];
 
+// Derive search articles from ALL_ARTICLES (avoids duplicate data)
+const searchArticles = ALL_ARTICLES.map(a => ({
+  title: a.title, category: a.cat,
+  url: 'articles/' + a.slug + '.html',
+  icon: a.icon, desc: a.desc
+}));
+
 function renderArticleCard(a) {
   const isUnlocked = (typeof PaywallSystem !== 'undefined' && PaywallSystem.isUnlocked(a.slug));
   const lockIcon = isUnlocked
@@ -2797,13 +2742,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   initParticles();
   animateCounters();
   initCopyCode();
-  initScrollProgress();
   initMouseGlow();
   initSectionDividers();
   initReadingProgressBar();
-  initSocialShareButtons();
   initReadingTimeEstimate();
-  initKeyboardNav();
   initServiceWorker();
   injectLearningPath();
   renderGroupedArticles('all');
