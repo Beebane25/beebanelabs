@@ -71,7 +71,9 @@ function cors(status, data, origin = '') {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': allowed,
       'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY'
     }
   });
 }
