@@ -106,14 +106,13 @@ export async function onRequestPost(context) {
       });
     }
 
-    const encodedEmail = btoa(email.toLowerCase().split('').reverse().join(''));
-
     // Check if user exists
+    // Try plaintext first (matches regular auth), then encoded (matches legacy Google auth)
     let users;
     try {
       users = await supabaseQuery(
         SUPABASE_URL, SUPABASE_KEY, 'users',
-        `?email=eq.${encodeURIComponent(encodedEmail)}&select=id,email,name,plan,tokens,is_active,created_at`
+        `?email=eq.${encodeURIComponent(email.toLowerCase())}&select=id,email,name,plan,tokens,is_active,created_at`
       );
     } catch (e) {
       console.error('Supabase users query failed:', e.message);
@@ -122,12 +121,42 @@ export async function onRequestPost(context) {
       });
     }
 
+    // Fallback: try base64-encoded email (for legacy Google auth accounts)
+    if (!users || users.length === 0) {
+      const legacyEncodedEmail = btoa(email.toLowerCase().split('').reverse().join(''));
+      try {
+        users = await supabaseQuery(
+          SUPABASE_URL, SUPABASE_KEY, 'users',
+          `?email=eq.${encodeURIComponent(legacyEncodedEmail)}&select=id,email,name,plan,tokens,is_active,created_at`
+        );
+        // If found with legacy encoding, migrate to plaintext
+        if (users && users.length > 0) {
+          try {
+            await supabaseQuery(
+              SUPABASE_URL, SUPABASE_KEY, 'users',
+              `?id=eq.${users[0].id}`, 'PATCH',
+              { email: email.toLowerCase() }
+            );
+          } catch (e) { /* non-critical migration */ }
+        }
+      } catch (e) {
+        console.error('Legacy email lookup failed:', e.message);
+      }
+    }
+
     let user;
     let isNewUser = false;
 
     if (users && users.length > 0) {
       // User exists - update Google ID if not set
       user = users[0];
+
+      // Check if user is active
+      if (user.is_active === false) {
+        return new Response(JSON.stringify({ error: 'Akun tidak aktif. Hubungi admin.' }), {
+          status: 403, headers
+        });
+      }
       
       // Update name and avatar if changed
       try {
@@ -150,7 +179,7 @@ export async function onRequestPost(context) {
         const newUsers = await supabaseQuery(
           SUPABASE_URL, SUPABASE_KEY, 'users', '', 'POST',
           {
-            email: encodedEmail,
+            email: email.toLowerCase(),
             name: name || email.split('@')[0],
             password_hash: 'google_oauth',  // No password for Google users
             plan: 'free',
