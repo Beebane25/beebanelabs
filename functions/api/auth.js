@@ -238,7 +238,7 @@ export async function onRequestPost(context) {
         // Record successful registration for IP tracking
         await recordAttempt(SUPABASE_URL, SUPABASE_KEY, ip, 'register_success');
         await recordAttempt(SUPABASE_URL, SUPABASE_KEY, ip, 'register');
-        return cors(200, { success: true, message: 'Registrasi berhasil!', token: tokenHex, user: { email, name, plan: 'free', tokens: 5 } }, origin);
+        return cors(200, { success: true, message: 'Registrasi berhasil!', token: tokenHex, user: { id: users[0].id, email, name, plan: 'free', tokens: 5, auth_provider: 'local' } }, origin);
       }
       return cors(500, { error: 'Gagal membuat akun' }, origin);
     }
@@ -257,7 +257,7 @@ export async function onRequestPost(context) {
       }
 
       const encodedEmail = encodeURIComponent(email);
-      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${encodedEmail}&select=id,email,name,password_hash,plan,tokens,is_active`);
+      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${encodedEmail}&select=id,email,name,password_hash,plan,tokens,is_active,created_at`);
       if (!users || users.length === 0) {
         await recordAttempt(SUPABASE_URL, SUPABASE_KEY, ip, 'login');
         return cors(401, { error: 'Email atau password salah' }, origin);
@@ -294,7 +294,7 @@ export async function onRequestPost(context) {
         last_login: new Date().toISOString()
       });
 
-      return cors(200, { success: true, message: 'Login berhasil!', token: tokenHex, user: { email, name: user.name, plan: user.plan, tokens: user.tokens } }, origin);
+      return cors(200, { success: true, message: 'Login berhasil!', token: tokenHex, user: { id: user.id, email, name: user.name, plan: user.plan, tokens: user.tokens, auth_provider: 'local', created_at: user.created_at } }, origin);
     }
 
     // === LOGOUT ===

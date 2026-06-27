@@ -310,7 +310,7 @@
                   <input type="date" id="settingsDob">
                 </div>
                 <div class="form-group">
-                  <label>Role</label>
+                  <label>Paket</label>
                   <input type="text" id="settingsRole" disabled>
                 </div>
               </div>
@@ -481,21 +481,22 @@
       document.getElementById('settingsName').value = user.name || '';
       document.getElementById('settingsEmail').value = user.email || '';
       document.getElementById('settingsDob').value = user.dob || '';
-      document.getElementById('settingsRole').value = user.role || 'user';
+      document.getElementById('settingsRole').value = user.plan || 'free';
 
       // Plan badge
       const planEl = document.getElementById('profilePlan');
       const planText = document.getElementById('planText');
-      if (user.plan && user.plan !== 'free') {
+      const userPlan = user.plan || 'free';
+      if (userPlan && userPlan !== 'free') {
         planEl.className = 'profile-plan premium';
-        planEl.innerHTML = '<span>👑</span> <span>' + (user.plan === 'monthly' ? 'Bulanan' : user.plan === 'yearly' ? 'Tahunanan' : user.plan) + '</span>';
+        planEl.innerHTML = '<span>👑</span> <span>' + (userPlan === 'monthly' ? 'Bulanan' : userPlan === 'yearly' ? 'Tahunanan' : userPlan) + '</span>';
       } else {
         planEl.className = 'profile-plan free';
         planText.textContent = 'Free';
       }
 
       // Token display
-      const maxTokens = 5;
+      const maxTokens = Math.max(5, tokens); // Dynamic: at least 5, or current balance if higher
       document.getElementById('tokenCount').textContent = tokens;
       document.getElementById('statTokensLeft').textContent = tokens;
       document.getElementById('statTokensUsed').textContent = Math.max(0, maxTokens - tokens);
@@ -506,8 +507,9 @@
       document.getElementById('statUnlocked').textContent = unlocked.length;
       
       // Member days
-      if (session._createdAt) {
-        const days = Math.floor((Date.now() - new Date(session._createdAt).getTime()) / 86400000);
+      const accountCreated = user.created_at || session._createdAt;
+      if (accountCreated) {
+        const days = Math.floor((Date.now() - new Date(accountCreated).getTime()) / 86400000);
         document.getElementById('statMemberDays').textContent = days || 1;
       }
 

@@ -113,7 +113,7 @@ export async function onRequestPost(context) {
     try {
       users = await supabaseQuery(
         SUPABASE_URL, SUPABASE_KEY, 'users',
-        `?email=eq.${encodeURIComponent(encodedEmail)}&select=id,email,name,plan,tokens,is_active`
+        `?email=eq.${encodeURIComponent(encodedEmail)}&select=id,email,name,plan,tokens,is_active,created_at`
       );
     } catch (e) {
       console.error('Supabase users query failed:', e.message);
@@ -200,7 +200,8 @@ export async function onRequestPost(context) {
           avatar: avatar || '',
           plan: user.plan || 'free',
           tokens: user.tokens || 5,
-          auth_provider: 'google'
+          auth_provider: 'google',
+          created_at: user.created_at
         },
         token: sessionToken,
         _createdAt: new Date().toISOString()
