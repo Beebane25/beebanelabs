@@ -86,7 +86,8 @@ export async function onRequestPost(context) {
         `?email=eq.${encodeURIComponent(encodedEmail)}&select=id,email,name,role,tokens`
       );
     } catch (e) {
-      return new Response(JSON.stringify({ error: 'Database error' }), {
+      console.error('Supabase users query failed:', e.message);
+      return new Response(JSON.stringify({ error: 'Database error', detail: e.message }), {
         status: 500, headers
       });
     }
