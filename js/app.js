@@ -29,157 +29,11 @@
 /* ============================================
    BeebaneLabs - Main JavaScript
    ============================================ */
+'use strict';
 
 // === Search Data ===
-const articles = [
-  {
-    title: "Panduan Lengkap ESP32: Dari Setup Hingga Proyek IoT Pertama",
-    category: "ESP32",
-    url: "articles/esp32-fundamentals.html",
-    icon: "🔧",
-    desc: "Tutorial komprehensif ESP32 untuk pemula"
-  },
-  {
-    title: "Konfigurasi Routing MikroTik: Static Route, OSPF & BGP",
-    category: "MikroTik",
-    url: "articles/mikrotik-routing.html",
-    icon: "🌐",
-    desc: "Pelajari routing di RouterOS MikroTik"
-  },
-  {
-    title: "Membangun Jaringan Sensor LoRa: Telemetry & Monitoring",
-    category: "LoRa",
-    url: "articles/lora-communication.html",
-    icon: "📡",
-    desc: "Sistem monitoring jarak jauh dengan LoRa"
-  },
-  {
-    title: "Otomasi IoT dengan Python: MQTT, GPIO & Scheduling",
-    category: "Python",
-    url: "articles/python-iot-automation.html",
-    icon: "🐍",
-    desc: "Gunakan Python untuk kontrol perangkat IoT"
-  },
-  {
-    title: "Keamanan Jaringan IoT: Firewall, VPN & Enkripsi Data",
-    category: "Keamanan",
-    url: "articles/network-security.html",
-    icon: "🔐",
-    desc: "Lindungi perangkat IoT dari serangan siber"
-  },
-  {
-    title: "Dashboard Monitoring Real-time: Node-RED + Grafana + MQTT",
-    category: "Dashboard",
-    url: "articles/dashboard-monitoring.html",
-    icon: "📊",
-    desc: "Bangun dashboard visual untuk monitoring IoT"
-  },
-  {
-    title: "ESP8266 NodeMCU untuk Pemula: Setup & Proyek Pertama",
-    category: "ESP8266",
-    url: "articles/esp8266-nodemcu.html",
-    icon: "📶",
-    desc: "Pelajari ESP8266 NodeMCU untuk proyek IoT"
-  },
-  {
-    title: "Protokol MQTT: Panduan Lengkap untuk IoT",
-    category: "Protokol",
-    url: "articles/mqtt-protocol.html",
-    icon: "📨",
-    desc: "Pahami cara kerja MQTT untuk perangkat IoT"
-  },
-  {
-    title: "Sensor DHT11/DHT22 dengan ESP32: Tutorial Lengkap",
-    category: "Sensor",
-    url: "articles/sensor-dht-esp32.html",
-    icon: "🌡️",
-    desc: "Baca data suhu dan kelembaban dengan ESP32"
-  },
-  {
-    title: "Raspberry Pi untuk IoT: Gateway & Edge Computing",
-    category: "Raspberry Pi",
-    url: "articles/raspberry-pi-iot.html",
-    icon: "🍓",
-    desc: "Gunakan Raspberry Pi sebagai gateway IoT"
-  },
-  {
-    title: "Firebase untuk IoT: Realtime Database & Cloud Functions",
-    category: "Cloud",
-    url: "articles/firebase-iot.html",
-    icon: "🔥",
-    desc: "Integrasikan perangkat IoT dengan Google Firebase"
-  },
-  {
-    title: "MikroTik Firewall: Filter Rules, NAT & Mangle",
-    category: "MikroTik",
-    url: "articles/mikrotik-firewall.html",
-    icon: "🛡️",
-    desc: "Konfigurasi firewall MikroTik RouterOS"
-  },
-  {
-    title: "Telegram Bot untuk IoT: Notifikasi & Kontrol Jarak Jauh",
-    category: "IoT",
-    url: "articles/telegram-bot-iot.html",
-    icon: "🤖",
-    desc: "Buat Telegram Bot untuk notifikasi dan kontrol IoT"
-  },
-  {
-    title: "Web Server di ESP32: Interface Kontrol & Monitoring",
-    category: "ESP32",
-    url: "articles/web-server-esp32.html",
-    icon: "🌐",
-    desc: "Bangun web server mandiri di ESP32"
-  },
-  {
-    title: "Perbandingan Protokol IoT: MQTT vs CoAP vs HTTP vs AMQP",
-    category: "Protokol",
-    url: "articles/iot-protocols-comparison.html",
-    icon: "⚖️",
-    desc: "Analisis mendalam protokol komunikasi IoT"
-  },
-  {
-    title: "ESP32 Deep Sleep: Hemat Baterai untuk Proyek IoT",
-    category: "ESP32",
-    url: "articles/deep-sleep-esp32.html",
-    icon: "💤",
-    desc: "Optimalkan konsumsi daya ESP32 dengan deep sleep"
-  },
-  {
-    title: "Arduino IDE 2.x Setup: Instalasi & Konfigurasi Lengkap",
-    category: "Tools",
-    url: "articles/arduino-ide-setup.html",
-    icon: "💻",
-    desc: "Panduan instalasi Arduino IDE 2.x untuk ESP32"
-  },
-  {
-    title: "Node-RED untuk IoT: Flow Programming & Integrasi",
-    category: "Dashboard",
-    url: "articles/node-red-iot.html",
-    icon: "🔀",
-    desc: "Pelajari Node-RED untuk alur data IoT visual"
-  },
-  {
-    title: "Grafana + InfluxDB: Visualisasi Data IoT Real-time",
-    category: "Dashboard",
-    url: "articles/grafana-influxdb.html",
-    icon: "📈",
-    desc: "Bangun pipeline data IoT dengan Grafana dan InfluxDB"
-  },
-  {
-    title: "MikroTik Queue Management: QoS & Bandwidth Control",
-    category: "MikroTik",
-    url: "articles/mikrotik-queue.html",
-    icon: "🎛️",
-    desc: "Kelola bandwidth jaringan dengan MikroTik Queue"
-  },
-  {
-    title: "Blynk IoT: Kontrol Perangkat dari Mobile App",
-    category: "IoT",
-    url: "articles/blynk-iot.html",
-    icon: "📱",
-    desc: "Bangun aplikasi mobile untuk kontrol ESP32 dengan Blynk"
-  }
-];
+// Search articles are derived from ALL_ARTICLES below (avoids duplicate data)
+let articles = [];
 
 // === Debounce utility ===
 function debounce(fn, delay) {
@@ -212,13 +66,13 @@ if (menuToggle && navLinks) {
   });
 
   // Close menu when link clicked
-  navLinks.querySelectorAll('a').forEach(link => {
+  for (const link of navLinks.querySelectorAll('a')) {
     link.addEventListener('click', () => {
       navLinks.classList.remove('active');
       menuToggle.classList.remove('active');
       document.body.style.overflow = '';
     });
-  });
+  }
 
   // Close menu on Escape key
   document.addEventListener('keydown', (e) => {
@@ -317,31 +171,31 @@ const observerOptions = {
 };
 
 const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
+  for (const entry of entries) {
     if (entry.isIntersecting) {
       entry.target.classList.add('visible');
       observer.unobserve(entry.target);
     }
-  });
+  }
 }, observerOptions);
 
-document.querySelectorAll('.fade-in').forEach(el => {
+for (const el of document.querySelectorAll('.fade-in')) {
   observer.observe(el);
-});
+}
 
 // Safety: force all fade-in elements visible after 3s max
 // Prevents invisible content if observer fails or user has reduced motion
 setTimeout(() => {
-  document.querySelectorAll('.fade-in:not(.visible)').forEach(el => {
+  for (const el of document.querySelectorAll('.fade-in:not(.visible)')) {
     el.classList.add('visible');
-  });
+  }
 }, 3000);
 
 // Also handle reduced motion preference
 if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  document.querySelectorAll('.fade-in').forEach(el => {
+  for (const el of document.querySelectorAll('.fade-in')) {
     el.classList.add('visible');
-  });
+  }
 }
 
 // === Newsletter Subscribe ===
@@ -401,7 +255,7 @@ async function handleSubscribe(e) {
 }
 
 // === Code Copy Button ===
-document.querySelectorAll('.code-copy').forEach(btn => {
+for (const btn of document.querySelectorAll('.code-copy')) {
   btn.addEventListener('click', () => {
     const code = btn.closest('.code-block').querySelector('pre').textContent;
     navigator.clipboard.writeText(code).then(() => {
@@ -413,7 +267,7 @@ document.querySelectorAll('.code-copy').forEach(btn => {
       if (typeof Toast !== 'undefined') Toast.show('Gagal menyalin kode', 'error');
     });
   });
-});
+}
 
 // === Copy to clipboard utility ===
 function copyToClipboard(text) {
@@ -577,26 +431,27 @@ function initQuiz(quizId, answers) {
   });
 
   // Option click handler
-  options.forEach(opt => {
+  for (const opt of options) {
     opt.addEventListener('click', () => {
       const qIndex = opt.dataset.question;
-      const qOptions = container.querySelectorAll(`.quiz-option[data-question="${qIndex}"]`);
-      qOptions.forEach(o => o.classList.remove('selected'));
+      for (const o of container.querySelectorAll(`.quiz-option[data-question="${qIndex}"]`)) {
+        o.classList.remove('selected');
+      }
       opt.classList.add('selected');
       selected[qIndex] = opt.dataset.answer;
     });
-  });
+  }
 
   // Reset quiz function
   function resetQuiz() {
     score = 0;
     answered = 0;
-    Object.keys(selected).forEach(k => delete selected[k]);
+    for (const k in selected) delete selected[k];
 
-    options.forEach(o => {
+    for (const o of options) {
       o.classList.remove('selected', 'correct', 'wrong');
       o.style.pointerEvents = '';
-    });
+    }
 
     resultEl.className = 'quiz-result';
     resultEl.innerHTML = '';
@@ -620,9 +475,9 @@ function initQuiz(quizId, answers) {
       // Calculate score
       score = 0;
       const userAnswers = [];
-      answers.forEach((correct, i) => {
-        const qOptions = container.querySelectorAll(`.quiz-option[data-question="${i}"]`);
-        qOptions.forEach(o => {
+      for (let i = 0; i < answers.length; i++) {
+        const correct = answers[i];
+        for (const o of container.querySelectorAll(`.quiz-option[data-question="${i}"]`)) {
           o.classList.remove('selected');
           if (o.dataset.answer === correct) {
             o.classList.add('correct');
@@ -630,10 +485,10 @@ function initQuiz(quizId, answers) {
             o.classList.add('wrong');
           }
           o.style.pointerEvents = 'none';
-        });
+        }
         if (selected[i] === correct) score++;
         userAnswers.push({ question: i, selected: selected[i], correct });
-      });
+      }
 
       const percent = Math.round((score / total) * 100);
       const passed = percent >= 60;
@@ -690,33 +545,17 @@ function initTabs(containerId) {
   const tabs = container.querySelectorAll('.tab-btn');
   const panels = container.querySelectorAll('.tab-panel');
 
-  tabs.forEach(tab => {
+  for (const tab of tabs) {
     tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      panels.forEach(p => p.classList.remove('active'));
+      for (const t of tabs) t.classList.remove('active');
+      for (const p of panels) p.classList.remove('active');
 
       tab.classList.add('active');
       const target = container.querySelector(`#${tab.dataset.tab}`);
       if (target) target.classList.add('active');
     });
-  });
+  }
 }
-
-// === Reading Progress ===
-function initReadingProgress() {
-  const progressBar = document.getElementById('readingProgress');
-  if (!progressBar) return;
-
-  window.addEventListener('scroll', debounce(() => {
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const scrolled = (window.pageYOffset / docHeight) * 100;
-    progressBar.style.width = scrolled + '%';
-  }, 16));
-}
-
-// === Initialize ===
-// NOTE: initReadingProgress() is called from the main DOMContentLoaded handler below
-// to avoid running it twice.
 
 // === SCROLL REVEAL ANIMATION ===
 function initScrollReveal() {
@@ -724,22 +563,22 @@ function initScrollReveal() {
   if (!revealElements.length) return;
 
   const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+    for (const entry of entries) {
       if (entry.isIntersecting) {
         entry.target.classList.add('active');
         observer.unobserve(entry.target);
       }
-    });
+    }
   }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
-  revealElements.forEach(el => observer.observe(el));
+  for (const el of revealElements) observer.observe(el);
 
   // Fallback: force all .reveal to .active after 1.5s
   // (IntersectionObserver can miss elements on some browsers/devices)
   setTimeout(() => {
-    document.querySelectorAll('.reveal:not(.active)').forEach(el => {
+    for (const el of document.querySelectorAll('.reveal:not(.active)')) {
       el.classList.add('active');
-    });
+    }
   }, 1500);
 }
 
@@ -747,28 +586,33 @@ function initScrollReveal() {
 function addRevealClasses() {
   // Add reveal class to main sections
   const sections = document.querySelectorAll('.categories-section, .learning-path, .articles-section, .newsletter-section, .tags-section');
-  sections.forEach((section, index) => {
+  let idx = 0;
+  for (const section of sections) {
     section.classList.add('reveal');
-    if (index > 0) section.classList.add(`reveal-delay-${Math.min(index, 5)}`);
-  });
+    if (idx > 0) section.classList.add(`reveal-delay-${Math.min(idx, 5)}`);
+    idx++;
+  }
 
   // Add reveal to category cards with stagger
-  const categoryCards = document.querySelectorAll('.category-card');
-  categoryCards.forEach((card, index) => {
-    card.classList.add('reveal', `reveal-delay-${(index % 5) + 1}`);
-  });
+  idx = 0;
+  for (const card of document.querySelectorAll('.category-card')) {
+    card.classList.add('reveal', `reveal-delay-${(idx % 5) + 1}`);
+    idx++;
+  }
 
   // Add reveal to article cards with stagger
-  const articleCards = document.querySelectorAll('.article-card');
-  articleCards.forEach((card, index) => {
-    card.classList.add('reveal', `reveal-delay-${(index % 3) + 1}`);
-  });
+  idx = 0;
+  for (const card of document.querySelectorAll('.article-card')) {
+    card.classList.add('reveal', `reveal-delay-${(idx % 3) + 1}`);
+    idx++;
+  }
 
   // Add reveal to path cards with stagger
-  const pathCards = document.querySelectorAll('.path-card');
-  pathCards.forEach((card, index) => {
-    card.classList.add('reveal', `reveal-delay-${index + 1}`);
-  });
+  idx = 0;
+  for (const card of document.querySelectorAll('.path-card')) {
+    card.classList.add('reveal', `reveal-delay-${idx + 1}`);
+    idx++;
+  }
 }
 
 // === PARTICLE EFFECT (Global - covers entire page) ===
@@ -795,7 +639,7 @@ function initParticles() {
 // === COUNTER ANIMATION ===
 function animateCounters() {
   const counters = document.querySelectorAll('.stat-number');
-  counters.forEach(counter => {
+  for (const counter of counters) {
     const target = parseInt(counter.textContent.replace(/\D/g, ''));
     const suffix = counter.textContent.replace(/\d/g, '');
     let current = 0;
@@ -809,32 +653,32 @@ function animateCounters() {
         counter.textContent = Math.floor(current) + suffix;
       }
     }, 30);
-  });
+  }
 }
 
 // === PREMIUM VISUAL ENHANCEMENTS (v8.0) ===
 
 // Mouse-Follow Glow on Category Cards
 function initMouseGlow() {
-  document.querySelectorAll('.category-card').forEach(card => {
+  for (const card of document.querySelectorAll('.category-card')) {
     card.addEventListener('mousemove', (e) => {
       const rect = card.getBoundingClientRect();
       card.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
       card.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
     });
-  });
+  }
 }
 
 // Section Dividers (auto-insert between major sections)
 function initSectionDividers() {
   const sections = document.querySelectorAll('.categories-section, .learning-path, .articles-section, .newsletter-section');
-  sections.forEach(section => {
+  for (const section of sections) {
     if (!section.previousElementSibling?.classList.contains('section-divider')) {
       const hr = document.createElement('hr');
       hr.className = 'section-divider';
       section.parentNode.insertBefore(hr, section);
     }
-  });
+  }
 }
 
 // === v9.7 PREMIUM FEATURES ===
@@ -1285,11 +1129,11 @@ const AuthSystem = {
         for (let i = 0; i < localStorage.length; i++) {
           allKeys.push(localStorage.key(i));
         }
-        allKeys.forEach(key => {
+        for (const key of allKeys) {
           if (key && key.startsWith('beebanelabs_') && !keysToKeep.has(key)) {
             localStorage.removeItem(key);
           }
-        });
+        }
         localStorage.setItem('beebanelabs_app_version', SITE_CONFIG.APP_VERSION);
       }
     } catch(e) {}
@@ -1582,7 +1426,7 @@ const AuthSystem = {
   },
 
   switchTab(tab) {
-    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    for (const t of document.querySelectorAll('.auth-tab')) t.classList.remove('active');
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
     if (loginForm) loginForm.style.display = tab === 'login' ? 'block' : 'none';
@@ -1989,7 +1833,7 @@ function updateArticleCardStatus() {
   const cards = document.querySelectorAll('.article-card');
   if (!cards.length) return;
   const unlocked = PaywallSystem.getUnlocked();
-  cards.forEach(card => {
+  for (const card of cards) {
     const href = card.getAttribute('href') || '';
     const slug = href.split('/').pop().replace('.html', '');
     if (!slug) return;
@@ -2009,7 +1853,7 @@ function updateArticleCardStatus() {
         thumb.appendChild(mark);
       }
     }
-  });
+  }
 }
 
 // === TOAST NOTIFICATION SYSTEM ===
@@ -2146,15 +1990,15 @@ function initTOC() {
 
   // Active state on scroll
   const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
+    for (const e of entries) {
       if (e.isIntersecting) {
-        toc.querySelectorAll('a').forEach(a => a.classList.remove('active'));
+        for (const a of toc.querySelectorAll('a')) a.classList.remove('active');
         const link = toc.querySelector('a[href="#' + e.target.id + '"]');
         if (link) link.classList.add('active');
       }
-    });
+    }
   }, { rootMargin: '-80px 0px -70% 0px' });
-  realHeadings.forEach(h => observer.observe(h));
+  for (const h of realHeadings) observer.observe(h);
 }
 
 // === JSON-LD ARTICLE STRUCTURED DATA ===
@@ -2247,7 +2091,7 @@ function injectBreadcrumb() {
 
 // === COPY CODE BUTTON ===
 function initCopyCode() {
-  document.querySelectorAll('pre').forEach(pre => {
+  for (const pre of document.querySelectorAll('pre')) {
     if (pre.closest('.code-block')) return;
     const wrapper = document.createElement('div');
     wrapper.className = 'code-block';
@@ -2267,7 +2111,7 @@ function initCopyCode() {
       });
     };
     wrapper.appendChild(btn);
-  });
+  }
 }
 
 // === ARTICLE FILTER (Homepage) ===
@@ -2284,7 +2128,7 @@ function initArticleFilter() {
   filterBar.addEventListener('click', e => {
     const btn = e.target.closest('.filter-btn');
     if (!btn) return;
-    filterBar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    for (const b of filterBar.querySelectorAll('.filter-btn')) b.classList.remove('active');
     btn.classList.add('active');
     renderGroupedArticles(btn.dataset.filter);
     updateArticleCardStatus();
@@ -2665,8 +2509,8 @@ const ALL_ARTICLES = [
   { slug: 'wifi-security', title: 'WiFi Security: Keamanan Jaringan Nirkabel', icon: '🔗', cat: 'Networking', desc: 'Panduan lengkap WiFi security — WPA3, WPA2, rogue AP, WiFi pen testing, hard...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
 ];
 
-// Derive search articles from ALL_ARTICLES (avoids duplicate data)
-const searchArticles = ALL_ARTICLES.map(a => ({
+// Populate search articles from ALL_ARTICLES (avoids duplicate data)
+articles = ALL_ARTICLES.map(a => ({
   title: a.title, category: a.cat,
   url: 'articles/' + a.slug + '.html',
   icon: a.icon, desc: a.desc
@@ -2687,24 +2531,23 @@ function renderGroupedArticles(filter) {
 
   // Group by category
   const groups = {};
-  articles.forEach(a => {
+  for (const a of articles) {
     if (!groups[a.cat]) groups[a.cat] = [];
     groups[a.cat].push(a);
-  });
+  }
 
   let html = '';
   const catOrder = ['ESP32', 'MikroTik', 'Networking', 'LoRa', 'Python', 'Keamanan', 'Dashboard', 'Protokol', 'Raspberry Pi', 'Cloud', 'IoT', 'Tools', 'Web Development', 'Database', 'AI & Data Science', 'DevOps & Cloud', 'Mobile Development', 'IT Career'];
-  catOrder.forEach(cat => {
-    if (!groups[cat]) return;
+  for (const cat of catOrder) {
+    if (!groups[cat]) continue;
     const items = groups[cat].slice(0, 3);
     html += '<div class="category-section"><div class="cat-header"><h3>' + items[0].icon + ' ' + cat + '</h3><a href="kategori/' + cat.toLowerCase().replace(/\s+/g, '-') + '.html">Lihat Semua →</a></div><div class="cards-grid">' + items.map(renderArticleCard).join('') + '</div></div>';
-  });
+  }
   grid.innerHTML = html;
 }
 
 // === INITIALIZE ALL SYSTEMS ===
 document.addEventListener('DOMContentLoaded', async () => {
-  initReadingProgress();
   AuthSystem.init();
   PaywallSystem.init();
   ProgressTracker.init();

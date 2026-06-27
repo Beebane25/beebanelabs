@@ -178,7 +178,9 @@ function cors(status, data, origin) {
       'Access-Control-Allow-Origin': allowed,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
-      'Cache-Control': 'no-store'
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY'
     }
   });
 }

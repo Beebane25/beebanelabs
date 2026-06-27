@@ -239,7 +239,9 @@ export async function onRequestPost(context) {
       status: 200,
       headers: {
         ...headers,
-        'Cache-Control': 'no-store'
+        'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY'
       }
     });
 
