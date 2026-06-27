@@ -16,7 +16,26 @@ const ALLOWED_ORIGINS = ['https://beebanelabs.pages.dev', 'https://beebanelabs.i
 // CREATE INDEX idx_rate_limit_ip_endpoint ON rate_limit_log(ip, endpoint, created_at);
 
 const MAX_LOGIN_ATTEMPTS = 5;
+const MAX_REGISTER_PER_IP = 3;
+const REGISTER_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
 const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
+// Disposable email domain blacklist
+const BLOCKED_EMAIL_DOMAINS = [
+  'mailinator.com', 'guerrillamail.com', 'guerrillamail.net', 'guerrillamailblock.com',
+  'tempmail.com', 'throwaway.email', 'yopmail.com', 'sharklasers.com', 'grr.la',
+  'dispostable.com', 'trashmail.com', 'trashmail.net', 'trashmail.me',
+  '10minutemail.com', 'temp-mail.org', 'temp-mail.com', 'fakeinbox.com',
+  'tempinbox.com', 'mohmal.com', 'burnermail.io', 'harakirimail.com',
+  'maildrop.cc', 'mailnesia.com', 'guerrillamail.info', 'guerrillamail.de',
+  'guerillamail.com', 'guerrillamail.org', 'spamgourmet.com', 'mytemp.email',
+  'emailondeck.com', 'mintemail.com', 'tmail.ws', 'tmpmail.net',
+  'tmpmail.org', 'throwam.com', 'mailcatch.com', 'tempail.com',
+  'tempr.email', 'discard.email', 'discardmail.com', 'mailsac.com',
+  'getnada.com', 'maildrop.cc', 'inboxbear.com', 'mailexpire.com',
+  'temporary-mail.net', 'trashymail.com', 'trashymail.net', 'wegwerfmail.de',
+  '020.co.uk', '0815.ru', '0clickemail.com', '0wnd.net', '0wnd.org'
+];
 
 // In-memory rate limit cache (best-effort, supplemented by Supabase)
 const rateLimitCache = new Map();
@@ -90,8 +109,28 @@ export async function onRequestPost(context) {
       const name = sanitizeName(body.name || '');
       const password = body.password || '';
 
+      // Rate limiting: max 5 register attempts per IP per 5 minutes
+      const rateCheck = await checkRateLimit(SUPABASE_URL, SUPABASE_KEY, ip, 'register');
+      if (!rateCheck.allowed) {
+        return cors(429, { error: 'Terlalu banyak percobaan. Coba lagi dalam 5 menit.' }, origin);
+      }
+
+      // IP-based account creation limit: max 3 accounts per IP per 24 hours
+      const registerWindowStart = new Date(Date.now() - REGISTER_WINDOW_MS).toISOString();
+      try {
+        const recentRegisters = await supabaseQuery(
+          SUPABASE_URL, SUPABASE_KEY, 'rate_limit_log',
+          `?ip=eq.${encodeURIComponent(ip)}&endpoint=eq.register_success&created_at=gte.${registerWindowStart}&select=id`
+        );
+        if (Array.isArray(recentRegisters) && recentRegisters.length >= MAX_REGISTER_PER_IP) {
+          return cors(429, { error: 'Batas pembuatan akun tercapai (maksimal 3 akun per 24 jam). Coba lagi besok.' }, origin);
+        }
+      } catch (e) {
+        // If rate_limit_log table doesn't exist, continue without IP limit
+      }
+
       // Input validation
-      if (!email || !/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email)) return cors(400, { error: 'Email tidak valid' }, origin);
+      if (!email || !/^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$/.test(email)) return cors(400, { error: 'Email tidak valid' }, origin);
       if (!name || name.length < 2) return cors(400, { error: 'Nama harus diisi (minimal 2 karakter)' }, origin);
       if (name.length > 100) return cors(400, { error: 'Nama maksimal 100 karakter' }, origin);
       if (password.length < 8) return cors(400, { error: 'Password tidak memenuhi syarat (minimal 8 karakter, huruf besar, angka, dan simbol)' }, origin);
@@ -99,6 +138,35 @@ export async function onRequestPost(context) {
       if (!/[A-Z]/.test(password)) return cors(400, { error: 'Password tidak memenuhi syarat' }, origin);
       if (!/[0-9]/.test(password)) return cors(400, { error: 'Password tidak memenuhi syarat' }, origin);
       if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return cors(400, { error: 'Password tidak memenuhi syarat' }, origin);
+
+      // Cloudflare Turnstile verification (if secret key configured)
+      const turnstileToken = body.turnstile_token || '';
+      const turnstileSecret = env.TURNSTILE_SECRET_KEY || '';
+      if (turnstileSecret) {
+        if (!turnstileToken) {
+          return cors(400, { error: 'Verifikasi CAPTCHA diperlukan. Muat ulang halaman.' }, origin);
+        }
+        try {
+          const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ secret: turnstileSecret, response: turnstileToken, remoteip: ip })
+          });
+          const verifyData = await verifyRes.json();
+          if (!verifyData.success) {
+            return cors(400, { error: 'Verifikasi CAPTCHA gagal. Coba lagi.' }, origin);
+          }
+        } catch (e) {
+          // If Turnstile verification fails, allow registration (fail-open for availability)
+          console.error('Turnstile verification error:', e.message);
+        }
+      }
+
+      // Block disposable/temporary email domains
+      const emailDomain = email.split('@')[1];
+      if (BLOCKED_EMAIL_DOMAINS.includes(emailDomain)) {
+        return cors(400, { error: 'Gunakan email permanen untuk registrasi. Email temporary tidak diizinkan.' }, origin);
+      }
 
       // Check existing (URL-encoded email)
       const encodedEmail = encodeURIComponent(email);
@@ -127,6 +195,9 @@ export async function onRequestPost(context) {
         await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'sessions', '', 'POST', {
           user_id: users[0].id, token: tokenHex, expires_at: expires
         });
+        // Record successful registration for IP tracking
+        await recordAttempt(SUPABASE_URL, SUPABASE_KEY, ip, 'register_success');
+        await recordAttempt(SUPABASE_URL, SUPABASE_KEY, ip, 'register');
         return cors(200, { success: true, message: 'Registrasi berhasil!', token: tokenHex, user: { email, name, plan: 'free', tokens: 5 } }, origin);
       }
       return cors(500, { error: 'Gagal membuat akun' }, origin);

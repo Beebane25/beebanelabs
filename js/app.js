@@ -1,4 +1,31 @@
-/* v7.11.0 - Token System */
+/* v7.12.0 - Token System + Content Gate */
+// === EARLY CONTENT GATE (runs before DOM renders) ===
+// Prevents "flash of content" on article pages before paywall check
+(function earlyContentGate() {
+  if (!window.location.pathname.includes('/articles/')) return;
+  
+  // Check if user has a session token (quick localStorage check)
+  let hasSession = false;
+  try {
+    const raw = localStorage.getItem('beebanelabs_auth');
+    if (raw) {
+      const session = JSON.parse(raw);
+      hasSession = !!(session && session.token && session.user);
+    }
+  } catch(e) {}
+  
+  // If no session, hide article content immediately via injected style
+  if (!hasSession) {
+    const style = document.createElement('style');
+    style.id = 'early-content-gate';
+    style.textContent = '.article-content{visibility:hidden!important;position:relative}.article-content::before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:var(--bg-primary,#08090a);z-index:1;visibility:visible}';
+    (document.head || document.documentElement).appendChild(style);
+    
+    // Also set a flag for the paywall system to check
+    window.__earlyGateActive = true;
+  }
+})();
+
 /* ============================================
    BeebaneLabs - Main JavaScript
    ============================================ */
@@ -1109,12 +1136,22 @@ const PaywallSystem = {
     const logged = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
     if (!logged) {
       const localUnlocked = this.isUnlocked(slug);
-      if (localUnlocked || this.hasPaidAccess()) return;
+      if (localUnlocked || this.hasPaidAccess()) {
+        // Remove early content gate
+        const gateStyle = document.getElementById('early-content-gate');
+        if (gateStyle) gateStyle.remove();
+        return;
+      }
       this.showTokenGate(slug, this.getTokens(), false);
       return;
     }
     const result = await this.serverCheckAccess(slug);
-    if (result.access) return;
+    if (result.access) {
+      // Remove early content gate - user has access
+      const gateStyle = document.getElementById('early-content-gate');
+      if (gateStyle) gateStyle.remove();
+      return;
+    }
     this.showTokenGate(slug, result.tokens || 0, true);
     if (typeof AuthSystem !== 'undefined' && AuthSystem.updateNavbar) AuthSystem.updateNavbar();
   },
@@ -1560,6 +1597,8 @@ const AuthSystem = {
           </div>
           <div class="auth-form-group">
             <label>Password</label>
+            <!-- Cloudflare Turnstile CAPTCHA -->
+            <div id="turnstileWidget" style="margin: 12px 0;"></div>
             <input type="password" id="regPassword" placeholder="Min 8 karakter, huruf besar, angka, simbol" required minlength="8">
           </div>
           <button type="submit" class="auth-submit">Daftar Sekarang</button>
@@ -1572,6 +1611,36 @@ const AuthSystem = {
       </div>
     `;
     document.body.appendChild(modal);
+    
+    // Load Cloudflare Turnstile CAPTCHA script dynamically
+    if (!document.getElementById('turnstile-script')) {
+      const script = document.createElement('script');
+      script.id = 'turnstile-script';
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      script.async = true;
+      script.defer = true;
+      script.onload = function() {
+        // Render Turnstile widget when script loads
+        if (typeof turnstile !== 'undefined') {
+          turnstile.render('#turnstileWidget', {
+            sitekey: '0x4AAAAAAA_PLACEHOLDER', // Ganti dengan site key dari CF Dashboard
+            theme: 'dark',
+            callback: function(token) {
+              // Token received, enable submit button
+              const btn = document.querySelector('#registerForm .auth-submit');
+              if (btn) btn.disabled = false;
+            }
+          });
+        }
+      };
+      document.head.appendChild(script);
+    } else if (typeof turnstile !== 'undefined') {
+      // Script already loaded, render widget
+      turnstile.render('#turnstileWidget', {
+        sitekey: '0x4AAAAAAA_PLACEHOLDER', // Ganti dengan site key dari CF Dashboard
+        theme: 'dark'
+      });
+    }
   },
 
   switchTab(tab) {
@@ -1680,10 +1749,14 @@ const AuthSystem = {
     if (btn) { btn.classList.add('btn-loading'); btn.disabled = true; }
 
     try {
+      // Get Turnstile token if widget is loaded
+      const turnstileToken = (typeof turnstile !== 'undefined' && turnstile.getResponse) 
+        ? turnstile.getResponse() || '' : '';
+      
       const res = await fetch(this.AUTH_ENDPOINT, {
         method: 'POST',
         headers: typeof CSRF !== 'undefined' ? CSRF.getHeaders() : { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'register', name, email, password })
+        body: JSON.stringify({ action: 'register', name, email, password, turnstile_token: turnstileToken })
       });
       const data = await res.json();
       if (data.success) {
