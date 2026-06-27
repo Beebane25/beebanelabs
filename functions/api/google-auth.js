@@ -39,6 +39,27 @@ function generateSessionToken() {
   return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Rate limiting for Google Auth (in-memory, per-instance)
+const MAX_GOOGLE_AUTH_PER_IP = 3;
+const GOOGLE_AUTH_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
+const googleAuthRateCache = new Map();
+
+function checkGoogleAuthLimit(ip) {
+  const now = Date.now();
+  const key = `google_auth:${ip}`;
+  const cached = googleAuthRateCache.get(key) || [];
+  const recent = cached.filter(t => now - t < GOOGLE_AUTH_WINDOW_MS);
+  googleAuthRateCache.set(key, recent);
+  return { allowed: recent.length < MAX_GOOGLE_AUTH_PER_IP, remaining: MAX_GOOGLE_AUTH_PER_IP - recent.length };
+}
+
+function recordGoogleAuthAttempt(ip) {
+  const key = `google_auth:${ip}`;
+  const cached = googleAuthRateCache.get(key) || [];
+  cached.push(Date.now());
+  googleAuthRateCache.set(key, cached);
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   const origin = request.headers.get('Origin') || '';
@@ -52,10 +73,19 @@ export async function onRequestPost(context) {
   try {
     const SUPABASE_URL = env.SUPABASE_URL || '';
     const SUPABASE_KEY = env.SUPABASE_SERVICE_KEY || '';
+    const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
       return new Response(JSON.stringify({ error: 'Server misconfigured' }), {
         status: 500, headers
+      });
+    }
+
+    // Rate limiting: max 3 Google Auth attempts per IP per 24 hours
+    const rateCheck = checkGoogleAuthLimit(ip);
+    if (!rateCheck.allowed) {
+      return new Response(JSON.stringify({ error: 'Batas login Google tercapai. Coba lagi besok.' }), {
+        status: 429, headers
       });
     }
 
@@ -154,6 +184,9 @@ export async function onRequestPost(context) {
     } catch (e) {
       // Session creation failed, but user exists - still return success
     }
+
+    // Record successful Google Auth for rate limiting
+    recordGoogleAuthAttempt(ip);
 
     // Return session data compatible with AuthSystem
     return new Response(JSON.stringify({
