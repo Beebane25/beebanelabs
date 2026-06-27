@@ -1699,6 +1699,9 @@ const ThemeToggle = {
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem(this.KEY, next);
     this.updateButton();
+    // Update theme-color for mobile browser chrome
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) themeMeta.content = next === 'light' ? '#ffffff' : '#08090a';
   },
   updateButton() {
     const btn = document.querySelector('.theme-toggle');
@@ -1772,6 +1775,94 @@ function initTOC() {
     });
   }, { rootMargin: '-80px 0px -70% 0px' });
   realHeadings.forEach(h => observer.observe(h));
+}
+
+// === JSON-LD ARTICLE STRUCTURED DATA ===
+function injectArticleJsonLd() {
+  if (!window.location.pathname.includes('/articles/')) return;
+  const metaSection = document.querySelector('meta[property="article:section"]');
+  const section = metaSection ? metaSection.content : '';
+  const publishedTime = document.querySelector('meta[property="article:published_time"]');
+  const datePublished = publishedTime ? publishedTime.content : '';
+  
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": document.title.split('|')[0].trim(),
+    "description": (document.querySelector('meta[name="description"]') || {}).content || '',
+    "image": (document.querySelector('meta[property="og:image"]') || {}).content || '',
+    "url": window.location.href,
+    "publisher": {
+      "@type": "Organization",
+      "name": "BeebaneLabs",
+      "url": "https://beebanelabs.pages.dev"
+    },
+    "datePublished": datePublished,
+    "author": {
+      "@type": "Organization",
+      "name": "BeebaneLabs"
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": window.location.href
+    },
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Beranda", "item": "https://beebanelabs.pages.dev" },
+        { "@type": "ListItem", "position": 2, "name": section, "item": "https://beebanelabs.pages.dev/kategori/" + section.toLowerCase().replace(/\s+/g, '-') + ".html" },
+        { "@type": "ListItem", "position": 3, "name": document.title.split('|')[0].trim() }
+      ]
+    }
+  };
+  
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.text = JSON.stringify(jsonLd);
+  document.head.appendChild(script);
+}
+
+// === BREADCRUMB INJECTION FOR ARTICLES ===
+function injectBreadcrumb() {
+  if (!window.location.pathname.includes('/articles/')) return;
+  const articleHero = document.querySelector('.article-hero');
+  if (!articleHero) return;
+  
+  const metaSection = document.querySelector('meta[property="article:section"]');
+  const section = metaSection ? metaSection.content : '';
+  const title = document.title.split('|')[0].trim();
+  const currentSlug = window.location.pathname.split('/').pop().replace('.html', '');
+  
+  // Find category slug from section name
+  const catSlug = section.toLowerCase()
+    .replace(/pemrograman python/g, 'python')
+    .replace(/pemrograman web/g, 'web-development')
+    .replace(/pengembangan mobile/g, 'mobile')
+    .replace(/keamanan siber/g, 'keamanan')
+    .replace(/infrastruktur cloud/g, 'cloud')
+    .replace(/devops/g, 'devops-cloud')
+    .replace(/data science/g, 'ai-data-science')
+    .replace(/internet of things/g, 'iot')
+    .replace(/networking/g, 'networking')
+    .replace(/career/g, 'it-career')
+    .replace(/keamanan/g, 'keamanan')
+    .replace(/protokol/g, 'protokol')
+    .replace(/mikrotik/g, 'mikrotik')
+    .replace(/loRa/g, 'lora')
+    .replace(/dashboard/g, 'dashboard')
+    .replace(/tools/g, 'tools')
+    .replace(/\s+/g, '-');
+  
+  const breadcrumb = document.createElement('nav');
+  breadcrumb.className = 'breadcrumb';
+  breadcrumb.setAttribute('aria-label', 'Breadcrumb');
+  breadcrumb.innerHTML = '<a href="../">🏠 Beranda</a>' +
+    '<span class="separator">›</span>' +
+    '<a href="../kategori/' + catSlug + '.html">' + section + '</a>' +
+    '<span class="separator">›</span>' +
+    '<span class="current" aria-current="page">' + title.substring(0, 50) + (title.length > 50 ? '...' : '') + '</span>';
+  
+  articleHero.insertAdjacentElement('beforebegin', breadcrumb);
 }
 
 // === COPY CODE BUTTON ===
@@ -2234,7 +2325,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   Toast.init();
   CookieConsent.init();
   ThemeToggle.init();
+  // Update theme-color meta tag based on current theme
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeMeta) {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    themeMeta.content = currentTheme === 'light' ? '#ffffff' : '#08090a';
+  }
   injectArticleExtras();
+  injectArticleJsonLd();
+  injectBreadcrumb();
   initTOC();
 
   // Visual enhancements
