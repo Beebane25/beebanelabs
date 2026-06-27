@@ -1856,6 +1856,82 @@ const AuthSystem = {
   }
 };
 
+// === BOOKMARK SYSTEM ===
+const BookmarkSystem = {
+  STORAGE_KEY: 'beebanelabs_bookmarks',
+
+  getAll() {
+    try { return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]'); }
+    catch(e) { return []; }
+  },
+
+  isBookmarked(slug) {
+    return this.getAll().some(b => b.slug === slug);
+  },
+
+  toggle(slug, title, category) {
+    const bookmarks = this.getAll();
+    const idx = bookmarks.findIndex(b => b.slug === slug);
+    if (idx >= 0) {
+      bookmarks.splice(idx, 1);
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(bookmarks));
+      return false; // removed
+    } else {
+      bookmarks.push({ slug, title, category: category || '', saved_at: new Date().toISOString() });
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(bookmarks));
+      return true; // added
+    }
+  },
+
+  remove(slug) {
+    const bookmarks = this.getAll().filter(b => b.slug !== slug);
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(bookmarks));
+  },
+
+  // Render bookmark button on article pages
+  init() {
+    const p = window.location.pathname;
+    if (!p.includes('/articles/')) return;
+    const slug = p.split('/').pop().replace('.html', '');
+    if (!slug) return;
+
+    // Find article title from page
+    const titleEl = document.querySelector('.article-content h1, .article-title, h1');
+    const title = titleEl ? titleEl.textContent.trim() : slug;
+    const category = document.querySelector('.article-category, .article-meta span')?.textContent?.trim() || '';
+
+    // Create bookmark button
+    const btn = document.createElement('button');
+    btn.id = 'bookmarkBtn';
+    btn.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:9999;width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;font-size:1.3rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+    this._updateBtnStyle(btn, this.isBookmarked(slug));
+
+    btn.onclick = () => {
+      const added = this.toggle(slug, title, category);
+      this._updateBtnStyle(btn, added);
+      if (typeof Toast !== 'undefined') {
+        Toast.show(added ? '🔖 Artikel disimpan!' : 'Bookmark dihapus', added ? 'success' : 'info');
+      }
+    };
+
+    document.body.appendChild(btn);
+  },
+
+  _updateBtnStyle(btn, bookmarked) {
+    if (bookmarked) {
+      btn.style.background = '#3b82f6';
+      btn.style.color = 'white';
+      btn.textContent = '🔖';
+      btn.title = 'Hapus Bookmark';
+    } else {
+      btn.style.background = '#27272a';
+      btn.style.color = '#a1a1aa';
+      btn.textContent = '🔖';
+      btn.title = 'Simpan Artikel';
+    }
+  }
+};
+
 // === VIEW TRACKER (FIXED) ===
 // === TOKEN DISPLAY ===
 const TokenDisplay = {
@@ -2600,6 +2676,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initReadingProgress();
   AuthSystem.init();
   PaywallSystem.init();
+  BookmarkSystem.init();
   TokenDisplay.showBanner();
   updateArticleCardStatus();
   Toast.init();
