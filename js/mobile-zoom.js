@@ -7,7 +7,8 @@ window.MobileQuickMenu = {
   isOpen: false,
 
   init: function() {
-    if (window.innerWidth > 768) {
+    // Use screen.width (physical) instead of innerWidth (zoomed viewport)
+    if (window.screen.width > 768) {
       var btn = document.getElementById('quickMenuBtn');
       if (btn) btn.style.display = 'none';
       return;
