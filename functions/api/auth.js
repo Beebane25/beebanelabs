@@ -101,6 +101,11 @@ export async function onRequestPost(context) {
   const origin = request.headers.get('origin') || '';
   const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
+  // CSRF: Block non-allowed origins (defense-in-depth)
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    return cors(403, { error: 'Origin tidak diizinkan' }, origin);
+  }
+
   try {
     const body = await request.json();
     const action = body.action;
