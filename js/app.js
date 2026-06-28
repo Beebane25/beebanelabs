@@ -1659,6 +1659,9 @@ const BookmarkSystem = {
     const slug = p.split('/').pop().replace('.html', '');
     if (!slug) return;
 
+    // Check if user is logged in
+    const isLoggedIn = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
+
     // Find article title from page
     const titleEl = document.querySelector('.article-content h1, .article-title, h1');
     const title = titleEl ? titleEl.textContent.trim() : slug;
@@ -1667,11 +1670,18 @@ const BookmarkSystem = {
     // Create bookmark button
     const btn = document.createElement('button');
     btn.id = 'bookmarkBtn';
-    btn.setAttribute('aria-label', this.isBookmarked(slug) ? 'Hapus bookmark' : 'Simpan bookmark');
-    btn.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:9999;width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;font-size:1.3rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
-    this._updateBtnStyle(btn, this.isBookmarked(slug));
+    btn.setAttribute('aria-label', isLoggedIn ? (this.isBookmarked(slug) ? 'Hapus bookmark' : 'Simpan bookmark') : 'Login untuk bookmark');
+    btn.style.cssText = 'position:fixed;bottom:80px;left:24px;z-index:9999;width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;font-size:1.3rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+    this._updateBtnStyle(btn, isLoggedIn && this.isBookmarked(slug));
 
     btn.onclick = () => {
+      if (!isLoggedIn) {
+        if (typeof AuthSystem !== 'undefined' && AuthSystem.showModal) {
+          AuthSystem.showModal();
+          if (typeof Toast !== 'undefined') Toast.show('Login diperlukan untuk menyimpan bookmark', 'warning');
+        }
+        return;
+      }
       const added = this.toggle(slug, title, category);
       this._updateBtnStyle(btn, added);
       btn.setAttribute('aria-label', added ? 'Hapus bookmark' : 'Simpan bookmark');
