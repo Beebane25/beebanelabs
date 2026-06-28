@@ -65,6 +65,13 @@ export async function onRequestPost(context) {
   const origin = request.headers.get('Origin') || '';
   const headers = corsHeaders(origin);
 
+  // CSRF: Block non-allowed origins (defense-in-depth)
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    return new Response(JSON.stringify({ error: 'Origin tidak diizinkan' }), {
+      status: 403, headers
+    });
+  }
+
   // Handle CORS preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers });

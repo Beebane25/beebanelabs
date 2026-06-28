@@ -1315,7 +1315,7 @@ const AuthSystem = {
     modal.className = 'auth-modal-overlay';
     modal.innerHTML = `
       <div class="auth-modal">
-        <button class="auth-close" onclick="AuthSystem.closeModal()">&times;</button>
+        <button class="auth-close" aria-label="Tutup dialog masuk" onclick="AuthSystem.closeModal()">&times;</button>
         <div style="text-align:center; margin-bottom:20px;">
           <div style="font-size:2.5rem; margin-bottom:8px;">⚡</div>
           <h2 style="margin-bottom:4px;">Selamat Datang di BeebaneLabs</h2>
@@ -1674,12 +1674,14 @@ const BookmarkSystem = {
     // Create bookmark button
     const btn = document.createElement('button');
     btn.id = 'bookmarkBtn';
+    btn.setAttribute('aria-label', this.isBookmarked(slug) ? 'Hapus bookmark' : 'Simpan bookmark');
     btn.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:9999;width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;font-size:1.3rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
     this._updateBtnStyle(btn, this.isBookmarked(slug));
 
     btn.onclick = () => {
       const added = this.toggle(slug, title, category);
       this._updateBtnStyle(btn, added);
+      btn.setAttribute('aria-label', added ? 'Hapus bookmark' : 'Simpan bookmark');
       if (typeof Toast !== 'undefined') {
         Toast.show(added ? '🔖 Artikel disimpan!' : 'Bookmark dihapus', added ? 'success' : 'info');
       }
@@ -1871,7 +1873,7 @@ const Toast = {
     const safeMsg = String(msg).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const t = document.createElement('div');
     t.className = 'toast ' + type;
-    t.innerHTML = '<span class="toast-icon">' + (icons[type] || 'ℹ') + '</span><span class="toast-msg">' + safeMsg + '</span><button class="toast-close" onclick="this.parentElement.remove()">×</button>';
+    t.innerHTML = '<span class="toast-icon">' + (icons[type] || 'ℹ') + '</span><span class="toast-msg">' + safeMsg + '</span><button class="toast-close" aria-label="Tutup notifikasi" onclick="this.parentElement.remove()">×</button>';
     this.container.appendChild(t);
     requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
     setTimeout(() => { t.classList.add('hide'); setTimeout(() => t.remove(), 300); }, duration);
