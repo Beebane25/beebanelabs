@@ -690,12 +690,12 @@ function initReadingProgressBar() {
   const bar = document.createElement('div');
   bar.className = 'reading-progress';
   document.body.prepend(bar);
-  window.addEventListener('scroll', () => {
+  window.addEventListener('scroll', debounce(() => {
     const scrollTop = window.scrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
     const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
     bar.style.width = progress + '%';
-  }, { passive: true });
+  }, 50), { passive: true });
 }
 
 // Reading Time Estimate (article pages)
@@ -708,14 +708,14 @@ function initReadingTimeEstimate() {
   indicator.className = 'reading-time-remaining';
   indicator.textContent = totalMinutes + ' menit tersisa';
   document.body.appendChild(indicator);
-  window.addEventListener('scroll', () => {
+  window.addEventListener('scroll', debounce(() => {
     const scrollTop = window.scrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
     const progress = docHeight > 0 ? scrollTop / docHeight : 0;
     const remaining = Math.max(1, Math.ceil(totalMinutes * (1 - progress)));
     indicator.textContent = remaining + ' menit tersisa';
     indicator.classList.toggle('visible', scrollTop > 300 && scrollTop < docHeight - 200);
-  }, { passive: true });
+  }, 100), { passive: true });
 }
 
 // Service Worker Registration
