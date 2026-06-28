@@ -2652,11 +2652,6 @@ function renderGroupedArticles(filter) {
   // Render as flat 4-column grid (no category grouping)
   let html = '<div class="cards-grid">' + articles.map(renderArticleCard).join('') + '</div>';
 
-  // "Lihat Semua Kategori" button at the bottom
-  html += '<div style="text-align:center;margin-top:32px;">' +
-    '<a href="kategori.html" class="btn-secondary" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:var(--radius-pill);font-size:0.9rem;font-weight:600;text-decoration:none;">📚 Lihat Semua Kategori</a>' +
-    '</div>';
-
   grid.innerHTML = html;
 }
 
