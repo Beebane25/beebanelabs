@@ -585,7 +585,7 @@ function initScrollReveal() {
 // === ADD REVEAL CLASSES TO SECTIONS ===
 function addRevealClasses() {
   // Add reveal class to main sections
-  const sections = document.querySelectorAll('.categories-section, .learning-path, .articles-section, .newsletter-section, .tags-section');
+  const sections = document.querySelectorAll('.categories-section, .articles-section, .newsletter-section, .tags-section');
   let idx = 0;
   for (const section of sections) {
     section.classList.add('reveal');
@@ -604,13 +604,6 @@ function addRevealClasses() {
   idx = 0;
   for (const card of document.querySelectorAll('.article-card')) {
     card.classList.add('reveal', `reveal-delay-${(idx % 3) + 1}`);
-    idx++;
-  }
-
-  // Add reveal to path cards with stagger
-  idx = 0;
-  for (const card of document.querySelectorAll('.path-card')) {
-    card.classList.add('reveal', `reveal-delay-${idx + 1}`);
     idx++;
   }
 }
@@ -671,7 +664,7 @@ function initMouseGlow() {
 
 // Section Dividers (auto-insert between major sections)
 function initSectionDividers() {
-  const sections = document.querySelectorAll('.categories-section, .learning-path, .articles-section, .newsletter-section');
+  const sections = document.querySelectorAll('.categories-section, .articles-section, .newsletter-section');
   for (const section of sections) {
     if (!section.previousElementSibling?.classList.contains('section-divider')) {
       const hr = document.createElement('hr');
@@ -2144,8 +2137,7 @@ function injectLearningPath() {
   const articlesSection = document.querySelector('#articles');
   if (!articlesSection) return;
 
-  const pathHTML = '<section class="learning-path container"><h2 style="font-family:var(--font-heading);font-size:1.5rem;font-weight:800;color:var(--text-primary);text-align:center;">🗺️ Learning Path — Urutan Belajar yang Direkomendasikan</h2><p style="text-align:center;color:var(--text-muted);margin-top:8px;font-size:0.9rem;">Ikuti urutan ini untuk hasil optimal</p><div class="path-grid"><a href="articles/esp32-fundamentals.html" class="path-card"><div class="step-num">1</div><div class="path-icon">🔧</div><h4>ESP32 Dasar</h4><p>Setup Arduino IDE, WiFi, sensor dasar</p></a><a href="articles/mqtt-protocol.html" class="path-card"><div class="step-num">2</div><div class="path-icon">📨</div><h4>Protokol MQTT</h4><p>Pub/Sub, broker, QoS untuk IoT</p></a><a href="articles/dashboard-monitoring.html" class="path-card"><div class="step-num">3</div><div class="path-icon">📊</div><h4>Dashboard IoT</h4><p>Node-RED, Grafana, visualisasi data</p></a><a href="articles/firebase-iot.html" class="path-card"><div class="step-num">4</div><div class="path-icon">🔥</div><h4>Cloud & Firebase</h4><p>Penyimpanan data cloud, RTDB</p></a></div></section>';
-  articlesSection.insertAdjacentHTML('beforebegin', pathHTML);
+  // Learning Path removed per user request
 }
 
 // === UNIFIED CATEGORY SYSTEM ===
