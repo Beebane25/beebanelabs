@@ -65,14 +65,18 @@ window.MobileQuickMenu = {
   },
 
   applyZoom: function() {
-    var viewport = document.querySelector('meta[name="viewport"]');
-    if (!viewport) return;
-
     var scale = this.currentZoom / 100;
-    // Remove minimum-scale restriction so zoom below 50% works
-    viewport.setAttribute('content', 
-      'width=device-width, initial-scale=' + scale + 
-      ', minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes, viewport-fit=cover');
+
+    // Use CSS zoom (visual only, layout viewport stays at device width)
+    // This keeps media queries working correctly at the device's actual width
+    document.documentElement.style.zoom = scale;
+
+    // Keep meta viewport at 1.0 so layout viewport = device width
+    var viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute('content',
+        'width=device-width, initial-scale=1.0, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes, viewport-fit=cover');
+    }
 
     // Update display
     var level = document.getElementById('quickMenuZoomLevel');
