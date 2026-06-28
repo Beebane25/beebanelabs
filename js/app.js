@@ -2640,22 +2640,23 @@ function renderArticleCard(a) {
 function renderGroupedArticles(filter) {
   const grid = document.getElementById('articlesGrid');
   if (!grid) return;
-  const articles = filter && filter !== 'all' ? ALL_ARTICLES.filter(a => a.diff === filter) : ALL_ARTICLES;
 
-  // Group by category
-  const groups = {};
-  for (const a of articles) {
-    if (!groups[a.cat]) groups[a.cat] = [];
-    groups[a.cat].push(a);
-  }
+  // Filter articles if needed
+  let articles = filter && filter !== 'all'
+    ? ALL_ARTICLES.filter(a => a.diff === filter)
+    : ALL_ARTICLES;
 
-  let html = '';
-  const catOrder = ['ESP32', 'MikroTik', 'Networking', 'LoRa', 'Python', 'Keamanan', 'Dashboard', 'Protokol', 'Raspberry Pi', 'Cloud', 'IoT', 'Tools', 'Web Development', 'Database', 'AI & Data Science', 'DevOps & Cloud', 'Mobile Development', 'IT Career'];
-  for (const cat of catOrder) {
-    if (!groups[cat]) continue;
-    const items = groups[cat].slice(0, 3);
-    html += '<div class="category-section"><div class="cat-header"><h3>' + items[0].icon + ' ' + cat + '</h3><a href="kategori/' + cat.toLowerCase().replace(/\s+/g, '-') + '.html">Lihat Semua →</a></div><div class="cards-grid">' + items.map(renderArticleCard).join('') + '</div></div>';
-  }
+  // Shuffle and pick 12 random articles (mixed across all categories)
+  articles = articles.slice().sort(() => Math.random() - 0.5).slice(0, 12);
+
+  // Render as flat 4-column grid (no category grouping)
+  let html = '<div class="cards-grid">' + articles.map(renderArticleCard).join('') + '</div>';
+
+  // "Lihat Semua Kategori" button at the bottom
+  html += '<div style="text-align:center;margin-top:32px;">' +
+    '<a href="kategori.html" class="btn-secondary" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:var(--radius-pill);font-size:0.9rem;font-weight:600;text-decoration:none;">📚 Lihat Semua Kategori</a>' +
+    '</div>';
+
   grid.innerHTML = html;
 }
 
