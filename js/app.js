@@ -2004,6 +2004,37 @@ function initTOC() {
     }
   }, { rootMargin: '-80px 0px -70% 0px' });
   for (const h of realHeadings) observer.observe(h);
+
+  // JS-based sticky sidebar (bypasses CSS sticky ancestor overflow issues)
+  const sidebarTop = 80;
+  const tocSidebar = toc;
+  const tocLayout = tocSidebar.parentElement;
+  if (tocLayout && tocSidebar) {
+    const onScroll = () => {
+      const layoutRect = tocLayout.getBoundingClientRect();
+      const layoutBottom = layoutRect.bottom;
+      const sidebarH = tocSidebar.offsetHeight;
+      if (layoutRect.top < sidebarTop && layoutBottom > sidebarH + sidebarTop + 20) {
+        tocSidebar.style.position = 'fixed';
+        tocSidebar.style.top = sidebarTop + 'px';
+        tocSidebar.style.width = '220px';
+        tocSidebar.style.right = (window.innerWidth - layoutRect.right) + 'px';
+      } else if (layoutRect.top >= sidebarTop) {
+        tocSidebar.style.position = '';
+        tocSidebar.style.top = '';
+        tocSidebar.style.width = '';
+        tocSidebar.style.right = '';
+      } else {
+        tocSidebar.style.position = 'absolute';
+        tocSidebar.style.top = (tocLayout.scrollHeight - sidebarH - 20) + 'px';
+        tocSidebar.style.width = '220px';
+        tocSidebar.style.right = '';
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    onScroll();
+  }
 }
 
 // === JSON-LD ARTICLE STRUCTURED DATA ===
