@@ -2171,6 +2171,43 @@ function initArticleFilter() {
   });
 }
 
+// === CATEGORY PAGE FILTER ===
+function initCategoryFilter() {
+  const catFilter = document.querySelector('#catFilter');
+  if (!catFilter) return;
+  const grid = catFilter.nextElementSibling || document.querySelector('.articles-grid');
+  if (!grid) return;
+
+  catFilter.addEventListener('click', function(e) {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    // Update active state
+    catFilter.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    // Show/hide cards based on difficulty
+    const cards = grid.querySelectorAll('.article-card');
+    cards.forEach(card => {
+      if (filter === 'all') {
+        card.style.display = '';
+        return;
+      }
+      const diffBadge = card.querySelector('.difficulty');
+      if (!diffBadge) { card.style.display = 'none'; return; }
+      const hasClass = diffBadge.classList.contains(filter);
+      card.style.display = hasClass ? '' : 'none';
+    });
+    // Update count
+    const visible = grid.querySelectorAll('.article-card:not([style*="display: none"])').length;
+    const countEl = document.querySelector('.meta-item');
+    if (countEl && countEl.textContent.includes('Tutorial')) {
+      countEl.textContent = '📖 ' + visible + ' Tutorial';
+    }
+  });
+}
+
 // === LEARNING PATH (Homepage) ===
 function injectLearningPath() {
   const homepage = document.querySelector('.hero');
@@ -2732,6 +2769,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   injectLearningPath();
   renderGroupedArticles('all');
   initArticleFilter();
+  initCategoryFilter();
 
   // FIX: Sync unlocked articles from server for logged-in users
   // This must happen AFTER initial render (sync is async, render is sync)
