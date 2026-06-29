@@ -412,6 +412,81 @@ sudo iptables -t nat -A PREROUTING \
 #    - RADIUS accounting
 #    - Time-based access policies</pre>
       </div>
+
+      <h3>WPA2 Handshake Analysis</h3>
+      <p>Memahami proses 4-way handshake WPA2 sangat penting untuk wireless security testing. Handshake terjadi saat client terhubung ke access point dan menukar cryptographic keys.</p>
+      <div class="diagram-box"><div class="diagram-label">Diagram: WPA2 4-Way Handshake</div>
+<pre>
+┌─────────────────────────────────────────────────────┐
+│           WPA2 4-WAY HANDSHAKE                       │
+│                                                      │
+│  Client (Supplicant)        AP (Authenticator)       │
+│       │                          │                   │
+│       │    1. ANonce             │                   │
+│       │ ◄────────────────────────│                   │
+│       │                          │                   │
+│       │  [Derive PTK from        │                   │
+│       │   ANonce + SNonce +      │                   │
+│       │   PMK + MAC addresses]   │                   │
+│       │                          │                   │
+│       │    2. SNonce + MIC       │                   │
+│       │ ────────────────────────►│                   │
+│       │                          │                   │
+│       │  [AP derives PTK,        │                   │
+│       │   verifies MIC]          │                   │
+│       │                          │                   │
+│       │    3. GTK + MIC          │                   │
+│       │ ◄────────────────────────│                   │
+│       │                          │                   │
+│       │    4. ACK                │                   │
+│       │ ────────────────────────►│                   │
+│       │                          │                   │
+│  [Both sides now have PTK        │                   │
+│   for encrypted communication]   │                   │
+└─────────────────────────────────────────────────────┘
+</pre>
+      </div>
+      <h3>WiFi Jamming dan DoS</h3>
+      <p>Serangan denial of service pada wireless network dapat dilakukan dengan mengirimkan deauthentication frames secara massal, menyebabkan semua client terputus dari access point.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — WiFi DoS Detection</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
+# WiFi DoS Attack Detection &amp; Monitoring
+# =============================================
+
+# Monitor deauth flood attacks
+sudo airodump-ng wlan0mon --output-format pcap \
+  --write deauth_monitor
+
+# Detect using mdk4
+sudo mdk4 wlan0mon d -c 6
+
+# Monitor with Wireshark filter
+# wlan.fc.type_subtype == 0x000c
+# (Deauthentication frames)
+
+# Counter-measures:
+# 1. Enable 802.11w (Protected Management Frames)
+# 2. Deploy WIDS to detect deauth floods
+# 3. Use frequency hopping if supported
+# 4. Monitor signal strength anomalies
+
+# Script: Automated deauth detection
+#!/bin/bash
+THRESHOLD=50
+INTERFACE="wlan0mon"
+
+while true; do
+    DEAUTH_COUNT=$(tcpdump -i $INTERFACE -c 1000 \
+      'type mgt subtype deauth' 2>/dev/null | wc -l)
+    if [ "$DEAUTH_COUNT" -gt "$THRESHOLD" ]; then
+        echo "[ALERT] Deauth flood detected: $DEAUTH_COUNT frames"
+        # Send alert to SIEM
+        logger -p auth.alert "WiFi deauth flood detected"
+    fi
+    sleep 10
+done</pre>
+      </div>
+
       <h2 id="quiz">9. Quiz Pemahaman</h2>
       <div class="quiz-container">
         <div class="quiz-question" data-correct="1">
