@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/style.css?v=13.4">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <title>Container Security Best Practices | BeebaneLabs</title>
+  <meta name="description" content="Pelajari Container Security: Docker hardening, Kubernetes security, image scanning, runtime protection, dan container compliance.">
+  <meta name="keywords" content="Container Security, Docker Security, Kubernetes Security, Image Scanning, Runtime Protection">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="article:published_time" content="2026-06-29">
+  <meta property="article:section" content="Keamanan">
+  <meta property="og:title" content="Container Security Best Practices - BeebaneLabs">
+  <meta property="og:description" content="Pelajari Container Security: Docker hardening, Kubernetes security, image scanning, runtime protection, dan container compliance.">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="../images/logo_beebane.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+<script>
+(function(){var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';function loadAds(){if(window._adsLoaded)return;window._adsLoaded=true;var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src=src;document.head.appendChild(s);['scroll','mousedown','touchstart','keydown'].forEach(function(e){document.removeEventListener(e,loadAds,{passive:true})})}['scroll','mousedown','touchstart','keydown'].forEach(function(e){document.addEventListener(e,loadAds,{passive:true,once:true})});setTimeout(loadAds,5000)})();
+</script>
+</head>
+<body>
+  <noscript><style>.article-content{display:block!important}</style></noscript>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+  <div class="reading-progress-bar" id="readingProgress"></div>
+  <nav class="navbar" id="navbar"><div class="navbar-inner"><a href="../index.html" class="navbar-brand"><img src="../images/logo_beebane.png" alt="BeebaneLabs" class="brand-logo" width="40" height="22"></a><ul class="navbar-links" id="navLinks"><li><a href="../index.html">Beranda</a></li><li><a href="../kategori.html">Kategori</a></li><li><a href="../about.html">Tentang</a></li><li><a href="../pricing.html">Harga</a></li></ul><div class="navbar-search" id="searchTrigger"><span>Cari tutorial...</span></div><div id="authNavArea"></div><button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button></div></nav>
+  <div class="search-overlay" id="searchOverlay"><button class="search-close-btn" onclick="document.getElementById('searchOverlay').classList.remove('active')">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Cari tutorial..."></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+  <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Keamanan</a><span class="separator">/</span><span class="current">Container Security Best Practices</span></div><span class="category-tag">Keamanan</span><h1>Container Security Best Practices</h1><p class="article-subtitle">Panduan lengkap container security — Docker hardening, image scanning, Kubernetes RBAC, runtime protection, hingga compliance</p><div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 15 menit baca</span><span class="difficulty lanjut">Lanjut</span></div></div></section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+  <article class="article-content" id="main-content"><div class="container">
+    <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#pengenalan">Pengenalan</a></li>
+      <li><a href="#dockerfile">Dockerfile Security</a></li>
+      <li><a href="#scanning">Image Scanning</a></li>
+      <li><a href="#runtime">Runtime Security</a></li>
+      <li><a href="#kubernetes">Kubernetes Security</a></li>
+      <li><a href="#network">Network Security</a></li>
+      <li><a href="#secrets">Secrets Management</a></li>
+      <li><a href="#compliance">Compliance & Audit</a></li>
+      <li><a href="#quiz">Quiz</a></li>
+    </ol></div>
+
+      <h2 id="pengenalan">1. Pengenalan Container Security</h2>
+      <p><strong>Container Security</strong> mencakup praktik, tools, dan kebijakan untuk melindungi containerized applications sepanjang lifecycle — dari build, deploy, hingga runtime. Container membawa tantangan keamanan unik karena sharing kernel, ephemeral nature, dan jumlah yang sangat banyak.</p>
+      <div class="info-box info"><div class="info-box-title">📋 Container Security Lifecycle</div><ul>
+        <li><strong>Build</strong> — Secure Dockerfile, base image, dependency scanning</li>
+        <li><strong>Ship</strong> — Image signing, registry security, vulnerability scanning</li>
+        <li><strong>Run</strong> — Runtime policies, network segmentation, resource limits</li>
+        <li><strong>Monitor</strong> — Audit logging, anomaly detection, compliance</li>
+      </ul></div>
+      <h3>Container Attack Vectors</h3>
+      <div class="diagram-box"><div class="diagram-label">Diagram: Container Attack Surface</div>
+<pre>
+┌─────────────────────────────────────────────────────┐
+│            CONTAINER ATTACK SURFACE                   │
+│                                                      │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐      │
+│  │  Supply   │    │ Container│    │  Host     │      │
+│  │  Chain    │    │ Runtime  │    │  Escape   │      │
+│  │          │    │          │    │          │      │
+│  │ • Malware│    │ • RCE    │    │ • Kernel  │      │
+│  │   in img │    │ • Crypto │    │   exploit │      │
+│  │ • Backdor│    │   mining │    │ • Mount   │      │
+│  └──────────┘    └──────────┘    └──────────┘      │
+│                                                      │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐      │
+│  │ Orchest- │    │  Network │    │  Secrets  │      │
+│  │ ration   │    │          │    │  Exposure │      │
+│  │ • RBAC   │    │ • Lateral│    │ • Env var │      │
+│  │   bypass │    │   move   │    │ • Config  │      │
+│  └──────────┘    └──────────┘    └──────────┘      │
+└─────────────────────────────────────────────────────┘
+</pre>
+      </div>
+
+      <h2 id="dockerfile">2. Dockerfile Security</h2>
+      <p>Dockerfile adalah fondasi keamanan container. Kesalahan pada Dockerfile dapat menghasilkan image yang rentan.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Dockerfile — Secure Best Practices</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
++# Secure Dockerfile — Best Practices
++# =============================================
+
++# 1. Specific base image tag (bukan latest)
++FROM python:3.12-slim-bookworm AS builder
+
++# 2. Non-root user
++RUN groupadd -r appuser && useradd -r -g appuser appuser
+
++# 3. Pin dependency versions
++COPY requirements.txt .
++RUN pip install --no-cache-dir -r requirements.txt
+
++# 4. Multi-stage build
++FROM python:3.12-slim-bookworm
++COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+
++# 5. Copy only necessary files
++COPY --chown=appuser:appuser ./app /app
++WORKDIR /app
+
++# 6. Remove unnecessary packages
++RUN apt-get remove -y gcc g++ && \
++    apt-get autoremove -y && \
++    rm -rf /var/lib/apt/lists/*
+
++# 7. Non-root user
++USER appuser
++EXPOSE 8080
++HEALTHCHECK --interval=30s --timeout=3s \
++  CMD curl -f http://localhost:8080/health || exit 1
++CMD ["python", "main.py"]
+
++# YANG HARUS DIHINDARI:
++# ❌ ENV DB_PASSWORD=secret123
++# ❌ COPY . . (termasuk .git, secrets)
++# ❌ USER root atau tanpa USER directive
++# ❌ CMD python main.py (shell form)</pre>
+      </div>
+
+      <h2 id="scanning">3. Image Scanning</h2>
+      <p>Image scanning mengidentifikasi CVE dalam base image dan dependencies. Harus dilakukan di setiap stage: development, CI/CD, registry, dan runtime.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Container Image Scanning</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
++# Container Image Scanning
++# =============================================
+
++# 1. Trivy — Scanner dari Aqua Security
++trivy image myapp:latest
++trivy image --severity HIGH,CRITICAL myapp:latest
++trivy image --format json -o results.json myapp:latest
+
++# 2. Scan Dockerfile misconfigurations
++trivy config Dockerfile
++trivy config --severity HIGH,CRITICAL ./k8s-manifests/
+
++# 3. Grype dari Anchore
++grype myapp:latest
+
++# 4. Docker Scout (built-in)
++docker scout cves myapp:latest
+
++# 5. Scan SBOM
++trivy sbom --format spdx-json myapp:latest > sbom.json
++syft myapp:latest -o spdx-json > sbom.json
+
++# 6. CI/CD Pipeline integration
++# aquasecurity/trivy-action di GitHub Actions
++# dengan exit-code: '1' untuk fail on critical</pre>
+      </div>
+
+      <h2 id="runtime">4. Runtime Security</h2>
+      <p>Runtime security melindungi container saat berjalan — resource limits, filesystem protection, syscall filtering, behavioral monitoring.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Docker Runtime Security</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
++# Docker Runtime Security Configuration
++# =============================================
+
++# 1. Read-only filesystem
++docker run --read-only --tmpfs /tmp myapp:latest
+
++# 2. Drop all capabilities, add only needed
++docker run --cap-drop ALL \
++  --cap-add NET_BIND_SERVICE myapp:latest
+
++# 3. No new privileges
++docker run --security-opt no-new-privileges myapp:latest
+
++# 4. Resource limits
++docker run --memory=512m --cpus=0.5 \
++  --pids-limit=100 myapp:latest
+
++# 5. Seccomp profile
++docker run --security-opt seccomp=custom.json myapp:latest
+
++# 6. AppArmor profile
++docker run --security-opt apparmor=docker-custom myapp:latest
+
++# 7. Falco runtime monitoring
++helm install falco falcosecurity/falco</pre>
+      </div>
+
+      <h2 id="kubernetes">5. Kubernetes Security</h2>
+      <p>Kubernetes menambahkan layer keamanan orkestrasi: RBAC, network policies, pod security standards, admission controllers.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">YAML — K8s Security Manifests</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
++# Kubernetes Security Best Practices
++# =============================================
+
++# Restricted Pod Security
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: secure-app
++spec:
++  template:
++    spec:
++      securityContext:
++        runAsNonRoot: true
++        runAsUser: 1000
++        seccompProfile:
++          type: RuntimeDefault
++      containers:
++        - name: app
++          image: myapp:v1.2.3
++          securityContext:
++            allowPrivilegeEscalation: false
++            readOnlyRootFilesystem: true
++            capabilities:
++              drop: ["ALL"]
++          resources:
++            limits:
++              memory: "256Mi"
++              cpu: "500m"
++            requests:
++              memory: "128Mi"
++              cpu: "250m"
+
++# Network Policy — Zero Trust
++apiVersion: networking.k8s.io/v1
++kind: NetworkPolicy
++metadata:
++  name: default-deny-all
++spec:
++  podSelector: {}
++  policyTypes:
++    - Ingress
++    - Egress
+
++# RBAC — Least Privilege
++apiVersion: rbac.authorization.k8s.io/v1
++kind: Role
++metadata:
++  name: app-reader
++rules:
++  - apiGroups: [""]
++    resources: ["pods", "services"]
++    verbs: ["get", "list", "watch"]</pre>
+      </div>
+
+      <h2 id="network">6. Container Network Security</h2>
+      <p>Network segmentation mencegah lateral movement. Gunakan network policy, service mesh, dan mTLS.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">YAML — Istio mTLS</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># Istio mTLS — Enforce encrypted communication
++apiVersion: security.istio.io/v1beta1
++kind: PeerAuthentication
++metadata:
++  name: default
++  namespace: production
++spec:
++  mtls:
++    mode: STRICT
+
++# Authorization policy
++apiVersion: security.istio.io/v1beta1
++kind: AuthorizationPolicy
++metadata:
++  name: frontend-to-backend
++spec:
++  selector:
++    matchLabels:
++      app: backend
++  rules:
++    - from:
++        - source:
++            principals: ["cluster.local/ns/production/sa/frontend"]
++      to:
++        - operation:
++            methods: ["GET", "POST"]
++            paths: ["/api/*"]</pre>
+      </div>
+
+      <h2 id="secrets">7. Secrets Management</h2>
+      <p>Jangan menyimpan secrets dalam code, env vars plain text, atau ConfigMap. Gunakan external secrets manager.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">YAML — External Secrets</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># External Secrets Operator — Vault Integration
++apiVersion: external-secrets.io/v1beta1
++kind: ExternalSecret
++metadata:
++  name: app-secrets
++spec:
++  refreshInterval: 1h
++  secretStoreRef:
++    name: vault-backend
++    kind: SecretStore
++  target:
++    name: app-secrets
++    creationPolicy: Owner
++  data:
++    - secretKey: db-password
++      remoteRef:
++        key: secret/data/myapp
++        property: db_password</pre>
+      </div>
+
+      <h2 id="compliance">8. Compliance &amp; Audit</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Docker CIS Benchmark</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># Docker CIS Benchmark Audit
++docker run --rm --net host --pid host \
++  -v /var/run/docker.sock:/var/run/docker.sock \
++  docker/docker-bench-security
+
++# Kubernetes CIS
++kubectl apply -f https://raw.githubusercontent.com/aquasecurity/kube-bench/main/job.yaml
+
++# Trivy compliance
++trivy k8s --compliance=cis cluster
++trivy k8s --compliance=nsa cluster</pre>
+      </div>
+      <h2 id="quiz">9. Quiz Pemahaman</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" data-correct="1">
+          <p><strong>1. Mengapa container harus non-root?</strong></p>
+          <label><input type="radio" name="q1" value="0"> Lebih cepat</label>
+          <label><input type="radio" name="q1" value="1"> Mengurangi dampak jika terkompromi</label>
+          <label><input type="radio" name="q1" value="2"> Docker tidak izinkan root</label>
+          <label><input type="radio" name="q1" value="3"> Hemat memory</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>2. Fungsi image scanning?</strong></p>
+          <label><input type="radio" name="q2" value="0"> Mempercepat build</label>
+          <label><input type="radio" name="q2" value="1"> Mengidentifikasi CVE dalam image</label>
+          <label><input type="radio" name="q2" value="2"> Mengkompresi image</label>
+          <label><input type="radio" name="q2" value="3"> Distribusi ke registry</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>3. Apa yang dilakukan '--cap-drop ALL'?</strong></p>
+          <label><input type="radio" name="q3" value="0"> Hapus semua file</label>
+          <label><input type="radio" name="q3" value="1"> Hapus semua Linux capabilities, kurangi attack surface</label>
+          <label><input type="radio" name="q3" value="2"> Nonaktifkan networking</label>
+          <label><input type="radio" name="q3" value="3"> Hapus env vars</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>4. Mengapa 'latest' tag tidak untuk production?</strong></p>
+          <label><input type="radio" name="q4" value="0"> Lebih lambat</label>
+          <label><input type="radio" name="q4" value="1"> Tidak reproducible — bisa berubah tanpa notice</label>
+          <label><input type="radio" name="q4" value="2"> Tidak tersedia</label>
+          <label><input type="radio" name="q4" value="3"> Perlu license</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>5. Tool CIS benchmark audit untuk Docker?</strong></p>
+          <label><input type="radio" name="q5" value="0"> Trivy</label>
+          <label><input type="radio" name="q5" value="1"> Docker Bench for Security</label>
+          <label><input type="radio" name="q5" value="2"> Kubernetes Dashboard</label>
+          <label><input type="radio" name="q5" value="3"> Prometheus</label>
+        </div>
+        <button class="quiz-submit" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+      <h3>Rangkuman</h3>
+      <div class="info-box info"><div class="info-box-title">📝 Poin Penting</div><ul>
+        <li><strong>Dockerfile</strong> — Fondasi keamanan — multi-stage, non-root, pin versions</li>
+        <li><strong>Image Scanning</strong> — Scan CVE di setiap stage: build, CI, registry, runtime</li>
+        <li><strong>Runtime</strong> — Capabilities, seccomp, read-only fs, resource limits</li>
+        <li><strong>K8s Security</strong> — Pod Security Standards, NetworkPolicy, RBAC</li>
+        <li><strong>Secrets</strong> — Gunakan External Secrets Operator, bukan env vars</li>
+      </ul></div>
+  </div></article>
+  <script src="../js/app.js?v=9.7"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}</script>
+</body>
+</html>

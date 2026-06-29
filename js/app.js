@@ -773,6 +773,22 @@ const PaywallSystem = {
     return false;
   },
 
+  // Free article rules: all Pemula + all IT Career
+  isArticleFree(slug) {
+    const article = typeof ALL_ARTICLES !== 'undefined' ? ALL_ARTICLES.find(a => a.slug === slug) : null;
+    if (article) {
+      if (article.diff === 'pemula') return true;
+      if (article.cat === 'IT Career') return true;
+    }
+    // Fallback: check category page difficulty badge for articles not in ALL_ARTICLES
+    const diffBadge = document.querySelector('.difficulty');
+    if (diffBadge && diffBadge.classList.contains('pemula')) return true;
+    // Check if IT Career page
+    const articleSection = document.querySelector('meta[name="article:section"]');
+    if (articleSection && articleSection.content === 'IT Career') return true;
+    return false;
+  },
+
   getTokens() {
     if (this._serverTokens !== null) return this._serverTokens;
     return SITE_CONFIG.INITIAL_TOKENS;
@@ -897,6 +913,12 @@ const PaywallSystem = {
   },
 
   async _checkAndRender(slug) {
+    // Skip paywall for free articles (Pemula + IT Career)
+    if (this.isArticleFree(slug)) {
+      const gateStyle = document.getElementById('early-content-gate');
+      if (gateStyle) gateStyle.remove();
+      return;
+    }
     const logged = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
     if (!logged) {
       const localUnlocked = this.isUnlocked(slug);
@@ -1812,6 +1834,9 @@ const TokenDisplay = {
     const p = window.location.pathname;
     if (!p.includes('/articles/')) return;
     if (PaywallSystem.hasPaidAccess()) return;
+    // Don't show token banner for free articles
+    const slug = p.split('/').pop().replace('.html', '').replace(/\/$/, '');
+    if (typeof PaywallSystem.isArticleFree === 'function' && PaywallSystem.isArticleFree(slug)) return;
     const tokens = PaywallSystem.getTokens();
     let banner = document.getElementById('tokenBanner');
     if (!banner) {
@@ -2339,12 +2364,12 @@ function getArticlesByCategory(catKey) {
 
 // === GROUPED ARTICLES (3 per category) ===
 const ALL_ARTICLES = [
-  { slug: 'esp32-fundamentals', title: 'Panduan Lengkap ESP32', icon: '🔧', cat: 'ESP32', desc: 'Tutorial komprehensif ESP32 untuk pemula', diff: 'pemula', time: '15', access: 'Token', date: '20 Juni 2026' },
-  { slug: 'esp8266-nodemcu', title: 'ESP8266 NodeMCU untuk Pemula', icon: '📶', cat: 'ESP32', desc: 'Setup dan proyek pertama dengan ESP8266', diff: 'pemula', time: '10', access: 'Token', date: '7 Juni 2026' },
-  { slug: 'sensor-dht-esp32', title: 'Sensor DHT dengan ESP32', icon: '🌡️', cat: 'ESP32', desc: 'Baca suhu dan kelembaban dengan DHT11/DHT22', diff: 'pemula', time: '8', access: 'Token', date: '5 Juni 2026' },
+  { slug: 'esp32-fundamentals', title: 'Panduan Lengkap ESP32', icon: '🔧', cat: 'ESP32', desc: 'Tutorial komprehensif ESP32 untuk pemula', diff: 'pemula', time: '15', access: 'Gratis', date: '20 Juni 2026' },
+  { slug: 'esp8266-nodemcu', title: 'ESP8266 NodeMCU untuk Pemula', icon: '📶', cat: 'ESP32', desc: 'Setup dan proyek pertama dengan ESP8266', diff: 'pemula', time: '10', access: 'Gratis', date: '7 Juni 2026' },
+  { slug: 'sensor-dht-esp32', title: 'Sensor DHT dengan ESP32', icon: '🌡️', cat: 'ESP32', desc: 'Baca suhu dan kelembaban dengan DHT11/DHT22', diff: 'pemula', time: '8', access: 'Gratis', date: '5 Juni 2026' },
   { slug: 'web-server-esp32', title: 'Web Server di ESP32', icon: '🌐', cat: 'ESP32', desc: 'Bangun web server mandiri di ESP32', diff: 'menengah', time: '11', access: 'Token', date: '30 Mei 2026' },
-  { slug: 'deep-sleep-esp32', title: 'ESP32 Deep Sleep', icon: '💤', cat: 'ESP32', desc: 'Hemat baterai untuk proyek IoT', diff: 'pemula', time: '7', access: 'Token', date: '28 Mei 2026' },
-  { slug: 'esp32-gpio-dasar', title: 'GPIO ESP32: Input, Output & PWM', icon: '⚡', cat: 'ESP32', desc: 'Panduan lengkap GPIO untuk pemula', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'deep-sleep-esp32', title: 'ESP32 Deep Sleep', icon: '💤', cat: 'ESP32', desc: 'Hemat baterai untuk proyek IoT', diff: 'pemula', time: '7', access: 'Gratis', date: '28 Mei 2026' },
+  { slug: 'esp32-gpio-dasar', title: 'GPIO ESP32: Input, Output & PWM', icon: '⚡', cat: 'ESP32', desc: 'Panduan lengkap GPIO untuk pemula', diff: 'pemula', time: '12', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'esp32-ota-update', title: 'OTA Update ESP32', icon: '📲', cat: 'ESP32', desc: 'Update firmware tanpa kabel', diff: 'menengah', time: '10', access: 'Token', date: '25 Juni 2026' },
   { slug: 'esp32-espnow', title: 'ESP-NOW: Komunikasi Nirkabel', icon: '📡', cat: 'ESP32', desc: 'Komunikasi antar ESP32 tanpa WiFi', diff: 'menengah', time: '11', access: 'Token', date: '25 Juni 2026' },
   { slug: 'mikrotik-routing', title: 'Konfigurasi Routing MikroTik', icon: '🌐', cat: 'MikroTik', desc: 'Static route, OSPF, dan BGP', diff: 'menengah', time: '12', access: 'Token', date: '18 Juni 2026' },
@@ -2352,38 +2377,38 @@ const ALL_ARTICLES = [
   { slug: 'mikrotik-queue', title: 'MikroTik Queue Management', icon: '🎛️', cat: 'MikroTik', desc: 'QoS dan bandwidth control', diff: 'menengah', time: '10', access: 'Token', date: '24 Mei 2026' },
   { slug: 'mikrotik-vlan-dhcp', title: 'MikroTik VLAN & DHCP', icon: '🔗', cat: 'MikroTik', desc: 'Jaringan tersegmentasi dan DHCP', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
   { slug: 'lora-communication', title: 'Jaringan Sensor LoRa', icon: '📡', cat: 'LoRa', desc: 'Telemetry dan monitoring jarak jauh', diff: 'menengah', time: '10', access: 'Token', date: '15 Juni 2026' },
-  { slug: 'python-iot-automation', title: 'Otomasi dengan Python', icon: '🐍', cat: 'Python', desc: 'MQTT, GPIO, dan scheduling', diff: 'pemula', time: '8', access: 'Token', date: '12 Juni 2026' },
+  { slug: 'python-iot-automation', title: 'Otomasi dengan Python', icon: '🐍', cat: 'Python', desc: 'MQTT, GPIO, dan scheduling', diff: 'pemula', time: '8', access: 'Gratis', date: '12 Juni 2026' },
   { slug: 'python-fastapi', title: 'FastAPI: REST API Modern', icon: '🚀', cat: 'Python', desc: 'Buat API dengan FastAPI Python', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'python-git-github', title: 'Git & GitHub untuk Developer', icon: '🐙', cat: 'Python', desc: 'Version control untuk semua proyek', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'python-git-github', title: 'Git & GitHub untuk Developer', icon: '🐙', cat: 'Python', desc: 'Version control untuk semua proyek', diff: 'pemula', time: '12', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'network-security', title: 'Keamanan Jaringan IoT', icon: '🔐', cat: 'Keamanan', desc: 'Firewall, VPN, dan enkripsi data', diff: 'lanjut', time: '14', access: 'Token', date: '10 Juni 2026' },
   { slug: 'linux-security', title: 'Keamanan Linux untuk Server', icon: '🐧', cat: 'Keamanan', desc: 'SSH hardening, firewall, fail2ban', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'ethical-hacking-dasar', title: 'Ethical Hacking Dasar', icon: '🕵️', cat: 'Keamanan', desc: 'Pengenalan ethical hacking & Kali Linux', diff: 'pemula', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'ethical-hacking-dasar', title: 'Ethical Hacking Dasar', icon: '🕵️', cat: 'Keamanan', desc: 'Pengenalan ethical hacking & Kali Linux', diff: 'pemula', time: '13', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'dashboard-monitoring', title: 'Dashboard Monitoring Real-time', icon: '📊', cat: 'Dashboard', desc: 'Node-RED, Grafana, dan MQTT', diff: 'menengah', time: '11', access: 'Token', date: '8 Juni 2026' },
   { slug: 'node-red-iot', title: 'Node-RED untuk IoT', icon: '🔀', cat: 'Dashboard', desc: 'Flow programming dan integrasi', diff: 'menengah', time: '12', access: 'Token', date: '26 Mei 2026' },
   { slug: 'grafana-influxdb', title: 'Grafana + InfluxDB', icon: '📈', cat: 'Dashboard', desc: 'Visualisasi data IoT real-time', diff: 'menengah', time: '13', access: 'Token', date: '25 Mei 2026' },
   { slug: 'grafana-alerting', title: 'Grafana Alerting & Notifikasi', icon: '🔔', cat: 'Dashboard', desc: 'Monitoring dan notifikasi otomatis', diff: 'menengah', time: '11', access: 'Token', date: '25 Juni 2026' },
   { slug: 'docker-iot', title: 'Docker untuk IoT', icon: '🐳', cat: 'Dashboard', desc: 'Containerize aplikasi IoT', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
   { slug: 'mqtt-protocol', title: 'Protokol MQTT', icon: '📨', cat: 'Protokol', desc: 'Panduan lengkap MQTT untuk IoT', diff: 'menengah', time: '13', access: 'Token', date: '6 Juni 2026' },
-  { slug: 'mqtt-mosquitto-setup', title: 'Setup Mosquitto MQTT Broker', icon: '🔧', cat: 'Protokol', desc: 'Instalasi dan konfigurasi Mosquitto', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'mqtt-mosquitto-setup', title: 'Setup Mosquitto MQTT Broker', icon: '🔧', cat: 'Protokol', desc: 'Instalasi dan konfigurasi Mosquitto', diff: 'pemula', time: '14', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'iot-protocols-comparison', title: 'Perbandingan Protokol IoT', icon: '⚖️', cat: 'Protokol', desc: 'MQTT vs CoAP vs HTTP vs AMQP', diff: 'lanjut', time: '14', access: 'Token', date: '29 Mei 2026' },
   { slug: 'raspberry-pi-iot', title: 'Raspberry Pi untuk IoT', icon: '🍓', cat: 'Raspberry Pi', desc: 'Gateway dan edge computing', diff: 'menengah', time: '15', access: 'Token', date: '4 Juni 2026' },
   { slug: 'firebase-iot', title: 'Firebase untuk IoT', icon: '🔥', cat: 'Cloud', desc: 'Realtime database dan cloud functions', diff: 'menengah', time: '12', access: 'Token', date: '3 Juni 2026' },
-  { slug: 'telegram-bot-iot', title: 'Telegram Bot untuk IoT', icon: '🤖', cat: 'IoT', desc: 'Notifikasi dan kontrol jarak jauh', diff: 'pemula', time: '9', access: 'Token', date: '1 Juni 2026' },
-  { slug: 'blynk-iot', title: 'Blynk IoT', icon: '📱', cat: 'IoT', desc: 'Kontrol perangkat dari mobile app', diff: 'pemula', time: '8', access: 'Token', date: '23 Mei 2026' },
-  { slug: 'arduino-ide-setup', title: 'Arduino IDE 2.x Setup', icon: '💻', cat: 'Tools', desc: 'Instalasi dan konfigurasi lengkap', diff: 'pemula', time: '6', access: 'Token', date: '27 Mei 2026' },
+  { slug: 'telegram-bot-iot', title: 'Telegram Bot untuk IoT', icon: '🤖', cat: 'IoT', desc: 'Notifikasi dan kontrol jarak jauh', diff: 'pemula', time: '9', access: 'Gratis', date: '1 Juni 2026' },
+  { slug: 'blynk-iot', title: 'Blynk IoT', icon: '📱', cat: 'IoT', desc: 'Kontrol perangkat dari mobile app', diff: 'pemula', time: '8', access: 'Gratis', date: '23 Mei 2026' },
+  { slug: 'arduino-ide-setup', title: 'Arduino IDE 2.x Setup', icon: '💻', cat: 'Tools', desc: 'Instalasi dan konfigurasi lengkap', diff: 'pemula', time: '6', access: 'Gratis', date: '27 Mei 2026' },
   { slug: 'esp32-bluetooth-ble', title: 'ESP32 Bluetooth BLE', icon: '📶', cat: 'ESP32', desc: 'Komunikasi nirkabel energi rendah', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
   { slug: 'esp32-freertos', title: 'FreeRTOS pada ESP32', icon: '⚙️', cat: 'ESP32', desc: 'Multitasking real-time', diff: 'lanjut', time: '15', access: 'Token', date: '25 Juni 2026' },
   { slug: 'esp32-sensor-kalibrasi', title: 'Kalibrasi Sensor ESP32', icon: '🎯', cat: 'ESP32', desc: 'Akurasi data IoT', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
   { slug: 'esp32-battery-management', title: 'Battery Management IoT', icon: '🔋', cat: 'ESP32', desc: 'Hemat energi maksimal', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
   { slug: 'mikrotik-ospf', title: 'OSPF Routing MikroTik', icon: '🗺️', cat: 'MikroTik', desc: 'Konfigurasi & optimasi OSPF', diff: 'lanjut', time: '16', access: 'Token', date: '25 Juni 2026' },
   { slug: 'mikrotik-vpn', title: 'VPN pada MikroTik', icon: '🔒', cat: 'MikroTik', desc: 'Site-to-site & remote access', diff: 'lanjut', time: '15', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'networking-osi-subnetting', title: 'OSI Model & Subnetting', icon: '🌐', cat: 'Networking', desc: 'Dasar jaringan komputer', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'networking-osi-subnetting', title: 'OSI Model & Subnetting', icon: '🌐', cat: 'Networking', desc: 'Dasar jaringan komputer', diff: 'pemula', time: '14', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'python-oop', title: 'OOP Python: Object-Oriented Programming', icon: '🐍', cat: 'Python', desc: 'Class, inheritance, polymorphism, encapsulation', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
   { slug: 'python-async', title: 'Async Python: Pemrograman Asinkron', icon: '⚡', cat: 'Python', desc: 'Pemrograman asinkron', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'python-web-scraping', title: 'Web Scraping Python', icon: '🕷️', cat: 'Python', desc: 'BeautifulSoup & Selenium', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'python-web-scraping', title: 'Web Scraping Python', icon: '🕷️', cat: 'Python', desc: 'BeautifulSoup & Selenium', diff: 'pemula', time: '12', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'web-security-sql-xss', title: 'SQL Injection & XSS', icon: '💉', cat: 'Keamanan', desc: 'Serangan web umum', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
   { slug: 'linux-firewall-hardening', title: 'Firewall Hardening Linux', icon: '🛡️', cat: 'Keamanan', desc: 'Mengamankan server Linux', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'ssl-tls-guide', title: 'SSL/TLS & HTTPS', icon: '🔐', cat: 'Keamanan', desc: 'Mengamankan komunikasi', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'ssl-tls-guide', title: 'SSL/TLS & HTTPS', icon: '🔐', cat: 'Keamanan', desc: 'Mengamankan komunikasi', diff: 'pemula', time: '12', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'nginx-reverse-proxy', title: 'Nginx Reverse Proxy', icon: '🔀', cat: 'Dashboard', desc: 'Load balancing & SSL', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
   { slug: 'firebase-auth-firestore', title: 'Firebase Auth & Firestore', icon: '🔥', cat: 'Dashboard', desc: 'Auth & database untuk IoT', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
   { slug: 'websocket-guide', title: 'WebSocket untuk IoT', icon: '🔌', cat: 'Protokol', desc: 'Komunikasi real-time', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
@@ -2394,8 +2419,8 @@ const ALL_ARTICLES = [
   { slug: 'vps-deployment', title: 'Deploy ke VPS', icon: '🖥️', cat: 'Dashboard', desc: 'Panduan deploy ke VPS', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
 
   // === Web Development ===
-  { slug: 'html-css-dasar', title: 'HTML & CSS Dasar', icon: '📄', cat: 'Web Development', desc: 'Fondasi membangun website', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'javascript-dasar', title: 'JavaScript untuk Pemula', icon: '⚡', cat: 'Web Development', desc: 'Bahasa pemrograman web', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'html-css-dasar', title: 'HTML & CSS Dasar', icon: '📄', cat: 'Web Development', desc: 'Fondasi membangun website', diff: 'pemula', time: '12', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'javascript-dasar', title: 'JavaScript untuk Pemula', icon: '⚡', cat: 'Web Development', desc: 'Bahasa pemrograman web', diff: 'pemula', time: '14', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'responsive-web-design', title: 'Responsive Web Design', icon: '📱', cat: 'Web Development', desc: 'Mobile-first design', diff: 'menengah', time: '10', access: 'Token', date: '25 Juni 2026' },
   { slug: 'react-dasar', title: 'React.js untuk Pemula', icon: '⚛️', cat: 'Web Development', desc: 'Framework UI populer', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
   { slug: 'nodejs-express', title: 'Node.js & Express', icon: '🟢', cat: 'Web Development', desc: 'Backend JavaScript', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
@@ -2404,46 +2429,46 @@ const ALL_ARTICLES = [
   { slug: 'vuejs-dasar', title: 'Vue.js untuk Pemula', icon: '💚', cat: 'Web Development', desc: 'Framework progresif', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
 
   // === Database ===
-  { slug: 'sql-dasar', title: 'SQL Dasar untuk Pemula', icon: '🗃️', cat: 'Database', desc: 'Query database dari nol', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'mongodb-dasar', title: 'MongoDB untuk Pemula', icon: '🍃', cat: 'Database', desc: 'Database NoSQL dokumen', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'sql-dasar', title: 'SQL Dasar untuk Pemula', icon: '🗃️', cat: 'Database', desc: 'Query database dari nol', diff: 'pemula', time: '14', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'mongodb-dasar', title: 'MongoDB untuk Pemula', icon: '🍃', cat: 'Database', desc: 'Database NoSQL dokumen', diff: 'pemula', time: '12', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'database-design', title: 'Database Design & Normalisasi', icon: '📐', cat: 'Database', desc: 'Desain schema efisien', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
   { slug: 'redis-caching', title: 'Redis & Caching Strategy', icon: '🔴', cat: 'Database', desc: 'In-memory untuk performa', diff: 'menengah', time: '10', access: 'Token', date: '25 Juni 2026' },
   { slug: 'supabase-dasar', title: 'Supabase untuk Developer', icon: '⚡', cat: 'Database', desc: 'Backend PostgreSQL instan', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
 
   // === AI & Data Science ===
-  { slug: 'python-data-science', title: 'Python untuk Data Science', icon: '🐍', cat: 'AI & Data Science', desc: 'Python untuk analisis data', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'python-data-science', title: 'Python untuk Data Science', icon: '🐍', cat: 'AI & Data Science', desc: 'Python untuk analisis data', diff: 'pemula', time: '14', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'machine-learning-dasar', title: 'Machine Learning Dasar', icon: '🧠', cat: 'AI & Data Science', desc: 'Pengenalan ML dari nol', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'chatgpt-ai-tools', title: 'ChatGPT & AI Tools', icon: '💬', cat: 'AI & Data Science', desc: 'AI untuk produktivitas', diff: 'pemula', time: '10', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'chatgpt-ai-tools', title: 'ChatGPT & AI Tools', icon: '💬', cat: 'AI & Data Science', desc: 'AI untuk produktivitas', diff: 'pemula', time: '10', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'data-visualization', title: 'Data Visualization', icon: '📊', cat: 'AI & Data Science', desc: 'Visualisasi data Python', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
   { slug: 'pandas-numpy', title: 'Pandas & NumPy', icon: '🐼', cat: 'AI & Data Science', desc: 'Data manipulation Python', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
 
   // === Mobile Development ===
-  { slug: 'flutter-dasar', title: 'Flutter untuk Pemula', icon: '💙', cat: 'Mobile Development', desc: 'App cross-platform', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'flutter-dasar', title: 'Flutter untuk Pemula', icon: '💙', cat: 'Mobile Development', desc: 'App cross-platform', diff: 'pemula', time: '14', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'react-native-dasar', title: 'React Native Dasar', icon: '⚛️', cat: 'Mobile Development', desc: 'Mobile dengan JavaScript', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
   { slug: 'android-kotlin', title: 'Android dengan Kotlin', icon: '🤖', cat: 'Mobile Development', desc: 'Native Android development', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'mobile-uiux', title: 'Mobile UI/UX Design', icon: '🎨', cat: 'Mobile Development', desc: 'Desain antarmuka mobile', diff: 'pemula', time: '10', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'mobile-uiux', title: 'Mobile UI/UX Design', icon: '🎨', cat: 'Mobile Development', desc: 'Desain antarmuka mobile', diff: 'pemula', time: '10', access: 'Gratis', date: '25 Juni 2026' },
 
   // === DevOps & Cloud ===
-  { slug: 'docker-dasar', title: 'Docker untuk Developer', icon: '🐳', cat: 'DevOps & Cloud', desc: 'Containerize aplikasi', diff: 'pemula', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'docker-dasar', title: 'Docker untuk Developer', icon: '🐳', cat: 'DevOps & Cloud', desc: 'Containerize aplikasi', diff: 'pemula', time: '13', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'cicd-github-actions', title: 'CI/CD GitHub Actions', icon: '🔄', cat: 'DevOps & Cloud', desc: 'Automasi build & deploy', diff: 'menengah', time: '11', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'cloud-aws-dasar', title: 'AWS untuk Pemula', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Cloud computing AWS', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'cloud-aws-dasar', title: 'AWS untuk Pemula', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Cloud computing AWS', diff: 'pemula', time: '14', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'kubernetes-dasar', title: 'Kubernetes untuk Pemula', icon: '⎈', cat: 'DevOps & Cloud', desc: 'Orchestrate container', diff: 'lanjut', time: '15', access: 'Token', date: '25 Juni 2026' },
 
   // === IT Career ===
-  { slug: 'roadmap-belajar-it', title: 'Roadmap Belajar IT 2026', icon: '🗺️', cat: 'IT Career', desc: 'Jalur belajar IT lengkap', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'sertifikasi-it', title: 'Sertifikasi IT Populer', icon: '📜', cat: 'IT Career', desc: 'Sertifikasi industri IT', diff: 'pemula', time: '10', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'portfolio-developer', title: 'Portfolio & CV Developer', icon: '💼', cat: 'IT Career', desc: 'Bangun portfolio menarik', diff: 'pemula', time: '9', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'roadmap-belajar-it', title: 'Roadmap Belajar IT 2026', icon: '🗺️', cat: 'IT Career', desc: 'Jalur belajar IT lengkap', diff: 'pemula', time: '12', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'sertifikasi-it', title: 'Sertifikasi IT Populer', icon: '📜', cat: 'IT Career', desc: 'Sertifikasi industri IT', diff: 'pemula', time: '10', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'portfolio-developer', title: 'Portfolio & CV Developer', icon: '💼', cat: 'IT Career', desc: 'Bangun portfolio menarik', diff: 'pemula', time: '9', access: 'Gratis', date: '25 Juni 2026' },
   // === Web Development (expanded) ===
   { slug: 'nextjs-dasar', title: 'Next.js untuk Pemula', icon: '▲', cat: 'Web Development', desc: 'React framework full-stack', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'tailwind-css', title: 'Tailwind CSS', icon: '🎨', cat: 'Web Development', desc: 'Utility-first CSS framework', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'tailwind-css', title: 'Tailwind CSS', icon: '🎨', cat: 'Web Development', desc: 'Utility-first CSS framework', diff: 'pemula', time: '12', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'testing-jest', title: 'Testing JavaScript dengan Jest', icon: '🧪', cat: 'Web Development', desc: 'Unit testing JavaScript', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
   { slug: 'pwa-dasar', title: 'Progressive Web App', icon: '📲', cat: 'Web Development', desc: 'Website yang seperti app', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
   { slug: 'web-performance', title: 'Web Performance Optimization', icon: '⚡', cat: 'Web Development', desc: 'Optimasi performa web', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
   { slug: 'auth-authorization', title: 'Authentication & Authorization', icon: '🔐', cat: 'Web Development', desc: 'Keamanan autentikasi web', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
 
   // === Database (expanded) ===
-  { slug: 'postgresql-dasar', title: 'PostgreSQL untuk Developer', icon: '🐘', cat: 'Database', desc: 'Database PostgreSQL', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'mysql-dasar', title: 'MySQL untuk Pemula', icon: '🐬', cat: 'Database', desc: 'Database MySQL', diff: 'pemula', time: '13', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'postgresql-dasar', title: 'PostgreSQL untuk Developer', icon: '🐘', cat: 'Database', desc: 'Database PostgreSQL', diff: 'pemula', time: '14', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'mysql-dasar', title: 'MySQL untuk Pemula', icon: '🐬', cat: 'Database', desc: 'Database MySQL', diff: 'pemula', time: '13', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'prisma-orm', title: 'Prisma ORM', icon: '💎', cat: 'Database', desc: 'Database ORM modern', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
   { slug: 'graphql-database', title: 'GraphQL untuk Pemula', icon: '◼️', cat: 'Database', desc: 'Query language untuk API', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
 
@@ -2458,21 +2483,21 @@ const ALL_ARTICLES = [
   { slug: 'swift-ios', title: 'Swift untuk iOS', icon: '🍎', cat: 'Mobile Development', desc: 'iOS development dengan Swift', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
   { slug: 'jetpack-compose', title: 'Jetpack Compose', icon: '🤖', cat: 'Mobile Development', desc: 'UI modern Android', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
   { slug: 'flutter-state-management', title: 'State Management Flutter', icon: '🔄', cat: 'Mobile Development', desc: 'Riverpod & BLoC pattern', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'app-store-publishing', title: 'Publish ke App Store', icon: '🏪', cat: 'Mobile Development', desc: 'Deploy ke Play Store & App Store', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'app-store-publishing', title: 'Publish ke App Store', icon: '🏪', cat: 'Mobile Development', desc: 'Deploy ke Play Store & App Store', diff: 'pemula', time: '12', access: 'Gratis', date: '25 Juni 2026' },
 
   // === DevOps & Cloud (expanded) ===
   { slug: 'terraform-iac', title: 'Terraform: Infrastructure as Code', icon: '🏗️', cat: 'DevOps & Cloud', desc: 'Infrastruktur sebagai kode', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
   { slug: 'monitoring-observability', title: 'Monitoring & Observability', icon: '📊', cat: 'DevOps & Cloud', desc: 'Metrics, logs, traces', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'linux-server-admin', title: 'Linux Server Administration', icon: '🐧', cat: 'DevOps & Cloud', desc: 'Kelola server Linux', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'linux-server-admin', title: 'Linux Server Administration', icon: '🐧', cat: 'DevOps & Cloud', desc: 'Kelola server Linux', diff: 'pemula', time: '14', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'nginx-load-balancing', title: 'Nginx: Web Server & Load Balancer', icon: '🔄', cat: 'DevOps & Cloud', desc: 'Web server & reverse proxy', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
   { slug: 'gitops-argocd', title: 'GitOps dengan ArgoCD', icon: '🎯', cat: 'DevOps & Cloud', desc: 'Git-based deployment', diff: 'lanjut', time: '13', access: 'Token', date: '25 Juni 2026' },
 
   // === IT Career (expanded) ===
-  { slug: 'interview-teknis', title: 'Interview Teknis IT', icon: '🎤', cat: 'IT Career', desc: 'Persiapan interview teknis', diff: 'pemula', time: '12', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'freelance-developer', title: 'Freelance Developer', icon: '💻', cat: 'IT Career', desc: 'Panduan freelance IT', diff: 'pemula', time: '11', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'soft-skill-developer', title: 'Soft Skill untuk Developer', icon: '🤝', cat: 'IT Career', desc: 'Komunikasi & teamwork', diff: 'pemula', time: '10', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'open-source-contribution', title: 'Open Source Contribution', icon: '🌍', cat: 'IT Career', desc: 'Kontribusi ke open source', diff: 'pemula', time: '10', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'gaji-negosiasi-it', title: 'Gaji & Negosiasi IT', icon: '💰', cat: 'IT Career', desc: 'Negosiasi gaji IT Indonesia', diff: 'pemula', time: '9', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'interview-teknis', title: 'Interview Teknis IT', icon: '🎤', cat: 'IT Career', desc: 'Persiapan interview teknis', diff: 'pemula', time: '12', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'freelance-developer', title: 'Freelance Developer', icon: '💻', cat: 'IT Career', desc: 'Panduan freelance IT', diff: 'pemula', time: '11', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'soft-skill-developer', title: 'Soft Skill untuk Developer', icon: '🤝', cat: 'IT Career', desc: 'Komunikasi & teamwork', diff: 'pemula', time: '10', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'open-source-contribution', title: 'Open Source Contribution', icon: '🌍', cat: 'IT Career', desc: 'Kontribusi ke open source', diff: 'pemula', time: '10', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'gaji-negosiasi-it', title: 'Gaji & Negosiasi IT', icon: '💰', cat: 'IT Career', desc: 'Negosiasi gaji IT Indonesia', diff: 'pemula', time: '9', access: 'Gratis', date: '25 Juni 2026' },
 
   // === Keamanan (expanded) ===
   { slug: 'owasp-top10', title: 'OWASP Top 10', icon: '🛡️', cat: 'Keamanan', desc: 'Vulnerability web umum', diff: 'menengah', time: '14', access: 'Token', date: '25 Juni 2026' },
@@ -2482,7 +2507,7 @@ const ALL_ARTICLES = [
   { slug: 'security-audit', title: 'Security Audit & Compliance', icon: '📋', cat: 'Keamanan', desc: 'Audit keamanan & compliance', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
 
   // === Python (expanded) ===
-  { slug: 'python-pemula', title: 'Python untuk Pemula', icon: '🐍', cat: 'Python', desc: 'Dasar Python dari nol', diff: 'pemula', time: '14', access: 'Token', date: '25 Juni 2026' },
+  { slug: 'python-pemula', title: 'Python untuk Pemula', icon: '🐍', cat: 'Python', desc: 'Dasar Python dari nol', diff: 'pemula', time: '14', access: 'Gratis', date: '25 Juni 2026' },
   { slug: 'django-web', title: 'Django Web Framework', icon: '🎸', cat: 'Python', desc: 'Full-stack Python web', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
   { slug: 'flask-pemula', title: 'Flask: Micro Web Framework', icon: '🧪', cat: 'Python', desc: 'Web framework ringan', diff: 'menengah', time: '13', access: 'Token', date: '25 Juni 2026' },
   { slug: 'python-testing-pytest', title: 'Python Testing dengan pytest', icon: '✅', cat: 'Python', desc: 'Testing framework Python', diff: 'menengah', time: '12', access: 'Token', date: '25 Juni 2026' },
@@ -2496,16 +2521,16 @@ const ALL_ARTICLES = [
   { slug: 'aws-ecs-containers', title: 'AWS ECS: Container Service', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap AWS ECS — Fargate, task definitions, services, cluster, load...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'aws-lambda-serverless', title: 'AWS Lambda: Serverless Functions — Trigger...', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap AWS Lambda — serverless functions, triggers, layers, cold st...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'aws-s3-storage', title: 'AWS S3: Object Storage', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap AWS S3 — buckets, object lifecycle, policies, presigned URLs...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'bug-bounty-basics', title: 'Bug Bounty: Panduan Memulai untuk Pemula', icon: '🛡️', cat: 'Keamanan', desc: 'Pelajari Bug Bounty secara mendalam — platform populer, metodologi pengujian,...', diff: 'pemula', time: '20', access: 'Token', date: '26 Juni 2026' },
+  { slug: 'bug-bounty-basics', title: 'Bug Bounty: Panduan Memulai untuk Pemula', icon: '🛡️', cat: 'Keamanan', desc: 'Pelajari Bug Bounty secara mendalam — platform populer, metodologi pengujian,...', diff: 'pemula', time: '20', access: 'Gratis', date: '26 Juni 2026' },
   { slug: 'burp-suite-basics', title: 'Burp Suite: Web Security Testing — Panduan Lengkap', icon: '🛡️', cat: 'Keamanan', desc: 'Pelajari Burp Suite — panduan lengkap web security testing: Proxy, Repeater, ...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'capacitor-ionic', title: 'Capacitor: Web to Mobile', icon: '📱', cat: 'Mobile Development', desc: 'Tutorial lengkap Capacitor untuk membangun hybrid mobile apps — dari web ke n...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'career-backend-developer', title: 'Karir Backend Developer: Panduan Lengkap 2026', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap karir backend developer — skill yang dibutuhkan, bahasa pemro...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'career-data-scientist', title: 'Karir Data Scientist: Skills, Tools & Proyek 2026', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap karir Data Scientist 2026 — skills, tools, proyek portfolio, ...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'career-devops-engineer', title: 'Karir DevOps Engineer: Skills, Tools & Gaji 2026', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap karir DevOps Engineer 2026 — skills yang dibutuhkan, tools wa...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'career-frontend-developer', title: 'Karir Frontend Developer 2026: Panduan Lengkap', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap karir Frontend Developer 2026 — skill yang dibutuhkan, roadma...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
+  { slug: 'career-backend-developer', title: 'Karir Backend Developer: Panduan Lengkap 2026', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap karir backend developer — skill yang dibutuhkan, bahasa pemro...', diff: 'menengah', time: '20', access: 'Gratis', date: '26 Juni 2026' },
+  { slug: 'career-data-scientist', title: 'Karir Data Scientist: Skills, Tools & Proyek 2026', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap karir Data Scientist 2026 — skills, tools, proyek portfolio, ...', diff: 'menengah', time: '20', access: 'Gratis', date: '26 Juni 2026' },
+  { slug: 'career-devops-engineer', title: 'Karir DevOps Engineer: Skills, Tools & Gaji 2026', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap karir DevOps Engineer 2026 — skills yang dibutuhkan, tools wa...', diff: 'menengah', time: '20', access: 'Gratis', date: '26 Juni 2026' },
+  { slug: 'career-frontend-developer', title: 'Karir Frontend Developer 2026: Panduan Lengkap', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap karir Frontend Developer 2026 — skill yang dibutuhkan, roadma...', diff: 'menengah', time: '20', access: 'Gratis', date: '26 Juni 2026' },
   { slug: 'cassandra-basics', title: 'Apache Cassandra: NoSQL Distributed Database', icon: '🗄️', cat: 'Database', desc: 'Tutorial lengkap Apache Cassandra — data model, CQL, replication, consistency...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'cert-aws-solutions-architect', title: 'AWS Solutions Architect Certification Guide 2026', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap persiapan AWS Solutions Architect Associate Certification — t...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'cert-kubernetes-cka', title: 'CKA: Certified Kubernetes Administr...', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap CKA (Certified Kubernetes Administrator) — exam domains, hand...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
+  { slug: 'cert-aws-solutions-architect', title: 'AWS Solutions Architect Certification Guide 2026', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap persiapan AWS Solutions Architect Associate Certification — t...', diff: 'menengah', time: '20', access: 'Gratis', date: '26 Juni 2026' },
+  { slug: 'cert-kubernetes-cka', title: 'CKA: Certified Kubernetes Administr...', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap CKA (Certified Kubernetes Administrator) — exam domains, hand...', diff: 'menengah', time: '20', access: 'Gratis', date: '26 Juni 2026' },
   { slug: 'clerk-auth', title: 'Clerk: Authentication Platform', icon: '🌐', cat: 'Web Development', desc: 'Tutorial lengkap Clerk Authentication — setup, komponen UI, webhooks, organiz...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'cloudflare-workers', title: 'Cloudflare Workers: Edge Computing', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap Cloudflare Workers — KV Storage, Durable Objects, R2 Object ...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'couchdb-basics', title: 'Apache CouchDB: NoSQL Document Database Lengkap', icon: '🗄️', cat: 'Database', desc: 'Tutorial lengkap Apache CouchDB — document database NoSQL dengan replication,...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
@@ -2535,7 +2560,7 @@ const ALL_ARTICLES = [
   { slug: 'flutter-push-notifications', title: 'Flutter Push Notifications: Panduan Lengkap FCM & Local No...', icon: '📱', cat: 'Mobile Development', desc: 'Tutorial lengkap push notifications di Flutter — Firebase Cloud Messaging (FC...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'forensics-disk-imaging', title: 'Digital Forensics: Disk Imaging - Panduan Lengkap', icon: '🛡️', cat: 'Keamanan', desc: 'Pelajari Digital Forensics Disk Imaging secara mendalam — tools forensik, cha...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'gcp-cloud-run', title: 'Google Cloud Run: Serverless Containers', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap Google Cloud Run — deploy container tanpa manage server, aut...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'gitlab-ci-basics', title: 'GitLab CI/CD: Panduan Dasar untuk Developer', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap GitLab CI/CD — .gitlab-ci.yml, jobs, stages, runners, variab...', diff: 'pemula', time: '20', access: 'Token', date: '26 Juni 2026' },
+  { slug: 'gitlab-ci-basics', title: 'GitLab CI/CD: Panduan Dasar untuk Developer', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap GitLab CI/CD — .gitlab-ci.yml, jobs, stages, runners, variab...', diff: 'pemula', time: '20', access: 'Gratis', date: '26 Juni 2026' },
   { slug: 'graphql-apollo', title: 'GraphQL dengan Apollo Client: Panduan Lengkap', icon: '🌐', cat: 'Web Development', desc: 'Tutorial lengkap GraphQL dengan Apollo Client — queries, mutations, cache man...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'html-semantics-accessibility', title: 'HTML Semantics & Accessibility: Panduan Lengkap', icon: '🌐', cat: 'Web Development', desc: 'Tutorial lengkap HTML Semantics dan Accessibility — elemen semantik, ARIA att...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'huggingface-transformers', title: 'HuggingFace Transformers', icon: '🤖', cat: 'AI & Data Science', desc: 'Tutorial lengkap HuggingFace Transformers — pipelines, models, tokenizers, fi...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
@@ -2550,14 +2575,14 @@ const ALL_ARTICLES = [
   { slug: 'javascript-workers-web', title: 'Web Workers: Multithreading di JavaScript', icon: '🌐', cat: 'Web Development', desc: 'Tutorial lengkap Web Workers — dedicated workers, shared workers, transferabl...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'jenkins-basics', title: 'Jenkins: CI/CD Automation — Pipeline, P...', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap Jenkins CI/CD — Declarative & Scripted Pipeline, Jenkinsfile...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'jetpack-compose-animation', title: 'Jetpack Compose Animations: Panduan Lengkap', icon: '📱', cat: 'Mobile Development', desc: 'Tutorial lengkap animasi di Jetpack Compose — animate*AsState, updateTransiti...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'job-remote-work', title: 'Remote Work untuk Developer: Panduan Lengkap', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap remote work untuk developer — tools, timezone management, com...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'job-resume-tips', title: 'Resume Developer: Tips & Contoh 2026', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap membuat resume developer — format, konten, ATS optimization, ...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'job-salary-negotiation', title: 'Salary Negotiation untuk Developer: Panduan Lengkap 2026...', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap negosiasi gaji untuk developer — riset gaji, teknik negosiasi...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
+  { slug: 'job-remote-work', title: 'Remote Work untuk Developer: Panduan Lengkap', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap remote work untuk developer — tools, timezone management, com...', diff: 'menengah', time: '20', access: 'Gratis', date: '26 Juni 2026' },
+  { slug: 'job-resume-tips', title: 'Resume Developer: Tips & Contoh 2026', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap membuat resume developer — format, konten, ATS optimization, ...', diff: 'menengah', time: '20', access: 'Gratis', date: '26 Juni 2026' },
+  { slug: 'job-salary-negotiation', title: 'Salary Negotiation untuk Developer: Panduan Lengkap 2026...', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap negosiasi gaji untuk developer — riset gaji, teknik negosiasi...', diff: 'menengah', time: '20', access: 'Gratis', date: '26 Juni 2026' },
   { slug: 'kotlin-coroutines', title: 'Kotlin Coroutines: Async Programming', icon: '📱', cat: 'Mobile Development', desc: 'Tutorial lengkap Kotlin Coroutines — dari launch, async, withContext, Flow, h...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'kotlin-flow', title: 'Kotlin Flow: Reactive Streams untuk Android Modern', icon: '📱', cat: 'Mobile Development', desc: 'Tutorial lengkap Kotlin Flow — StateFlow, SharedFlow, Flow operators, cold vs...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'kubernetes-helm', title: 'Kubernetes Helm: Package Manager', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap Kubernetes Helm — charts, values, releases, repositories, in...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'kubernetes-ingress', title: 'Kubernetes Ingress Controllers', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap Kubernetes Ingress Controllers — NGINX ingress, path-based r...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'malware-analysis-basics', title: 'Malware Analysis: Pengenalan', icon: '🛡️', cat: 'Keamanan', desc: 'Pelajari Malware Analysis — pengenalan static analysis, dynamic analysis, san...', diff: 'pemula', time: '20', access: 'Token', date: '26 Juni 2026' },
+  { slug: 'malware-analysis-basics', title: 'Malware Analysis: Pengenalan', icon: '🛡️', cat: 'Keamanan', desc: 'Pelajari Malware Analysis — pengenalan static analysis, dynamic analysis, san...', diff: 'pemula', time: '20', access: 'Gratis', date: '26 Juni 2026' },
   { slug: 'metasploit-basics', title: 'Metasploit: Penetration Testing Framework Lengkap', icon: '🛡️', cat: 'Keamanan', desc: 'Tutorial lengkap Metasploit Framework — payloads, exploits, post-exploitation...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'ml-decision-trees', title: 'Decision Trees: Pohon Keputusan', icon: '🤖', cat: 'AI & Data Science', desc: 'Tutorial lengkap Decision Trees — konsep splitting criteria (Gini, Entropy), ...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'ml-ensemble-methods', title: 'Ensemble Methods: Bagging, Boosting & Kombinasi Model', icon: '🤖', cat: 'AI & Data Science', desc: 'Tutorial lengkap Ensemble Methods — Bagging, Boosting, Random Forest, XGBoost...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
@@ -2578,8 +2603,8 @@ const ALL_ARTICLES = [
   { slug: 'playwright-testing', title: 'Playwright: Modern End-to-End Testing', icon: '🌐', cat: 'Web Development', desc: 'Tutorial lengkap Playwright Testing — locators, fixtures, trace viewer, paral...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'postcss-basics', title: 'PostCSS: CSS Transformation', icon: '🌐', cat: 'Web Development', desc: 'Tutorial lengkap PostCSS — plugin system, autoprefixer, nesting, custom prope...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'prisma-advanced', title: 'Prisma ORM Advanced: Middleware, Extensions & Perfo...', icon: '🌐', cat: 'Web Development', desc: 'Tutorial advanced Prisma ORM — middleware, extensions, raw queries, N+1 optim...', diff: 'lanjut', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'prodev-blogging', title: 'Technical Blogging untuk Developer: Panduan Lengkap', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap technical blogging untuk developer — platform, SEO, monetizat...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-  { slug: 'prodev-continuous-learning', title: 'Continuous Learning untuk Developer 2026', icon: '💼', cat: 'IT Career', desc: 'Panduan continuous learning untuk developer — resources, habits, community, d...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
+  { slug: 'prodev-blogging', title: 'Technical Blogging untuk Developer: Panduan Lengkap', icon: '💼', cat: 'IT Career', desc: 'Panduan lengkap technical blogging untuk developer — platform, SEO, monetizat...', diff: 'menengah', time: '20', access: 'Gratis', date: '26 Juni 2026' },
+  { slug: 'prodev-continuous-learning', title: 'Continuous Learning untuk Developer 2026', icon: '💼', cat: 'IT Career', desc: 'Panduan continuous learning untuk developer — resources, habits, community, d...', diff: 'menengah', time: '20', access: 'Gratis', date: '26 Juni 2026' },
   { slug: 'prometheus-grafana-advanced', title: 'Prometheus & Grafana Advanced', icon: '☁️', cat: 'DevOps & Cloud', desc: 'Tutorial lanjutan Prometheus & Grafana — custom metrics, PromQL, alerting rul...', diff: 'lanjut', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'python-argparse-cli', title: 'Python Argparse: Membangun CLI Tools', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Python Argparse — arguments, subcommands, validation, dan me...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'python-asyncio-basics', title: 'Python asyncio: Async Programming', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Python asyncio — event loop, tasks, coroutines, semaphores, ...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
@@ -2652,50 +2677,50 @@ const ALL_ARTICLES = [
   { slug: 'web-file-upload-security', title: 'File Upload Security: Panduan Lengkap Keamanan Uploa...', icon: '🛡️', cat: 'Keamanan', desc: 'Tutorial lengkap keamanan file upload — validasi file, malware scanning, peny...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'web-jwt-security', title: 'JWT Security: Best Practices untuk Keamanan Token', icon: '🛡️', cat: 'Keamanan', desc: 'Pelajari JWT Security secara mendalam — struktur token JWT, serangan umum, pe...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
   { slug: 'web-ssrf-protection', title: 'SSRF: Server-Side Request Forgery — ...', icon: '🛡️', cat: 'Keamanan', desc: 'Tutorial lengkap SSRF (Server-Side Request Forgery) — memahami serangan, tekn...', diff: 'menengah', time: '20', access: 'Token', date: '26 Juni 2026' },
-{ slug: 'c-pemula', title: 'C Programming untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap C Programming untuk pemula — variabel, pointer, array, fungs...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
+{ slug: 'c-pemula', title: 'C Programming untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap C Programming untuk pemula — variabel, pointer, array, fungs...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
   { slug: 'cpp-memory-management', title: 'Memory Management di C++: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Memory Management di C++ — stack vs heap, RAII, smart pointe...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'cpp-modern', title: 'Modern C++ (C++17/20): Fitur Terbaru', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Modern C++ — smart pointers, move semantics, constexpr, conc...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'cpp-oop', title: 'C++ Object-Oriented Programming: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap C++ OOP — class, inheritance, polymorphism, template, STL, d...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'dns-lengkap', title: 'DNS Lengkap: Cara Kerja Domain Name System', icon: '🔗', cat: 'Networking', desc: 'Panduan lengkap DNS — cara kerja resolver, jenis record DNS, caching, DNSSEC,...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'edge-computing', title: 'Edge Computing untuk IoT: Panduan Lengkap', icon: '📡', cat: 'IoT', desc: 'Panduan lengkap Edge Computing untuk IoT — edge vs cloud, latency, Fog comput...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'go-concurrency', title: 'Go Concurrency: Goroutines & Channels', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Go Concurrency — goroutines, channels, select, sync package,...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
-  { slug: 'go-pemula', title: 'Go (Golang) untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Go (Golang) untuk pemula — instalasi, variabel, tipe data, f...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
+  { slug: 'go-pemula', title: 'Go (Golang) untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Go (Golang) untuk pemula — instalasi, variabel, tipe data, f...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
   { slug: 'go-testing', title: 'Go Testing: Unit Test & Benchmark', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Go Testing — testing package, table-driven tests, benchmarks...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'go-web-development', title: 'Go Web Development: net/http & Gin Framework', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Go Web Development — net/http, routing, middleware, JSON API...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'iot-cloud-platform', title: 'IoT Cloud Platform: Panduan Lengkap', icon: '📡', cat: 'IoT', desc: 'Panduan lengkap IoT Cloud Platform — AWS IoT Core, Azure IoT Hub, Google Clou...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'java-collections', title: 'Java Collections Framework: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Java Collections Framework — List, Set, Map, Iterator, Compa...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
-  { slug: 'java-pemula', title: 'Java untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Java untuk pemula — instalasi JDK, variabel, tipe data, OOP,...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
+  { slug: 'java-pemula', title: 'Java untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Java untuk pemula — instalasi JDK, variabel, tipe data, OOP,...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
   { slug: 'java-spring-boot', title: 'Spring Boot: REST API Modern', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Spring Boot — dependency injection, REST controller, JPA, se...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'java-streams', title: 'Java Streams API: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Java Streams API — stream operations, filter, map, reduce, c...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'javascript-array-methods', title: 'JavaScript Array Methods: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap JavaScript Array Methods — map, filter, reduce, find, some, ...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'javascript-closures-scope', title: 'Closures & Scope di JavaScript', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Closures dan Scope di JavaScript — global scope, function sc...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'javascript-dom-manipulation', title: 'DOM Manipulation: Panduan Lengkap JavaScript', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap DOM Manipulation JavaScript — getElementById, querySelector,...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
-  { slug: 'javascript-pemula', title: 'JavaScript untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap JavaScript untuk pemula — variabel, tipe data, operator, fun...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
-  { slug: 'kotlin-pemula', title: 'Kotlin untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Kotlin untuk pemula — variabel, null safety, extension, coro...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
+  { slug: 'javascript-pemula', title: 'JavaScript untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap JavaScript untuk pemula — variabel, tipe data, operator, fun...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
+  { slug: 'kotlin-pemula', title: 'Kotlin untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Kotlin untuk pemula — variabel, null safety, extension, coro...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
   { slug: 'lora-mesh-network', title: 'LoRa Mesh Networking: Multi-Hop & Deployment', icon: '📡', cat: 'LoRa', desc: 'Tutorial lengkap LoRa Mesh Networking — topologi mesh, routing protocol, mult...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'lora-wan-protocol', title: 'LoRaWAN Protocol: Arsitektur & Implementasi', icon: '📡', cat: 'LoRa', desc: 'Tutorial lengkap LoRaWAN Protocol — arsitektur gateway, node, ADR, class A/B/...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'mqtt-lengkap', title: 'MQTT Protocol: Panduan Lengkap', icon: '📡', cat: 'IoT', desc: 'Panduan lengkap protokol MQTT untuk IoT — broker, QoS, topic hierarchy, retai...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
-  { slug: 'php-laravel', title: 'Laravel Framework: Panduan Dasar', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Laravel untuk developer — routing, Blade templating, Eloquen...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
+  { slug: 'php-laravel', title: 'Laravel Framework: Panduan Dasar', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Laravel untuk developer — routing, Blade templating, Eloquen...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
   { slug: 'php-oop', title: 'PHP Object-Oriented Programming', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap PHP OOP — class, trait, interface, namespace, autoloading, d...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
-  { slug: 'php-pemula', title: 'PHP untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap PHP untuk pemula — instalasi, variabel, array, fungsi, form ...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
+  { slug: 'php-pemula', title: 'PHP untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap PHP untuk pemula — instalasi, variabel, array, fungsi, form ...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
   { slug: 'php-security', title: 'PHP Security Best Practices', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap keamanan PHP — SQL injection, XSS, CSRF, input validation, p...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'raspberry-pi-cluster', title: 'Raspberry Pi Cluster Computing: K3s, Docker Swarm & Hadoop...', icon: '🍓', cat: 'Raspberry Pi', desc: 'Tutorial lengkap Raspberry Pi Cluster Computing — K3s Kubernetes, Docker Swar...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'raspberry-pi-home-server', title: 'Raspberry Pi Home Server: NAS, Pi-hole, VPN & Media Serv...', icon: '🍓', cat: 'Raspberry Pi', desc: 'Tutorial lengkap Raspberry Pi Home Server — NAS, Pi-hole ad blocker, WireGuar...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'ruby-metaprogramming', title: 'Ruby Metaprogramming', icon: '🐍', cat: 'Python', desc: 'Tutorial Ruby Metaprogramming — method_missing, define_method, singleton meth...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
-  { slug: 'ruby-pemula', title: 'Ruby untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Ruby untuk pemula — instalasi, variabel, tipe data, block, i...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
+  { slug: 'ruby-pemula', title: 'Ruby untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Ruby untuk pemula — instalasi, variabel, tipe data, block, i...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
   { slug: 'ruby-rails', title: 'Ruby on Rails: Web Development', icon: '🐍', cat: 'Python', desc: 'Tutorial Ruby on Rails untuk pengembangan web — MVC, routing, Active Record, ...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'ruby-testing-rspec', title: 'Ruby Testing dengan RSpec', icon: '🐍', cat: 'Python', desc: 'Tutorial Ruby Testing dengan RSpec — describe, context, it, let, mocks, share...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'rust-concurrency', title: 'Rust Concurrency: Threads & Async', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap concurrency di Rust — threads, mutex, channels, async/await,...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'rust-error-handling', title: 'Error Handling di Rust', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap error handling di Rust — Result, Option, unwrap, custom erro...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'rust-ownership', title: 'Ownership & Borrowing di Rust', icon: '🐍', cat: 'Python', desc: 'Tutorial mendalam tentang ownership, borrowing, references, lifetimes, dan mo...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
-  { slug: 'rust-pemula', title: 'Rust untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Rust untuk pemula — instalasi, variabel, ownership, borrowin...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
+  { slug: 'rust-pemula', title: 'Rust untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Rust untuk pemula — instalasi, variabel, ownership, borrowin...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
   { slug: 'sensor-interfacing', title: 'Sensor Interfacing dengan Microcontroller', icon: '📡', cat: 'IoT', desc: 'Panduan lengkap sensor interfacing dengan microcontroller — ADC, I2C, SPI, UA...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
-  { slug: 'swift-pemula', title: 'Swift untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Swift untuk pemula — variabel, tipe data, optional, enum, st...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
-  { slug: 'tcp-ip-dasar', title: 'TCP/IP Dasar: Panduan Lengkap', icon: '🔗', cat: 'Networking', desc: 'Panduan lengkap TCP/IP untuk pemula — model OSI, protokol TCP dan UDP, IP add...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
+  { slug: 'swift-pemula', title: 'Swift untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap Swift untuk pemula — variabel, tipe data, optional, enum, st...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
+  { slug: 'tcp-ip-dasar', title: 'TCP/IP Dasar: Panduan Lengkap', icon: '🔗', cat: 'Networking', desc: 'Panduan lengkap TCP/IP untuk pemula — model OSI, protokol TCP dan UDP, IP add...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
   { slug: 'typescript-advanced-types', title: 'TypeScript Advanced Types: Union, Intersection & Mapped T...', icon: '🐍', cat: 'Python', desc: 'Tutorial lanjutan TypeScript — union types, intersection types, conditional t...', diff: 'lanjut', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'typescript-decorators', title: 'TypeScript Decorators: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap TypeScript Decorators — class decorators, method decorators,...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'typescript-generics', title: 'TypeScript Generics: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap TypeScript Generics — generic functions, generic classes, co...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
-  { slug: 'typescript-pemula', title: 'TypeScript untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap TypeScript untuk pemula — instalasi, type annotations, inter...', diff: 'pemula', time: '20', access: 'Token', date: '27 Juni 2026' },
+  { slug: 'typescript-pemula', title: 'TypeScript untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap TypeScript untuk pemula — instalasi, type annotations, inter...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
   { slug: 'vpn-panduan', title: 'VPN: Virtual Private Network Panduan Lengkap', icon: '🔗', cat: 'Networking', desc: 'Panduan lengkap VPN — protokol VPN, tunneling, OpenVPN, WireGuard, IPSec, set...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'wifi-security', title: 'WiFi Security: Keamanan Jaringan Nirkabel', icon: '🔗', cat: 'Networking', desc: 'Panduan lengkap WiFi security — WPA3, WPA2, rogue AP, WiFi pen testing, hard...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
 ];
@@ -2712,7 +2737,7 @@ function renderArticleCard(a) {
   const lockIcon = isUnlocked
     ? '<div class="lock-icon unlocked">🔓</div>'
     : '<div class="lock-icon locked">🔒</div>';
-  return '<a href="articles/' + a.slug + '.html" class="article-card' + (isUnlocked ? ' viewed' : '') + '"><div class="thumbnail"><div class="thumbnail-bg cyan">' + a.icon + '</div>' + lockIcon + (isUnlocked ? '<div class="viewed-badge">✓ Dilihat</div>' : '') + '</div><div class="content"><div class="meta"><span class="category-tag">' + a.cat + '</span><span class="access-badge ' + (a.access === 'Token' ? 'token' : 'unlocked') + '">' + a.access + '</span><span class="date">' + a.date + '</span></div><h3>' + a.title + '</h3><p>' + a.desc + '</p><div class="footer"><span class="read-time">📖 ' + a.time + ' menit baca</span><span class="difficulty ' + a.diff + '">' + a.diff.charAt(0).toUpperCase() + a.diff.slice(1) + '</span></div></div></a>';
+  return '<a href="articles/' + a.slug + '.html" class="article-card' + (isUnlocked ? ' viewed' : '') + '"><div class="thumbnail"><div class="thumbnail-bg cyan">' + a.icon + '</div>' + lockIcon + (isUnlocked ? '<div class="viewed-badge">✓ Dilihat</div>' : '') + '</div><div class="content"><div class="meta"><span class="category-tag">' + a.cat + '</span><span class="access-badge ' + (a.access === 'Token' ? 'token' : (a.access === 'Gratis' ? 'free' : 'unlocked')) + '">' + a.access + '</span><span class="date">' + a.date + '</span></div><h3>' + a.title + '</h3><p>' + a.desc + '</p><div class="footer"><span class="read-time">📖 ' + a.time + ' menit baca</span><span class="difficulty ' + a.diff + '">' + a.diff.charAt(0).toUpperCase() + a.diff.slice(1) + '</span></div></div></a>';
 }
 
 function renderGroupedArticles(filter) {
