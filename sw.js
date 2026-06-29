@@ -10,6 +10,7 @@ const PAGE_CACHE = 'beebanelabs-pages-v1';
 // Static assets to pre-cache on install
 const PRECACHE_URLS = [
   '/offline.html',
+  '/offline',
   '/css/style.css?v=13.3',
   '/js/app.js?v=9.5',
   '/js/security.js',
