@@ -2246,7 +2246,7 @@ function injectLearningPath() {
 // === UNIFIED CATEGORY SYSTEM ===
 const ARTICLE_CATEGORIES = {
   'iot': {
-    name: 'IoT & Embedded',
+    name: 'Internet of Things',
     icon: '🤖',
     slug: 'iot',
     match: ['ESP32', 'IoT', 'Raspberry Pi', 'LoRa'],
@@ -2328,15 +2328,7 @@ const ARTICLE_CATEGORIES = {
     slug: 'it-career',
     match: ['IT Career'],
     color: '#6366f1'
-  },
-  'esp32': {
-    name: 'ESP32 & ESP8266',
-    icon: '🔧',
-    slug: 'esp32',
-    match: ['ESP32'],
-    color: '#06b6d4'
-  },
-  'lora': {
+  },  'lora': {
     name: 'LoRa & LPWAN',
     icon: '📡',
     slug: 'lora',
