@@ -306,6 +306,162 @@
 +trivy k8s --compliance=cis cluster
 +trivy k8s --compliance=nsa cluster</pre>
       </div>
+
+      <h3>Supply Chain Security</h3>
+      <p>Supply chain attacks pada container ecosystem terjadi ketika komponen yang dipercaya (base image, dependency, registry) dikompromikan. SolarWinds dan Codecov adalah contoh supply chain attacks besar.</p>
+      <div class="diagram-box"><div class="diagram-label">Diagram: Container Supply Chain</div>
+<pre>
+┌─────────────────────────────────────────────────────┐
+│           CONTAINER SUPPLY CHAIN                      │
+│                                                      │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐      │
+│  │  Base     │    │ Package  │    │ App      │      │
+│  │  Image    │───▶│ Manager  │───▶│ Code     │      │
+│  │  (OS)     │    │ (pip/npm)│    │          │      │
+│  └──────────┘    └──────────┘    └──────────┘      │
+│       │               │               │              │
+│       ▼               ▼               ▼              │
+│  ┌──────────────────────────────────────────┐       │
+│  │           Dockerfile                      │       │
+│  │  (Build instructions)                     │       │
+│  └──────────────────────┬───────────────────┘       │
+│                         ▼                            │
+│  ┌──────────────────────────────────────────┐       │
+│  │           Container Image                 │       │
+│  │  ┌──────┐ ┌──────┐ ┌──────┐             │       │
+│  │  │Layer1│ │Layer2│ │Layer3│ ...          │       │
+│  │  │(OS)  │ │(deps)│ │(app) │             │       │
+│  │  └──────┘ └──────┘ └──────┘             │       │
+│  └──────────────────────┬───────────────────┘       │
+│                         ▼                            │
+│  ┌──────────────────────────────────────────┐       │
+│  │           Container Registry              │       │
+│  │  (DockerHub, ECR, GCR, Harbor)           │       │
+│  └──────────────────────────────────────────┘       │
+│                                                      │
+│  ⚠️ ATTACK POINTS:                                  │
+│  • Poisoned base image                               │
+│  • Malicious dependency (typosquatting)              │
+│  • Compromised build pipeline                        │
+│  • Registry tampering                                │
+│  • Signed image bypass                               │
+└─────────────────────────────────────────────────────┘
+</pre>
+      </div>
+
+      <h3>Image Signing with Cosign</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Container Image Signing</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
++# Container Image Signing &amp; Verification
++# =============================================
+
++# 1. Install cosign (Sigstore)
++go install github.com/sigstore/cosign/v2/cmd/cosign@latest
+
++# 2. Generate keypair
++cosign generate-key-pair
+
++# 3. Sign image
++cosign sign --key cosign.key registry.example.com/myapp:v1.0
+
++# 4. Verify signature
++cosign verify --key cosign.pub registry.example.com/myapp:v1.0
+
++# 5. Sign with keyless (OIDC identity)
++cosign sign registry.example.com/myapp:v1.0
++# Uses Fulcio for short-lived certificates
++# Uses Rekor for transparency log
+
++# 6. Enforce signature verification in K8s
++# Kyverno policy:
++apiVersion: kyverno.io/v1
++kind: ClusterPolicy
++metadata:
++  name: verify-image-signatures
++spec:
++  validationFailureAction: enforce
++  rules:
++    - name: verify-cosign-signature
++      match:
++        resources:
++          kinds: ["Pod"]
++      verifyImages:
++        - imageReferences: ["registry.example.com/*"]
++          attestors:
++            - entries:
++                - keys:
++                    publicKeys: |-
++                      -----BEGIN PUBLIC KEY-----
++                      ...
++                      -----END PUBLIC KEY-----</pre>
+      </div>
+
+      <h3>Container Forensics</h3>
+      <p>Ketika container terkompromi, forensik container berbeda dari tradisional karena sifat ephemeral container. Evidence collection harus dilakukan sebelum container dihapus.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Container Forensics</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
++# Container Incident Response &amp; Forensics
++# =============================================
+
++# 1. Snapshot container filesystem (sebelum dihapus)
++docker commit suspicious-container forensic-image:v1
++docker save forensic-image:v1 -o forensic-image.tar
+
++# 2. Export container filesystem
++docker export suspicious-container -o container-fs.tar
++mkdir /forensics/container && tar xf container-fs.tar -C /forensics/container
+
++# 3. Capture container memory
++docker exec suspicious-container sh -c 'cat /proc/*/maps' > mem-maps.txt
++# Or use AVML for memory capture
++docker cp suspicious-container:/proc /forensics/proc
+
++# 4. Collect container logs
++docker logs suspicious-container > container-logs.txt 2>&1
+
++# 5. Network forensics
++docker exec suspicious-container ss -tulnp > network-connections.txt
++docker exec suspicious-container cat /etc/resolv.conf > dns-config.txt
+
++# 6. Process forensics
++docker top suspicious-container > process-list.txt
++docker exec suspicious-container ps auxf > process-tree.txt
+
++# 7. Analyze image layers
++dive forensic-image:v1
++# Check each layer for suspicious additions
+
++# 8. Timeline reconstruction
++# Correlate timestamps from:
++# - Container logs
++# - Host audit logs (auditd)
++# - Network flow logs
++# - SIEM alerts</pre>
+      </div>
+
+
+      <h3>Container Monitoring with Prometheus</h3>
+      <p>Container monitoring mendeteksi anomali runtime seperti resource abuse, suspicious process, dan network activity yang tidak biasa.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">YAML — Container Monitoring</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
++<pre># Prometheus alerts for container security
++groups:
++  - name: container-security
++    rules:
++      - alert: ContainerHighCPU
++        expr: container_cpu_usage_seconds_total > 0.9
++        for: 5m
++        labels:
++          severity: warning
++        annotations:
++          summary: "Container {{ $labels.name }} high CPU"
++      - alert: ContainerPrivilegeEscalation
++        expr: container_security_privileged == 1
++        labels:
++          severity: critical
++        annotations:
++          summary: "Privileged container detected"</pre>
++      </div>
+
       <h2 id="quiz">9. Quiz Pemahaman</h2>
       <div class="quiz-container">
         <div class="quiz-question" data-correct="1">

@@ -784,7 +784,7 @@ const PaywallSystem = {
     const diffBadge = document.querySelector('.difficulty');
     if (diffBadge && diffBadge.classList.contains('pemula')) return true;
     // Check if IT Career page
-    const articleSection = document.querySelector('meta[name="article:section"]');
+    const articleSection = document.querySelector('meta[name="article:section"], meta[property="article:section"]');
     if (articleSection && articleSection.content === 'IT Career') return true;
     return false;
   },

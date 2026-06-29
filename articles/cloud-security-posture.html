@@ -185,6 +185,203 @@
 +steampipe plugin install aws
 +steampipe query "SELECT name FROM aws_s3_bucket WHERE bucket_policy_is_public"</pre>
       </div>
+
+      <h3>Cloud Identity &amp; Access Management</h3>
+      <p>IAM adalah kontrol keamanan paling penting di cloud. Konfigurasi IAM yang salah adalah penyebab #1 dari cloud breaches. Principle of least privilege harus diterapkan secara ketat.</p>
+
++      <h3>IAM Policy Analysis</h3>
++      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — IAM Security Audit</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
++<pre># =============================================
++# Cloud IAM Security Audit
++# =============================================
+
++# AWS: Find users with admin access
++aws iam list-entities-for-policy \
++  --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
+
++# AWS: Find unused IAM credentials
++aws iam generate-credential-report
++aws iam get-credential-report \
++  --query 'Content' --output text | base64 -d
+
++# AWS: Find roles that can be assumed externally
++aws iam list-roles --query 'Roles[?contains(AssumeRolePolicyDocument.Statement[].Principal.AWS, `*`)]'
+
++# Azure: Find owners on subscriptions
++az role assignment list --role "Owner" \
++  --query "[].{Principal:principalName, Scope:scope}"
+
++# GCP: Find service accounts with keys
++gcloud iam service-accounts list \
++  --format="table(email,displayName)"
++gcloud iam service-accounts keys list \
++  --iam-account=SA_EMAIL
+
++# Terraform: Check for overly permissive policies
++cat > check_iam.py &lt;&lt; 'EOF'
++import json, glob
++for f in glob.glob("**/*.tf.json", recursive=True):
++    data = json.load(open(f))
++    for r in data.get("resource", []):
++        for policy in r.get("aws_iam_policy", {}):
++            doc = json.loads(policy["policy"])
++            for stmt in doc.get("Statement", []):
++                if stmt.get("Effect") == "Allow":
++                    actions = stmt.get("Action", [])
++                    if isinstance(actions, str):
++                        actions = [actions]
++                    if "*" in actions:
++                        print(f"WARNING: {policy} has Action: *")
++EOF
++python3 check_iam.py</pre>
++      </div>
+
++      <h3>Cloud Logging &amp; Monitoring</h3>
++      <p>Logging adalah fondasi deteksi dan forensik di cloud. Pastikan semua control plane dan data plane activity ter-log.</p>
++      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Cloud Logging Setup</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
++<pre># =============================================
++# Cloud Logging Best Practices
++# =============================================
+
++# AWS CloudTrail — Log semua API calls
++aws cloudtrail create-trail \
++  --name org-trail \
++  --s3-bucket-name audit-logs-bucket \
++  --is-multi-region-trail \
++  --enable-log-file-validation
+
++aws cloudtrail start-logging --name org-trail
+
++# AWS VPC Flow Logs — Network traffic
++aws ec2 create-flow-logs \
++  --resource-type VPC \
++  --resource-ids vpc-12345 \
++  --traffic-type ALL \
++  --log-destination-type s3 \
++  --log-destination arn:aws:s3:::flow-logs-bucket
+
++# Azure Monitor — Activity logs
++az monitor diagnostic-settings create \
++  --name audit \
++  --resource /subscriptions/xxx \
++  --storage-account auditstorage \
++  --logs '[
++    {"category":"Administrative","enabled":true},
++    {"category":"Security","enabled":true},
++    {"category":"Alert","enabled":true}
++  ]'
+
++# GCP Audit Logs
++gcloud logging sinks create audit-sink \
++  --log-filter='logName:cloudaudit.googleapis.com' \
++  --destination=storage.googleapis.com/audit-bucket</pre>
++      </div>
+
++      <h3>Cloud Incident Response</h3>
++      <p>Cloud incident response berbeda dari on-premise karena sifat API-driven dan ephemeral resources. Speed sangat kritis karena attacker bisa spin up resources dalam hitungan detik.</p>
++      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Cloud IR Quick Response</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
++<pre># =============================================
++# Cloud Incident Response — Quick Actions
++# =============================================
+
++# COMPROMISED EC2 INSTANCE
++# 1. Snapshot instance (preserve evidence)
++aws ec2 create-snapshot --volume-id vol-xxx \
++  --description "IR evidence - $(date)"
+
++# 2. Isolate instance (change security group)
++aws ec2 modify-instance-attribute \
++  --instance-id i-xxx \
++  --groups sg-isolation  # SG with no rules
+
++# 3. Capture instance metadata
++aws ec2 describe-instances --instance-id i-xxx
+
++# COMPROMISED IAM CREDENTIALS
++# 1. Immediately disable access
++aws iam update-access-key \
++  --user-name compromised-user \
++  --access-key-id AKIAxxx \
++  --status Inactive
+
++# 2. Revoke all sessions
++aws iam put-user-policy \
++  --user-name compromised-user \
++  --policy-name RevokeAllSessions \
++  --policy-document '{
++    "Version":"2012-10-17",
++    "Statement":[{
++      "Effect":"Deny",
++      "Action":"*",
++      "Resource":"*",
++      "Condition":{"DateLessThan":{"aws:TokenIssueTime":"2024-01-15T00:00:00Z"}}
++    }]
++  }'
+
++# 3. Check CloudTrail for damage
++aws cloudtrail lookup-events \
++  --lookup-attributes AttributeKey=Username,AttributeValue=compromised-user \
++  --max-results 100</pre>
++      </div>
+
+
++      <h3>Cloud Data Classification</h3>
++      <p>Data classification adalah langkah pertama untuk melindungi data di cloud. Tanpa mengetahui data apa yang sensitif, tidak mungkin menerapkan kontrol yang tepat.</p>
++      <table class="net-table"><thead><tr><th>Classification</th><th>Description</th><th>Controls</th></tr></thead><tbody>
++        <tr><td><strong>Public</strong></td><td>Data yang boleh diakses publik</td><td>Basic access controls</td></tr>
++        <tr><td><strong>Internal</strong></td><td>Hanya untuk karyawan</td><td>Authentication required, logging</td></tr>
++        <tr><td><strong>Confidential</strong></td><td>Data sensitif bisnis</td><td>Encryption, DLP, strict access</td></tr>
++        <tr><td><strong>Restricted</strong></td><td>Data paling sensitif (PII, financial)</td><td>All controls + audit + MFA + PAM</td></tr>
++      </tbody></table>
++
++      <h3>Cloud Cost Security</h3>
++      <p>Cloud cost anomaly bisa menjadi indikator serangan. Crypto mining atau resource abuse akan menghasilkan spike biaya yang tidak biasa.</p>
++      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Cloud Cost Anomaly Detection</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
++<pre># =============================================
++# Cloud Cost Anomaly Detection
++# =============================================
+
++# AWS — Check billing anomaly
++aws ce get-cost-and-usage \
++  --time-period Start=2024-01-01,End=2024-01-15 \
++  --granularity DAILY \
++  --metrics "UnblendedCost"
+
++# AWS — Set billing alarm
++aws cloudwatch put-metric-alarm \
++  --alarm-name "HighBilling" \
++  --metric-name EstimatedCharges \
++  --namespace AWS/Billing \
++  --threshold 1000 \
++  --comparison-operator GreaterThanThreshold \
++  --evaluation-periods 1 \
++  --statistic Maximum
+
++# Check for crypto mining indicators
++# - Unusual GPU instance launches
++# - High CPU utilization on small instances
++# - New instances in unexpected regions
++aws ec2 describe-instances \
++  --filters "Name=instance-type,Values=g4dn.*,p3.*" \
++  --query "Reservations[].Instances[].[InstanceId,LaunchTime,Tags[?Key=='Name'].Value]"
+
++# Azure — Cost anomaly
++az costmanagement query \
++  --type ActualCost \
++  --timeframe MonthToDate \
++  --dataset-aggregation '{"totalCost":{"name":"Cost","function":"Sum"}}'</pre>
++      </div>
++
++      <h3>Multi-Cloud Security Strategy</h3>
++      <p>Banyak organisasi menggunakan multiple cloud providers. Strategi keamanan harus konsisten di semua cloud.</p>
++      <div class="info-box info"><div class="info-box-title">💡 Multi-Cloud Best Practices</div><ul>
++        <li><strong>Unified Policy</strong> — Gunakan policy as code (Terraform + OPA) untuk konsistensi</li>
++        <li><strong>Centralized Logging</strong> — Aggregasi log dari semua cloud ke satu SIEM</li>
++        <li><strong>Identity Federation</strong> — SSO yang terhubung ke semua cloud provider</li>
++        <li><strong>CSPM Tool</strong> — Gunakan multi-cloud CSPM untuk visibility terpadu</li>
++        <li><strong>Consistent Tagging</strong> — Tag semua resource untuk cost allocation dan security</li>
++      </ul></div>
++
       <h2 id="quiz">9. Quiz Pemahaman</h2>
       <div class="quiz-container">
         <div class="quiz-question" data-correct="1">

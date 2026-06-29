@@ -204,6 +204,246 @@
         <li><strong>Just-in-time</strong> — Saat user klik phishing, langsung tampilkan training</li>
         <li><strong>Measure</strong> — Track click rate, report rate, time-to-report</li>
       </ul></div>
+
+      <h3>Phishing URL Analysis</h3>
+      <p>Kemampuan menganalisis URL sangat penting untuk mengenali phishing. URL palsu sering menggunakan teknik typosquatting, homograph attack, dan URL shortening untuk menyamarkan tujuan sebenarnya.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Phishing URL Analysis</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
++# Phishing URL Analysis Techniques
++# =============================================
+
++# 1. Check URL dengan VirusTotal
++curl --request GET \
++  --url "https://www.virustotal.com/api/v3/urls/$(echo -n 'http://suspicious.com' | sha256sum | cut -d' ' -f1)" \
++  --header "x-apikey: YOUR_API_KEY"
+
++# 2. Analyze URL structure
++# RED FLAGS dalam URL:
++# ❌ http:// (bukan https)
++# ❌ login-bca.secure-verify.com (subdomain palsu)
++# ❌ bca-secure-login.com (typosquatting)
++# ❌ bаnkbca.com (homograph - Cyrillic 'а')
++# ❌ bit.ly/xyz123 (URL shortener untuk hide destination)
+
++# 3. Expand shortened URLs
++curl -sI "https://bit.ly/xyz123" | grep -i location
+
++# 4. Check domain age
++# Baru dibuat &lt; 30 hari = suspicious
++whois suspicious-domain.com | grep -i "creation date"
+
++# 5. DNS analysis
++dig suspicious-domain.com ANY +noall +answer
++dig suspicious-domain.com TXT  # Check SPF/DKIM
+
++# 6. Email header analysis
++# Check Return-Path, Received headers
++# Verify SPF/DKIM/DMARC results
++# Look for sender spoofing indicators
+
++# 7. Attachment analysis
++# Sandbox suspicious attachments
++# Check macros in Office documents
++# Analyze URLs embedded in PDF
++python3 -c "
++import sys
++with open(sys.argv[1], 'rb') as f:
++    data = f.read()
++    import re
++    urls = re.findall(rb'https?://[^\s<>"\x00]+', data)
++    for u in urls:
++        print(u.decode('utf-8', errors='ignore'))
++" suspicious.pdf</pre>
++      </div>
+
++      <h3>Creating Effective Security Policies</h3>
++      <p>Security policy yang baik harus jelas, mudah diikuti, dan ditegakkan secara konsisten. Berikut adalah template kebijakan untuk menghadapi social engineering.</p>
++      <div class="code-block"><div class="code-header"><span class="code-lang">Template — Anti-Phishing Policy</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
++<pre># =============================================
++# Template: Anti-Phishing Policy
++# =============================================
+
++# POLICY: Email and Communication Security
++# Version: 1.0
++# Effective: 2024-01-01
+
++# 1. VERIFICATION REQUIREMENTS
++#    - Semua permintaan transfer &gt; Rp 10.000.000
++#      harus diverifikasi via telepon ke nomor terdaftar
++#    - Perubahan detail bank vendor harus dikonfirmasi
++#      langsung dengan PIC vendor via kontak yang ada
++#    - Permintaan akses admin harus melalui tiket resmi
+
++# 2. REPORTING PROCEDURE
++#    - Jika menerima email mencurigakan:
++#      a. Jangan klik link atau buka attachment
++#      b. Forward ke security@company.com sebagai attachment
++#      c. Laporkan melalui tombol "Report Phishing"
++#    - Jika sudah klik link/kirim data:
++#      a. Segera ubah password
++#      b. Hubungi IT Security hotline
++#      c. Jangan matikan komputer (bisa diperlukan forensik)
+
++# 3. CONSEQUENCES
++#    - Pelanggaran policy dapat mengakibatkan:
++#      a. Verbal warning (first offense)
++#      b. Written warning + mandatory training
++#      c. Disciplinary action (repeat offense)
+
++# 4. EXCEPTIONS
++#    - Tidak ada exceptions untuk verification requirements
++#    - Semua permintaan "urgent" tetap harus diverifikasi
++#    - CEO sekalipun tidak bisa bypass prosedur</pre>
++      </div>
+
++      <h3>Incident Response untuk Social Engineering</h3>
++      <p>Ketika karyawan melaporkan telah menjadi korban social engineering, langkah cepat sangat penting untuk meminimalkan dampak.</p>
++      <div class="diagram-box"><div class="diagram-label">Diagram: Social Engineering IR Flow</div>
++<pre>
++┌─────────────────────────────────────────────────────┐
++     SOCIAL ENGINEERING INCIDENT RESPONSE                │
++│                                                      │
++│  ┌────────────────────────────────┐                 │
++│  │  KARYAWAN MELAPORKAN           │                 │
++│  │  "Saya klik link phishing"     │                 │
++│  └──────────────┬─────────────────┘                 │
++│                 ▼                                    │
++│  ┌────────────────────────────────┐                 │
++│  │  IMMEDIATE (0-15 menit)        │                 │
++│  │  □ Reset password korban       │                 │
++│  │  □ Revoke active sessions      │                 │
++│  │  □ Block sender di email GW    │                 │
++│  │  □ Block URL di web filter     │                 │
++│  │  □ Scan device korban          │                 │
++│  └──────────────┬─────────────────┘                 │
++│                 ▼                                    │
++│  ┌────────────────────────────────┐                 │
++│  │  SHORT TERM (1-4 jam)          │                 │
++│  │  □ Cek apakah ada data yang    │                 │
++│  │    sudah terkirim ke attacker   │                 │
++│  │  □ Cek lateral access dari     │                 │
++│  │    akun korban                 │                 │
++│  │  □ Alert karyawan lain tentang │                 │
++│  │    campaign phishing ini       │                 │
++│  │  □ Update email filter rules   │                 │
++│  └──────────────┬─────────────────┘                 │
++│                 ▼                                    │
++│  ┌────────────────────────────────┐                 │
++│  │  FOLLOW UP (1-7 hari)          │                 │
++│  │  □ Review access logs 7 hari   │                 │
++│  │  □ Forced password reset semua │                 │
++│  │    yang terkena campaign       │                 │
++│  │  □ Update training materials   │                 │
++│  │  □ Post-incident report        │                 │
++│  └────────────────────────────────┘                 │
++└─────────────────────────────────────────────────────┘
++</pre>
++      </div>
+
++      <h3>OSINT untuk Defense</h3>
++      <p>Open Source Intelligence (OSINT) dapat digunakan untuk memahami apa yang diketahui attacker tentang organisasi Anda, sehingga bisa dilakukan mitigasi proaktif.</p>
++      <h4>Data yang Bisa Dikumpulkan Attacker dari OSINT</h4>
++      <ul>
++        <li><strong>LinkedIn</strong> — Struktur organisasi, nama karyawan, jabatan, teknologi yang digunakan</li>
++        <li><strong>GitHub</strong> — Source code, credentials yang bocor, konfigurasi internal</li>
++        <li><strong>WHOIS</strong> — Informasi domain, nama kontak, email admin</li>
++        <li><strong>Google Dorking</strong> — File sensitif yang ter-ekspos, login pages, error messages</li>
++        <li><strong>Shodan/Censys</strong> — Service yang ter-ekspos ke internet, banner information</li>
++        <li><strong>Social Media</strong> — Lokasi kantor, foto yang mengungkap informasi, jadwal</li>
++      </ul>
++      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Defensive OSINT</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
++<pre># =============================================
++# Defensive OSINT — Check Your Exposure
++# =============================================
+
++# 1. Check for leaked credentials
++# Monitor: haveibeenpwned.com API
++curl "https://haveibeenpwned.com/api/v3/breachedaccount/company.com" \
++  -H "hibp-api-key: YOUR_KEY"
+
++# 2. GitHub secret scanning
++# Enable GitHub Advanced Security
++# Monitor for company secrets in public repos
++# Tools: truffleHog, git-secrets
++trufflehog git https://github.com/org/repo --only-verified
+
++# 3. Google dorking untuk exposure check
++# site:company.com filetype:pdf
++# site:company.com "password" OR "secret"
++# site:company.com inurl:login
++# site:company.com intitle:"index of"
+
++# 4. Shodan exposure check
++shodan search "org:YourCompany" --fields ip_str,port,product
+
++# 5. DNS enumeration (check subdomains)
++subfinder -d company.com -silent
++amass enum -passive -d company.com</pre>
++      </div>
+
+
++      <h3>Red Team Social Engineering</h3>
++      <p>Red team exercise untuk social engineering menguji ketahanan organisasi terhadap serangan nyata. Ini dilakukan dengan izin dan bertujuan mengidentifikasi kelemahan sebelum attacker sungguhan menemukannya.</p>
++      <div class="code-block"><div class="code-header"><span class="code-lang">Template — SE Red Team Engagement</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
++<pre># =============================================
++# Red Team Social Engineering Engagement
++# =============================================
+
++# SCOPE DEFINITION (dengan izin tertulis)
++# Target: PT Contoh Indonesia
++# Duration: 2 minggu
++# Scope: Email phishing, vishing, physical
++# Out of scope: Destruction, harassment
+
++# WEEK 1: EMAIL PHISHING CAMPAIGN
++# Day 1-2: OSINT &amp; reconnaissance
++# - LinkedIn: struktur organisasi
++# - Website: informasi kontak
++# - Social media: personalisasi email
++#
++# Day 3-4: Crafting phishing emails
++# - Template 1: "Update gaji" (HR theme)
++# - Template 2: "Reset password IT" (IT theme)
++# - Template 3: "Invoice vendor" (Finance theme)
++# - Each with unique tracking pixel &amp; credential harvester
++#
++# Day 5: Launch campaign
++# - Send to 100 random employees
++# - Track: open rate, click rate, credential submit
++# - Record: time-to-click, time-to-report
+
++# WEEK 2: VISHING &amp; PHYSICAL
++# Day 8-9: Phone pretexting
++# - Call 20 employees posing as IT support
++# - Request: remote access, password reset
++# - Record: compliance rate, suspicion level
++#
++# Day 10-11: Physical access test
++# - Tailgate into building
++# - Drop USB drives in parking lot
++# - Attempt to access server room
++#
++# Day 12: Debrief &amp; report preparation
+
++# REPORT STRUCTURE:
++# 1. Executive Summary
++# 2. Attack Narrative (timeline)
++# 3. Findings &amp; Metrics
++# 4. Recommendations (prioritized)
++# 5. Training Plan
++# 6. Appendix (evidence, screenshots)</pre>
++      </div>
+
++      <h3>Building a Security Champions Program</h3>
++      <p>Security champions adalah karyawan dari berbagai departemen yang mendapat training keamanan khusus dan bertindak sebagai perpanjangan tim keamanan di divisi mereka.</p>
++      <ul>
++        <li><strong>Pemilihan</strong> — Pilih 1-2 orang per departemen yang tertarik dengan keamanan</li>
++        <li><strong>Training</strong> — Berikan training lanjutan tentang threat landscape terkini</li>
++        <li><strong>Komunikasi</strong> — Jadikan mereka contact point untuk pertanyaan keamanan</li>
++        <li><strong>Feedback loop</strong> — Mereka melaporkan kejanggalan di departemen masing-masing</li>
++        <li><strong>Recognition</strong> — Berikan penghargaan untuk laporan yang membantu mencegah insiden</li>
++      </ul>
++
       <h2 id="quiz">9. Quiz Pemahaman</h2>
       <div class="quiz-container">
         <div class="quiz-question" data-correct="1">

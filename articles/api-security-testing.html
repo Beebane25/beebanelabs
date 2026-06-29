@@ -316,6 +316,129 @@ def create_user():
     email = data["email"][:254]
     return jsonify({"status": "created"}), 201</pre>
       </div>
+
+      <h3>API Security Headers</h3>
+      <p>HTTP security headers adalah pertahanan pertama yang harus dikonfigurasi pada setiap API. Headers yang tepat dapat mencegah berbagai jenis serangan seperti XSS, clickjacking, dan MIME sniffing.</p>
+      <table class="net-table"><thead><tr><th>Header</th><th>Nilai</th><th>Fungsi</th></tr></thead><tbody>
+        <tr><td><strong>Content-Security-Policy</strong></td><td>default-src 'self'</td><td>Mencegah XSS dan injection</td></tr>
+        <tr><td><strong>X-Content-Type-Options</strong></td><td>nosniff</td><td>Mencegah MIME type sniffing</td></tr>
+        <tr><td><strong>X-Frame-Options</strong></td><td>DENY</td><td>Mencegah clickjacking</td></tr>
+        <tr><td><strong>Strict-Transport-Security</strong></td><td>max-age=31536000</td><td>Force HTTPS</td></tr>
+        <tr><td><strong>Cache-Control</strong></td><td>no-store</td><td>Mencegah caching data sensitif</td></tr>
+        <tr><td><strong>RateLimit-Limit</strong></td><td>100</td><td>Informasi rate limit ke client</td></tr>
+      </tbody></table>
+
+      <h3>GraphQL Security</h3>
+      <p>GraphQL API memiliki attack surface yang berbeda dari REST. Beberapa kerentanan khusus GraphQL meliputi introspection abuse, nested query depth attack, dan batch query abuse.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — GraphQL Security Testing</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
++# GraphQL Security Testing
++# =============================================
+
++# 1. Introspection query (enumerate schema)
++curl -X POST https://target.com/graphql \
++  -H "Content-Type: application/json" \
++  -d '{"query":"{ __schema { types { name fields { name type { name } } } } }"}'
+
++# 2. Disable introspection in production!
++# Apollo Server config:
++# introspection: process.env.NODE_ENV !== 'production'
+
++# 3. Query depth attack (nested queries)
++# Malicious: deeply nested query to cause DoS
++# { user(id:1) { friends { friends { friends { ... } } } } }
++
++# Defense: Set max depth limit
++# graphql-depth-limit package: maxDepth: 5
+
++# 4. Batch query abuse
++# Sending multiple queries in single request
++curl -X POST https://target.com/graphql \
++  -H "Content-Type: application/json" \
++  -d '[
++    {"query":"{ user(id:1) { email } }"},
++    {"query":"{ user(id:2) { email } }"},
++    {"query":"{ user(id:3) { email } }"}
++  ]'
+
++# Defense: Limit batch size
++# graphql-config: batch: { max: 5 }
+
++# 5. SQL Injection via GraphQL variables
++curl -X POST https://target.com/graphql \
++  -H "Content-Type: application/json" \
++  -d '{"query":"query($name: String!) { users(name: $name) { id } }", "variables": {"name": "\' OR 1=1--"}}'
+
++# 6. Field suggestion abuse
++# GraphQL leaks field names through suggestions
++# Defense: Disable suggestions in production</pre>
+      </div>
+
+      <h3>API Gateway Security</h3>
+      <p>API Gateway berfungsi sebagai single entry point untuk semua API calls. Konfigurasi gateway yang tepat sangat penting untuk keamanan.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">YAML — Kong API Gateway Security</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
++# API Gateway Security — Kong Configuration
++# =============================================
+
++# Enable rate limiting plugin
++curl -X POST http://kong:8001/services/my-api/plugins \
++  --data "name=rate-limiting" \
++  --data "config.minute=100" \
++  --data "config.policy=local"
+
++# Enable IP restriction
++curl -X POST http://kong:8001/services/my-api/plugins \
++  --data "name=ip-restriction" \
++  --data "config.allow=10.0.0.0/8"
+
++# Enable bot detection
++curl -X POST http://kong:8001/services/my-api/plugins \
++  --data "name=bot-detection"
+
++# Enable CORS
++curl -X POST http://kong:8001/services/my-api/plugins \
++  --data "name=cors" \
++  --data "config.origins=https://trusted.com" \
++  --data "config.methods=GET,POST" \
++  --data "config.max_age=3600"
+
++# Enable request size limiting
++curl -X POST http://kong:8001/services/my-api/plugins \
++  --data "name=request-size-limiting" \
++  --data "config.allowed_payload_size=10"</pre>
+      </div>
+
+
+      <h3>API Versioning Security</h3>
+      <p>API versioning yang buruk dapat mengakibatkan shadow API — versi lama yang masih aktif tetapi tidak dipatching. Setiap versi API harus memiliki lifecycle management yang jelas.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — API Version Discovery</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
++# API Version &amp; Shadow API Discovery
++# =============================================
+
++# Check all active API versions
++for v in v1 v2 v3 v4 api/v1 api/v2; do
++  code=$(curl -s -o /dev/null -w "%{http_code}" \
++    "https://target.com/$v/users" -H "Authorization: Bearer TOKEN")
++  echo "/$v/users -> HTTP $code"
++done
+
++# Search for deprecated endpoints still active
++curl -s "https://target.com/v1/admin/users" \
++  -H "Authorization: Bearer TOKEN" | head -20
+
++# Check for debug endpoints in production
++curl -s "https://target.com/api/debug/vars" | head -20
++curl -s "https://target.com/api/debug/pprof/" | head -20
++curl -s "https://target.com/actuator" | head -20
++curl -s "https://target.com/actuator/env" | head -20
+
++# API security headers audit
++curl -sI "https://target.com/api/users" | \
++  grep -i "strict-transport\|content-security\|x-frame\|x-content-type"</pre>
++      </div>
+
       <h2 id="quiz">9. Quiz Pemahaman</h2>
       <div class="quiz-container">
         <div class="quiz-question" data-correct="1">
