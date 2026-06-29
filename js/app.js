@@ -2382,7 +2382,6 @@ function getCategoryCounts() {
     for (const [key, cat] of Object.entries(ARTICLE_CATEGORIES)) {
       if (cat.match.includes(article.cat)) {
         counts[key]++;
-        break;
       }
     }
   }
