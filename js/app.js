@@ -1,4 +1,4 @@
-/* v7.12.0 - Token System + Content Gate */
+/* v18.0.0 - Full Article Sync + Category Fix */
 // === EARLY CONTENT GATE (runs before DOM renders) ===
 // Prevents "flash of content" on article pages before paywall check
 (function earlyContentGate() {
@@ -721,7 +721,7 @@ function initServiceWorker() {
 // === CONFIGURATION ===
 const SITE_CONFIG = {
   API_BASE: window.location.origin,
-  APP_VERSION: '8.0',
+  APP_VERSION: '18.0',
   TOKEN_PRICE: 10000,
   INITIAL_TOKENS: 5
 };
@@ -2249,41 +2249,42 @@ const ARTICLE_CATEGORIES = {
     name: 'Internet of Things',
     icon: '🤖',
     slug: 'iot',
-    match: ['ESP32', 'IoT', 'Raspberry Pi', 'LoRa'],
+    match: ['ESP32', 'IoT', 'Internet of Things', 'Raspberry Pi', 'LoRa', 'Python untuk IoT', 'Industrial IoT', 'Cloud & IoT'],
     color: '#00e5ff'
-  },  'programming': {
+  },
+  'programming': {
     name: 'Pemrograman',
     icon: '💻',
     slug: 'python',
-    match: ['Python', 'Tools'],
+    match: ['Python', 'Tools', 'Software Engineering', 'Pemrograman Python', 'Python untuk Pemula'],
     color: '#ffeb00'
   },
   'security': {
     name: 'Cybersecurity',
     icon: '🔐',
     slug: 'keamanan',
-    match: ['Keamanan'],
+    match: ['Keamanan', 'Cybersecurity', 'Forensik'],
     color: '#f43f5e'
   },
   'dashboard': {
     name: 'Dashboard & Cloud',
     icon: '📊',
     slug: 'dashboard',
-    match: ['Dashboard', 'Cloud'],
+    match: ['Dashboard', 'Dashboard & Cloud', 'Dashboard & Visualisasi', 'Cloud'],
     color: '#8b5cf6'
   },
   'protocol': {
     name: 'Protokol & Tools',
     icon: '📡',
     slug: 'protokol',
-    match: ['Protokol'],
+    match: ['Protokol', 'Protokol IoT', 'Developer Tools'],
     color: '#06b6d4'
   },
   'webdev': {
     name: 'Web Development',
     icon: '🌐',
     slug: 'web-dev',
-    match: ['Web Development'],
+    match: ['Web Development', 'Backend Development'],
     color: '#3b82f6'
   },
   'database': {
@@ -2297,36 +2298,38 @@ const ARTICLE_CATEGORIES = {
     name: 'AI & Data Science',
     icon: '🤖',
     slug: 'ai-ml',
-    match: ['AI & Data Science'],
+    match: ['AI & Data Science', 'AI &amp; Data Science', 'Deep Learning', 'Machine Learning', 'Computer Vision', 'NLP & AI', 'AI & LLM', 'Data Science'],
     color: '#a855f7'
   },
   'mobile': {
     name: 'Mobile Development',
     icon: '📱',
     slug: 'mobile',
-    match: ['Mobile Development'],
+    match: ['Mobile Development', 'Android Development'],
     color: '#ec4899'
   },
   'devops': {
     name: 'DevOps & Cloud',
     icon: '⚙️',
     slug: 'devops',
-    match: ['DevOps & Cloud'],
+    match: ['DevOps & Cloud', 'Docker'],
     color: '#f97316'
   },
   'career': {
     name: 'IT Career',
     icon: '💼',
     slug: 'it-career',
-    match: ['IT Career'],
+    match: ['IT Career', 'Certification', 'Professional Development', 'Career'],
     color: '#6366f1'
-  },  'networking-basic': {
+  },
+  'networking-basic': {
     name: 'Jaringan Dasar',
     icon: '🌐',
     slug: 'networking',
-    match: ['Networking'],
+    match: ['Networking', 'MikroTik'],
     color: '#f97316'
-  },};
+  }
+};
 
 function getCategoryCounts() {
   const counts = {};
@@ -2719,6 +2722,126 @@ const ALL_ARTICLES = [
   { slug: 'typescript-pemula', title: 'TypeScript untuk Pemula: Panduan Lengkap', icon: '🐍', cat: 'Python', desc: 'Tutorial lengkap TypeScript untuk pemula — instalasi, type annotations, inter...', diff: 'pemula', time: '20', access: 'Gratis', date: '27 Juni 2026' },
   { slug: 'vpn-panduan', title: 'VPN: Virtual Private Network Panduan Lengkap', icon: '🔗', cat: 'Networking', desc: 'Panduan lengkap VPN — protokol VPN, tunneling, OpenVPN, WireGuard, IPSec, set...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
   { slug: 'wifi-security', title: 'WiFi Security: Keamanan Jaringan Nirkabel', icon: '🔗', cat: 'Networking', desc: 'Panduan lengkap WiFi security — WPA3, WPA2, rogue AP, WiFi pen testing, hard...', diff: 'menengah', time: '20', access: 'Token', date: '27 Juni 2026' },
+,
+  { slug: 'ai-agent-architecture', title: 'AI Agent Architecture', icon: '🐝', cat: 'AI & Data Science', desc: 'Tutorial lengkap AI Agent Architecture.', diff: 'menengah', time: '16', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'airflow-orchestration', title: 'Apache Airflow untuk Data Pipeline — DAGs, Operators &amp; Monitoring', icon: '📖', cat: 'AI & Data Science', desc: 'Tutorial lengkap Apache Airflow — DAGs, operators, XCom, sensors, pools, backfil', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'android-compose-advanced', title: 'Jetpack Compose Advanced', icon: '📖', cat: 'Mobile Development', desc: 'Tutorial lengkap Jetpack Compose Advanced. Custom layout, animation, side effect', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'api-security-testing', title: 'API Security Testing', icon: '🐝', cat: 'Keamanan', desc: 'Pelajari API Security Testing: OWASP API Top 10, REST API vulnerabilities, JWT a', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'arduino-libraries', title: 'Membuat Arduino Library yang Profesional: Dari Dasar hingga Publish', icon: '📖', cat: 'Internet of Things', desc: 'Tutorial lengkap membuat Arduino Library profesional. Pelajari header files, cla', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'argocd-gitops', title: 'ArgoCD: GitOps for Kubernetes', icon: '📖', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap ArgoCD untuk GitOps di Kubernetes — Application CRD, sync strat', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'astro-content-collections', title: 'Astro Content Collections', icon: '📖', cat: 'Web Development', desc: 'Tutorial lengkap Astro Content Collections — schema definition, collection queri', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'aws-iot-core', title: 'AWS IoT Core untuk Device Management', icon: '📖', cat: 'Dashboard & Cloud', desc: 'Tutorial lengkap AWS IoT Core untuk manajemen device IoT. Pelajari MQTT broker, ', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'azure-iot-hub', title: 'Azure IoT Hub untuk Device Management', icon: '📖', cat: 'Dashboard & Cloud', desc: 'Tutorial lengkap Azure IoT Hub. Pelajari device twins, direct methods, file uplo', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'backstage-developer-portal', title: 'Backstage Developer Portal', icon: '📖', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap Backstage Developer Portal — Software Catalog, TechDocs, scaffo', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'bgp-fundamentals', title: 'BGP Fundamentals untuk ISP', icon: '📖', cat: 'Networking', desc: 'Tutorial lengkap BGP Fundamentals untuk ISP. Pelajari AS numbering, peering, rou', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'bun-elysia', title: 'Bun dan Elysia.js: High Performance API', icon: '📖', cat: 'Web Development', desc: 'Tutorial lengkap Bun runtime dan Elysia.js — routes, middleware, type safety, be', diff: 'menengah', time: '14', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'career-freelance-to-startup', title: 'Dari Freelancer ke Startup Founder', icon: '📖', cat: 'IT Career', desc: 'Panduan transisi dari freelancer ke startup founder. Pelajari MVP, product valid', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'career-into-management', title: 'Transisi dari Developer ke Engineering Manager', icon: '📖', cat: 'IT Career', desc: 'Panduan transisi dari Software Developer ke Engineering Manager. Pelajari people', diff: 'menengah', time: '14', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'career-specialist-generalist', title: 'Specialist vs Generalist: Strategi Karir IT', icon: '📖', cat: 'IT Career', desc: 'Panduan strategi karir IT: Specialist vs Generalist. Pelajari depth vs breadth, ', diff: 'menengah', time: '13', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'chaos-engineering', title: 'Chaos Engineering with Litmus', icon: '📖', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap Chaos Engineering dengan Litmus — experiments, chaos hub, probe', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'clickhouse-analytics', title: 'ClickHouse untuk Real-time Analytics', icon: '📖', cat: 'Database', desc: 'Tutorial lengkap ClickHouse — columnar database untuk real-time analytics dengan', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'cloud-security-posture', title: 'Cloud Security Posture Management', icon: '🐝', cat: 'Keamanan', desc: 'Pelajari CSPM: cloud misconfiguration detection, compliance monitoring, multi-cl', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'coap-protocol', title: 'CoAP Protocol untuk IoT', icon: '📖', cat: 'Protokol', desc: 'Tutorial lengkap CoAP Protocol (Constrained Application Protocol) untuk IoT — re', diff: 'menengah', time: '14', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'cockroachdb-distributed', title: 'CockroachDB: Distributed SQL untuk Aplikasi Skala Global', icon: '📖', cat: 'Database', desc: 'Tutorial lengkap CockroachDB — distributed SQL database dengan serializability, ', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'computer-vision-yolo', title: 'YOLO Object Detection: v8 hingga v11 — Training, Inference &amp; Deployment', icon: '📖', cat: 'AI & Data Science', desc: 'Tutorial lengkap YOLO Object Detection dari v8 hingga v11 — training custom data', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'container-security', title: 'Container Security Best Practices', icon: '🐝', cat: 'Keamanan', desc: 'Pelajari Container Security: Docker hardening, Kubernetes security, image scanni', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'crossplane-infrastructure', title: 'Crossplane: Infrastructure as Code from Kubernetes', icon: '📖', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap Crossplane untuk Infrastructure as Code dari Kubernetes — provi', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'crystal-language', title: 'Crystal: Ruby-like Performance - BeebaneLabs', icon: '📖', cat: 'Uncategorized', desc: 'Pelajari Crystal Language: sintaks Ruby dengan performa C. Type inference, macro', diff: 'menengah', time: '14', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'css-container-queries-2', title: 'CSS Container Queries Advanced', icon: '📖', cat: 'Web Development', desc: 'Tutorial lengkap CSS Container Queries Advanced — container units, style queries', diff: 'menengah', time: '13', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'database-migration-flyway', title: 'Database Migration dengan Flyway', icon: '📖', cat: 'Database', desc: 'Tutorial lengkap Flyway — database migration tool untuk versioned migration, rep', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'database-sharding-vitess', title: 'Database Sharding dengan Vitess', icon: '📖', cat: 'Database', desc: 'Tutorial lengkap Vitess — database sharding untuk MySQL. Pelajari VSchema, shard', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'deep-linking', title: 'Deep Linking & App Links', icon: '📖', cat: 'Mobile Development', desc: 'Tutorial lengkap Deep Linking. URL schemes, Universal Links, Android App Links, ', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'deno-fresh', title: 'Deno Fresh: Web Framework Modern', icon: '📖', cat: 'Web Development', desc: 'Tutorial lengkap Deno Fresh — islands architecture, routing, middleware, data fe', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'developer-productivity', title: 'Developer Productivity & Deep Work', icon: '📖', cat: 'IT Career', desc: 'Panduan developer productivity dan deep work. Pelajari environment setup, focus ', diff: 'menengah', time: '14', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'elixir-phoenix', title: 'Elixir dan Phoenix Framework: Panduan Lengkap - BeebaneLabs', icon: '📖', cat: 'Uncategorized', desc: 'Pelajari Elixir dan Phoenix Framework dari dasar hingga mahir. Pattern matching,', diff: 'menengah', time: '15', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'emqx-broker', title: 'EMQX: Enterprise MQTT Broker untuk IoT', icon: '📖', cat: 'Dashboard & Cloud', desc: 'Tutorial lengkap EMQX Enterprise MQTT Broker. Pelajari clustering, rule engine, ', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'esp32-camera-streaming', title: 'ESP32-CAM Video Streaming: MJPEG, Face Detection &amp; Telegram', icon: '📖', cat: 'Internet of Things', desc: 'Tutorial lengkap ESP32-CAM video streaming. Pelajari OV2640 setup, MJPEG stream,', diff: 'menengah', time: '16', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'esp32-matter-protocol', title: 'ESP32 Matter Smart Home: Thread, Commissioning &amp; Multi-Admin', icon: '📖', cat: 'Internet of Things', desc: 'Tutorial lengkap ESP32 Matter Smart Home. Pelajari Matter SDK, device types, Thr', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'esp32-rust', title: 'Rust on ESP32: Embedded Development dengan Rust', icon: '📖', cat: 'Internet of Things', desc: 'Tutorial lengkap Rust on ESP32. Pelajari esp-hal, esp-idf-hal, async embassy, GP', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'esp32-sleep-modes', title: 'ESP32 Deep Sleep &amp; Power Management: Hemat Energi Maksimal', icon: '📖', cat: 'Internet of Things', desc: 'Tutorial lengkap ESP32 deep sleep dan power management. Pelajari light sleep, de', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'esp32-web-bluetooth', title: 'ESP32 Web Bluetooth API: Komunikasi BLE dari Browser', icon: '📖', cat: 'Internet of Things', desc: 'Tutorial lengkap ESP32 Web Bluetooth API. Pelajari BLE advertising, GATT service', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'firebase-realtime', title: 'Firebase Realtime Database untuk IoT', icon: '📖', cat: 'Dashboard & Cloud', desc: 'Tutorial lengkap Firebase Realtime Database untuk IoT. Pelajari data structure, ', diff: 'menengah', time: '14', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'flutter-web-desktop', title: 'Flutter Web & Desktop Development', icon: '📖', cat: 'Mobile Development', desc: 'Tutorial lengkap Flutter Web & Desktop. Responsive layout, platform channels, pl', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'github-actions-advanced', title: 'GitHub Actions Advanced Workflows', icon: '📖', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap GitHub Actions advanced — matrix builds, reusable workflows, co', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'gitlab-ci-advanced', title: 'GitLab CI/CD Advanced Pipeline', icon: '📖', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap GitLab CI/CD advanced — parent-child pipeline, DAG, environment', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'gleam-type-safe', title: 'Gleam: Type-Safe BEAM Language - BeebaneLabs', icon: '📖', cat: 'Uncategorized', desc: 'Pelajari Gleam, bahasa type-safe untuk BEAM VM. Types, pattern matching, OTP, Ja', diff: 'menengah', time: '14', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'grafana-loki', title: 'Grafana Loki: Log Aggregation Modern untuk IoT & Cloud', icon: '📖', cat: 'Dashboard & Cloud', desc: 'Tutorial lengkap Grafana Loki untuk log aggregation. Pelajari LogQL query, label', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'grafana-stack', title: 'Grafana Stack: Mimir + Tempo + Loki', icon: '📖', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap Grafana Stack — Mimir untuk metrics, Tempo untuk traces, Loki u', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'graphql-federation', title: 'GraphQL Federation dan Schema Stitching', icon: '📖', cat: 'Protokol', desc: 'Tutorial lengkap GraphQL Federation dan Schema Stitching — Apollo Federation, su', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'grpc-protobuf', title: 'gRPC dan Protocol Buffers', icon: '📖', cat: 'Protokol', desc: 'Tutorial lengkap gRPC dan Protocol Buffers — service definition, unary &amp; str', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'home-assistant-advanced', title: 'Home Assistant Advanced Configuration', icon: '📖', cat: 'Dashboard & Cloud', desc: 'Tutorial lanjutan Home Assistant untuk smart home. Pelajari automations, templat', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'htmx-dynamic-ui', title: 'HTMX: Dynamic UI Tanpa JavaScript', icon: '📖', cat: 'Web Development', desc: 'Tutorial lengkap HTMX — atribut, triggers, AJAX, boosting, SSE, WebSockets, temp', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'http2-http3', title: 'HTTP/2 dan HTTP/3 untuk Developer', icon: '📖', cat: 'Protokol', desc: 'Tutorial lengkap HTTP/2 dan HTTP/3 — multiplexing, server push, QUIC protocol, h', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'influxdb-telegraf', title: 'InfluxDB dan Telegraf untuk IoT', icon: '📖', cat: 'Dashboard & Cloud', desc: 'Tutorial lengkap InfluxDB dan Telegraf untuk data IoT. Pelajari line protocol, r', diff: 'menengah', time: '14', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'ios-swiftui-advanced', title: 'SwiftUI Advanced Patterns', icon: '📖', cat: 'Mobile Development', desc: 'Tutorial lengkap SwiftUI Advanced. MVVM, @Observable, navigation, animations, wi', diff: 'menengah', time: '14', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'istio-service-mesh', title: 'Istio Service Mesh', icon: '📖', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap Istio Service Mesh — sidecar injection, virtual service, destin', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'julia-scientific', title: 'Julia untuk Scientific Computing: Panduan Lengkap - BeebaneLabs', icon: '📖', cat: 'Uncategorized', desc: 'Pelajari Julia untuk Scientific Computing. Multiple dispatch, type system, paral', diff: 'menengah', time: '15', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'langchain-rag', title: 'LangChain RAG: Retrieval Augmented Generation — Tutorial Lengkap', icon: '📖', cat: 'AI & Data Science', desc: 'Tutorial lengkap LangChain RAG — document loading, chunking, embedding, vector s', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'llm-fine-tuning', title: 'Fine-tuning LLM dengan LoRA/QLoRA — Tutorial Lengkap', icon: '📖', cat: 'AI & Data Science', desc: 'Tutorial lengkap fine-tuning Large Language Model dengan LoRA dan QLoRA — adapte', diff: 'menengah', time: '16', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'maui-cross-platform', title: '.NET MAUI Cross-Platform Development', icon: '📖', cat: 'Mobile Development', desc: 'Tutorial lengkap .NET MAUI. XAML layout, MVVM pattern, Shell navigation, platfor', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'message-queue-patterns', title: 'Message Queue Patterns', icon: '📖', cat: 'Protokol', desc: 'Tutorial lengkap Message Queue Patterns — RabbitMQ vs Kafka, pub/sub, competing ', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'mikrotik-bridge', title: 'MikroTik Bridge dan Switching: Panduan Lengkap', icon: '📖', cat: 'Networking', desc: 'Tutorial lengkap MikroTik Bridge dan Switching. Pelajari bridge settings, STP, R', diff: 'menengah', time: '14', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'mikrotik-hotspot', title: 'MikroTik Hotspot Configuration: Panduan Lengkap', icon: '📖', cat: 'Networking', desc: 'Tutorial lengkap konfigurasi MikroTik Hotspot. Pelajari walled garden, user prof', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'mikrotik-scripting', title: 'MikroTik Scripting Language: Panduan Lengkap', icon: '📖', cat: 'Networking', desc: 'Tutorial lengkap MikroTik Scripting Language. Pelajari variables, loops, functio', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'mikrotik-user-manager', title: 'MikroTik User Manager: RADIUS Server Lengkap', icon: '📖', cat: 'Networking', desc: 'Tutorial lengkap MikroTik User Manager sebagai RADIUS Server. Pelajari user mana', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'mlflow-experiment-tracking', title: 'MLflow untuk Experiment Tracking — Tutorial Lengkap', icon: '📖', cat: 'AI & Data Science', desc: 'Tutorial lengkap MLflow untuk experiment tracking — runs, parameters, metrics, a', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'mobile-auth-patterns', title: 'Mobile Authentication Patterns', icon: '📖', cat: 'Mobile Development', desc: 'Tutorial lengkap Mobile Authentication. Biometric, OAuth 2.0, PKCE, token storag', diff: 'menengah', time: '16', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'mobile-ci-cd', title: 'Mobile CI/CD Pipeline', icon: '📖', cat: 'Mobile Development', desc: 'Tutorial lengkap Mobile CI/CD. Fastlane, GitHub Actions, TestFlight, Play Store ', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'mobile-performance', title: 'Mobile App Performance Optimization', icon: '📖', cat: 'Mobile Development', desc: 'Tutorial lengkap optimasi performa aplikasi mobile. Memory profiling, rendering,', diff: 'menengah', time: '14', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'mobile-security-testing', title: 'Mobile App Security Testing', icon: '🐝', cat: 'Keamanan', desc: 'Pelajari Mobile App Security Testing: OWASP Mobile Top 10, Android/iOS pentestin', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'mobile-testing-strategies', title: 'Mobile Testing Strategies', icon: '📖', cat: 'Mobile Development', desc: 'Tutorial lengkap Mobile Testing. Unit test, widget test, integration test, E2E d', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'mpls-traffic-engineering', title: 'MPLS dan Traffic Engineering: Panduan Lengkap', icon: '📖', cat: 'Networking', desc: 'Tutorial MPLS dan Traffic Engineering untuk ISP. Pelajari LDP, RSVP-TE, fast rer', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'mqtt-v5', title: 'MQTT v5: Fitur Terbaru', icon: '📖', cat: 'Protokol', desc: 'Tutorial lengkap MQTT v5 — user properties, shared subscriptions, message expiry', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'network-monitoring-zabbix', title: 'Network Monitoring dengan Zabbix: Panduan Lengkap', icon: '📖', cat: 'Networking', desc: 'Tutorial Zabbix untuk network monitoring. Pelajari templates, triggers, items, p', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'nim-systems', title: 'Nim Systems Programming: Panduan Lengkap - BeebaneLabs', icon: '📖', cat: 'Uncategorized', desc: 'Pelajari Nim Systems Programming dari dasar hingga mahir. Metaprogramming, memor', diff: 'menengah', time: '15', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'nix-containers', title: 'NixOS and Nix for Containers', icon: '📖', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap NixOS dan Nix untuk containers — reproducible builds, flakes, N', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'nlp-transformers', title: 'NLP dengan Transformers — BERT, GPT, Hugging Face', icon: '📖', cat: 'AI & Data Science', desc: 'Tutorial lengkap NLP dengan Transformers — arsitektur BERT dan GPT, tokenization', diff: 'menengah', time: '16', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'node-red-advanced', title: 'Node-RED Advanced Flow Programming', icon: '📖', cat: 'Dashboard & Cloud', desc: 'Tutorial lanjutan Node-RED untuk IoT. Pelajari subflows, context store, custom n', diff: 'menengah', time: '16', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'oauth2-oidc', title: 'OAuth 2.0 dan OpenID Connect', icon: '📖', cat: 'Protokol', desc: 'Tutorial lengkap OAuth 2.0 dan OpenID Connect — authorization code flow, PKCE, t', diff: 'menengah', time: '16', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'ocaml-functional', title: 'OCaml Functional Programming: Panduan Lengkap - BeebaneLabs', icon: '📖', cat: 'Uncategorized', desc: 'Pelajari OCaml Functional Programming dari dasar hingga mahir. Algebraic types, ', diff: 'menengah', time: '14', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'odin-performance', title: 'Odin Programming Language: Panduan Lengkap - BeebaneLabs', icon: '📖', cat: 'Uncategorized', desc: 'Pelajari Odin Programming Language. Manual memory, SIMD, C interop, explicit ove', diff: 'menengah', time: '15', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'open-source-career', title: 'Membangun Karir dari Open Source Contribution', icon: '📖', cat: 'IT Career', desc: 'Panduan membangun karir IT dari open source contribution. Pelajari first issue, ', diff: 'menengah', time: '14', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'opentofu-iac', title: 'OpenTofu: Terraform Alternative', icon: '📖', cat: 'DevOps & Cloud', desc: 'Tutorial lengkap OpenTofu sebagai alternatif Terraform — state management, provi', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'ospf-multi-area', title: 'OSPF Multi-Area Design: Panduan Lengkap', icon: '📖', cat: 'Networking', desc: 'Tutorial OSPF Multi-Area Design. Pelajari stub areas, NSSA, route summarization,', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'pcb-design-iot', title: 'PCB Design untuk IoT dengan KiCad: Schematic hingga Gerber', icon: '📖', cat: 'Internet of Things', desc: 'Tutorial lengkap PCB design untuk IoT dengan KiCad. Pelajari schematic capture, ', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'prompt-engineering', title: 'Prompt Engineering Advanced — Chain-of-Thought, ReAct, Tree-of-Thought', icon: '📖', cat: 'AI & Data Science', desc: 'Tutorial lengkap Prompt Engineering Advanced — chain-of-thought, few-shot, self-', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'qos-mikrotik', title: 'QoS di MikroTik: Bandwidth Management Lengkap', icon: '📖', cat: 'Networking', desc: 'Tutorial QoS MikroTik: simple queue, queue tree, mangle, burst, HTB, PCQ untuk b', diff: 'menengah', time: '16', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'raspberry-pi-kubernetes', title: 'Raspberry Pi Kubernetes Cluster: k3s Multi-Node dengan Persistent Storage', icon: '📖', cat: 'Internet of Things', desc: 'Tutorial lengkap Raspberry Pi Kubernetes Cluster. Pelajari k3s setup, multi-node', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'redis-streams', title: 'Redis Streams untuk Event Sourcing', icon: '📖', cat: 'Database', desc: 'Tutorial lengkap Redis Streams — XADD, XREAD, consumer groups, pending entries, ', diff: 'menengah', time: '14', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'remix-v2-deep-dive', title: 'Remix v2 Deep Dive', icon: '📖', cat: 'Web Development', desc: 'Tutorial lengkap Remix v2 — loaders, actions, nested routes, forms, streaming, c', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'remote-work-playbook', title: 'Remote Work Playbook untuk Developer', icon: '📖', cat: 'IT Career', desc: 'Panduan lengkap remote work untuk developer Indonesia. Pelajari async communicat', diff: 'menengah', time: '13', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'rest-api-versioning', title: 'REST API Versioning Strategies', icon: '📖', cat: 'Protokol', desc: 'Tutorial lengkap REST API Versioning — URL path vs header vs query parameter, ba', diff: 'menengah', time: '13', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'roc-functional', title: 'Roc Functional Programming: Panduan Lengkap - BeebaneLabs', icon: '📖', cat: 'Uncategorized', desc: 'Pelajari Roc Functional Programming. Platforms, abilities, tasks, effect system,', diff: 'menengah', time: '14', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'scylladb-nosql', title: 'ScyllaDB: High Performance NoSQL Database', icon: '📖', cat: 'Database', desc: 'Tutorial lengkap ScyllaDB — high performance NoSQL database dengan CQL, compacti', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'sertifikasi-cloud-2026', title: 'Panduan Sertifikasi Cloud 2026', icon: '📖', cat: 'IT Career', desc: 'Panduan lengkap sertifikasi cloud 2026. Pelajari track AWS, Azure, GCP, study pl', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'siem-splunk', title: 'SIEM dengan Splunk: Security Monitoring - BeebaneLabs', icon: '📖', cat: 'Uncategorized', desc: 'Pelajari implementasi SIEM menggunakan Splunk untuk security monitoring, data in', diff: 'menengah', time: '15', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'soc-operations', title: 'SOC Operations dan Incident Triage', icon: '🐝', cat: 'Keamanan', desc: 'Pelajari SOC Operations dan Incident Triage: struktur tim SOC, workflow monitori', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'social-engineering-awareness', title: 'Social Engineering Defense', icon: '🐝', cat: 'Keamanan', desc: 'Pelajari Social Engineering Defense: phishing awareness, pretexting, baiting, ta', diff: 'menengah', time: '14', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'sql-query-optimization-2', title: 'SQL Query Optimization Advanced', icon: '📖', cat: 'Database', desc: 'Tutorial lanjutan SQL query optimization — execution plans, index tuning, statis', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'stm32-bare-metal', title: 'STM32 Bare Metal Programming: Register, Linker Script &amp; DMA', icon: '📖', cat: 'Internet of Things', desc: 'Tutorial lengkap STM32 bare metal programming. Pelajari register-level programmi', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'supabase-realtime', title: 'Supabase Realtime Features', icon: '📖', cat: 'Database', desc: 'Tutorial lengkap Supabase Realtime — broadcast, presence, database changes, RLS,', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'tech-lead-role', title: 'Peran Tech Lead: Antara Kode dan Arsitektur', icon: '📖', cat: 'IT Career', desc: 'Panduan lengkap peran Tech Lead. Pelajari decision making, ADRs, code review, me', diff: 'menengah', time: '14', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'technical-interview-coding', title: 'Technical Coding Interview Preparation', icon: '📖', cat: 'IT Career', desc: 'Panduan lengkap persiapan Technical Coding Interview. Pelajari data structures, ', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'technical-interview-system-design', title: 'System Design Interview: Panduan Lengkap', icon: '📖', cat: 'IT Career', desc: 'Panduan lengkap System Design Interview. Pelajari load balancer, cache, database', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'thingsboard-platform', title: 'ThingsBoard IoT Platform: Panduan Lengkap', icon: '📖', cat: 'Dashboard & Cloud', desc: 'Tutorial lengkap ThingsBoard IoT Platform. Pelajari device management, dashboard', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'threat-hunting-techniques', title: 'Threat Hunting Techniques', icon: '🐝', cat: 'Keamanan', desc: 'Pelajari Threat Hunting: hypothesis-driven hunting, MITRE ATT&CK mapping, IOC hu', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'time-series-forecasting', title: 'Time Series Forecasting — ARIMA, Prophet, LSTM', icon: '📖', cat: 'AI & Data Science', desc: 'Tutorial lengkap Time Series Forecasting — ARIMA, Prophet, LSTM, feature enginee', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'timescaledb-iot', title: 'TimescaleDB untuk Time Series IoT', icon: '📖', cat: 'Dashboard & Cloud', desc: 'Tutorial lengkap TimescaleDB untuk data time series IoT. Pelajari hypertables, c', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'tls-13-deep-dive', title: 'TLS 1.3 Deep Dive', icon: '📖', cat: 'Protokol', desc: 'Tutorial lengkap TLS 1.3 — handshake 1-RTT dan 0-RTT, cipher suites, key exchang', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'turso-edge-database', title: 'Turso: Edge Database dengan libSQL', icon: '📖', cat: 'Database', desc: 'Tutorial lengkap Turso — edge database berbasis libSQL dengan embedded replicas,', diff: 'menengah', time: '14', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'v-language', title: 'V Programming Language: Panduan Lengkap - BeebaneLabs', icon: '📖', cat: 'Uncategorized', desc: 'Pelajari V Programming Language. Autofree, C interop, cross-compilation, web fra', diff: 'menengah', time: '14', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'vector-database-qdrant', title: 'Qdrant Vector Database: Semantik Search &amp; AI', icon: '📖', cat: 'Database', desc: 'Tutorial lengkap Qdrant — vector database untuk semantic search, RAG, dan AI. Pe', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'vector-embeddings', title: 'Vector Embeddings untuk Semantic Search', icon: '🐝', cat: 'AI & Data Science', desc: 'Tutorial lengkap Vector Embeddings untuk semantic search.', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'view-transitions-api', title: 'View Transitions API', icon: '📖', cat: 'Web Development', desc: 'Tutorial lengkap View Transitions API — same-document, cross-document, custom an', diff: 'menengah', time: '14', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'wasm-rust-web', title: 'WebAssembly dengan Rust', icon: '📖', cat: 'Web Development', desc: 'Tutorial lengkap WebAssembly dengan Rust — wasm-bindgen, wasm-pack, memory model', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'web-components-lit', title: 'Web Components dengan Lit', icon: '📖', cat: 'Web Development', desc: 'Tutorial lengkap Web Components dengan Lit — Shadow DOM, custom elements, LitEle', diff: 'menengah', time: '14', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'web-performance-2026', title: 'Web Performance 2026', icon: '📖', cat: 'Web Development', desc: 'Tutorial web performance terkini 2026 — INP optimization, lazy loading, priority', diff: 'menengah', time: '14', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'websocket-deep-dive', title: 'WebSocket Deep Dive', icon: '📖', cat: 'Protokol', desc: 'Tutorial lengkap WebSocket — handshake, framing, ping/pong, close handshake, sca', diff: 'menengah', time: '14', access: 'Token', date: '29 Juni 2026' },
+  { slug: 'wifi-6-deployment', title: 'Wi-Fi 6/6E Deployment Best Practices', icon: '📖', cat: 'Networking', desc: 'Tutorial Wi-Fi 6/6E deployment. Pelajari OFDMA, MU-MIMO, BSS coloring, channel p', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'wireless-penetration-testing', title: 'Wireless Penetration Testing', icon: '🐝', cat: 'Keamanan', desc: 'Pelajari wireless penetration testing: WiFi security, WPA/WPA2/WPA3 cracking, ro', diff: 'menengah', time: '16', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'zero-trust-implementation', title: 'Zero Trust Architecture Implementation', icon: '🐝', cat: 'Keamanan', desc: 'Pelajari Zero Trust Architecture: microsegmentation, identity verification, leas', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' },
+  { slug: 'zig-language', title: 'Zig Programming Language: Panduan Lengkap - BeebaneLabs', icon: '📖', cat: 'Uncategorized', desc: 'Pelajari Zig Programming Language dari dasar hingga mahir. Panduan lengkap compt', diff: 'menengah', time: '15', access: 'Gratis', date: '25 Juni 2026' },
+  { slug: 'zigbee-thread-matter', title: 'Zigbee, Thread, dan Matter: Perbandingan Protokol Smart Home', icon: '📖', cat: 'Internet of Things', desc: 'Perbandingan lengkap Zigbee, Thread, dan Matter untuk smart home. Pelajari stack', diff: 'menengah', time: '15', access: 'Gratis', date: '29 Juni 2026' }
 ];
 
 // Populate search articles from ALL_ARTICLES (avoids duplicate data)
