@@ -2251,15 +2251,7 @@ const ARTICLE_CATEGORIES = {
     slug: 'iot',
     match: ['ESP32', 'IoT', 'Raspberry Pi', 'LoRa'],
     color: '#00e5ff'
-  },
-  'networking': {
-    name: 'Networking',
-    icon: '🌐',
-    slug: 'mikrotik',
-    match: ['Networking', 'MikroTik'],
-    color: '#fb923c'
-  },
-  'programming': {
+  },  'programming': {
     name: 'Pemrograman',
     icon: '💻',
     slug: 'python',
@@ -2328,42 +2320,13 @@ const ARTICLE_CATEGORIES = {
     slug: 'it-career',
     match: ['IT Career'],
     color: '#6366f1'
-  },  'lora': {
-    name: 'LoRa & LPWAN',
-    icon: '📡',
-    slug: 'lora',
-    match: ['LoRa'],
-    color: '#8b5cf6'
-  },
-  'raspberry-pi': {
-    name: 'Raspberry Pi',
-    icon: '🍓',
-    slug: 'raspberry-pi',
-    match: ['Raspberry Pi'],
-    color: '#e11d48'
-  },
-  'networking-basic': {
+  },  'networking-basic': {
     name: 'Jaringan Dasar',
     icon: '🌐',
     slug: 'networking',
     match: ['Networking'],
     color: '#f97316'
-  },
-  'tools': {
-    name: 'Tools & IDE',
-    icon: '💻',
-    slug: 'tools',
-    match: ['Tools'],
-    color: '#14b8a6'
-  },
-  'cloud': {
-    name: 'Cloud & Firebase',
-    icon: '🔥',
-    slug: 'cloud',
-    match: ['Cloud'],
-    color: '#a855f7'
-  },
-};
+  },};
 
 function getCategoryCounts() {
   const counts = {};
