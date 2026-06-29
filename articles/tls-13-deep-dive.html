@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08090a">
+  <link rel="preconnect" href="https://*.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BeebaneLabs">
+  <link rel="apple-touch-icon" href="/images/logo_beebane.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes">
+  <title>TLS 1.3 Deep Dive | BeebaneLabs</title>
+  <meta name="description" content="Tutorial lengkap TLS 1.3 — handshake 1-RTT dan 0-RTT, cipher suites, key exchange, certificate transparency, dan perbandingan dengan TLS 1.2 untuk keamanan jaringan modern.">
+  <meta name="keywords" content="TLS 1.3, Transport Layer Security, HTTPS, Handshake, 0-RTT, Cipher Suites, Certificate Transparency, Key Exchange, Perfect Forward Secrecy, Encrypted SNI">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="og:title" content="TLS 1.3 Deep Dive | BeebaneLabs">
+  <meta property="og:description" content="Panduan komprehensif TLS 1.3 — handshake, 0-RTT, cipher suites, dan certificate transparency.">
+  <meta property="og:type" content="article"><meta property="og:url" content="https://beebanelabs.pages.dev/articles/tls-13-deep-dive.html">
+  <meta property="og:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png"><meta property="og:site_name" content="BeebaneLabs">
+  <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="TLS 1.3 Deep Dive | BeebaneLabs">
+  <meta name="article:published_time" content="2026-06-29"><meta name="article:section" content="Protokol">
+  <link rel="canonical" href="https://beebanelabs.pages.dev/articles/tls-13-deep-dive.html">
+  <link rel="stylesheet" href="../css/style.css?v=13.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"TLS 1.3 Deep Dive","description":"Panduan komprehensif TLS 1.3.","author":{"@type":"Organization","name":"BeebaneLabs"},"datePublished":"2026-06-29","publisher":{"@type":"Organization","name":"BeebaneLabs"}}</script>
+<script>
+(function(){var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';function loadAds(){if(window._adsLoaded)return;window._adsLoaded=true;var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src=src;document.head.appendChild(s);['scroll','mousedown','touchstart','keydown'].forEach(function(e){document.removeEventListener(e,loadAds,{passive:true})})}['scroll','mousedown','touchstart','keydown'].forEach(function(e){document.addEventListener(e,loadAds,{passive:true,once:true})});setTimeout(loadAds,5000)})();
+</script>
+  <script type="speculationrules">{ "prerender": [{ "where": { "href_matches": "/*" }, "eagerness": "moderate" }] }</script>
+</head>
+<body>
+  <noscript><style>.article-content,.articles-grid,.category-section,.hero{display:block!important;opacity:1!important;transform:none!important}.reveal{opacity:1!important;transform:none!important}</style></noscript>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+  <div class="reading-progress-bar" id="readingProgress"></div>
+  <nav class="navbar" id="navbar"><div class="navbar-inner"><a href="../index.html" class="navbar-brand"><picture><source srcset="../images/logo_beebane_webp.webp" type="image/webp"><img src="../images/logo_beebane_webp.webp" alt="BeebaneLabs" class="brand-logo" width="40" height="22"></picture></a><ul class="navbar-links" id="navLinks"><li><a href="../index.html">Beranda</a></li><li><a href="../kategori.html">Kategori</a></li><li><a href="../about.html">Tentang</a></li><li><a href="../pricing.html">Harga</a></li></ul><div class="navbar-search" id="searchTrigger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>Cari tutorial...</span><kbd>/</kbd></div><div id="authNavArea"></div><button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button></div></nav>
+  <div class="search-overlay" id="searchOverlay"><button class="search-close-btn" onclick="document.getElementById('searchOverlay').classList.remove('active')" aria-label="Tutup">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Protokol</a><span class="separator">/</span><span class="current">TLS 1.3</span></div>
+      <span class="category-tag">Protokol</span>
+      <h1>TLS 1.3 Deep Dive</h1>
+      <p class="article-subtitle">Panduan mendalam TLS 1.3 (RFC 8446) — handshake 1-RTT dan 0-RTT resumption, cipher suites yang disederhanakan, Perfect Forward Secrecy mandatory, Certificate Transparency, dan perbandingan dengan TLS 1.2</p>
+      <div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 15 menit baca</span><span class="difficulty lanjut">Lanjut</span></div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#apa-baru">Apa yang Baru di TLS 1.3?</a></li>
+          <li><a href="#handshake-1rtt">1-RTT Handshake</a></li>
+          <li><a href="#0rtt">0-RTT Resumption</a></li>
+          <li><a href="#cipher-suites">Cipher Suites</a></li>
+          <li><a href="#key-exchange">Key Exchange &amp; PFS</a></li>
+          <li><a href="#certificate-transparency">Certificate Transparency</a></li>
+          <li><a href="#tls12-vs-13">TLS 1.2 vs TLS 1.3</a></li>
+          <li><a href="#implementasi">Konfigurasi &amp; Testing</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="apa-baru">1. Apa yang Baru di TLS 1.3?</h2>
+      <p><strong>TLS 1.3</strong> (RFC 8446, Agustus 2018) adalah revisi besar dari protokol keamanan transport yang paling banyak digunakan di internet. TLS 1.3 bukan sekadar upgrade — ini adalah <strong>redesign fundamental</strong> yang menghilangkan banyak fitur legacy yang lemah dan menambah fitur keamanan modern.</p>
+
+      <h3>Perubahan Utama dari TLS 1.2</h3>
+      <table class="net-table">
+        <thead><tr><th>Aspek</th><th>TLS 1.2</th><th>TLS 1.3</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Handshake RTT</strong></td><td>2-RTT</td><td>1-RTT (0-RTT untuk resumption)</td></tr>
+          <tr><td><strong>Cipher Suites</strong></td><td>Banyak (300+ kombinasi)</td><td>Hanya 5 (sederhana, aman)</td></tr>
+          <tr><td><strong>Key Exchange</strong></td><td>RSA, DHE, ECDHE</td><td>Hanya (EC)DHE — PFS mandatory</td></tr>
+          <tr><td><strong>RSA Key Exchange</strong></td><td>Didukung (tanpa PFS)</td><td>Dihapus total</td></tr>
+          <tr><td><strong>Static DH</strong></td><td>Didukung</td><td>Dihapus (hanya ephemeral)</td></tr>
+          <tr><td><strong>Compression</strong></td><td>Didukung (rentan CRIME)</td><td>Dihapus</td></tr>
+          <tr><td><strong>Renegotiation</strong></td><td>Didukung (kompleks, rentan)</td><td>Dihapus</td></tr>
+          <tr><td><strong>Handshake Encryption</strong></td><td>Tidak (plaintext)</td><td>Ya — setelah key exchange, semua terenkripsi</td></tr>
+          <tr><td><strong>Encrypted SNI</strong></td><td>Tidak</td><td>Diarahkan (dengan ECH)</td></tr>
+          <tr><td><strong>Mode</strong></td><td>TLS + DTLS</td><td>TLS 1.3 + DTLS 1.3</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Mengapa TLS 1.3 Lebih Aman?</div>
+        <p>TLS 1.3 menghapus semua algoritma dan fitur yang terbukti lemah: RSA key exchange (tanpa PFS), CBC mode ciphers, RC4, SHA-1 signatures, static DH, compression, dan renegotiation. Hasilnya: lebih sedikit attack surface dan konfigurasi yang lebih aman secara default.</p>
+      </div>
+
+      <!-- SECTION 2 -->
+      <h2 id="handshake-1rtt">2. 1-RTT Handshake</h2>
+      <p>Di TLS 1.2, handshake memerlukan <strong>2 round-trip</strong> sebelum data pertama bisa dikirim. TLS 1.3 mengurangi ini menjadi <strong>1 round-trip</strong> — penghematan ~100ms pada koneksi latency tinggi.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# === TLS 1.3 Full Handshake (1-RTT) ===
+
+Client                                              Server
+  |                                                    |
+  |--- ClientHello --------→                           |
+  |    + supported_versions: [TLS 1.3]                 |
+  |    + key_share: x25519 public key                  |
+  |    + supported_groups: [x25519, secp256r1]         |
+  |    + signature_algorithms: [ecdsa_secp256r1_sha256] |
+  |    + psk_key_exchange_modes: [psk_dhe_ke]          |
+  |    + server_name: example.com (SNI)                |
+  |    + early_data (jika 0-RTT)                       |
+  |                                                    |
+  |←-- ServerHello --------                            |
+  |    + supported_version: TLS 1.3                    |
+  |    + key_share: x25519 public key                  |
+  |    + key_exchange: (server public key)             |
+  |                                                    |
+  |←-- {EncryptedExtensions}                           |
+  |    + server_name (jika matched)                    |
+  |    + application_layer_protocol: h2               |
+  |                                                    |
+  |←-- {Certificate}                                   |
+  |    Server certificate (encrypted!)                 |
+  |                                                    |
+  |←-- {CertificateVerify}                             |
+  |    Signature over handshake transcript             |
+  |                                                    |
+  |←-- {Finished}                                      |
+  |    HMAC over full transcript                       |
+  |                                                    |
+  |--- {Finished}  --------→                           |
+  |    HMAC over full transcript                       |
+  |                                                    |
+  |==== APPLICATION DATA ========→                     |
+  |←========================== APPLICATION DATA        |
+
+# Tanda {curly braces} = encrypted
+# Setelah ServerHello, semua pesan terenkripsi!
+# TLS 1.2: ClientHello, ServerHello, Certificate semua plaintext
+# TLS 1.3: Hanya ClientHello dan ServerHello yang plaintext
+</pre>
+      </div>
+
+      <h3>Key Derivation</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# TLS 1.3 Key Derivation menggunakan HKDF (HMAC-based KDF):
+
+# 1. Shared Secret = ECDHE(client_private, server_public)
+# 2. Early Secret  = HKDF-Extract(0, PSK or 0)
+# 3. Handshake Secret = HKDF-Extract(Derive-Secret(Early Secret, "derived"), ECDHE)
+# 4. Master Secret  = HKDF-Extract(Derive-Secret(Handshake Secret, "derived"), 0)
+
+# Key schedule:
+#
+#                  0 (ikm)
+#                    │
+#          ┌────────▼────────┐
+#          │ HKDF-Extract    │
+#          │ (salt = 0)      │
+#          └────────┬────────┘
+#                   │
+#            Early Secret
+#                   │
+#     ┌─────────────┼─────────────┐
+#     ▼             ▼             ▼
+# Client Early   Handshake    Early Traffic
+# Traffic Secret  Secret       Keys
+#                   │
+#          ┌────────┼────────┐
+#          ▼                 ▼
+#   Client Handshake    Server Handshake
+#   Traffic Secret      Traffic Secret
+#                   │
+#           Master Secret
+#                   │
+#     ┌─────────────┼─────────────┐
+#     ▼             ▼             ▼
+# Client App    Server App     Resumption
+# Traffic Secret Traffic Secret Master Secret
+</pre>
+      </div>
+
+      <!-- SECTION 3 -->
+      <h2 id="0rtt">3. 0-RTT Resumption</h2>
+      <p>Fitur paling revolusioner TLS 1.3: <strong>0-RTT (Zero Round Trip Time Resumption)</strong>. Client yang pernah terhubung sebelumnya bisa mengirim data aplikasi pada message pertama, tanpa menunggu handshake selesai. Ini mengurangi latency ke <strong>nol</strong>.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# === TLS 1.3 0-RTT Resumption ===
+
+# Prasyarat: Client sudah pernah connect ke server ini
+# Client menyimpan PSK (Pre-Shared Key) dari sesi sebelumnya
+
+Client                                              Server
+  |                                                    |
+  |--- ClientHello --------→                           |
+  |    + psk_identity: ticket dari sesi sebelumnya     |
+  |    + early_data indicator                          |
+  |    + key_share                                     |
+  |                                                    |
+  |--- {0-RTT Application Data} ---→                   |  ← DATA DIKIRIM SEKARANG!
+  |    (GET /index.html)                               |     TANPA TUNGGU SERVER!
+  |                                                    |
+  |←-- ServerHello                                     |
+  |    + pre_shared_key: selected identity             |
+  |                                                    |
+  |←-- {EncryptedExtensions}                           |
+  |←-- {Finished}                                      |
+  |                                                    |
+  |--- {Finished}  --------→                           |
+  |                                                    |
+  |==== APPLICATION DATA =======→                      |
+  |←========================== APPLICATION DATA        |
+
+# KEUNTUNGAN: 0 RTT untuk data pertama
+# → 100ms hemat pada koneksi 50ms latency
+# → User experience lebih cepat
+
+# ⚠️ RISIKO: Replay Attack!
+# 0-RTT data TIDAK memiliki forward secrecy
+# Attacker bisa merekam dan me-replay 0-RTT data
+# → Server HARUS implementasi anti-replay:
+#   1. Single-use tickets (server track ticket yang sudah dipakai)
+#   2. Client Hello recording window
+#   3. Hanya untuk idempotent requests (GET, bukan POST yang mengubah state)
+</pre>
+      </div>
+
+      <!-- SECTION 4 -->
+      <h2 id="cipher-suites">4. Cipher Suites</h2>
+      <p>TLS 1.3 secara drastis menyederhanakan cipher suites dari ratusan kombinasi menjadi hanya <strong>5</strong>:</p>
+
+      <table class="net-table">
+        <thead><tr><th>Cipher Suite</th><th>AEAD Algorithm</th><th>Hash</th><th>Key Size</th></tr></thead>
+        <tbody>
+          <tr><td><code>TLS_AES_128_GCM_SHA256</code></td><td>AES-128-GCM</td><td>SHA-256</td><td>128 bit</td></tr>
+          <tr><td><code>TLS_AES_256_GCM_SHA384</code></td><td>AES-256-GCM</td><td>SHA-384</td><td>256 bit</td></tr>
+          <tr><td><code>TLS_CHACHA20_POLY1305_SHA256</code></td><td>ChaCha20-Poly1305</td><td>SHA-256</td><td>256 bit</td></tr>
+          <tr><td><code>TLS_AES_128_CCM_SHA256</code></td><td>AES-128-CCM</td><td>SHA-256</td><td>128 bit</td></tr>
+          <tr><td><code>TLS_AES_128_CCM_8_SHA256</code></td><td>AES-128-CCM-8</td><td>SHA-256</td><td>128 bit</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box info">
+        <div class="info-box-title">📚 Mengapa Hanya AEAD?</div>
+        <p>TLS 1.3 hanya mengizinkan <strong>AEAD (Authenticated Encryption with Associated Data)</strong> cipher modes. Mode lama seperti CBC (Cipher Block Chaining) rentan terhadap padding oracle attacks (POODLE, Lucky13). AEAD menggabungkan enkripsi dan autentikasi dalam satu operasi, menghilangkan kelas serangan ini.</p>
+      </div>
+
+      <!-- SECTION 5 -->
+      <h2 id="key-exchange">5. Key Exchange &amp; Perfect Forward Secrecy</h2>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# Perfect Forward Secrecy (PFS) di TLS 1.3:
+
+# TLS 1.2 (opsional PFS):
+# - RSA key exchange: server punya RSA key pair static
+#   → Client encrypt pre-master secret dengan server public key
+#   → Jika private key bocor NANTI, semua komunikasi masa lalu bisa di-decrypt!
+#   → TIDAK ada PFS
+
+# TLS 1.3 (PFS WAJIB):
+# - Hanya ephemeral (EC)DHE key exchange
+#   → Client dan server generate key pair BARU setiap handshake
+#   → Shared secret = ECDHE(client_ephemeral_private, server_ephemeral_public)
+#   → Setelah handshake selesai, ephemeral keys dihapus
+#   → Jika private key bocor nanti, komunikasi masa lalu TETAP AMAN
+#   → PFS DIJAMIN
+
+# Supported Groups di TLS 1.3:
+# x25519       → Curve25519 (paling populer, cepat, aman)
+# x448         → Curve448 (keamanan lebih tinggi)
+# secp256r1    → P-256 (NIST curve, widely supported)
+# secp384r1    → P-384 (NIST curve, higher security)
+# secp521r1    → P-521 (NIST curve, highest security)
+# ffdhe2048    → Finite Field DH 2048-bit
+# ffdhe3072    → Finite Field DH 3072-bit
+
+# Rekomendasi: x25519 (default di sebagian besar library)
+</pre>
+      </div>
+
+      <!-- SECTION 6 -->
+      <h2 id="certificate-transparency">6. Certificate Transparency</h2>
+      <p><strong>Certificate Transparency (CT)</strong> adalah framework untuk memantau dan mengaudit penerbitan sertifikat SSL/TLS. CT mewajibkan semua sertifikat yang diterbitkan oleh CA (Certificate Authority) dicatat di public append-only logs.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# Certificate Transparency Flow:
+
+# 1. CA menerbitkan sertifikat untuk domain
+# 2. CA meng-submit sertifikat ke CT Log server
+# 3. CT Log mengembalikan SCT (Signed Certificate Timestamp)
+# 4. SCT disertakan di sertifikat atau dikirim via TLS extension
+
+# SCT (Signed Certificate Timestamp):
+# - Bukti bahwa sertifikat telah dicatat di public log
+# - Browser Chrome menolak sertifikat tanpa SCT (sejak 2018)
+# - Minimal 2-3 SCT dari log berbeda untuk redundansi
+
+# Bagaimana CT mendeteksi sertifikat palsu:
+#
+# 1. Attacker memperoleh sertifikat palsu dari CA nakal
+# 2. Sertifikat harus di-submit ke CT log (public!)
+# 3. Domain owner memonitor CT logs
+# 4. Domain owner mendeteksi sertifikat yang tidak sah
+# 5. Domain owner bisa melapor ke browser → sertifikat di-revoke
+
+# Monitoring CT logs:
+# - crt.sh — https://crt.sh (free, searchable)
+# - Facebook CT Monitor
+# - Certstream — real-time certificate feed
+# - Custom monitoring dengan CT log API
+
+# Cek sertifikat CT:
+curl -s "https://crt.sh/?q=example.com&output=json" | python -m json.tool
+</pre>
+      </div>
+
+      <!-- SECTION 7 -->
+      <h2 id="tls12-vs-13">7. TLS 1.2 vs TLS 1.3</h2>
+      <table class="net-table">
+        <thead><tr><th>Fitur</th><th>TLS 1.2</th><th>TLS 1.3</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Full Handshake</strong></td><td>2-RTT</td><td>1-RTT</td></tr>
+          <tr><td><strong>Resumption</strong></td><td>1-RTT (session ticket)</td><td>0-RTT</td></tr>
+          <tr><td><strong>Cipher Suites</strong></td><td>300+</td><td>5</td></tr>
+          <tr><td><strong>PFS</strong></td><td>Opsional</td><td>Wajib</td></tr>
+          <tr><td><strong>Handshake Encryption</strong></td><td>Tidak</td><td>Ya</td></tr>
+          <tr><td><strong>RSA Key Exchange</strong></td><td>Ya</td><td>Tidak (hapus)</td></tr>
+          <tr><td><strong>Compression</strong></td><td>Ya</td><td>Tidak (hapus)</td></tr>
+          <tr><td><strong>Renegotiation</strong></td><td>Ya</td><td>Tidak (hapus)</td></tr>
+          <tr><td><strong>CCS Message</strong></td><td>Ya</td><td>Tidak (hapus)</td></tr>
+          <tr><td><strong>Signature Schemes</strong></td><td>Di cipher suite</td><td>Independent extension</td></tr>
+          <tr><td><strong>Browser Support</strong></td><td>Semua modern</td><td>Semua modern (sejak 2020)</td></tr>
+          <tr><td><strong>Adoption Rate (2026)</strong></td><td>~35%</td><td>~65%</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 8 -->
+      <h2 id="implementasi">8. Konfigurasi &amp; Testing</h2>
+
+      <h3>Nginx TLS 1.3 Configuration</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Nginx</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+server {
+    listen 443 ssl http2;
+    server_name example.com;
+
+    ssl_certificate /etc/ssl/cert.pem;
+    ssl_certificate_key /etc/ssl/key.pem;
+
+    # Aktifkan TLS 1.3 (dan TLS 1.2 untuk kompatibilitas)
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # TLS 1.3 cipher suites (auto-selected, tapi bisa di-configure)
+    ssl_conf_command Ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256;
+
+    # TLS 1.2 cipher suites (PFS-only)
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+    ssl_prefer_server_ciphers on;
+
+    # OCSP Stapling
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    ssl_trusted_certificate /etc/ssl/chain.pem;
+
+    # TLS session settings
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_tickets off;  # Lebih aman tanpa session tickets
+
+    # Early data (0-RTT) — HATI-HATI dengan replay
+    ssl_early_data on;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=63072000" always;
+}
+</pre>
+      </div>
+
+      <h3>Testing TLS Configuration</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Bash</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# Cek TLS versi yang didukung
+openssl s_client -connect example.com:443 -tls1_3
+# Output: Protocol  : TLSv1.3
+
+# Cek cipher suite yang dinegosiasikan
+openssl s_client -connect example.com:443 2>/dev/null | grep "Cipher is"
+# Cipher is TLS_AES_256_GCM_SHA384
+
+# Cek detail handshake
+openssl s_client -connect example.com:443 -tlsextdebug -status 2>&1 | grep -i "TLS\|extension\|Cipher"
+
+# Online testing (sangat lengkap):
+# https://www.ssllabs.com/ssltest/
+# → Grade A+ = TLS 1.3 + HSTS + OCSP stapling + PFS
+
+# curl dengan TLS 1.3 verbose
+curl -v --tlsv1.3 https://example.com 2>&1 | grep -i "TLS\|SSL"
+
+# Nmap TLS scanning
+nmap --script ssl-enum-ciphers -p 443 example.com
+</pre>
+      </div>
+
+      <h3>TLS 1.3 Adoption di Browser</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# TLS 1.3 Support Timeline:
+#
+# Chrome 70     (Oktober 2018) — TLS 1.3 final
+# Firefox 63    (Oktober 2018) — TLS 1.3 final
+# Safari 12.1   (Maret 2019)   — TLS 1.3 final
+# Edge 79       (Januari 2020) — Chromium-based, TLS 1.3
+# Android       (API 29+)      — TLS 1.3 default
+# Java 11+      (2018)         — TLS 1.3 support
+# Go 1.13+      (2019)         — TLS 1.3 default
+# OpenSSL 1.1.1 (2018)         — TLS 1.3 support
+# BoringSSL     (2018)         — TLS 1.3 default
+#
+# Server support:
+# Nginx 1.13.0+ → TLS 1.3 dengan OpenSSL 1.1.1+
+# Apache 2.4.37+ → TLS 1.3
+# HAProxy 2.0+ → TLS 1.3
+# Caddy 2.0 → TLS 1.3 default
+# Node.js 12+ → TLS 1.3 via OpenSSL
+# Python 3.7+ → ssl.PROTOCOL_TLS_CLIENT (auto TLS 1.3)
+
+# Statistik global (2026):
+# ~65% koneksi HTTPS menggunakan TLS 1.3
+# ~35% masih TLS 1.2 (backward compatibility)
+# TLS 1.0/1.1: hampir 0% (deprecated sejak 2020)
+</pre>
+      </div>
+
+      <h3>Encrypted Client Hello (ECH)</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# Encrypted Client Hello (ECH) — formerly Encrypted SNI (ESNI)
+
+# MASALAH:
+# Di TLS 1.3, ClientHello (termasuk SNI/Server Name Indication)
+# dikirim dalam PLAINTEXT sebelum enkripsi diaktifkan.
+# → Network observer (ISP, firewall) bisa melihat domain
+#   yang Anda kunjungi meski payload terenkripsi!
+# → Digunakan oleh beberapa negara/ISP untuk censorship/monitoring
+
+# SOLUSI: ECH (Encrypted Client Hello)
+# → Mengenkripsi SELEURUH ClientHello termasuk SNI
+# → Hanya "outer" SNI yang plaintext (misal: cloudflare.com)
+# → "Inner" SNI yang sebenarnya terenkripsi
+# → DNS HTTPS record digunakan untuk publish ECH config
+
+# ECH Flow:
+# 1. Client resolve DNS → dapat ECHConfig (public key server)
+# 2. Client buat "inner ClientHello" (domain sebenarnya)
+# 3. Client encrypt inner CH dengan public key server
+# 4. Client buat "outer ClientHello" (domain generik)
+# 5. Server decrypt inner CH → proses handshake normal
+#
+# Status: Draft standard, didukung Chrome/Firefox (experimental)
+# Cloudflare sudah mendukung ECH untuk domain yang di-hosting
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- QUIZ -->
+      <h2 id="quiz">Quiz Pemahaman</h2>
+      <div class="quiz-container" id="quiz-tls13">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Berapa RTT yang dibutuhkan TLS 1.3 untuk full handshake baru?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) 3 RTT</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) 2 RTT</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) 1 RTT</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) 0 RTT</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Mengapa TLS 1.3 menghapus RSA key exchange?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Terlalu lambat</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Tidak mendukung Perfect Forward Secrecy</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Tidak kompatibel dengan HTTP/2</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Terlalu rumit untuk diimplementasikan</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Risiko utama dari 0-RTT di TLS 1.3?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Latency lebih tinggi</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Replay attack</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Kompatibilitas browser</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Ukuran sertifikat lebih besar</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Berapa banyak cipher suites yang didukung TLS 1.3?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) 300+</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) 50</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) 20</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) 5</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa fungsi Certificate Transparency?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Mengenkripsi sertifikat</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Memantau dan mengaudit penerbitan sertifikat SSL/TLS</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Mempercepat TLS handshake</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Menggantikan CA</div>
+          </div>
+        </div>
+        <button class="quiz-btn">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="oauth2-oidc.html" class="prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">OAuth 2.0 dan OpenID Connect</span></a>
+        <a href="message-queue-patterns.html" class="next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">Message Queue Patterns</span></a>
+      </div>
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter"><div class="container"><div class="newsletter-card fade-in"><h2>📬 Dapatkan Tutorial Terbaru</h2><p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p><form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form></div></div></section>
+  <footer class="footer"><div class="container"><div class="footer-grid"><div class="footer-brand"><img src="../images/logo_beebane_webp.webp" alt="BeebaneLabs" class="footer-logo" loading="lazy" width="40" height="22"><p>Portal tutorial teknologi &amp; IT Indonesia.</p></div><div class="footer-col"><h4>Kategori</h4><ul><li><a href="../kategori/iot.html">IoT</a></li><li><a href="../kategori/mikrotik.html">Networking</a></li><li><a href="../kategori/python.html">Pemrograman</a></li><li><a href="../kategori/keamanan.html">Cybersecurity</a></li><li><a href="../kategori/dashboard.html">Cloud</a></li></ul></div><div class="footer-col"><h4>Populer</h4><ul><li><a href="esp32-fundamentals.html">ESP32</a></li><li><a href="mikrotik-routing.html">MikroTik</a></li><li><a href="mqtt-protocol.html">MQTT</a></li></ul></div><div class="footer-col"><h4>Lainnya</h4><ul><li><a href="../about.html">Tentang</a></li><li><a href="../privacy-policy.html">Privasi</a></li><li><a href="../contact.html">Kontak</a></li></ul></div></div><div class="footer-bottom"><div class="footer-social"><a href="https://github.com/Beebane25" target="_blank" rel="noopener">GitHub</a></div><p>&copy; 2026 BeebaneLabs.</p></div></div></footer>
+  <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
+  <script src="../js/app.js?v=9.5"></script>
+  <script src="../js/mobile-zoom.js?v=9.2"></script>
+  <script>initQuiz('quiz-tls13', ['c', 'b', 'b', 'd', 'b']);</script>
+<button class="theme-toggle-floating" onclick="ThemeToggle.toggle()" title="Ganti tema" aria-label="Ganti tema">☀️</button>
+<div id="quickMenuBackdrop" class="quick-menu-backdrop" onclick="MobileQuickMenu.close()"></div><button id="quickMenuBtn" class="quick-menu-btn" onclick="MobileQuickMenu.toggle()" title="Menu" aria-label="Menu cepat">⚙️</button><div id="quickMenuPanel" class="quick-menu-panel"><div class="quick-menu-section"><span class="quick-menu-label">🔍 Zoom</span><div class="quick-menu-row"><button onclick="MobileQuickMenu.zoomOut()" aria-label="Perkecil">−</button><span id="quickMenuZoomLevel" class="zoom-level">100%</span><button onclick="MobileQuickMenu.zoomIn()" aria-label="Perbesar">+</button><button onclick="MobileQuickMenu.resetZoom()" style="font-size:0.8rem" aria-label="Reset zoom">↺</button></div></div><div class="quick-menu-section"><span class="quick-menu-label">🎨 Tema</span><button class="quick-menu-row quick-menu-theme-btn" onclick="MobileQuickMenu.toggleTheme()" aria-label="Ganti tema"><span id="quickMenuThemeIcon">☀️</span> <span>Ganti Tema</span></button></div></div>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})});}</script>
+</body>
+</html>

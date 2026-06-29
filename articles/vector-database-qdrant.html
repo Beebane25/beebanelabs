@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08090a">
+  <link rel="preconnect" href="https://*.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BeebaneLabs">
+  <link rel="apple-touch-icon" href="/images/logo_beebane.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes">
+  <title>Qdrant Vector Database: Semantik Search &amp; AI | BeebaneLabs</title>
+  <meta name="description" content="Tutorial lengkap Qdrant — vector database untuk semantic search, RAG, dan AI. Pelajari collections, vectors, filtering, payloads, HNSW indexing, dan clustering.">
+  <meta name="keywords" content="Qdrant, vector database, semantic search, HNSW, embeddings, RAG, AI database, similarity search">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="og:title" content="Qdrant Vector Database: Semantik Search & AI">
+  <meta property="og:description" content="Tutorial lengkap Qdrant — vector database untuk semantic search dan AI.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://beebanelabs.pages.dev/articles/vector-database-qdrant.html">
+  <meta property="og:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Qdrant Vector Database: Semantik Search & AI">
+  <meta name="twitter:description" content="Tutorial lengkap Qdrant — vector database untuk semantic search dan AI.">
+  <meta name="twitter:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta property="article:published_time" content="2026-06-29">
+  <meta property="article:section" content="Database">
+  <meta property="article:tag" content="Qdrant">
+  <meta property="article:tag" content="Vector Database">
+  <meta property="article:tag" content="AI">
+  <meta property="article:tag" content="Database">
+  <link rel="canonical" href="https://beebanelabs.pages.dev/articles/vector-database-qdrant.html">
+  <link rel="stylesheet" href="../css/style.css?v=13.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Qdrant Vector Database: Semantik Search & AI",
+    "description": "Tutorial lengkap Qdrant — vector database untuk semantic search, RAG, dan AI dengan collections, HNSW indexing, dan clustering.",
+    "author": { "@type": "Organization", "name": "BeebaneLabs" },
+    "datePublished": "2026-06-29",
+    "publisher": { "@type": "Organization", "name": "BeebaneLabs" }
+  }
+  </script>
+<script>
+(function(){
+  var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';
+  function loadAds(){
+    if(window._adsLoaded) return;
+    window._adsLoaded=true;
+    var s=document.createElement('script');
+    s.async=true;s.crossOrigin='anonymous';s.src=src;
+    document.head.appendChild(s);
+    ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+      document.removeEventListener(e,loadAds,{passive:true});
+    });
+  }
+  ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+    document.addEventListener(e,loadAds,{passive:true,once:true});
+  });
+  setTimeout(loadAds,5000);
+})();
+</script>
+  <script type="speculationrules">{ "prerender": [{ "where": { "href_matches": "/*" }, "eagerness": "moderate" }] }</script>
+</head>
+<body>
+  <noscript><style>.article-content,.articles-grid,.category-section,.hero{display:block!important;opacity:1!important;transform:none!important}.reveal{opacity:1!important;transform:none!important}</style></noscript>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+  <div class="reading-progress-bar" id="readingProgress"></div>
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="navbar-brand"><picture><source srcset="../images/logo_beebane_webp.webp" type="image/webp"><img src="../images/logo_beebane.png" alt="BeebaneLabs" class="brand-logo" width="40" height="22"></picture></a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="../index.html">Beranda</a></li>
+        <li><a href="../kategori.html">Kategori</a></li>
+        <li><a href="../about.html">Tentang</a></li>
+        <li><a href="../pricing.html">Harga</a></li>
+      </ul>
+      <div class="navbar-search" id="searchTrigger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>Cari tutorial...</span><kbd>/</kbd></div>
+      <div id="authNavArea"></div>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" onclick="document.getElementById('searchOverlay').classList.remove('active')" aria-label="Tutup">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Database</a><span class="separator">/</span><span class="current">Qdrant</span></div>
+      <span class="category-tag">Database</span>
+      <h1>Qdrant Vector Database: Semantic Search &amp; AI</h1>
+      <p class="article-subtitle">Tutorial komprehensif Qdrant — vector database open-source untuk semantic search, Retrieval Augmented Generation (RAG), dan AI applications. Pelajari collections, vector operations, filtering, payloads, HNSW indexing, dan deployment clustered</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Vector Database</a></li>
+          <li><a href="#instalasi">Instalasi Qdrant</a></li>
+          <li><a href="#collections">Collections &amp; Vectors</a></li>
+          <li><a href="#filtering">Filtering &amp; Payloads</a></li>
+          <li><a href="#hnsw">HNSW Index</a></li>
+          <li><a href="#rag">RAG Implementation</a></li>
+          <li><a href="#clustering">Clustering &amp; Production</a></li>
+          <li><a href="#integrasi">Integrasi dengan AI Framework</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan Vector Database</h2>
+
+      <p><strong>Vector database</strong> adalah database yang dirancang khusus untuk menyimpan, mengindeks, dan mencari <strong>vector embeddings</strong> — representasi numerik dari data seperti teks, gambar, audio, dan video dalam bentuk array floating-point berdimensi tinggi. Qdrant adalah salah satu vector database open-source terbaik saat ini.</p>
+
+      <p>Dalam era AI modern, hampir semua model machine learning (GPT, BERT, CLIP, Stable Diffusion) menghasilkan embedding vectors. Vector database memungkinkan <strong>similarity search</strong> — mencari data yang paling mirip secara semantik, bukan berdasarkan keyword match.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Bagaimana Vector Database Bekerja</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">📝</div>
+            <div class="arch-label">Data Asli</div>
+            <div class="arch-desc">Teks, gambar,<br>audio, video</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box info">
+            <div class="arch-icon">🧠</div>
+            <div class="arch-label">Embedding Model</div>
+            <div class="arch-desc">OpenAI, Sentence<br>Transformers, CLIP</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">📊</div>
+            <div class="arch-label">Vector (384-1536 dim)</div>
+            <div class="arch-desc">[0.12, -0.45, 0.78, ...]<br>floating-point array</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box success">
+            <div class="arch-icon">🔍</div>
+            <div class="arch-label">Similarity Search</div>
+            <div class="arch-desc">Cari vector paling<br>mendekati query</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Keunggulan Qdrant</h3>
+      <ul>
+        <li><strong>High Performance:</strong> HNSW index untuk ANN search yang sangat cepat</li>
+        <li><strong>Filtering Kaya:</strong> Filter berdasarkan payload sambil tetap melakukan vector search</li>
+        <li><strong>Multi-tenancy:</strong> Payload-based atau collection-based isolation</li>
+        <li><strong>Multiple Vectors:</strong> Satu point bisa memiliki beberapa vectors (named vectors)</li>
+        <li><strong>Quantization:</strong> Scalar, product, dan binary quantization untuk mengurangi memory</li>
+        <li><strong>Clustering:</strong> Built-in distributed mode untuk high availability</li>
+        <li><strong>REST &amp; gRPC API:</strong> Fleksibel untuk integrasi dari bahasa apapun</li>
+      </ul>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="instalasi">2. Instalasi Qdrant</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Instalasi Qdrant</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Docker (recommended)
+docker run -d --name qdrant \
+    -p 6333:6333 \
+    -p 6334:6334 \
+    -v ~/qdrant-data:/qdrant/storage \
+    qdrant/qdrant:v1.9.0
+
+# REST API: port 6333
+# gRPC API: port 6334
+# Dashboard: http://localhost:6333/dashboard
+
+# Atau install binary
+wget https://github.com/qdrant/qdrant/releases/download/v1.9.0/qdrant-x86_64-unknown-linux-gnu.tar.gz
+tar xzf qdrant-x86_64-unknown-linux-gnu.tar.gz
+./qdrant
+
+# Python client
+pip install qdrant-client openai
+
+# JavaScript/TypeScript client
+npm install @qdrant/js-client-rest
+
+# Verifikasi
+curl http://localhost:6333/health
+# Output: {"title":"qdrant - vector search engine","version":"1.9.0"}
+</pre>
+      </div>
+
+      <h3>2.1 Qdrant Cloud (Managed)</h3>
+      <p>Qdrant juga tersedia sebagai managed service di <strong>cloud.qdrant.io</strong> dengan free tier 1GB cluster — cocok untuk prototyping dan development.</p>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 3 -->
+      <h2 id="collections">3. Collections &amp; Vectors</h2>
+
+      <p><strong>Collection</strong> adalah unit penyimpanan utama di Qdrant — analog dengan "table" di database relasional. Setiap collection memiliki konfigurasi vector (dimensi, distance metric) dan menyimpan <strong>points</strong> yang terdiri dari ID, vector, dan payload.</p>
+
+      <h3>3.1 Membuat Collection</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Qdrant Client</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+from qdrant_client import QdrantClient
+from qdrant_client.models import (
+    Distance, VectorParams, PointStruct,
+    Filter, FieldCondition, MatchValue,
+    PayloadSchemaType, CreateAliasOperation
+)
+
+# Koneksi ke Qdrant
+client = QdrantClient(url="http://localhost:6333")
+
+# Membuat collection
+client.create_collection(
+    collection_name="documents",
+    vectors_config=VectorParams(
+        size=384,          # Dimensi embedding
+        distance=Distance.COSINE  # COSINE, EUCLID, DOT, MANHATTAN
+    ),
+)
+
+# Collection dengan multiple named vectors
+client.create_collection(
+    collection_name="products",
+    vectors_config={
+        "text": VectorParams(size=384, distance=Distance.COSINE),
+        "image": VectorParams(size=512, distance=Distance.COSINE),
+    }
+)
+
+# Cek collection info
+collection_info = client.get_collection("documents")
+print(f"Vectors: {collection_info.vectors_count}")
+print(f"Status: {collection_info.status}")
+</pre>
+      </div>
+
+      <h3>3.2 Insert &amp; Query Vectors</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — CRUD &amp; Search Operations</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+import uuid
+from qdrant_client.models import PointStruct
+
+# Insert points dengan payload
+points = [
+    PointStruct(
+        id=str(uuid.uuid4()),
+        vector=[0.12, 0.45, 0.78, ...],  # 384-dim vector
+        payload={
+            "title": "Tutorial Python untuk Pemula",
+            "category": "programming",
+            "language": "id",
+            "difficulty": "beginner",
+            "tags": ["python", "tutorial", "pemula"],
+            "views": 1500,
+            "rating": 4.8
+        }
+    ),
+    PointStruct(
+        id=str(uuid.uuid4()),
+        vector=[0.34, 0.67, 0.23, ...],
+        payload={
+            "title": "Machine Learning dengan TensorFlow",
+            "category": "ai",
+            "language": "id",
+            "difficulty": "intermediate",
+            "tags": ["ml", "tensorflow", "deep-learning"],
+            "views": 2300,
+            "rating": 4.9
+        }
+    ),
+]
+
+client.upsert(
+    collection_name="documents",
+    points=points
+)
+
+# Search — cari vector paling mirip
+results = client.search(
+    collection_name="documents",
+    query_vector=[0.15, 0.42, 0.80, ...],  # Query vector
+    limit=5,
+)
+
+for result in results:
+    print(f"ID: {result.id}")
+    print(f"Score: {result.score:.4f}")
+    print(f"Title: {result.payload['title']}")
+    print(f"Category: {result.payload['category']}")
+    print("---")
+
+# Search dengan filter
+results = client.search(
+    collection_name="documents",
+    query_vector=[0.15, 0.42, 0.80, ...],
+    query_filter=Filter(
+        must=[
+            FieldCondition(
+                key="category",
+                match=MatchValue(value="programming")
+            ),
+            FieldCondition(
+                key="difficulty",
+                match=MatchValue(value="beginner")
+            )
+        ]
+    ),
+    limit=5,
+)
+
+# Batch insert (untuk data besar)
+import random
+batch_points = [
+    PointStruct(
+        id=i,
+        vector=[random.random() for _ in range(384)],
+        payload={"index": i, "batch": True}
+    )
+    for i in range(10000)
+]
+
+client.upsert(
+    collection_name="documents",
+    points=batch_points,
+    batch_size=100  # Insert per batch
+)
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="filtering">4. Filtering &amp; Payloads</h2>
+
+      <p><strong>Payload</strong> adalah metadata yang disimpan bersama vector di setiap point. Qdrant memungkinkan filtering berdasarkan payload secara simultan dengan vector search — ini memastikan hasil yang relevan secara semantik sekaligus memenuhi kriteria bisnis.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Advanced Filtering</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+from qdrant_client.models import (
+    Filter, FieldCondition, MatchValue,
+    MatchAny, Range, IsNullCondition,
+    NestedCondition
+)
+
+# Filter equality
+Filter(must=[
+    FieldCondition(key="language", match=MatchValue(value="id"))
+])
+
+# Filter IN (match any)
+Filter(must=[
+    FieldCondition(key="category", match=MatchAny(value=["programming", "ai"]))
+])
+
+# Filter range
+Filter(must=[
+    FieldCondition(
+        key="rating",
+        range=Range(gte=4.5, lte=5.0)
+    ),
+    FieldCondition(
+        key="views",
+        range=Range(gte=1000)
+    )
+])
+
+# Filter array contains
+Filter(must=[
+    FieldCondition(key="tags", match=MatchValue(value="python"))
+])
+
+# Filter negation (must_not)
+Filter(
+    must=[
+        FieldCondition(key="language", match=MatchValue(value="id"))
+    ],
+    must_not=[
+        FieldCondition(key="difficulty", match=MatchValue(value="beginner"))
+    ]
+)
+
+# OR logic (should)
+Filter(
+    should=[
+        FieldCondition(key="category", match=MatchValue(value="programming")),
+        FieldCondition(key="category", match=MatchValue(value="ai")),
+    ]
+)
+
+# Complex filter: (programming OR ai) AND rating >= 4.5 AND NOT beginner
+client.search(
+    collection_name="documents",
+    query_vector=[0.15, 0.42, 0.80, ...],
+    query_filter=Filter(
+        should=[
+            FieldCondition(key="category", match=MatchValue(value="programming")),
+            FieldCondition(key="category", match=MatchValue(value="ai")),
+        ],
+        must=[
+            FieldCondition(key="rating", range=Range(gte=4.5)),
+        ],
+        must_not=[
+            FieldCondition(key="difficulty", match=MatchValue(value="beginner")),
+        ]
+    ),
+    limit=10
+)
+</pre>
+      </div>
+
+      <h3>4.1 Payload Index</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Membuat Payload Index</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+from qdrant_client.models import PayloadSchemaType
+
+# Index kolom yang sering di-filter untuk performa lebih baik
+client.create_payload_index(
+    collection_name="documents",
+    field_name="category",
+    field_schema=PayloadSchemaType.KEYWORD
+)
+
+client.create_payload_index(
+    collection_name="documents",
+    field_name="rating",
+    field_schema=PayloadSchemaType.FLOAT
+)
+
+client.create_payload_index(
+    collection_name="documents",
+    field_name="views",
+    field_schema=PayloadSchemaType.INTEGER
+)
+
+client.create_payload_index(
+    collection_name="documents",
+    field_name="title",
+    field_schema=PayloadSchemaType.TEXT  # Full-text index
+)
+</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Payload Index vs Payload Storage</div>
+        <p>Payload index mempercepat filtering tetapi menambah storage. Buat index hanya untuk kolom yang sering digunakan dalam filter. Kolom yang jarang di-filter cukup disimpan sebagai payload tanpa index.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 5 -->
+      <h2 id="hnsw">5. HNSW Index</h2>
+
+      <p><strong>HNSW (Hierarchical Navigable Small World)</strong> adalah algoritma indexing yang digunakan Qdrant untuk <strong>Approximate Nearest Neighbor (ANN)</strong> search. HNSW membangun graf berlapis yang memungkinkan pencarian vector yang sangat cepat — bahkan pada dataset dengan miliaran vectors.</p>
+
+      <h3>5.1 Mengkonfigurasi HNSW</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — HNSW Configuration</span>
+          <button class="code-copy">Salin</button>
+</pre>
+<pre>
+from qdrant_client.models import HnswConfig, OptimizersConfig
+
+# Membuat collection dengan HNSW config
+client.create_collection(
+    collection_name="high_perf_docs",
+    vectors_config=VectorParams(
+        size=384,
+        distance=Distance.COSINE
+    ),
+    hnsw_config=HnswConfig(
+        m=16,                # Jumlah koneksi per node (default: 16)
+        ef_construct=100,    # Ukuran ef saat membangun index (default: 100)
+        full_scan_threshold=20000,  # Jika dataset kecil, gunakan brute force
+        max_indexing_threads=0,     # 0 = auto (gunakan semua core)
+    ),
+    optimizers_config=OptimizersConfig(
+        deleted_threshold=0.2,
+        vacuum_min_vector_number=1000,
+        default_segment_number=0,
+        max_segment_size=None,
+        memmap_threshold=20000,
+        indexing_threshold=20000,
+        flush_interval_sec=5,
+        max_optimization_threads=1
+    )
+)
+
+# Mengubah ef saat search (trade-off akurasi vs speed)
+results = client.search(
+    collection_name="high_perf_docs",
+    query_vector=[0.15, 0.42, ...],
+    limit=10,
+    search_params={
+        "hnsw_ef": 128,  # Lebih tinggi = lebih akurat, lebih lambat
+        "exact": False     # True = brute force (lebih akurat untuk small dataset)
+    }
+)
+</pre>
+      </div>
+
+      <h3>5.2 Parameter HNSW Penting</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Parameter</th><th>Default</th><th>Pengaruh</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>m</code></td><td>16</td><td>Koneksi per node. Tinggi = lebih akurat, lebih banyak memory</td></tr>
+          <tr><td><code>ef_construct</code></td><td>100</td><td>Kualitas indexing. Tinggi = index lebih baik, build lebih lambat</td></tr>
+          <tr><td><code>hnsw_ef</code> (search)</td><td>128</td><td>Kualitas search. Tinggi = lebih akurat, search lebih lambat</td></tr>
+          <tr><td><code>full_scan_threshold</code></td><td>20000</td><td>Jika point kurang dari ini, gunakan brute force</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Quantization (hemat memory)</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+from qdrant_client.models import ScalarQuantization, ScalarType
+
+# Scalar quantization: mengurangi float32 ke uint8 (4x hemat memory)
+client.create_collection(
+    collection_name="quantized_docs",
+    vectors_config=VectorParams(
+        size=384,
+        distance=Distance.COSINE
+    ),
+    quantization_config=ScalarQuantization(
+        scalar=ScalarType.INT8,
+        quantile=0.99,      # Menggunakan 99th percentile untuk range
+        always_ram=True      # Simpan quantized vectors di RAM
+    )
+)
+
+# Search dengan rescoring (akurasi tetap tinggi)
+results = client.search(
+    collection_name="quantized_docs",
+    query_vector=[0.15, 0.42, ...],
+    limit=10,
+    search_params={
+        "quantization": {
+            "ignore": False,
+            "rescore": True,      # Rescore dengan original vectors
+            "oversampling": 2.0   # Ambil 2x lebih banyak candidate
+        }
+    }
+)
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="rag">6. RAG Implementation</h2>
+
+      <p><strong>Retrieval Augmented Generation (RAG)</strong> adalah pola arsitektur AI yang menggabungkan vector search dengan LLM. Data relevan diambil dari vector database berdasarkan query, lalu dikirimkan sebagai konteks ke LLM untuk menghasilkan jawaban yang lebih akurat dan grounded.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — RAG Pipeline dengan Qdrant + OpenAI</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+import openai
+from qdrant_client import QdrantClient
+from qdrant_client.models import PointStruct
+
+openai_client = openai.OpenAI()
+qdrant_client = QdrantClient(url="http://localhost:6333")
+
+# Step 1: Index dokumen
+def index_document(text, metadata):
+    """Generate embedding dan simpan ke Qdrant."""
+    response = openai_client.embeddings.create(
+        input=text,
+        model="text-embedding-3-small"
+    )
+    vector = response.data[0].embedding
+
+    qdrant_client.upsert(
+        collection_name="knowledge_base",
+        points=[PointStruct(
+            id=metadata["id"],
+            vector=vector,
+            payload={
+                "text": text,
+                "source": metadata.get("source", ""),
+                "page": metadata.get("page", 0)
+            }
+        )]
+    )
+
+# Step 2: Retrieval
+def retrieve_context(query, top_k=5):
+    """Cari dokumen relevan berdasarkan query."""
+    response = openai_client.embeddings.create(
+        input=query,
+        model="text-embedding-3-small"
+    )
+    query_vector = response.data[0].embedding
+
+    results = qdrant_client.search(
+        collection_name="knowledge_base",
+        query_vector=query_vector,
+        limit=top_k,
+        score_threshold=0.7
+    )
+
+    return [hit.payload["text"] for hit in results]
+
+# Step 3: Generate answer dengan konteks
+def ask_question(question):
+    """RAG: retrieve + generate."""
+    context_docs = retrieve_context(question)
+    context = "\n\n---\n\n".join(context_docs)
+
+    prompt = f"""Berdasarkan konteks berikut, jawab pertanyaan user.
+Jika jawaban tidak ada di konteks, katakan "Saya tidak tahu."
+
+Konteks:
+{context}
+
+Pertanyaan: {question}
+
+Jawaban:"""
+
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Anda adalah asisten yang akurat dan helpful."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3
+    )
+
+    return {
+        "answer": response.choices[0].message.content,
+        "sources": context_docs
+    }
+
+# Contoh penggunaan
+# index_document("CockroachDB adalah distributed SQL database...", {"id": 1, "source": "tutorial"})
+result = ask_question("Apa itu CockroachDB?")
+print(result["answer"])
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 7 -->
+      <h2 id="clustering">7. Clustering &amp; Production</h2>
+
+      <h3>7.1 Qdrant Cluster</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Qdrant Cluster Deployment</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Docker Compose: 3-node Qdrant cluster
+# docker-compose.yml
+version: '3.8'
+services:
+  qdrant-1:
+    image: qdrant/qdrant:v1.9.0
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ./node1:/qdrant/storage
+    environment:
+      - QDRANT__CLUSTER__ENABLED=true
+      - QDRANT__CLUSTER__P2P__PORT=6335
+      - QDRANT__CLUSTER__P2P__HOSTS=qdrant-1:6335,qdrant-2:6335,qdrant-3:6335
+
+  qdrant-2:
+    image: qdrant/qdrant:v1.9.0
+    volumes:
+      - ./node2:/qdrant/storage
+    environment:
+      - QDRANT__CLUSTER__ENABLED=true
+      - QDRANT__CLUSTER__P2P__PORT=6335
+      - QDRANT__CLUSTER__P2P__HOSTS=qdrant-1:6335,qdrant-2:6335,qdrant-3:6335
+
+  qdrant-3:
+    image: qdrant/qdrant:v1.9.0
+    volumes:
+      - ./node3:/qdrant/storage
+    environment:
+      - QDRANT__CLUSTER__ENABLED=true
+      - QDRANT__CLUSTER__P2P__PORT=6335
+      - QDRANT__CLUSTER__P2P__HOSTS=qdrant-1:6335,qdrant-2:6335,qdrant-3:6335
+
+# docker-compose up -d
+
+# Collection dengan replication
+client.create_collection(
+    collection_name="production_docs",
+    vectors_config=VectorParams(size=384, distance=Distance.COSINE),
+    replication_factor=2,           # 2 replika per shard
+    write_consistency_factor=2,     # Minimal 2 acknowledgement untuk write
+    shard_number=3                  # 3 shards
+)
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="integrasi">8. Integrasi dengan AI Framework</h2>
+
+      <h3>8.1 LangChain + Qdrant</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — LangChain + Qdrant Integration</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+from langchain_qdrant import QdrantVectorStore
+from langchain_openai import OpenAIEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import TextLoader
+
+# Load dan split dokumen
+loader = TextLoader("tutorial.txt")
+documents = loader.load()
+splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+docs = splitter.split_documents(documents)
+
+# Buat vector store
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+vector_store = QdrantVectorStore.from_documents(
+    docs,
+    embeddings,
+    url="http://localhost:6333",
+    collection_name="langchain_docs",
+)
+
+# Retrieval
+retriever = vector_store.as_retriever(search_kwargs={"k": 5})
+results = retriever.invoke("Bagaimana cara setup CockroachDB?")
+
+# Atau langsung search
+results = vector_store.similarity_search_with_score(
+    "distributed database",
+    k=5
+)
+</pre>
+      </div>
+
+      <h3>8.2 Monitor &amp; Maintain</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Monitoring Qdrant</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Collection statistics
+info = client.get_collection("documents")
+print(f"Points: {info.points_count}")
+print(f"Vectors: {info.vectors_count}")
+print(f"Segments: {info.segments_count}")
+print(f"Status: {info.status}")
+print(f"Indexed vectors: {info.indexed_vectors_count}")
+
+# Cluster info
+cluster_info = client.get_cluster_info()
+print(f"Peer ID: {cluster_info.peer_id}")
+print(f"Peers: {cluster_info.peers}")
+
+# Optimasi (force segment merge)
+client.update_collection(
+    collection_name="documents",
+    optimizer_config=OptimizersConfig(
+        deleted_threshold=0.2,
+        vacuum_min_vector_number=1000
+    )
+)
+
+# Snapshot untuk backup
+client.create_snapshot(collection_name="documents")
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 9 -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quiz5">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa itu vector embedding?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Representasi numerik dari data (teks, gambar) dalam bentuk array floating-point</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Algoritma untuk mengenkripsi data</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Format penyimpanan untuk database SQL</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Protokol jaringan untuk transfer data</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa fungsi HNSW di Qdrant?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Mengkompresi data untuk menghemat storage</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Mengenkripsi vectors untuk keamanan</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Index untuk Approximate Nearest Neighbor search yang cepat</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Menyalin data ke semua node dalam cluster</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa itu RAG?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Teknik untuk menghapus data duplikat dari vector database</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Pola arsitektur yang menggabungkan vector search dengan LLM untuk jawaban yang lebih akurat</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Algoritma untuk mengurutkan vectors berdasarkan magnitude</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Metode backup untuk vector database</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi payload di Qdrant?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Menyimpan metadata yang bisa di-filter bersama vector search</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Mengenkripsi vector sebelum disimpan</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Menghitung distance antara vectors</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Membagi collection ke beberapa shard</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa keuntungan quantization di Qdrant?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Mengurangi penggunaan memory hingga 4x tanpa kehilangan banyak akurasi</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Menghapus vectors yang tidak dipakai</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Menambah dimensi vectors untuk akurasi lebih tinggi</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Menggandakan jumlah vectors untuk redundancy</div>
+          </div>
+        </div>
+        <button class="quiz-btn">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="turso-edge-database.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Turso: Edge Database</span>
+        </a>
+        <a href="database-migration-flyway.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Database Migration dengan Flyway</span>
+        </a>
+      </div>
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial Database terbaru langsung di inbox kamu.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand"><img src="../images/logo_beebane.png" alt="BeebaneLabs" class="footer-logo" loading="lazy" width="40" height="22"><p>Portal tutorial teknologi &amp; IT Indonesia.</p></div>
+        <div class="footer-col"><h4>Kategori</h4><ul><li><a href="../kategori/iot.html">IoT &amp; Embedded</a></li><li><a href="../kategori/mikrotik.html">Networking</a></li><li><a href="../kategori/python.html">Pemrograman</a></li><li><a href="../kategori/keamanan.html">Cybersecurity</a></li><li><a href="../kategori/database.html">Database</a></li></ul></div>
+        <div class="footer-col"><h4>Populer</h4><ul><li><a href="cockroachdb-distributed.html">CockroachDB</a></li><li><a href="clickhouse-analytics.html">ClickHouse</a></li><li><a href="redis-streams.html">Redis Streams</a></li><li><a href="supabase-realtime.html">Supabase</a></li><li><a href="database-sharding-vitess.html">Vitess</a></li></ul></div>
+        <div class="footer-col"><h4>Lainnya</h4><ul><li><a href="../about.html">Tentang Kami</a></li><li><a href="../privacy-policy.html">Kebijakan Privasi</a></li><li><a href="../contact.html">Kontak</a></li><li><a href="../rss.xml">RSS Feed</a></li></ul></div>
+      </div>
+      <div class="footer-bottom"><div class="footer-social"><a href="https://github.com/Beebane25" target="_blank" rel="noopener">GitHub</a></div><p>&copy; 2026 BeebaneLabs. Semua hak dilindungi.</p></div>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
+  <script src="../js/app.js?v=9.5"></script>
+  <script src="../js/mobile-zoom.js?v=9.2"></script>
+  <script>initQuiz('quiz5', ['a', 'c', 'b', 'a', 'a']);</script>
+<button class="theme-toggle-floating" onclick="ThemeToggle.toggle()" title="Ganti tema" aria-label="Ganti tema">☀️</button>
+  <div id="quickMenuBackdrop" class="quick-menu-backdrop" onclick="MobileQuickMenu.close()"></div>
+  <button id="quickMenuBtn" class="quick-menu-btn" onclick="MobileQuickMenu.toggle()" title="Menu" aria-label="Menu cepat">⚙️</button>
+  <div id="quickMenuPanel" class="quick-menu-panel">
+    <div class="quick-menu-section"><span class="quick-menu-label">🔍 Zoom</span><div class="quick-menu-row"><button onclick="MobileQuickMenu.zoomOut()" aria-label="Perkecil">−</button><span id="quickMenuZoomLevel" class="zoom-level">100%</span><button onclick="MobileQuickMenu.zoomIn()" aria-label="Perbesar">+</button><button onclick="MobileQuickMenu.resetZoom()" style="font-size:0.8rem" aria-label="Reset zoom">↺</button></div></div>
+    <div class="quick-menu-section"><span class="quick-menu-label">🎨 Tema</span><button class="quick-menu-row quick-menu-theme-btn" onclick="MobileQuickMenu.toggleTheme()" aria-label="Ganti tema"><span id="quickMenuThemeIcon">☀️</span> <span>Ganti Tema</span></button></div>
+  </div>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})});}</script>
+</body>
+</html>

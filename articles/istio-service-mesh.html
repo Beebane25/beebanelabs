@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08090a">
+  <link rel="preconnect" href="https://*.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BeebaneLabs">
+  <link rel="apple-touch-icon" href="/images/logo_beebane.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes">
+  <title>Istio Service Mesh | BeebaneLabs</title>
+  <meta name="description" content="Tutorial lengkap Istio Service Mesh — sidecar injection, virtual service, destination rules, traffic management, mTLS, dan observability di Kubernetes.">
+  <meta name="keywords" content="Istio, Service Mesh, Kubernetes, sidecar, virtual service, destination rules, mTLS, traffic management, observability">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="og:title" content="Istio Service Mesh">
+  <meta property="og:description" content="Tutorial lengkap Istio Service Mesh dari instalasi hingga traffic management dan observability.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://beebanelabs.pages.dev/articles/istio-service-mesh.html">
+  <meta property="og:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Istio Service Mesh">
+  <meta name="twitter:description" content="Tutorial lengkap Istio Service Mesh dari instalasi hingga traffic management dan observability.">
+  <meta name="twitter:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta property="article:published_time" content="2026-06-29">
+  <meta property="article:section" content="DevOps & Cloud">
+  <meta property="article:tag" content="Istio">
+  <meta property="article:tag" content="Service Mesh">
+  <meta property="article:tag" content="Kubernetes">
+  <link rel="canonical" href="https://beebanelabs.pages.dev/articles/istio-service-mesh.html">
+  <link rel="stylesheet" href="../css/style.css?v=13.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Istio Service Mesh",
+    "description": "Tutorial lengkap Istio Service Mesh — sidecar injection, virtual service, destination rules, traffic management, observability.",
+    "author": { "@type": "Organization", "name": "BeebaneLabs" },
+    "datePublished": "2026-06-29",
+    "publisher": { "@type": "Organization", "name": "BeebaneLabs" }
+  }
+  </script>
+<script>
+(function(){
+  var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';
+  function loadAds(){
+    if(window._adsLoaded) return;
+    window._adsLoaded=true;
+    var s=document.createElement('script');
+    s.async=true;s.crossOrigin='anonymous';s.src=src;
+    document.head.appendChild(s);
+    ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+      document.removeEventListener(e,loadAds,{passive:true});
+    });
+  }
+  ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+    document.addEventListener(e,loadAds,{passive:true,once:true});
+  });
+  setTimeout(loadAds,5000);
+})();
+</script>
+  <script type="speculationrules">{ "prerender": [{ "where": { "href_matches": "/*" }, "eagerness": "moderate" }] }</script>
+</head>
+<body>
+  <noscript><style>.article-content,.articles-grid,.category-section,.hero{display:block!important;opacity:1!important;transform:none!important}.reveal{opacity:1!important;transform:none!important}</style></noscript>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+  <div class="reading-progress-bar" id="readingProgress"></div>
+
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="navbar-brand">
+        <picture><source srcset="../images/logo_beebane_webp.webp" type="image/webp"><picture><source srcset="../images/logo_beebane_webp.webp" type="image/webp"><img src="../images/logo_beebane_webp.webp" alt="BeebaneLabs" class="brand-logo" width="40" height="22"></picture></picture>
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="../index.html">Beranda</a></li>
+        <li><a href="../kategori.html">Kategori</a></li>
+        <li><a href="../about.html">Tentang</a></li>
+        <li><a href="../pricing.html">Harga</a></li>
+      </ul>
+      <div class="navbar-search" id="searchTrigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Cari tutorial...</span><kbd>/</kbd>
+      </div>
+      <div id="authNavArea"></div>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" onclick="document.getElementById('searchOverlay').classList.remove('active')" aria-label="Tutup">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">DevOps &amp; Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">Istio Service Mesh</span>
+      </div>
+      <span class="category-tag">DevOps &amp; Cloud</span>
+      <h1>Istio Service Mesh</h1>
+      <span class="access-badge free">GRATIS</span>
+      <p class="article-subtitle">Kuasai Istio Service Mesh di Kubernetes — sidecar injection, VirtualService, DestinationRule, traffic management, mTLS, circuit breaking, dan distributed tracing</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#konsep">Konsep Service Mesh</a></li>
+          <li><a href="#instalasi">Instalasi Istio</a></li>
+          <li><a href="#sidecar">Sidecar Injection</a></li>
+          <li><a href="#virtualservice">VirtualService</a></li>
+          <li><a href="#destinationrule">DestinationRule</a></li>
+          <li><a href="#traffic">Traffic Management</a></li>
+          <li><a href="#security">mTLS &amp; Security</a></li>
+          <li><a href="#observability">Observability</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="konsep">1. Konsep Service Mesh</h2>
+
+      <p><strong>Service Mesh</strong> adalah layer infrastruktur yang menangani komunikasi antar microservice. Istio menggunakan arsitektur <strong>sidecar proxy</strong> (Envoy) yang di-inject ke setiap pod, menyediakan traffic management, security, dan observability tanpa mengubah kode aplikasi.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Arsitektur Istio Service Mesh</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">🎛️</div>
+            <div class="arch-label">Control Plane</div>
+            <div class="arch-desc">istiod<br>Config, CA, Service Discovery</div>
+          </div>
+          <div class="arch-arrow">→ xDS API →</div>
+          <div class="arch-box info">
+            <div class="arch-icon">🔀</div>
+            <div class="arch-label">Envoy Proxy (Sidecar)</div>
+            <div class="arch-desc">L7 proxy per pod<br>Traffic routing, mTLS,<br>Telemetry collection</div>
+          </div>
+          <div class="arch-arrow">↔ Traffic ↔</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">📦</div>
+            <div class="arch-label">Application Container</div>
+            <div class="arch-desc">App tidak perlu<br>sadari service mesh<br>Zero-code changes</div>
+          </div>
+          <div class="arch-arrow">↔ →</div>
+          <div class="arch-box success">
+            <div class="arch-icon">📊</div>
+            <div class="arch-label">Observability</div>
+            <div class="arch-desc">Kiali, Grafana,<br>Jaeger, Prometheus</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Komponen Istio</h3>
+      <table class="spec-table">
+        <thead><tr><th>Komponen</th><th>Fungsi</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><code>istiod</code></td><td>Control plane</td><td>Service discovery, config, certificate authority</td></tr>
+          <tr><td><code>Envoy</code></td><td>Data plane</td><td>L7 proxy, sidecar di setiap pod</td></tr>
+          <tr><td><code>Ingress Gateway</code></td><td>Gateway masuk</td><td>Menggantikan Ingress controller standar</td></tr>
+          <tr><td><code>Egress Gateway</code></td><td>Gateway keluar</td><td>Kontrol traffic ke external services</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="instalasi">2. Instalasi Istio</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Install Istio</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Download Istioctl
+curl -L https://istio.io/downloadIstio | sh -
+cd istio-*
+export PATH=$PWD/bin:$PATH
+
+# Install dengan profile default (includes Ingress Gateway)
+istioctl install --set profile=default -y
+
+# Verifikasi instalasi
+istioctl verify-install
+kubectl get pods -n istio-system
+
+# Cek Istio version
+istioctl version
+
+# Install demo profile untuk testing (includes semua addons)
+istioctl install --set profile=demo -y
+
+# Install addons (Kiali, Grafana, Jaeger, Prometheus)
+kubectl apply -f samples/addons/prometheus.yaml
+kubectl apply -f samples/addons/grafana.yaml
+kubectl apply -f samples/addons/jaeger.yaml
+kubectl apply -f samples/addons/kiali.yaml
+
+# Akses Kiali dashboard
+istioctl dashboard kiali
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 3 -->
+      <h2 id="sidecar">3. Sidecar Injection</h2>
+
+      <p>Sidecar injection menambahkan container Envoy proxy ke setiap pod secara otomatis atau manual. Ini adalah langkah pertama untuk mengaktifkan service mesh pada workload Anda.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Sidecar injection methods</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# === METHOD 1: Namespace-level automatic injection ===
+# Label namespace untuk inject otomatis semua pod baru
+kubectl label namespace default istio-injection=enabled
+
+# Verifikasi label
+kubectl get namespace -L istio-injection
+
+# Deploy aplikasi — sidecar akan di-inject otomatis
+kubectl apply -f - <<'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: my-app
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+EOF
+
+# Verifikasi sidecar ter-inject
+kubectl get pod -l app=my-app -o jsonpath='{.items[0].spec.containers[*].name}'
+# Output: my-app istio-proxy
+
+# === METHOD 2: Pod-level injection ===
+# Tambahkan annotation pada pod template
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+        - name: my-app
+          image: nginx:alpine
+
+# === METHOD 3: Manual injection ===
+# Inject sidecar ke manifest yang sudah ada
+kubectl apply -f <(istioctl kube-inject -f deployment.yaml)
+
+# Atau gunakan istioctl analyze untuk validasi
+istioctl analyze -n default
+</pre>
+      </div>
+
+      <h3>3.1 Sidecar Resource Configuration</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Custom sidecar resources</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Konfigurasi resource limits untuk sidecar
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  template:
+    metadata:
+      annotations:
+        # Sidecar CPU dan memory limits
+        sidecar.istio.io/proxyCPU: "100m"
+        sidecar.istio.io/proxyMemory: "128Mi"
+        sidecar.istio.io/proxyCPULimit: "500m"
+        sidecar.istio.io/proxyMemoryLimit: "512Mi"
+        # Intercept mode
+        traffic.sidecar.istio.io/includeOutboundIPRanges: "10.0.0.0/8"
+        traffic.sidecar.istio.io/excludeInboundPorts: "5432,6379"
+    spec:
+      containers:
+        - name: my-app
+          image: my-app:latest
+
+---
+# Sidecar resource — kontrol visibility per namespace
+apiVersion: networking.istio.io/v1beta1
+kind: Sidecar
+metadata:
+  name: my-app-sidecar
+  namespace: default
+spec:
+  workloadSelector:
+    labels:
+      app: my-app
+  # Hanya import service yang dibutuhkan
+  ingress:
+    - port:
+        number: 8080
+        protocol: HTTP
+        name: http
+  egress:
+    - hosts:
+        - "default/*"           # Services di namespace default
+        - "istio-system/*"      # Istio control plane
+        - "database.svc.cluster.local"  # Specific service
+  outboundTrafficPolicy:
+    mode: REGISTRY_ONLY  # Block traffic ke unknown hosts
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="virtualservice">4. VirtualService</h2>
+
+      <p><strong>VirtualService</strong> mendefinisikan aturan routing traffic ke satu atau lebih destination. Ini adalah sumber daya paling penting di Istio untuk traffic management.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">virtualservice-basic.yaml</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: my-app-vs
+  namespace: default
+spec:
+  hosts:
+    - my-app.example.com    # External hostname
+    - my-app                # Internal service name
+  gateways:
+    - istio-ingressgateway  # External traffic
+    - mesh                  # Internal mesh traffic
+  http:
+    # Route rules
+    - match:
+        - uri:
+            prefix: /api/v2
+          headers:
+            x-user-type:
+              exact: premium
+      route:
+        - destination:
+            host: my-app
+            subset: v2
+            port:
+              number: 8080
+          weight: 100
+
+    # Default route ke v1
+    - route:
+        - destination:
+            host: my-app
+            subset: v1
+            port:
+              number: 8080
+          weight: 90
+        - destination:
+            host: my-app
+            subset: v2
+            port:
+              number: 8080
+          weight: 10
+      timeout: 10s
+      retries:
+        attempts: 3
+        perTryTimeout: 3s
+        retryOn: "5xx,reset,connect-failure"
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 5 -->
+      <h2 id="destinationrule">5. DestinationRule</h2>
+
+      <p><strong>DestinationRule</strong> mendefinisikan kebijakan yang berlaku setelah traffic di-route ke destination — termasuk load balancing, connection pool, outlier detection, dan subset definitions.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">destinationrule.yaml</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: my-app-dr
+  namespace: default
+spec:
+  host: my-app.default.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 5s
+      http:
+        h2UpgradePolicy: DEFAULT
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 1000
+        maxRequestsPerConnection: 10
+        maxRetries: 3
+    loadBalancer:
+      simple: LEAST_REQUEST  # ROUND_ROBIN, LEAST_CONN, RANDOM, PASSTHROUGH
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+      trafficPolicy:
+        connectionPool:
+          http:
+            http2MaxRequests: 500
+    - name: v2
+      labels:
+        version: v2
+      trafficPolicy:
+        connectionPool:
+          http:
+            http2MaxRequests: 200
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="traffic">6. Traffic Management</h2>
+
+      <h3>6.1 Canary Deployment</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">canary-deployment.yaml</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Canary: 90% v1, 10% v2
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: canary-vs
+spec:
+  hosts:
+    - my-app
+  http:
+    - route:
+        - destination:
+            host: my-app
+            subset: v1
+          weight: 90
+        - destination:
+            host: my-app
+            subset: v2
+          weight: 10
+
+---
+# Circuit breaker pattern
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: my-app-cb
+spec:
+  host: my-app
+  trafficPolicy:
+    outlierDetection:
+      consecutive5xxErrors: 3     # Setelah 3 error berturut-turut
+      interval: 10s               # Check setiap 10 detik
+      baseEjectionTime: 30s       # Eject minimal 30 detik
+      maxEjectionPercent: 100     # Bisa eject semua instances
+</pre>
+      </div>
+
+      <h3>6.2 Fault Injection</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">fault-injection.yaml</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: fault-test
+spec:
+  hosts:
+    - my-app
+  http:
+    # Inject delay untuk testing resilience
+    - match:
+        - headers:
+            x-test-scenario:
+              exact: delay
+      fault:
+        delay:
+          percentage:
+            value: 50.0
+          fixedDelay: 5s
+      route:
+        - destination:
+            host: my-app
+
+    # Inject HTTP error
+    - match:
+        - headers:
+            x-test-scenario:
+              exact: error
+      fault:
+        abort:
+          percentage:
+            value: 30.0
+          httpStatus: 503
+      route:
+        - destination:
+            host: my-app
+
+    # Normal traffic
+    - route:
+        - destination:
+            host: my-app
+
+# Timeout configuration
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: timeout-config
+spec:
+  hosts:
+    - my-app
+  http:
+    - route:
+        - destination:
+            host: my-app
+      timeout: 10s
+      retries:
+        attempts: 3
+        perTryTimeout: 3s
+        retryOn: "5xx,reset,connect-failure,retriable-4xx"
+</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Fault Injection untuk Testing</div>
+        <p>Fault injection sangat berguna untuk <strong>chaos engineering</strong>. Anda bisa menguji bagaimana aplikasi merespons delay dan error tanpa mengubah kode. Gunakan header <code>x-test-scenario</code> untuk mengaktifkan fault hanya untuk request testing.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 7 -->
+      <h2 id="security">7. mTLS &amp; Security</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">mTLS dan Authorization Policy</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# PeerAuthentication — enforce mTLS
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default-mtls
+  namespace: default
+spec:
+  mtls:
+    mode: STRICT  # STRICT, PERMISSIVE, DISABLE
+
+# Allow only specific service to call my-app
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-api-gateway
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: my-app
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/default/sa/api-gateway"]
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/api/*"]
+
+# Deny all other traffic
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: default
+spec:
+  {}  # Empty spec = deny all
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="observability">8. Observability</h2>
+
+      <p>Istio secara otomatis mengumpulkan <strong>metrics</strong>, <strong>logs</strong>, dan <strong>traces</strong> dari semua traffic yang melewati Envoy proxy. Anda bisa mengakses dashboard bawaan melalui istioctl.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Akses Istio dashboards</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Kiali — Service mesh visualization
+istioctl dashboard kiali
+
+# Grafana — Metrics dashboard
+istioctl dashboard grafana
+
+# Jaeger — Distributed tracing
+istioctl dashboard jaeger
+
+# Prometheus — Metrics backend
+istioctl dashboard prometheus
+
+# Zipkin — Alternatif distributed tracing
+istioctl dashboard zipkin
+
+# Port-forward manual jika diperlukan
+kubectl port-forward -n istio-system svc/kiali 20001:20001
+kubectl port-forward -n istio-system svc/grafana 3000:3000
+kubectl port-forward -n istio-system svc/tracing 16686:80
+
+# Custom Grafana dashboard untuk Istio metrics
+# Tambahkan grafana dashboard via ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: istio-custom-dashboard
+  namespace: istio-system
+  labels:
+    grafana_dashboard: "1"
+data:
+  istio-mesh.json: |
+    {
+      "title": "Istio Custom Mesh Dashboard",
+      "panels": [
+        {
+          "title": "Request Rate",
+          "targets": [
+            {
+              "expr": "sum(rate(istio_requests_total{reporter=\"destination\"}[5m])) by (destination_service)"
+            }
+          ]
+        }
+      ]
+    }
+</pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Performance Overhead</div>
+        <p>Setiap sidecar Envoy mengkonsumsi sekitar <strong>50-100MB RAM</strong> dan <strong>10-50m CPU</strong>. Untuk cluster besar dengan ratusan pod, ini bisa menjadi signifikan. Gunakan Sidecar resource untuk membatasi scope yang di-import, dan sesuaikan resource limits berdasarkan traffic.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 9 -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quiz4">
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa fungsi utama sidecar proxy (Envoy) di Istio?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Menggantikan container utama aplikasi</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Mencegat dan mengelola semua traffic masuk/keluar pod untuk routing, security, dan observability</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Menyimpan data aplikasi</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Mengompresi network traffic</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa perbedaan antara VirtualService dan DestinationRule?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Keduanya sama</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) VirtualService mengatur routing traffic (kemana pergi), DestinationRule mengatur kebijakan traffic setelah sampai (load balancing, circuit breaker)</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) VirtualService untuk ingress, DestinationRule untuk egress</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) VirtualService hanya untuk HTTP, DestinationRule untuk TCP</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi <code>outlierDetection</code> di DestinationRule?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Mendeteksi pod yang tidak terdaftar di Kubernetes</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Circuit breaker — meng-eject instance yang mengembalikan banyak error dari load balancing pool</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Monitoring resource usage</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Mendeteksi perubahan konfigurasi</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa mode <code>STRICT</code> pada PeerAuthentication?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Memaksa semua komunikasi menggunakan mTLS — traffic plaintext akan ditolak</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Mengenkripsi semua data di disk</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Membatasi jumlah request per detik</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Mengharuskan autentikasi user</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa menggunakan Sidecar resource di Istio?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Untuk mengganti image sidecar</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Untuk membatasi service mana yang di-import oleh Envoy proxy, mengurangi resource usage dan mempercepat konvergensi</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Untuk mengatur port sidecar</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Untuk mengaktifkan sidecar injection</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="argocd-gitops.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">ArgoCD: GitOps for Kubernetes</span>
+        </a>
+        <a href="crossplane-infrastructure.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Crossplane: Infrastructure as Code</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial DevOps terbaru langsung di inbox kamu.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand"><img src="../images/logo_beebane_webp.webp" alt="BeebaneLabs" class="footer-logo" loading="lazy" width="40" height="22"><p>Portal tutorial teknologi &amp; IT Indonesia.</p></div>
+        <div class="footer-col"><h4>Kategori</h4><ul><li><a href="../kategori/iot.html">IoT &amp; Embedded</a></li><li><a href="../kategori/mikrotik.html">Networking</a></li><li><a href="../kategori/python.html">Pemrograman</a></li><li><a href="../kategori/keamanan.html">Cybersecurity</a></li><li><a href="../kategori/dashboard.html">Dashboard &amp; Cloud</a></li></ul></div>
+        <div class="footer-col"><h4>Populer</h4><ul><li><a href="esp32-fundamentals.html">Tutorial ESP32</a></li><li><a href="mikrotik-routing.html">Konfigurasi MikroTik</a></li><li><a href="lora-communication.html">Proyek LoRa</a></li><li><a href="dashboard-monitoring.html">Dashboard IoT</a></li><li><a href="mqtt-protocol.html">MQTT untuk Pemula</a></li></ul></div>
+        <div class="footer-col"><h4>Lainnya</h4><ul><li><a href="../about.html">Tentang Kami</a></li><li><a href="../privacy-policy.html">Kebijakan Privasi</a></li><li><a href="../contact.html">Kontak</a></li><li><a href="../rss.xml">RSS Feed</a></li></ul></div>
+      </div>
+      <div class="footer-bottom"><div class="footer-social"><a href="https://github.com/Beebane25" target="_blank" rel="noopener">GitHub</a></div><p>&copy; 2026 BeebaneLabs. Semua hak dilindungi.</p></div>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
+  <script src="../js/app.js?v=9.5"></script>
+  <script src="../js/mobile-zoom.js?v=9.2"></script>
+  <script>initQuiz('quiz4', ['b', 'b', 'b', 'a', 'b']);</script>
+<button class="theme-toggle-floating" onclick="ThemeToggle.toggle()" title="Ganti tema" aria-label="Ganti tema">☀️</button>
+  <div id="quickMenuBackdrop" class="quick-menu-backdrop" onclick="MobileQuickMenu.close()"></div>
+  <button id="quickMenuBtn" class="quick-menu-btn" onclick="MobileQuickMenu.toggle()" title="Menu" aria-label="Menu cepat">⚙️</button>
+  <div id="quickMenuPanel" class="quick-menu-panel">
+    <div class="quick-menu-section"><span class="quick-menu-label">🔍 Zoom</span><div class="quick-menu-row"><button onclick="MobileQuickMenu.zoomOut()" aria-label="Perkecil">−</button><span id="quickMenuZoomLevel" class="zoom-level">100%</span><button onclick="MobileQuickMenu.zoomIn()" aria-label="Perbesar">+</button><button onclick="MobileQuickMenu.resetZoom()" style="font-size:0.8rem" aria-label="Reset zoom">↺</button></div></div>
+    <div class="quick-menu-section"><span class="quick-menu-label">🎨 Tema</span><button class="quick-menu-row quick-menu-theme-btn" onclick="MobileQuickMenu.toggleTheme()" aria-label="Ganti tema"><span id="quickMenuThemeIcon">☀️</span> <span>Ganti Tema</span></button></div>
+  </div>
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); }); }</script>
+</body>
+</html>

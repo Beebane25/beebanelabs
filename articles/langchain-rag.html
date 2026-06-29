@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08090a">
+  <link rel="preconnect" href="https://*.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BeebaneLabs">
+  <link rel="apple-touch-icon" href="/images/logo_beebane.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes">
+  <title>LangChain RAG: Retrieval Augmented Generation — Tutorial Lengkap | BeebaneLabs</title>
+  <meta name="description" content="Tutorial lengkap LangChain RAG — document loading, chunking, embedding, vector store, retrieval chain, dan deployment untuk aplikasi AI yang akurat.">
+  <meta name="keywords" content="LangChain, RAG, Retrieval Augmented Generation, vector store, embedding, AI, LLM, NLP, Python">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="og:title" content="LangChain RAG: Retrieval Augmented Generation — Tutorial Lengkap">
+  <meta property="og:description" content="Pelajari RAG pipeline dengan LangChain — dari document loading hingga deployment.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://beebanelabs.pages.dev/articles/langchain-rag.html">
+  <meta property="og:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LangChain RAG: Retrieval Augmented Generation — Tutorial Lengkap">
+  <meta name="twitter:description" content="Pelajari RAG pipeline dengan LangChain — dari document loading hingga deployment.">
+  <meta name="twitter:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta property="article:published_time" content="2026-06-29">
+  <meta property="article:section" content="AI & Data Science">
+  <meta property="article:tag" content="LangChain">
+  <meta property="article:tag" content="RAG">
+  <meta property="article:tag" content="LLM">
+  <meta property="article:tag" content="Vector Store">
+  <meta property="article:tag" content="AI">
+  <link rel="canonical" href="https://beebanelabs.pages.dev/articles/langchain-rag.html">
+  <link rel="stylesheet" href="../css/style.css?v=13.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "LangChain RAG: Retrieval Augmented Generation — Tutorial Lengkap",
+    "description": "Tutorial lengkap LangChain RAG — document loading, chunking, embedding, vector store, retrieval chain.",
+    "author": { "@type": "Organization", "name": "BeebaneLabs" },
+    "datePublished": "2026-06-29",
+    "publisher": { "@type": "Organization", "name": "BeebaneLabs" }
+  }
+  </script>
+<script>
+/* Lazy-load AdSense — loads after first user interaction */
+(function(){
+  var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';
+  function loadAds(){
+    if(window._adsLoaded) return;
+    window._adsLoaded=true;
+    var s=document.createElement('script');
+    s.async=true;s.crossOrigin='anonymous';s.src=src;
+    document.head.appendChild(s);
+    ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+      document.removeEventListener(e,loadAds,{passive:true});
+    });
+  }
+  ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+    document.addEventListener(e,loadAds,{passive:true,once:true});
+  });
+  setTimeout(loadAds,5000);
+})();
+</script>
+  <script type="speculationrules">{ "prerender": [{ "where": { "href_matches": "/*" }, "eagerness": "moderate" }] }</script>
+</head>
+<body>
+  <noscript><style>.article-content,.articles-grid,.category-section,.hero{display:block!important;opacity:1!important;transform:none!important}.reveal{opacity:1!important;transform:none!important}</style></noscript>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+
+  <!-- ========== READING PROGRESS ========== -->
+  <div class="reading-progress-bar" id="readingProgress"></div>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="navbar-brand">
+        <picture><source srcset="../images/logo_beebane_webp.webp" type="image/webp"><img src="../images/logo_beebane.png" alt="BeebaneLabs" class="brand-logo" width="40" height="22"></picture>
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="../index.html">Beranda</a></li>
+        <li><a href="../kategori.html">Kategori</a></li>
+        <li><a href="../about.html">Tentang</a></li>
+        <li><a href="../pricing.html">Harga</a></li>
+      </ul>
+      <div class="navbar-search" id="searchTrigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Cari tutorial...</span>
+        <kbd>/</kbd>
+      </div>
+      <div id="authNavArea"></div>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" onclick="document.getElementById('searchOverlay').classList.remove('active')" aria-label="Tutup">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">AI &amp; Data Science</a>
+        <span class="separator">/</span>
+        <span class="current">LangChain RAG</span>
+      </div>
+      <span class="category-tag">AI &amp; Data Science</span>
+      <h1>LangChain RAG: Retrieval Augmented Generation — Tutorial Lengkap</h1>
+      <p class="article-subtitle">Pelajari RAG pipeline dengan LangChain dari nol — document loading, text splitting, embedding, vector store, retrieval chain, dan deployment untuk membuat aplikasi AI yang menjawab dari data Anda sendiri</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <!-- AdSense: Top Banner 728x90 / Responsive -->
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan RAG</a></li>
+          <li><a href="#arsitektur">Arsitektur RAG Pipeline</a></li>
+          <li><a href="#document-loading">Document Loading</a></li>
+          <li><a href="#text-splitting">Text Splitting &amp; Chunking</a></li>
+          <li><a href="#embedding">Embedding Models</a></li>
+          <li><a href="#vector-store">Vector Store</a></li>
+          <li><a href="#retrieval">Retrieval Chain</a></li>
+          <li><a href="#advanced">Advanced RAG Techniques</a></li>
+          <li><a href="#deployment">Deployment &amp; Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan RAG</h2>
+
+      <p><strong>Retrieval Augmented Generation (RAG)</strong> adalah teknik yang menggabungkan kemampuan <em>retrieval</em> (mengambil informasi dari dokumen) dengan <em>generation</em> (menghasilkan teks oleh LLM). Dengan RAG, LLM tidak hanya mengandalkan pengetahuan yang ada saat training, tetapi juga bisa <strong>mengakses data terbaru dan spesifik</strong> dari database Anda.</p>
+
+      <p>Mengapa RAG penting? Karena LLM seperti GPT-4 memiliki <strong>batasan kritis</strong>:</p>
+
+      <ul>
+        <li><strong>Knowledge cutoff</strong> — pengetahuan LLM dibatasi oleh data training</li>
+        <li><strong>Hallucination</strong> — LLM bisa "mengarang" fakta yang tidak benar</li>
+        <li><strong>Tidak tahu data internal</strong> — LLM tidak tahu dokumen perusahaan Anda</li>
+        <li><strong>Sulit di-update</strong> — fine-tuning mahal dan butuh waktu lama</li>
+      </ul>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Masalah LLM tanpa RAG vs dengan RAG</div>
+<pre>
+┌─────────────────────────────────────────────────────────────────────┐
+│                LLM TANPA RAG                                        │
+│                                                                     │
+│  User: "Berapa harga produk X bulan ini?"                           │
+│  LLM:  "Maaf, saya tidak memiliki data harga terbaru."             │
+│         (atau lebih buruk: mengarang jawaban palsu!)                │
+│                                                                     │
+│═════════════════════════════════════════════════════════════════════│
+│                LLM DENGAN RAG                                       │
+│                                                                     │
+│  User: "Berapa harga produk X bulan ini?"                           │
+│         ↓                                                           │
+│  [1] Retrieval → Cari di vector DB → Dokumen harga bulan Juni      │
+│         ↓                                                           │
+│  [2] Augment → Kirim context ke LLM                                 │
+│         ↓                                                           │
+│  [3] Generate → LLM jawab: "Harga produk X bulan Juni adalah       │
+│       Rp 250.000, naik 10% dari bulan lalu."                        │
+│       (berdasarkan data Anda, bukan training!) ✅                   │
+└─────────────────────────────────────────────────────────────────────┘
+</pre>
+      </div>
+
+      <h3>LangChain — Framework untuk RAG</h3>
+      <p><strong>LangChain</strong> adalah framework open-source yang paling populer untuk membangun aplikasi LLM. LangChain menyediakan komponen siap pakai untuk setiap tahap RAG pipeline: document loader, text splitter, embedding, vector store, retriever, dan chain.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Instalasi LangChain</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># Instalasi LangChain dan dependencies
+pip install langchain langchain-openai langchain-community
+pip install chromadb faiss-cpu tiktoken
+pip install pypdf docx2txt unstructured
+
+# Untuk OpenAI API
+pip install openai
+
+# Untuk environment variables
+pip install python-dotenv</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Arsitektur          -->
+      <!-- ============================== -->
+      <h2 id="arsitektur">2. Arsitektur RAG Pipeline</h2>
+
+      <p>RAG pipeline terdiri dari dua fase utama: <strong>Indexing</strong> (offline) dan <strong>Retrieval + Generation</strong> (online).</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: RAG Pipeline Lengkap</div>
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                    RAG PIPELINE                                  │
+│                                                                  │
+│  OFFLINE (Indexing):                                             │
+│  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐     │
+│  │ Document │──▶│   Text   │──▶│ Embedding│──▶│  Vector  │     │
+│  │ Loading  │   │ Splitting│   │  Model   │   │  Store   │     │
+│  └──────────┘   └──────────┘   └──────────┘   └──────────┘     │
+│  PDF/Word/Web    Chunk 500      OpenAI/HF      ChromaDB/        │
+│  CSV/JSON        token each     1536 dim       FAISS/Pinecone   │
+│                                                                  │
+│  ONLINE (Query):                                                │
+│  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐     │
+│  │  User    │──▶│ Retrieval│──▶│  Prompt  │──▶│   LLM    │     │
+│  │  Query   │   │  Chain   │   │ Template │   │ (GPT-4)  │     │
+│  └──────────┘   └──────────┘   └──────────┘   └──────────┘     │
+│  "Apa itu RAG?"  Top-K docs   Context +      Menghasilkan      │
+│                   dari store   question       jawaban akurat     │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+      </div>
+
+      <h3>Komponen Utama LangChain untuk RAG</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Komponen</th>
+            <th>Fungsi</th>
+            <th>Contoh Class</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Document Loader</td><td>Load dokumen dari berbagai format</td><td>PyPDFLoader, TextLoader, CSVLoader</td></tr>
+          <tr><td>Text Splitter</td><td>Pecah dokumen jadi chunks</td><td>RecursiveCharacterTextSplitter, TokenTextSplitter</td></tr>
+          <tr><td>Embeddings</td><td>Ubah teks jadi vektor</td><td>OpenAIEmbeddings, HuggingFaceEmbeddings</td></tr>
+          <tr><td>Vector Store</td><td>Simpan & cari vektor</td><td>Chroma, FAISS, Pinecone</td></tr>
+          <tr><td>Retriever</td><td>Mengambil dokumen relevan</td><td>VectorStoreRetriever, MultiQueryRetriever</td></tr>
+          <tr><td>Chain</td><td>Rangkai semua komponen</td><td>RetrievalQA, ConversationalRetrievalChain</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Document Loading    -->
+      <!-- ============================== -->
+      <h2 id="document-loading">3. Document Loading</h2>
+
+      <p>LangChain mendukung lebih dari 100 format dokumen. Setiap loader mengembalikan objek <code>Document</code> yang berisi <code>page_content</code> (teks) dan <code>metadata</code> (info tambahan seperti sumber file).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Document Loading</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># =============================================
+# Document Loading dengan LangChain
+# =============================================
+from langchain_community.document_loaders import (
+    PyPDFLoader,
+    TextLoader,
+    CSVLoader,
+    DirectoryLoader,
+    WebBaseLoader,
+    UnstructuredMarkdownLoader
+)
+
+# ----- 1. Load PDF -----
+loader = PyPDFLoader("dokumen/produk.pdf")
+pages = loader.load()
+print(f"Jumlah halaman: {len(pages)}")
+print(f"Contoh halaman 1: {pages[0].page_content[:200]}")
+print(f"Metadata: {pages[0].metadata}")
+# {'source': 'dokumen/produk.pdf', 'page': 0}
+
+# ----- 2. Load Text File -----
+loader = TextLoader("dokumen/catatan.txt", encoding="utf-8")
+docs = loader.load()
+
+# ----- 3. Load CSV -----
+loader = CSVLoader(
+    file_path="dokumen/data.csv",
+    csv_args={"delimiter": ",", "quotechar": '"'},
+    source_column="url"
+)
+docs = loader.load()
+
+# ----- 4. Load dari Web -----
+loader = WebBaseLoader([
+    "https://example.com/artikel-1",
+    "https://example.com/artikel-2"
+])
+web_docs = loader.load()
+
+# ----- 5. Load seluruh direktori -----
+loader = DirectoryLoader(
+    "./dokumen/",
+    glob="**/*.pdf",
+    loader_cls=PyPDFLoader,
+    show_progress=True
+)
+all_docs = loader.load()
+print(f"Total dokumen: {len(all_docs)}")
+
+# ----- Metadata manipulation -----
+for doc in all_docs:
+    doc.metadata["category"] = "produk"
+    doc.metadata["company"] = "BeebaneLabs"</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Document Loading</div>
+        <ul>
+          <li>Gunakan <code>DirectoryLoader</code> untuk batch loading seluruh folder</li>
+          <li>Tambahkan metadata kustom untuk filtering di vector store</li>
+          <li>Untuk web scraping, gunakan <code>WebBaseLoader</code> atau <code>SitemapLoader</code></li>
+          <li>Periksa encoding untuk file bahasa Indonesia (gunakan <code>utf-8</code>)</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Text Splitting      -->
+      <!-- ============================== -->
+      <h2 id="text-splitting">4. Text Splitting &amp; Chunking</h2>
+
+      <p>Setelah dokumen di-load, langkah selanjutnya adalah <strong>memecah teks menjadi chunks</strong> yang lebih kecil. Chunking sangat penting karena embedding model punya batasan token, dan chunk kecil menghasilkan retrieval yang lebih presisi.</p>
+
+      <h3>Parameter Penting Chunking</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Deskripsi</th>
+            <th>Rekomendasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>chunk_size</code></td><td>Jumlah karakter per chunk</td><td>500-1000 karakter</td></tr>
+          <tr><td><code>chunk_overlap</code></td><td>Overlap antar chunk</td><td>50-200 karakter</td></tr>
+          <tr><td><code>separators</code></td><td>Karakter pemisah</td><td>["\n\n", "\n", " ", ""]</td></tr>
+          <tr><td><code>length_function</code></td><td>Cara menghitung panjang</td><td>len() atau tiktoken</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Text Splitting Strategies</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># =============================================
+# Text Splitting dengan LangChain
+# =============================================
+from langchain.text_splitter import (
+    RecursiveCharacterTextSplitter,
+    CharacterTextSplitter,
+    TokenTextSplitter,
+    MarkdownHeaderTextSplitter
+)
+
+# ----- 1. RecursiveCharacterTextSplitter (Paling Umum) -----
+# Memecah berdasarkan separator secara rekursif
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=100,
+    length_function=len,
+    separators=["\n\n", "\n", ". ", " ", ""]
+)
+
+chunks = splitter.split_documents(docs)
+print(f"Dokumen: {len(docs)} → Chunks: {len(chunks)}")
+print(f"Contoh chunk: {chunks[0].page_content[:100]}")
+
+# ----- 2. TokenTextSplitter (Berdasarkan Token) -----
+# Lebih akurat untuk LLM karena LLM bekerja dengan token
+splitter = TokenTextSplitter(
+    chunk_size=200,    # 200 token per chunk
+    chunk_overlap=20,  # 20 token overlap
+    encoding_name="cl100k_base"  # GPT-4 encoding
+)
+token_chunks = splitter.split_documents(docs)
+
+# ----- 3. MarkdownHeaderTextSplitter -----
+# Memecah berdasarkan header markdown, mempertahankan struktur
+headers_to_split = [
+    ("#", "Header 1"),
+    ("##", "Header 2"),
+    ("###", "Header 3"),
+]
+splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split)
+
+# Untuk markdown text (bukan Document object)
+md_text = """
+# Judul Utama
+Ini adalah konten bagian 1.
+
+## Sub Judul
+Ini adalah konten bagian 2.
+
+### Sub Sub
+Detail lebih lanjut.
+"""
+md_splits = splitter.split_text(md_text)
+for split in md_splits:
+    print(f"Content: {split.page_content[:50]}")
+    print(f"Metadata: {split.metadata}")
+    print("---")
+
+# ----- 4. Semantic Chunking (Advanced) -----
+# Chunk berdasarkan kemiripan semantik (butuh embedding)
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_openai import OpenAIEmbeddings
+
+semantic_splitter = SemanticChunker(
+    OpenAIEmbeddings(),
+    breakpoint_threshold_type="percentile",
+    breakpoint_threshold_amount=95
+)
+semantic_chunks = semantic_splitter.split_documents(docs)</pre>
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Chunk Overlap</div>
+<pre>
+┌─────────────────────────────────────────────────────────────┐
+│                  CHUNK OVERLAP                               │
+│                                                              │
+│  Original Text: "A B C D E F G H I J K L M N O P"          │
+│                                                              │
+│  chunk_size = 6, chunk_overlap = 2                          │
+│                                                              │
+│  Chunk 1: [A B C D E F]                                     │
+│  Chunk 2:       [E F G H I J]    ← overlap "E F"            │
+│  Chunk 3:             [I J K L M N]                         │
+│  Chunk 4:                   [M N O P]                       │
+│                                                              │
+│  Overlap memastikan tidak ada konteks yang hilang            │
+│  di batas antar chunk!                                       │
+└─────────────────────────────────────────────────────────────┘
+</pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Embedding           -->
+      <!-- ============================== -->
+      <h2 id="embedding">5. Embedding Models</h2>
+
+      <p>Setelah dokumen di-chunk, setiap chunk perlu diubah menjadi <strong>vektor embedding</strong>. Embedding model mengubah teks menjadi array angka berdimensi tinggi yang merepresentasikan makna teks tersebut.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Embedding dengan LangChain</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># =============================================
+# Embedding Models di LangChain
+# =============================================
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+# ----- 1. OpenAI Embeddings -----
+from langchain_openai import OpenAIEmbeddings
+
+embeddings_openai = OpenAIEmbeddings(
+    model="text-embedding-3-small",  # 1536 dimensi
+    # model="text-embedding-3-large",  # 3072 dimensi (lebih akurat)
+)
+
+# Embed satu teks
+vector = embeddings_openai.embed_query("Apa itu RAG?")
+print(f"Dimensi: {len(vector)}")  # 1536
+print(f"5 elemen pertama: {vector[:5]}")
+
+# Embed banyak teks sekaligus (batch)
+texts = ["Apa itu RAG?", "Cara kerja LangChain", "Vector database"]
+vectors = embeddings_openai.embed_documents(texts)
+print(f"Jumlah vektor: {len(vectors)}")  # 3
+
+# ----- 2. HuggingFace Embeddings (Gratis, Lokal) -----
+from langchain_huggingface import HuggingFaceEmbeddings
+
+embeddings_hf = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    model_kwargs={"device": "cpu"},  # "cuda" jika punya GPU
+    encode_kwargs={"normalize_embeddings": True}
+)
+
+vector = embeddings_hf.embed_query("Apa itu RAG?")
+print(f"Dimensi: {len(vector)}")  # 384
+
+# ----- 3. Multilingual Embeddings (Untuk Bahasa Indonesia) -----
+embeddings_multi = HuggingFaceEmbeddings(
+    model_name="intfloat/multilingual-e5-large",
+    model_kwargs={"device": "cpu"},
+    encode_kwargs={"normalize_embeddings": True}
+)
+# Dimensi: 1024, mendukung bahasa Indonesia dengan baik</pre>
+      </div>
+
+      <h3>Perbandingan Embedding Models</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Dimensi</th>
+            <th>Harga</th>
+            <th>Bahasa Indonesia</th>
+            <th>Rekomendasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>text-embedding-3-small</td><td>1536</td><td>Murah</td><td>✅ Bagus</td><td>Produksi</td></tr>
+          <tr><td>text-embedding-3-large</td><td>3072</td><td>Sedang</td><td>✅ Sangat bagus</td><td>Akurasi tinggi</td></tr>
+          <tr><td>all-MiniLM-L6-v2</td><td>384</td><td>Gratis</td><td>⚠️ Cukup</td><td>Prototyping</td></tr>
+          <tr><td>multilingual-e5-large</td><td>1024</td><td>Gratis</td><td>✅ Bagus</td><td>Multi-bahasa</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Vector Store        -->
+      <!-- ============================== -->
+      <h2 id="vector-store">6. Vector Store</h2>
+
+      <p><strong>Vector Store</strong> adalah database yang menyimpan vektor embedding dan mendukung similarity search. LangChain mendukung banyak vector store: ChromaDB (lokal), FAISS (lokal), Pinecone (cloud), Weaviate, dan lainnya.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Vector Store dengan ChromaDB</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># =============================================
+# Vector Store dengan ChromaDB
+# =============================================
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.document_loaders import PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+# 1. Load & Split
+loader = PyPDFLoader("dokumen/panduan.pdf")
+docs = loader.load()
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500, chunk_overlap=100
+)
+chunks = splitter.split_documents(docs)
+
+# 2. Buat Vector Store (ChromaDB - persisted local)
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+
+vectorstore = Chroma.from_documents(
+    documents=chunks,
+    embedding=embeddings,
+    persist_directory="./chroma_db",  # Simpan ke disk
+    collection_name="dokumen_produk"
+)
+print(f"Jumlah dokumen di store: {vectorstore._collection.count()}")
+
+# 3. Similarity Search
+query = "Apa fitur utama produk ini?"
+results = vectorstore.similarity_search(query, k=3)
+
+for i, doc in enumerate(results):
+    print(f"\n--- Hasil {i+1} ---")
+    print(f"Content: {doc.page_content[:150]}")
+    print(f"Source: {doc.metadata.get('source', 'N/A')}")
+    print(f"Page: {doc.metadata.get('page', 'N/A')}")
+
+# 4. Similarity Search dengan Score
+results_with_score = vectorstore.similarity_search_with_score(query, k=3)
+for doc, score in results_with_score:
+    print(f"Score: {score:.4f} | Content: {doc.page_content[:100]}")
+
+# 5. Load Vector Store yang sudah ada (persisted)
+vectorstore_loaded = Chroma(
+    persist_directory="./chroma_db",
+    embedding_function=embeddings,
+    collection_name="dokumen_produk"
+)</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Vector Store dengan FAISS</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># =============================================
+# Vector Store dengan FAISS (Facebook AI Similarity Search)
+# =============================================
+from langchain_community.vectorstores import FAISS
+
+# Buat FAISS vector store
+faiss_store = FAISS.from_documents(chunks, embeddings)
+
+# Similarity search
+results = faiss_store.similarity_search("apa itu machine learning?", k=5)
+
+# Save & Load
+faiss_store.save_local("./faiss_index")
+faiss_store_loaded = FAISS.load_local(
+    "./faiss_index",
+    embeddings,
+    allow_dangerous_deserialization=True
+)
+
+# Merge dua vector store
+faiss_store_2 = FAISS.from_documents(additional_chunks, embeddings)
+faiss_store.merge_from(faiss_store_2)</pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Retrieval Chain     -->
+      <!-- ============================== -->
+      <h2 id="retrieval">7. Retrieval Chain</h2>
+
+      <p>Setelah semua komponen siap, saatnya menyatukan semuanya menjadi <strong>retrieval chain</strong> yang bisa menjawab pertanyaan dari dokumen Anda.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — RAG Chain Lengkap</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># =============================================
+# RAG Chain dengan LangChain LCEL
+# =============================================
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+
+# Setup
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+vectorstore = Chroma(
+    persist_directory="./chroma_db",
+    embedding_function=embeddings
+)
+retriever = vectorstore.as_retriever(
+    search_type="similarity",
+    search_kwargs={"k": 4}
+)
+
+# Prompt Template
+template = """Anda adalah asisten AI yang membantu menjawab pertanyaan 
+berdasarkan konteks yang diberikan. Jika jawaban tidak ada di konteks, 
+katakan "Maaf, saya tidak menemukan informasi tersebut di dokumen."
+
+Konteks:
+{context}
+
+Pertanyaan: {question}
+
+Jawaban:"""
+
+prompt = ChatPromptTemplate.from_template(template)
+
+# LLM
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+
+# Helper function untuk format docs
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+# RAG Chain menggunakan LCEL (LangChain Expression Language)
+rag_chain = (
+    {"context": retriever | format_docs, "question": RunnablePassthrough()}
+    | prompt
+    | llm
+    | StrOutputParser()
+)
+
+# Invoke
+answer = rag_chain.invoke("Apa saja fitur utama produk ini?")
+print(answer)
+
+# Streaming response
+for chunk in rag_chain.stream("Bagaimana cara menggunakan fitur X?"):
+    print(chunk, end="", flush=True)</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Conversational RAG (dengan Memory)</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># =============================================
+# Conversational RAG dengan History
+# =============================================
+from langchain.chains import create_history_aware_retriever
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.prompts import MessagesPlaceholder
+
+# Contextualize question prompt (rewrite question with history)
+contextualize_prompt = ChatPromptTemplate.from_messages([
+    ("system", "Given a chat history and the latest user question, "
+     "reformulate the question to be standalone."),
+    MessagesPlaceholder("chat_history"),
+    ("human", "{input}"),
+])
+
+history_aware_retriever = create_history_aware_retriever(
+    llm, retriever, contextualize_prompt
+)
+
+# Answer prompt
+answer_prompt = ChatPromptTemplate.from_messages([
+    ("system", "Answer based on context:\n\n{context}"),
+    MessagesPlaceholder("chat_history"),
+    ("human", "{input}"),
+])
+
+document_chain = create_stuff_documents_chain(llm, answer_prompt)
+rag_chain = create_retrieval_chain(history_aware_retriever, document_chain)
+
+# Conversation dengan history
+chat_history = []
+
+# Turn 1
+response = rag_chain.invoke({
+    "chat_history": chat_history,
+    "input": "Apa itu produk X?"
+})
+print(response["answer"])
+chat_history.append(HumanMessage(content="Apa itu produk X?"))
+chat_history.append(AIMessage(content=response["answer"]))
+
+# Turn 2 (follow-up question)
+response2 = rag_chain.invoke({
+    "chat_history": chat_history,
+    "input": "Berapa harganya?"  # Context-aware!
+})
+print(response2["answer"])</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Advanced RAG        -->
+      <!-- ============================== -->
+      <h2 id="advanced">8. Advanced RAG Techniques</h2>
+
+      <p>Basic RAG sudah bagus, tetapi ada banyak teknik advanced untuk meningkatkan kualitas retrieval dan generasi jawaban.</p>
+
+      <h3>8.1 Multi-Query Retriever</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Multi-Query &amp; Re-ranking</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># =============================================
+# Multi-Query Retriever
+# =============================================
+from langchain.retrievers import MultiQueryRetriever
+
+# Otomatis generate multiple query dari satu pertanyaan
+multi_retriever = MultiQueryRetriever.from_llm(
+    retriever=vectorstore.as_retriever(),
+    llm=llm
+)
+
+# User: "Cara install aplikasi?"
+# Generated queries:
+# 1. "Langkah instalasi aplikasi"
+# 2. "Panduan setup aplikasi"
+# 3. "Tutorial deployment aplikasi"
+# → Gabungkan hasil dari semua query!
+
+results = multi_retriever.invoke("Cara install aplikasi?")
+
+# =============================================
+# Contextual Compression (Re-ranking)
+# =============================================
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import LLMChainExtractor
+
+compressor = LLMChainExtractor.from_llm(llm)
+compression_retriever = ContextualCompressionRetriever(
+    base_compressor=compressor,
+    base_retriever=vectorstore.as_retriever(search_kwargs={"k": 10})
+)
+# Ambil 10 docs, lalu kompres hanya bagian yang relevan</pre>
+      </div>
+
+      <h3>8.2 Self-Query Retriever</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Self-Query Retriever</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># =============================================
+# Self-Query: LLM generate filter dari pertanyaan natural
+# =============================================
+from langchain.chains.query_constructor.base import AttributeInfo
+from langchain.retrievers.self_query.base import SelfQueryRetriever
+
+metadata_field_info = [
+    AttributeInfo(name="category", description="Kategori dokumen", type="string"),
+    AttributeInfo(name="year", description="Tahun publikasi", type="integer"),
+    AttributeInfo(name="source", description="Sumber file", type="string"),
+]
+
+self_query_retriever = SelfQueryRetriever.from_llm(
+    llm=llm,
+    vectorstore=vectorstore,
+    document_contents="Dokumen produk",
+    metadata_field_info=metadata_field_info,
+)
+
+# User: "Dokumen tentang pricing dari tahun 2025"
+# → Auto generate filter: category="pricing" AND year=2025
+results = self_query_retriever.invoke(
+    "Dokumen tentang pricing dari tahun 2025"
+)</pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Deployment          -->
+      <!-- ============================== -->
+      <h2 id="deployment">9. Deployment &amp; Best Practices</h2>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Best Practices RAG</div>
+        <ul>
+          <li><strong>Chunk size optimal</strong> — eksperimen dengan 200-1000 token, tergantung jenis dokumen</li>
+          <li><strong>Overlap 10-20%</strong> — cukup untuk menangkap konteks di batas chunk</li>
+          <li><strong>Metadata filtering</strong> — gunakan metadata untuk pre-filter sebelum vector search</li>
+          <li><strong>Hybrid search</strong> — gabungkan keyword search + vector search</li>
+          <li><strong>Re-ranking</strong> — gunakan cross-encoder untuk re-rank hasil retrieval</li>
+          <li><strong>Evaluation</strong> — ukur recall@k, precision, dan faithfulness</li>
+          <li><strong>Prompt engineering</strong> — instruksi yang jelas di system prompt</li>
+          <li><strong>Caching</strong> — cache embedding dan hasil query untuk efisiensi</li>
+        </ul>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Simple RAG API dengan FastAPI</span>
+          <button class="code-copy" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre># =============================================
+# RAG API dengan FastAPI
+# =============================================
+# pip install fastapi uvicorn
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+# Pre-load vectorstore & chain (di startup)
+vectorstore = Chroma(
+    persist_directory="./chroma_db",
+    embedding_function=OpenAIEmbeddings()
+)
+retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
+
+class QueryRequest(BaseModel):
+    question: str
+    top_k: int = 4
+
+class QueryResponse(BaseModel):
+    answer: str
+    sources: list
+
+@app.post("/ask", response_model=QueryResponse)
+async def ask_question(req: QueryRequest):
+    # Retrieve relevant docs
+    docs = retriever.invoke(req.question)
+    
+    # Generate answer
+    context = "\n\n".join(d.page_content for d in docs)
+    answer = rag_chain.invoke(req.question)
+    
+    sources = [
+        {"source": d.metadata.get("source", ""), 
+         "page": d.metadata.get("page", 0)}
+        for d in docs
+    ]
+    
+    return QueryResponse(answer=answer, sources=sources)
+
+# Run: uvicorn main:app --reload --port 8000</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz               -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+
+      <div class="quiz-container">
+        <div class="quiz-question" data-correct="2">
+          <p><strong>1. Apa tujuan utama RAG (Retrieval Augmented Generation)?</strong></p>
+          <label><input type="radio" name="q1" value="0"> Melatih ulang LLM dari nol dengan data baru</label>
+          <label><input type="radio" name="q1" value="1"> Mengganti LLM dengan database tradisional</label>
+          <label><input type="radio" name="q1" value="2"> Mengambil konteks relevan dari dokumen dan memberikannya ke LLM untuk menghasilkan jawaban akurat</label>
+          <label><input type="radio" name="q1" value="3"> Mengompres ukuran model LLM</label>
+        </div>
+
+        <div class="quiz-question" data-correct="1">
+          <p><strong>2. Mengapa chunk overlap penting dalam text splitting?</strong></p>
+          <label><input type="radio" name="q2" value="0"> Untuk mempercepat proses embedding</label>
+          <label><input type="radio" name="q2" value="1"> Agar konteks di batas antar chunk tidak hilang</label>
+          <label><input type="radio" name="q2" value="2"> Untuk mengurangi jumlah chunk</label>
+          <label><input type="radio" name="q2" value="3"> Untuk meningkatkan ukuran vector</label>
+        </div>
+
+        <div class="quiz-question" data-correct="0">
+          <p><strong>3. Apa fungsi dari vector store dalam RAG pipeline?</strong></p>
+          <label><input type="radio" name="q3" value="0"> Menyimpan vektor embedding dan melakukan similarity search</label>
+          <label><input type="radio" name="q3" value="1"> Menyimpan model LLM untuk inference</label>
+          <label><input type="radio" name="q3" value="2"> Menghasilkan teks dari prompt</label>
+          <label><input type="radio" name="q3" value="3"> Mengonversi PDF menjadi teks</label>
+        </div>
+
+        <div class="quiz-question" data-correct="3">
+          <p><strong>4. Apa yang dilakukan oleh Multi-Query Retriever?</strong></p>
+          <label><input type="radio" name="q4" value="0"> Mencari di beberapa vector store sekaligus</label>
+          <label><input type="radio" name="q4" value="1"> Menggunakan beberapa embedding model berbeda</label>
+          <label><input type="radio" name="q4" value="2"> Mengembalikan hanya 1 dokumen paling relevan</label>
+          <label><input type="radio" name="q4" value="3"> Menggenerate beberapa variasi query dari satu pertanyaan untuk meningkatkan recall</label>
+        </div>
+
+        <div class="quiz-question" data-correct="2">
+          <p><strong>5. Prompt template dalam RAG biasanya berisi apa?</strong></p>
+          <label><input type="radio" name="q5" value="0"> Hanya pertanyaan user</label>
+          <label><input type="radio" name="q5" value="1"> Instruksi training untuk LLM</label>
+          <label><input type="radio" name="q5" value="2"> Instruksi sistem, konteks dari retrieval, dan pertanyaan user</label>
+          <label><input type="radio" name="q5" value="3"> Kode program Python untuk embedding</label>
+        </div>
+
+        <button class="quiz-submit" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <h3>Rangkuman</h3>
+      <div class="info-box info">
+        <div class="info-box-title">📝 Poin Penting</div>
+        <ul>
+          <li><strong>RAG</strong> — menggabungkan retrieval + generation untuk jawaban akurat dari data Anda</li>
+          <li><strong>Document Loading</strong> — LangChain mendukung 100+ format dokumen</li>
+          <li><strong>Chunking</strong> — pecah dokumen jadi potongan kecil, gunakan overlap</li>
+          <li><strong>Embedding</strong> — ubah teks jadi vektor untuk similarity search</li>
+          <li><strong>Vector Store</strong> — ChromaDB (lokal), FAISS, Pinecone (cloud)</li>
+          <li><strong>Retrieval Chain</strong> — rangkai semua komponen dengan LCEL</li>
+          <li><strong>Advanced RAG</strong> — multi-query, re-ranking, self-query untuk kualitas lebih baik</li>
+        </ul>
+      </div>
+
+    </div>
+  </article>
+
+  <script src="../js/app.js?v=9.5"></script>
+<!-- Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

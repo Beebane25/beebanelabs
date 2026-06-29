@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/style.css?v=13.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <title>AI Agent Architecture | BeebaneLabs</title>
+  <meta name="description" content="Tutorial lengkap AI Agent Architecture.">
+  <meta name="keywords" content="AI Agent, LLM, Tool Use, Memory, Planning, Multi-Agent">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="article:published_time" content="2026-06-29">
+  <meta property="article:section" content="AI & Data Science">
+  <link rel="stylesheet" href="../css/style.css?v=13.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+<script>
+(function(){var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';function loadAds(){if(window._adsLoaded)return;window._adsLoaded=true;var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src=src;document.head.appendChild(s);['scroll','mousedown','touchstart','keydown'].forEach(function(e){document.removeEventListener(e,loadAds,{passive:true})})}['scroll','mousedown','touchstart','keydown'].forEach(function(e){document.addEventListener(e,loadAds,{passive:true,once:true})});setTimeout(loadAds,5000)})();
+</script>
+</head>
+<body>
+  <noscript><style>.article-content{display:block!important}</style></noscript>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+  <div class="reading-progress-bar" id="readingProgress"></div>
+  <nav class="navbar" id="navbar"><div class="navbar-inner"><a href="../index.html" class="navbar-brand"><img src="../images/logo_beebane.png" alt="BeebaneLabs" class="brand-logo" width="40" height="22"></a><ul class="navbar-links" id="navLinks"><li><a href="../index.html">Beranda</a></li><li><a href="../kategori.html">Kategori</a></li><li><a href="../about.html">Tentang</a></li><li><a href="../pricing.html">Harga</a></li></ul><div class="navbar-search" id="searchTrigger"><span>Cari tutorial...</span></div><div id="authNavArea"></div><button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button></div></nav>
+  <div class="search-overlay" id="searchOverlay"><button class="search-close-btn" onclick="document.getElementById('searchOverlay').classList.remove('active')">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Cari tutorial..."></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+  <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">AI &amp; Data Science</a><span class="separator">/</span><span class="current">AI Agent Architecture</span></div><span class="category-tag">AI &amp; Data Science</span><h1>AI Agent Architecture — Tool Use, Memory, Planning, Multi-Agent &amp; Guardrails</h1><p class="article-subtitle">Tutorial lengkap arsitektur AI Agent — dari konsep tool use, memory systems, planning, multi-agent collaboration, guardrails, hingga evaluasi frameworks</p><div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 16 menit baca</span><span class="difficulty mahir">Mahir</span></div></div></section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+  <article class="article-content" id="main-content"><div class="container">
+    <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#pengenalan">Pengenalan AI Agent</a></li>
+      <li><a href="#tool-use">Tool Use / Function Calling</a></li>
+      <li><a href="#memory">Memory Systems</a></li>
+      <li><a href="#planning">Planning &amp; Reasoning</a></li>
+      <li><a href="#agent-loop">The Agent Loop</a></li>
+      <li><a href="#multi-agent">Multi-Agent Systems</a></li>
+      <li><a href="#guardrails">Guardrails &amp; Safety</a></li>
+      <li><a href="#evaluasi">Evaluasi Agent</a></li>
+      <li><a href="#framework">Agent Frameworks</a></li>
+      <li><a href="#quiz">Quiz Pemahaman</a></li>
+    </ol></div>
+      <h2 id="pengenalan">1. Pengenalan AI Agent</h2>
+      <p><strong>AI Agent</strong> adalah sistem yang menggunakan LLM sebagai "otak" untuk <strong>mengambil keputusan</strong>, <strong>menggunakan tools</strong>, dan <strong>menyelesaikan tugas kompleks</strong> secara otonom. Berbeda dari chatbot biasa yang hanya menjawab pertanyaan, Agent bisa merencanakan, bertindak, mengamati hasil, dan mengulangi sampai tugas selesai.</p>
+
+      <div class="diagram-box"><div class="diagram-label">Diagram: Agent Architecture</div>
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                    AI AGENT ARCHITECTURE                          │
+│                                                                  │
+│  ┌──────────────────────────────────────┐                      │
+│  │              USER INPUT              │                      │
+│  └─────────────┬────────────────────────┘                      │
+│                ↓                                                │
+│  ┌──────────────────────────────────────┐                      │
+│  │           PLANNING                   │                      │
+│  │  "Langkah apa yang perlu diambil?"   │                      │
+│  └─────────────┬────────────────────────┘                      │
+│                ↓                                                │
+│  ┌──────────────────────────────────────┐                      │
+│  │      TOOL SELECTION & EXECUTION      │                      │
+│  │  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐   │                      │
+│  │  │ API │ │ DB  │ │Code │ │Search│   │                      │
+│  │  └─────┘ └─────┘ └─────┘ └─────┘   │                      │
+│  └─────────────┬────────────────────────┘                      │
+│                ↓                                                │
+│  ┌──────────────────────────────────────┐                      │
+│  │      OBSERVATION & MEMORY            │                      │
+│  │  "Apa hasilnya? Sudah cukup?"        │                      │
+│  └─────────────┬────────────────────────┘                      │
+│                ↓                                                │
+│  ┌──────────────────────────────────────┐                      │
+│  │      REFLECTION / RE-PLAN            │                      │
+│  │  "Perlu langkah tambahan?"           │                      │
+│  └─────────────┬────────────────────────┘                      │
+│                ↓                                                │
+│  ┌──────────────────────────────────────┐                      │
+│  │          FINAL ANSWER                │                      │
+│  └──────────────────────────────────────┘                      │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+      </div>
+
+      <h3>Komponen Inti AI Agent</h3>
+      <table class="net-table"><thead><tr><th>Komponen</th><th>Fungsi</th><th>Contoh</th></tr></thead><tbody>
+        <tr><td><strong>LLM (Brain)</strong></td><td>Otak pengambil keputusan</td><td>GPT-4, Claude, Llama</td></tr>
+        <tr><td><strong>Tools</strong></td><td>Aksi yang bisa dilakukan</td><td>Search, API, calculator, code</td></tr>
+        <tr><td><strong>Memory</strong></td><td>Mengingat konteks & hasil</td><td>Chat history, vector DB</td></tr>
+        <tr><td><strong>Planning</strong></td><td>Merencanakan langkah</td><td>ReAct, CoT, sub-goal decomposition</td></tr>
+        <tr><td><strong>Guardrails</strong></td><td>Batasan keamanan</td><td>Input/output filter, max iterations</td></tr>
+      </tbody></table>
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="tool-use">2. Tool Use / Function Calling</h2>
+      <p><strong>Tool Use</strong> memungkinkan LLM untuk "memanggil" fungsi eksternal — mencari di web, query database, menjalankan kode, mengirim email, dan lainnya.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Function Calling dengan OpenAI</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
+# Function Calling dengan OpenAI
+# =============================================
+from openai import OpenAI
+import json
+
+client = OpenAI()
+
+# Definisikan tools
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Dapatkan cuaca saat ini di lokasi tertentu",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "Nama kota, contoh: Jakarta, Bandung"
+                    },
+                    "unit": {
+                        "type": "string",
+                        "enum": ["celsius", "fahrenheit"],
+                        "description": "Satuan suhu"
+                    }
+                },
+                "required": ["location"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_database",
+            "description": "Cari informasi dari database produk",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Kata kunci pencarian"},
+                    "category": {"type": "string", "description": "Filter kategori"}
+                },
+                "required": ["query"]
+            }
+        }
+    }
+]
+
+# Implementasi fungsi
+def get_weather(location, unit="celsius"):
+    # Di production, ini akan call weather API
+    return {"location": location, "temp": 32, "condition": "Cerah", "unit": unit}
+
+def search_database(query, category=None):
+    return {"results": [{"name": "Produk A", "price": 150000}]}
+
+# Agent conversation
+messages = [
+    {"role": "system", "content": "Anda adalah asisten yang bisa menggunakan tools."},
+    {"role": "user", "content": "Bagaimana cuaca di Jakarta hari ini?"}
+]
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=messages,
+    tools=tools,
+    tool_choice="auto"
+)
+
+# Check if LLM wants to call a tool
+msg = response.choices[0].message
+if msg.tool_calls:
+    for tool_call in msg.tool_calls:
+        func_name = tool_call.function.name
+        args = json.loads(tool_call.function.arguments)
+        
+        # Execute the function
+        if func_name == "get_weather":
+            result = get_weather(**args)
+        
+        # Add function result to messages
+        messages.append(msg)
+        messages.append({
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "content": json.dumps(result)
+        })
+    
+    # Get final response
+    final = client.chat.completions.create(
+        model="gpt-4o", messages=messages, tools=tools
+    )
+    print(final.choices[0].message.content)</pre>
+      </div>
+
+      <h2 id="memory">3. Memory Systems</h2>
+      <p>Agent perlu <strong>mengingat</strong> — baik percakapan sebelumnya (short-term) maupun fakta penting (long-term).</p>
+      <div class="diagram-box"><div class="diagram-label">Diagram: Memory Types</div>
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                    AGENT MEMORY TYPES                            │
+│                                                                  │
+│  1. SHORT-TERM (Working Memory)                                │
+│     → Conversation history (messages list)                      │
+│     → Current task context                                      │
+│     → Tool call results                                         │
+│     → Limited by context window                                 │
+│                                                                  │
+│  2. LONG-TERM (Persistent Memory)                              │
+│     → Vector DB (facts, preferences)                            │
+│     → User profile (nama, preferensi)                           │
+│     → Knowledge base (dokumen, FAQ)                             │
+│     → Episodic memory (percakapan masa lalu)                    │
+│                                                                  │
+│  3. SEMANTIC (Knowledge)                                        │
+│     → Fakta-fakta tentang dunia                                 │
+│     → Domain knowledge                                          │
+│     → Fine-tuned into model atau via RAG                        │
+│                                                                  │
+│  4. PROCEDURAL (How-to)                                         │
+│     → Cara menggunakan tools                                    │
+│     → Standard Operating Procedures                             │
+│     → Encoded dalam system prompt                               │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+      </div>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Memory Implementation</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
+# Agent Memory System
+# =============================================
+from collections import deque
+from datetime import datetime
+
+class AgentMemory:
+    def __init__(self, max_short_term=20):
+        # Short-term: conversation window
+        self.short_term = deque(maxlen=max_short_term)
+        # Long-term: persistent facts
+        self.long_term = {}
+        # Working: current task context
+        self.working = {}
+    
+    def add_message(self, role, content):
+        self.short_term.append({
+            "role": role, "content": content,
+            "timestamp": datetime.now().isoformat()
+        })
+    
+    def add_fact(self, key, value):
+        self.long_term[key] = {"value": value, "updated": datetime.now()}
+    
+    def get_context(self):
+        return list(self.short_term)
+    
+    def get_fact(self, key):
+        return self.long_term.get(key, {}).get("value")
+    
+    def search_facts(self, query):
+        results = []
+        for key, val in self.long_term.items():
+            if query.lower() in key.lower() or query.lower() in str(val).lower():
+                results.append((key, val["value"]))
+        return results
+
+# Usage
+memory = AgentMemory()
+memory.add_message("user", "Nama saya Budi")
+memory.add_message("assistant", "Halo Budi, ada yang bisa saya bantu?")
+memory.add_fact("user_name", "Budi")
+memory.add_fact("user_preference", "suka Python")
+
+print(memory.get_fact("user_name"))  # "Budi"</pre>
+      </div>
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="planning">4. Planning &amp; Reasoning</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Planning Strategies</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
+# Planning Strategies untuk Agent
+# =============================================
+
+# ----- 1. Plan-and-Execute -----
+# Agent membuat rencana lengkap, lalu eksekusi satu per satu
+PLAN_PROMPT = """Buat rencana langkah demi langkah untuk menyelesaikan tugas ini.
+Setiap langkah harus spesifik dan bisa dieksekusi.
+
+Tugas: {task}
+Tools tersedia: {tools}
+
+Format output:
+1. [langkah 1]
+2. [langkah 2]
+...
+"""
+
+# ----- 2. ReAct (Reasoning + Acting) -----
+# Pikir → Aksi → Observasi → Ulangi
+REACT_PROMPT = """Jawab pertanyaan menggunakan format berikut:
+
+Thought: [pikirkan apa yang perlu dilakukan]
+Action: [nama_tool]
+Action Input: [input untuk tool]
+Observation: [hasil dari tool]
+... (ulangi sampai cukup informasi)
+Thought: [pikirkan apakah sudah cukup]
+Final Answer: [jawaban akhir]
+"""
+
+# ----- 3. Reflexion (Self-improvement) -----
+# Setelah eksekusi, agent merefleksi dan memperbaiki
+REFLECTION_PROMPT = """Evaluasi hasil eksekusi berikut:
+Tugas: {task}
+Hasil: {result}
+Error: {errors}
+
+Apakah hasilnya memuaskan? Jika tidak, apa yang perlu diperbaiki?
+"""</pre>
+      </div>
+
+      <h2 id="agent-loop">5. The Agent Loop</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Complete Agent Loop</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
+# Complete Agent Loop
+# =============================================
+from openai import OpenAI
+import json
+
+class AIAgent:
+    def __init__(self, tools, system_prompt, max_iterations=10):
+        self.client = OpenAI()
+        self.tools = tools
+        self.system_prompt = system_prompt
+        self.max_iterations = max_iterations
+        self.memory = []
+    
+    def run(self, user_input):
+        messages = [
+            {"role": "system", "content": self.system_prompt},
+            *self.memory,
+            {"role": "user", "content": user_input}
+        ]
+        
+        for i in range(self.max_iterations):
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                tools=self.tools,
+                tool_choice="auto"
+            )
+            
+            msg = response.choices[0].message
+            
+            # If LLM wants to use a tool
+            if msg.tool_calls:
+                messages.append(msg)
+                
+                for tool_call in msg.tool_calls:
+                    result = self._execute_tool(
+                        tool_call.function.name,
+                        json.loads(tool_call.function.arguments)
+                    )
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": json.dumps(result)
+                    })
+                
+                continue  # Loop again
+            
+            # Final answer
+            answer = msg.content
+            self.memory.append({"role": "user", "content": user_input})
+            self.memory.append({"role": "assistant", "content": answer})
+            return answer
+        
+        return "Mencapai batas iterasi maksimum."
+    
+    def _execute_tool(self, name, args):
+        tool_map = {t["function"]["name"]: t for t in self.tools}
+        # Execute based on tool name
+        # ... implementasi masing-masing tool
+        return {"status": "success", "result": "..."}
+
+# Usage
+agent = AIAgent(tools=tools, system_prompt="Anda adalah asisten AI...")
+result = agent.run("Berapa harga emas hari ini dalam Rupiah?")
+print(result)</pre>
+      </div>
+
+      <h2 id="multi-agent">6. Multi-Agent Systems</h2>
+      <p><strong>Multi-Agent</strong> menggunakan beberapa agent yang saling bekerja sama, masing-masing dengan spesialisasi berbeda.</p>
+      <div class="diagram-box"><div class="diagram-label">Diagram: Multi-Agent Patterns</div>
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                  MULTI-AGENT PATTERNS                            │
+│                                                                  │
+│  1. ORCHESTRATOR (Supervisor)                                   │
+│     ┌──────────┐                                                │
+│     │Supervisor│→ Agent A (research)                            │
+│     │(routes)  │→ Agent B (code)                                │
+│     └──────────┘→ Agent C (writing)                             │
+│                                                                  │
+│  2. PIPELINE (Sequential)                                       │
+│     Agent A → Agent B → Agent C → Output                       │
+│     (research)  (analyze)  (write)                              │
+│                                                                  │
+│  3. DEBATE (Collaborative)                                      │
+│     Agent A ←→ Agent B ←→ Agent C                              │
+│     (diskusi sampai mencapai konsensus)                         │
+│                                                                  │
+│  4. HIERARCHICAL                                                │
+│     Manager Agent                                                │
+│     ├── Team Lead A → Worker 1, Worker 2                       │
+│     └── Team Lead B → Worker 3, Worker 4                       │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+      </div>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Multi-Agent dengan LangGraph</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
+# Multi-Agent dengan LangGraph
+# =============================================
+# pip install langgraph langchain-openai
+
+from langgraph.graph import StateGraph, END
+from typing import TypedDict, Annotated
+
+class AgentState(TypedDict):
+    task: str
+    research: str
+    code: str
+    final_output: str
+
+def researcher(state):
+    """Agent yang mencari informasi."""
+    # Call LLM for research
+    return {"research": "Hasil riset tentang topik..."}
+
+def coder(state):
+    """Agent yang menulis kode."""
+    research = state["research"]
+    return {"code": "import pandas as pd\n..."}
+
+def reviewer(state):
+    """Agent yang mereview hasil."""
+    return {"final_output": "Review selesai, kode valid."}
+
+# Build graph
+graph = StateGraph(AgentState)
+graph.add_node("researcher", researcher)
+graph.add_node("coder", coder)
+graph.add_node("reviewer", reviewer)
+
+graph.set_entry_point("researcher")
+graph.add_edge("researcher", "coder")
+graph.add_edge("coder", "reviewer")
+graph.add_edge("reviewer", END)
+
+# Compile & run
+app = graph.compile()
+result = app.invoke({"task": "Buat dashboard penjualan"})</pre>
+      </div>
+
+      <h2 id="guardrails">7. Guardrails &amp; Safety</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Agent Guardrails</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre># =============================================
+# Guardrails untuk AI Agent
+# =============================================
+
+class AgentGuardrails:
+    def __init__(self):
+        self.max_iterations = 10
+        self.blocked_actions = ["delete_database", "send_money"]
+        self.max_tool_calls = 20
+        self.allowed_domains = ["api.example.com", "database.internal"]
+    
+    def check_input(self, user_input):
+        """Filter input berbahaya."""
+        blocked = ["ignore instructions", "system prompt", "jailbreak"]
+        for b in blocked:
+            if b in user_input.lower():
+                return False, "Input ditolak: mengandung instruksi terlarang"
+        return True, "OK"
+    
+    def check_tool_call(self, tool_name, args):
+        """Validasi sebelum eksekusi tool."""
+        if tool_name in self.blocked_actions:
+            return False, f"Tool '{tool_name}' diblokir"
+        if tool_name == "http_request":
+            url = args.get("url", "")
+            if not any(d in url for d in self.allowed_domains):
+                return False, f"Domain tidak diizinkan: {url}"
+        return True, "OK"
+    
+    def check_output(self, output):
+        """Filter output berbahaya."""
+        sensitive = ["password", "api_key", "secret"]
+        for s in sensitive:
+            if s in output.lower():
+                return False, "Output mengandung informasi sensitif"
+        return True, "OK"
+
+# Usage dalam agent loop
+guardrails = AgentGuardrails()
+ok, msg = guardrails.check_input(user_input)
+if not ok:
+    print(f"Ditolak: {msg}")</pre>
+      </div>
+
+      <h2 id="evaluasi">8. Evaluasi Agent</h2>
+      <table class="net-table"><thead><tr><th>Metric</th><th>Penjelasan</th><th>Cara Ukur</th></tr></thead><tbody>
+        <tr><td>Task Completion Rate</td><td>Berapa % tugas berhasil diselesaikan</td><td>Count success/total</td></tr>
+        <tr><td>Accuracy</td><td>Kebenaran jawaban akhir</td><td>Ground truth comparison</td></tr>
+        <tr><td>Efficiency</td><td>Jumlah langkah/tool calls</td><td>Count iterations</td></tr>
+        <tr><td>Safety</td><td>Tidak melanggar guardrails</td><td>Log analysis</td></tr>
+        <tr><td>Latency</td><td>Waktu total eksekusi</td><td>Timer</td></tr>
+        <tr><td>Cost</td><td>Total token/cost API</td><td>Token counter</td></tr>
+      </tbody></table>
+
+      <h2 id="framework">9. Agent Frameworks</h2>
+      <table class="net-table"><thead><tr><th>Framework</th><th>Keunggulan</th><th>Cocok Untuk</th></tr></thead><tbody>
+        <tr><td>LangChain/LangGraph</td><td>Ekosistem lengkap, banyak integrasi</td><td>Production, complex agents</td></tr>
+        <tr><td>AutoGen (Microsoft)</td><td>Multi-agent conversation</td><td>Research, collaboration</td></tr>
+        <tr><td>CrewAI</td><td>Role-based multi-agent, mudah</td><td>Team-based agents</td></tr>
+        <tr><td>OpenAI Assistants</td><td>Built-in tools, managed</td><td>Quick prototyping</td></tr>
+        <tr><td>Phidata</td><td>Clean API, production-ready</td><td>Production single-agent</td></tr>
+      </tbody></table>
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" data-correct="2">
+          <p><strong>1. Apa perbedaan utama chatbot dan AI Agent?</strong></p>
+          <label><input type="radio" name="q1" value="0"> Agent lebih cepat dari chatbot</label>
+          <label><input type="radio" name="q1" value="1"> Agent tidak memerlukan LLM</label>
+          <label><input type="radio" name="q1" value="2"> Agent bisa menggunakan tools, merencanakan, dan bertindak secara otonom</label>
+          <label><input type="radio" name="q1" value="3"> Chatbot bisa menggunakan tools, Agent tidak</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>2. Apa fungsi dari tool use dalam AI Agent?</strong></p>
+          <label><input type="radio" name="q2" value="0"> Mempercepat inference LLM</label>
+          <label><input type="radio" name="q2" value="1"> Memungkinkan agent berinteraksi dengan dunia luar (API, database, web)</label>
+          <label><input type="radio" name="q2" value="2"> Mengurangi ukuran model</label>
+          <label><input type="radio" name="q2" value="3"> Menyimpan conversation history</label>
+        </div>
+        <div class="quiz-question" data-correct="3">
+          <p><strong>3. Mengapa guardrails penting untuk AI Agent?</strong></p>
+          <label><input type="radio" name="q3" value="0"> Agar agent lebih cepat</label>
+          <label><input type="radio" name="q3" value="1"> Agar agent bisa menggunakan lebih banyak tools</label>
+          <label><input type="radio" name="q3" value="2"> Agar agent tidak perlu menggunakan memory</label>
+          <label><input type="radio" name="q3" value="3"> Untuk mencegah agent melakukan aksi berbahaya atau melanggar batasan</label>
+        </div>
+        <div class="quiz-question" data-correct="0">
+          <p><strong>4. Apa itu ReAct pattern?</strong></p>
+          <label><input type="radio" name="q4" value="0"> Pola yang menggabungkan reasoning (berpikir) dan acting (bertindak) secara bergantian</label>
+          <label><input type="radio" name="q4" value="1"> Pola untuk menulis kode React.js</label>
+          <label><input type="radio" name="q4" value="2"> Pola untuk menghapus memory agent</label>
+          <label><input type="radio" name="q4" value="3"> Pola untuk menggabungkan beberapa LLM</label>
+        </div>
+        <div class="quiz-question" data-correct="2">
+          <p><strong>5. Apa keunggulan multi-agent dibanding single agent?</strong></p>
+          <label><input type="radio" name="q5" value="0"> Lebih murah karena hanya 1 LLM</label>
+          <label><input type="radio" name="q5" value="1"> Tidak memerlukan tools</label>
+          <label><input type="radio" name="q5" value="2"> Setiap agent bisa spesialis, tugas kompleks dipecah dan diparalelkan</label>
+          <label><input type="radio" name="q5" value="3"> Tidak memerlukan guardrails</label>
+        </div>
+        <button class="quiz-submit" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+      <h3>Rangkuman</h3>
+      <div class="info-box info"><div class="info-box-title">📝 Poin Penting</div><ul>
+        <li><strong>AI Agent</strong> — sistem otonom dengan LLM sebagai otak + tools + memory</li>
+        <li><strong>Tool Use</strong> — function calling memungkinkan agent berinteraksi dengan dunia luar</li>
+        <li><strong>Memory</strong> — short-term (conversation) + long-term (facts, vector DB)</li>
+        <li><strong>Planning</strong> — ReAct, Plan-and-Execute, Reflexion</li>
+        <li><strong>Multi-Agent</strong> — beberapa agent bekerja sama dengan spesialisasi berbeda</li>
+        <li><strong>Guardrails</strong> — batasan keamanan untuk input, tool use, dan output</li>
+        <li><strong>Frameworks</strong> — LangGraph, AutoGen, CrewAI, OpenAI Assistants</li>
+      </ul></div>
+  </div></article>
+  <script src="../js/app.js?v=9.5"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}</script>
+</body>
+</html>

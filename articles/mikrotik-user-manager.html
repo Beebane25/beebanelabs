@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08090a">
+  <link rel="preconnect" href="https://*.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BeebaneLabs">
+  <link rel="apple-touch-icon" href="/images/logo_beebane.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes">
+  <title>MikroTik User Manager: RADIUS Server Lengkap | BeebaneLabs</title>
+  <meta name="description" content="Tutorial lengkap MikroTik User Manager sebagai RADIUS Server. Pelajari user management, profile, limitation, session, accounting untuk hotspot dan PPPoE.">
+  <meta name="keywords" content="MikroTik User Manager, RADIUS Server, user management, hotspot management, PPPoE, accounting, MikroTik tutorial">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="og:title" content="MikroTik User Manager: RADIUS Server Lengkap">
+  <meta property="og:description" content="Tutorial lengkap MikroTik User Manager sebagai RADIUS Server — dari instalasi hingga konfigurasi advanced.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://beebanelabs.pages.dev/articles/mikrotik-user-manager.html">
+  <meta property="og:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="MikroTik User Manager: RADIUS Server Lengkap">
+  <meta name="twitter:description" content="Tutorial lengkap MikroTik User Manager sebagai RADIUS Server untuk manajemen user hotspot dan PPPoE.">
+  <meta name="twitter:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta property="article:published_time" content="2026-06-29">
+  <meta property="article:section" content="Networking">
+  <meta property="article:tag" content="MikroTik">
+  <meta property="article:tag" content="User Manager">
+  <meta property="article:tag" content="RADIUS">
+  <meta property="article:tag" content="Networking">
+  <link rel="canonical" href="https://beebanelabs.pages.dev/articles/mikrotik-user-manager.html">
+  <link rel="stylesheet" href="../css/style.css?v=13.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "MikroTik User Manager: RADIUS Server Lengkap",
+    "description": "Tutorial lengkap MikroTik User Manager sebagai RADIUS Server — user management, profile, limitation, session, dan accounting.",
+    "author": { "@type": "Organization", "name": "BeebaneLabs" },
+    "datePublished": "2026-06-29",
+    "publisher": { "@type": "Organization", "name": "BeebaneLabs" }
+  }
+  </script>
+<script>
+/* Lazy-load AdSense — loads after first user interaction */
+(function(){
+  var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';
+  function loadAds(){
+    if(window._adsLoaded) return;
+    window._adsLoaded=true;
+    var s=document.createElement('script');
+    s.async=true;s.crossOrigin='anonymous';s.src=src;
+    document.head.appendChild(s);
+    ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+      document.removeEventListener(e,loadAds,{passive:true});
+    });
+  }
+  ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+    document.addEventListener(e,loadAds,{passive:true,once:true});
+  });
+  setTimeout(loadAds,5000);
+})();
+</script>
+  <script type="speculationrules">{ "prerender": [{ "where": { "href_matches": "/*" }, "eagerness": "moderate" }] }</script>
+</head>
+<body>
+  <noscript><style>.article-content,.articles-grid,.category-section,.hero{display:block!important;opacity:1!important;transform:none!important}.reveal{opacity:1!important;transform:none!important}</style></noscript>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+
+  <!-- ========== READING PROGRESS ========== -->
+  <div class="reading-progress-bar" id="readingProgress"></div>
+
+  <!-- ========== NAVIGATION ========== -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="navbar-brand">
+        <picture><source srcset="../images/logo_beebane_webp.webp" type="image/webp"><picture><source srcset="../images/logo_beebane_webp.webp" type="image/webp"><img src="../images/logo_beebane_webp.webp" alt="BeebaneLabs" class="brand-logo" width="40" height="22"></picture></picture>
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="../index.html">Beranda</a></li>
+        <li><a href="../kategori.html">Kategori</a></li>
+        <li><a href="../about.html">Tentang</a></li>
+        <li><a href="../pricing.html">Harga</a></li>
+      </ul>
+      <div class="navbar-search" id="searchTrigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Cari tutorial...</span>
+        <kbd>/</kbd>
+      </div>
+        <div id="authNavArea"></div>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" onclick="document.getElementById('searchOverlay').classList.remove('active')" aria-label="Tutup">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Networking</a>
+        <span class="separator">/</span>
+        <span class="current">MikroTik User Manager</span>
+      </div>
+      <span class="category-tag">Networking</span>
+      <h1>MikroTik User Manager: RADIUS Server Lengkap</h1>
+      <p class="article-subtitle">Tutorial komprehensif MikroTik User Manager sebagai RADIUS Server — dari instalasi, user management, profile, limitation, session monitoring, hingga accounting untuk ISP dan hotspot</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <!-- AdSense: Top Banner 728x90 / Responsive -->
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan User Manager &amp; RADIUS</a></li>
+          <li><a href="#instalasi">Instalasi User Manager</a></li>
+          <li><a href="#konfigurasi-dasar">Konfigurasi Dasar RADIUS</a></li>
+          <li><a href="#user-management">User Management</a></li>
+          <li><a href="#profile">Profile &amp; Limitation</a></li>
+          <li><a href="#session">Session Management</a></li>
+          <li><a href="#accounting">Accounting &amp; Monitoring</a></li>
+          <li><a href="#integrasi-hotspot">Integrasi dengan Hotspot</a></li>
+          <li><a href="#integrasi-pppoe">Integrasi dengan PPPoE</a></li>
+          <li><a href="#keamanan">Keamanan &amp; Best Practices</a></li>
+          <li><a href="#troubleshooting">Troubleshooting</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan User Manager &amp; RADIUS</h2>
+
+      <p><strong>MikroTik User Manager</strong> adalah package RADIUS server yang disediakan oleh MikroTik untuk mengelola autentikasi, otorisasi, dan accounting (AAA) dari pengguna jaringan. User Manager berperan sebagai server sentral yang menyimpan data user dan berkomunikasi dengan NAS (Network Access Server) melalui protokol RADIUS.</p>
+
+      <p>RADIUS (Remote Authentication Dial-In User Service) adalah protokol AAA yang sangat umum digunakan oleh ISP, warnet, hotel, dan enterprise untuk mengelola akses jaringan pengguna. Dengan RADIUS, semua proses autentikasi terpusat di satu server.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Arsitektur RADIUS dengan MikroTik User Manager</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">👤</div>
+            <div class="arch-label">Client / User</div>
+            <div class="arch-desc">Koneksi hotspot<br>atau PPPoE</div>
+          </div>
+          <div class="arch-arrow">→ Auth Request →</div>
+          <div class="arch-box info">
+            <div class="arch-icon">🌐</div>
+            <div class="arch-label">MikroTik NAS</div>
+            <div class="arch-desc">Hotspot server<br>atau PPPoE server</div>
+          </div>
+          <div class="arch-arrow">→ RADIUS →</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">🗄️</div>
+            <div class="arch-label">User Manager</div>
+            <div class="arch-desc">RADIUS Server<br>Database user</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Komponen AAA pada RADIUS</h3>
+      <ul>
+        <li><strong>Authentication (Autentikasi):</strong> Memverifikasi identitas pengguna — username dan password yang dikirim ke RADIUS server</li>
+        <li><strong>Authorization (Otorisasi):</strong> Menentukan hak akses pengguna — profile mana yang diberikan, bandwidth berapa, durasi berapa lama</li>
+        <li><strong>Accounting:</strong> Mencatat aktivitas pengguna — waktu login, logout, volume data upload/download, durasi sesi</li>
+      </ul>
+
+      <h3>1.2 Keunggulan Menggunakan User Manager</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Fitur</th><th>Tanpa User Manager</th><th>Dengan User Manager</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Manajemen User</td><td>Per router, manual</td><td>Terpusat di satu server</td></tr>
+          <tr><td>Skalabilitas</td><td>Sulit untuk banyak user</td><td>Mendukung ribuan user</td></tr>
+          <tr><td>Accounting</td><td>Terbatas</td><td>Lengkap dengan history</td></tr>
+          <tr><td>Multi-NAS</td><td>Tidak bisa</td><td>Satu UM untuk banyak router</td></tr>
+          <tr><td>Voucher System</td><td>Tidak tersedia</td><td>Bisa generate voucher</td></tr>
+          <tr><td>Bandwidth Control</td><td>Per user manual</td><td>Berbasis profile</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Instalasi            -->
+      <!-- ============================== -->
+      <h2 id="instalasi">2. Instalasi User Manager</h2>
+
+      <p>Package User Manager sudah tersedia di RouterOS, tetapi perlu diinstal secara terpisah. Pastikan Anda menggunakan RouterOS versi terbaru untuk fitur terlengkap.</p>
+
+      <h3>2.1 Cek dan Install Package</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Cek Package User Manager</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Cek apakah package user-manager sudah terinstall
+/system package print
+
+# Jika belum terinstall, download dari website MikroTik
+# sesuai arsitektur router (x86, arm, mipsbe, dll)
+# Upload file .npk ke router, lalu reboot
+
+# Atau install dari package yang sudah ada
+/system package enable user-manager
+/system reboot
+</pre>
+      </div>
+
+      <h3>2.2 Verifikasi Instalasi</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Verifikasi User Manager</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Cek package sudah aktif
+/system package print where name="user-manager"
+
+# Akses User Manager
+# Via browser: http://[IP-ROUTER]/userman
+# Default credentials: admin (tanpa password)
+
+# Atau via CLI
+/user-manager print
+</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Instalasi</div>
+        <p>Disarankan menggunakan router terpisah khusus untuk User Manager agar tidak membebani router utama (NAS). Untuk ISP kecil-menengah, RB750Gr3 atau RB4011 sudah cukup. Untuk ISP besar, gunakan CCR (Cloud Core Router) atau x86.</p>
+      </div>
+
+      <h3>2.3 Konfigurasi Database</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Setup Database User Manager</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Konfigurasi database path (opsional, untuk custom storage)
+/user-manager database set db-path=user-manager
+
+# Set agar database tersimpan di disk (bukan RAM)
+/user-manager database set store-on-disk=yes
+
+# Verifikasi status database
+/user-manager database print
+</pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Konfigurasi Dasar    -->
+      <!-- ============================== -->
+      <h2 id="konfigurasi-dasar">3. Konfigurasi Dasar RADIUS</h2>
+
+      <p>Setelah User Manager terinstall, langkah selanjutnya adalah mengkonfigurasi RADIUS server agar bisa menerima request dari NAS (router hotspot atau PPPoE server).</p>
+
+      <h3>3.1 Menambahkan RADIUS Client (NAS)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Tambah RADIUS Client di User Manager</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Tambah router NAS sebagai RADIUS client
+/user-manager router add \
+  name=hotspot-router \
+  ip-address=192.168.1.1 \
+  shared-secret=rahasia123 \
+  coa-port=3799 \
+  disabled=no
+
+# Tambah router NAS kedua (jika ada)
+/user-manager router add \
+  name=pppoe-router \
+  ip-address=192.168.2.1 \
+  shared-secret=rahasia456 \
+  coa-port=3799 \
+  disabled=no
+
+# Verifikasi daftar router
+/user-manager router print
+</pre>
+      </div>
+
+      <h3>3.2 Konfigurasi RADIUS di NAS (Router Client)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Konfigurasi RADIUS di NAS</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Tambah RADIUS server di NAS untuk autentikasi hotspot
+/radius add \
+  service=hotspot \
+  address=192.168.1.100 \
+  secret=rahasia123 \
+  authentication-port=1812 \
+  accounting-port=1813 \
+  timeout=3000ms
+
+# Tambah RADIUS server untuk autentikasi PPPoE
+/radius add \
+  service=ppp \
+  address=192.168.1.100 \
+  secret=rahasia123 \
+  authentication-port=1812 \
+  accounting-port=1813 \
+  timeout=3000ms
+
+# Aktifkan RADIUS pada hotspot
+/ip hotspot set [find] use-radius=yes
+
+# Aktifkan RADIUS pada PPPoE server
+/ppp aaa set use-radius=yes
+</pre>
+      </div>
+
+      <h3>3.3 Shared Secret &amp; Port</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>Parameter</th><th>Nilai Default</th><th>Keterangan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>authentication-port</code></td><td>1812</td><td>Port untuk autentikasi</td></tr>
+          <tr><td><code>accounting-port</code></td><td>1813</td><td>Port untuk accounting</td></tr>
+          <tr><td><code>coa-port</code></td><td>3799</td><td>Port untuk CoA (Change of Authorization)</td></tr>
+          <tr><td><code>shared-secret</code></td><td>-</td><td>Kunci enkripsi antara NAS dan RADIUS server</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Penting: Shared Secret</div>
+        <p>Shared secret harus sama antara konfigurasi di NAS dan di User Manager. Gunakan password yang kuat dan unik untuk setiap NAS. Jangan gunakan shared secret yang sama untuk semua router.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: User Management      -->
+      <!-- ============================== -->
+      <h2 id="user-management">4. User Management</h2>
+
+      <p>User Manager menyediakan interface web (http://IP/userman) dan CLI untuk mengelola pengguna. Setiap user memiliki username, password, profile, dan batasan tertentu.</p>
+
+      <h3>4.1 Menambah User via CLI</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Tambah User</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Tambah user biasa
+/user-manager user add \
+  name=user001 \
+  password=pass123 \
+  shared-users=1 \
+  disabled=no
+
+# Tambah user dengan profile tertentu
+/user-manager user add \
+  name=user002 \
+  password=pass456 \
+  customer=admin \
+  shared-users=1 \
+  comment="Pelanggan warnet"
+
+# Tambah banyak user sekaligus (batch)
+:for i from=1 to=100 do={
+  /user-manager user add \
+    name=("user" . $i) \
+    password=("pass" . $i) \
+    shared-users=1 \
+    disabled=no
+}
+
+# Verifikasi daftar user
+/user-manager user print
+/user-manager user print count-only
+</pre>
+      </div>
+
+      <h3>4.2 Menambah User via Web Interface</h3>
+      <ol>
+        <li>Buka browser, akses <code>http://[IP-ROUTER]/userman</code></li>
+        <li>Login dengan akun admin</li>
+        <li>Klik menu <strong>Users</strong> di sidebar</li>
+        <li>Klik tombol <strong>+</strong> untuk menambah user baru</li>
+        <li>Isi <strong>Username</strong>, <strong>Password</strong>, dan pilih <strong>Profile</strong></li>
+        <li>Set <strong>Shared Users</strong> (jumlah sesi bersamaan)</li>
+        <li>Klik <strong>Add</strong> untuk menyimpan</li>
+      </ol>
+
+      <h3>4.3 Mengelola User</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Kelola User</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Edit user (ganti password)
+/user-manager user set [find name=user001] password=newpass123
+
+# Disable user (nonaktifkan sementara)
+/user-manager user set [find name=user001] disabled=yes
+
+# Enable user kembali
+/user-manager user set [find name=user001] disabled=no
+
+# Hapus user
+/user-manager user remove [find name=user001]
+
+# Cari user tertentu
+/user-manager user print where name~"user"
+
+# Set shared-users (jumlah login bersamaan)
+/user-manager user set [find name=user001] shared-users=2
+
+# Tambah comment pada user
+/user-manager user set [find name=user001] comment="VIP Customer"
+</pre>
+      </div>
+
+      <h3>4.4 Customer &amp; Multi-Tenancy</h3>
+
+      <p>User Manager mendukung konsep <strong>Customer</strong> yang memungkinkan multi-tenancy. Setiap customer (misalnya: pemilik warnet, RT/RW net) bisa mengelola user-nya sendiri tanpa melihat user milik customer lain.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Customer Management</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Tambah customer baru
+/user-manager customer add \
+  name=warnet-abc \
+  password=cust123 \
+  shared-users=1 \
+  permissions=owner
+
+# Tambah sub-customer
+/user-manager customer add \
+  name=kasir-abc \
+  parent=warnet-abc \
+  password=kasir123 \
+  shared-users=1 \
+  permissions=full
+
+# Lihat daftar customer
+/user-manager customer print
+</pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Profile & Limitation -->
+      <!-- ============================== -->
+      <h2 id="profile">5. Profile &amp; Limitation</h2>
+
+      <p>Profile menentukan hak akses yang diberikan kepada pengguna — bandwidth limit, durasi sesi, kuota data, dan waktu aktif. Limitation memberikan batasan tambahan yang bisa berbeda berdasarkan waktu.</p>
+
+      <h3>5.1 Membuat Profile</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Buat Profile</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Profile 1 Jam - 1 Mbps
+/user-manager profile add \
+  name=paket-1jam \
+  name-for-users="Paket 1 Jam - 1Mbps" \
+  owner=admin \
+  price=5000
+
+# Profile Harian - 2 Mbps
+/user-manager profile add \
+  name=paket-harian \
+  name-for-users="Paket Harian - 2Mbps" \
+  owner=admin \
+  price=10000
+
+# Profile Mingguan - 5 Mbps
+/user-manager profile add \
+  name=paket-mingguan \
+  name-for-users="Paket Mingguan - 5Mbps" \
+  owner=admin \
+  price=50000
+
+# Profile Bulanan - 10 Mbps
+/user-manager profile add \
+  name=paket-bulanan \
+  name-for-users="Paket Bulanan - 10Mbps" \
+  owner=admin \
+  price=150000
+
+# Verifikasi profile
+/user-manager profile print
+</pre>
+      </div>
+
+      <h3>5.2 Membuat Limitation</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Buat Limitation</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Limitation untuk paket 1 jam
+/user-manager profile limitation add \
+  name=limit-1jam \
+  owner=admin \
+  rate-limit-rx=1M \
+  rate-limit-tx=1M \
+  validity=01:00:00 \
+  transfer-limit=0 \
+  uptime-limit=01:00:00
+
+# Limitation untuk paket harian
+/user-manager profile limitation add \
+  name=limit-harian \
+  owner=admin \
+  rate-limit-rx=2M \
+  rate-limit-tx=2M \
+  validity=1d00:00:00 \
+  transfer-limit=500M \
+  uptime-limit=1d00:00:00
+
+# Limitation untuk paket bulanan
+/user-manager profile limitation add \
+  name=limit-bulanan \
+  owner=admin \
+  rate-limit-rx=10M \
+  rate-limit-tx=10M \
+  validity=30d00:00:00 \
+  transfer-limit=50G \
+  uptime-limit=30d00:00:00
+
+# Verifikasi limitation
+/user-manager profile limitation print
+</pre>
+      </div>
+
+      <h3>5.3 Menghubungkan Profile dengan Limitation</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Hubungkan Profile dan Limitation</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Hubungkan profile dengan limitation
+/user-manager profile set [find name=paket-1jam] \
+  limitations=limit-1jam
+
+/user-manager profile set [find name=paket-harian] \
+  limitations=limit-harian
+
+/user-manager profile set [find name=paket-bulanan] \
+  limitations=limit-bulanan
+
+# Assign profile ke user
+/user-manager user set [find name=user001] \
+  profile=paket-bulanan
+</pre>
+      </div>
+
+      <h3>5.4 Time-Based Limitation (Batasan Berdasarkan Waktu)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Time-Based Limitation</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Limitasi khusus jam malam (lebih murah)
+/user-manager profile limitation add \
+  name=limit-malam \
+  owner=admin \
+  rate-limit-rx=5M \
+  rate-limit-tx=5M \
+  validity=06:00:00 \
+  from-time=00:00:00 \
+  to-time=06:00:00 \
+  days-of-week=sun,mon,tue,wed,thu,fri,sat
+
+# Limitasi weekday vs weekend
+/user-manager profile limitation add \
+  name=limit-weekend \
+  owner=admin \
+  rate-limit-rx=10M \
+  rate-limit-tx=10M \
+  validity=2d00:00:00 \
+  days-of-week=sun,sat
+</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Pricing</div>
+        <p>Gunakan fitur <strong>price</strong> pada profile untuk keperluan billing. Customer dapat melihat harga dari setiap profile melalui web interface User Manager. Ini sangat berguna untuk sistem voucher di warnet atau RT/RW net.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Session Management   -->
+      <!-- ============================== -->
+      <h2 id="session">6. Session Management</h2>
+
+      <p>Session management memungkinkan Anda memantau sesi aktif, memutus koneksi user, dan mengatur batasan sesi bersamaan (simultaneous sessions).</p>
+
+      <h3>6.1 Melihat Sesi Aktif</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Monitoring Session</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Lihat semua sesi aktif
+/user-manager session print
+
+# Lihat sesi aktif dari user tertentu
+/user-manager session print where user=user001
+
+# Lihat jumlah sesi aktif
+/user-manager session print count-only
+
+# Lihat detail sesi
+/user-manager session print detail where user=user001
+</pre>
+      </div>
+
+      <h3>6.2 Memutus Sesi (Disconnect)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Disconnect User Session</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Putuskan sesi user tertentu
+/user-manager session remove [find user=user001]
+
+# Putuskan semua sesi
+/user-manager session remove [find]
+
+# Via CoA (Change of Authorization) dari NAS
+# Di NAS router:
+/radius incoming set accept=yes
+# Lalu dari User Manager:
+/user-manager session disconnect [find user=user001]
+</pre>
+      </div>
+
+      <h3>6.3 Batasan Shared Users (Simultaneous Sessions)</h3>
+
+      <p>Parameter <code>shared-users</code> menentukan berapa banyak device yang bisa login bersamaan dengan satu akun:</p>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>shared-users</th><th>Keterangan</th><th>Cocok Untuk</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Hanya 1 device, login baru = putus yang lama</td><td>Voucher warnet</td></tr>
+          <tr><td>2</td><td>Maksimal 2 device bersamaan</td><td>User personal (HP + laptop)</td></tr>
+          <tr><td>3-5</td><td>Beberapa device</td><td>Keluarga kecil</td></tr>
+          <tr><td>0 (unlimited)</td><td>Tidak dibatasi</td><td>Corporate / kantor</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Catatan Shared Users</div>
+        <p>Setting <code>shared-users=1</code> sangat direkomendasikan untuk sistem voucher. Tanpa batasan, satu voucher bisa dibagikan ke banyak orang, merugikan bisnis Anda.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Accounting           -->
+      <!-- ============================== -->
+      <h2 id="accounting">7. Accounting &amp; Monitoring</h2>
+
+      <p>Fitur accounting mencatat semua aktivitas pengguna — kapan login, kapan logout, berapa banyak data yang diupload/didownload. Data ini sangat penting untuk monitoring, billing, dan troubleshooting.</p>
+
+      <h3>7.1 Mengaktifkan Accounting</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Aktifkan Accounting</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Di NAS router - aktifkan RADIUS accounting
+/radius add \
+  service=hotspot \
+  address=192.168.1.100 \
+  secret=rahasia123 \
+  authentication-port=1812 \
+  accounting-port=1813
+
+# Aktifkan accounting pada hotspot
+/ip hotspot set [find] use-radius=yes
+
+# Set accounting interim update (interval pelaporan)
+# Default 300 detik (5 menit)
+/ip hotspot set [find] radius-interim-update=5m
+</pre>
+      </div>
+
+      <h3>7.2 Melihat Data Accounting</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Data Accounting</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Lihat log accounting
+/user-manager log print
+
+# Lihat data usage per user
+/user-manager user print stats
+
+# Lihat history login user tertentu
+/user-manager log print where user=user001
+
+# Export data accounting untuk billing
+/user-manager log print file=accounting-data
+</pre>
+      </div>
+
+      <h3>7.3 Informasi yang Dicatat</h3>
+      <ul>
+        <li><strong>Session Start:</strong> Waktu user melakukan login</li>
+        <li><strong>Session Stop:</strong> Waktu user logout atau terputus</li>
+        <li><strong>Input Octets:</strong> Total data yang di-upload (bytes)</li>
+        <li><strong>Output Octets:</strong> Total data yang di-download (bytes)</li>
+        <li><strong>Session Time:</strong> Durasi sesi aktif</li>
+        <li><strong>Terminate Cause:</strong> Alasan sesi berakhir (User-Request, Idle-Timeout, dll)</li>
+      </ul>
+
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article -->
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Integrasi Hotspot    -->
+      <!-- ============================== -->
+      <h2 id="integrasi-hotspot">8. Integrasi dengan Hotspot</h2>
+
+      <p>Integrasi User Manager dengan MikroTik Hotspot adalah use case paling populer. User login ke hotspot, NAS mengirim request ke User Manager, dan User Manager mengautentikasi berdasarkan data yang tersimpan.</p>
+
+      <h3>8.1 Konfigurasi Hotspot + RADIUS</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Hotspot + User Manager</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Setup hotspot (jika belum)
+/ip hotspot setup
+# Ikuti wizard hingga selesai
+
+# Tambah RADIUS server
+/radius add \
+  service=hotspot \
+  address=192.168.1.100 \
+  secret=rahasia123 \
+  authentication-port=1812 \
+  accounting-port=1813
+
+# Aktifkan RADIUS pada hotspot
+/ip hotspot profile set [find] \
+  use-radius=yes \
+  radius-interim-update=5m
+
+# Matikan autentikasi lokal (opsional, agar semua via RADIUS)
+# /ip hotspot user set [find] disabled=yes
+</pre>
+      </div>
+
+      <h3>8.2 Hotspot User Profile via RADIUS</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">MikroTik RADIUS Attributes — Hotspot Profile</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Di User Manager, limitation bisa set RADIUS attributes
+# Rate-limit format: rx-rate[/tx-rate] [burst-rx[/burst-tx]]
+# Contoh: 2M/2M untuk download dan upload 2 Mbps
+
+# Mikrotik-Rate-Limit attributes:
+# rx-rate = download limit
+# tx-rate = upload limit
+# burst = burst allowance
+
+# Contoh limitation dengan burst
+/user-manager profile limitation add \
+  name=limit-burst \
+  owner=admin \
+  rate-limit-rx=2M \
+  rate-limit-tx=1M \
+  rate-limit-rx-burst=4M \
+  rate-limit-tx-burst=2M \
+  validity=1d00:00:00
+</pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Integrasi PPPoE      -->
+      <!-- ============================== -->
+      <h2 id="integrasi-pppoe">9. Integrasi dengan PPPoE</h2>
+
+      <p>Untuk ISP, PPPoE + RADIUS adalah kombinasi standar untuk mengelola pelanggan. Setiap pelanggan login via PPPoE, dan autentikasi dilakukan melalui User Manager.</p>
+
+      <h3>9.1 Konfigurasi PPPoE Server + RADIUS</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — PPPoE + RADIUS</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Setup PPPoE server (sudah ada)
+# Pastikan RADIUS dikonfigurasi untuk PPP service
+/radius add \
+  service=ppp \
+  address=192.168.1.100 \
+  secret=rahasia123 \
+  authentication-port=1812 \
+  accounting-port=1813
+
+# Aktifkan RADIUS untuk PPP
+/ppp aaa set \
+  use-radius=yes \
+  accounting=yes \
+  interim-update=5m
+
+# Konfigurasi PPPoE profile untuk mengizinkan RADIUS
+/ppp profile set [find name=default] \
+  use-radius=yes \
+  dns-server=8.8.8.8,8.8.4.4
+</pre>
+      </div>
+
+      <h3>9.2 RADIUS Attributes untuk PPPoE</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>Attribute</th><th>Keterangan</th><th>Contoh</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Framed-IP-Address</code></td><td>IP statik untuk user</td><td>10.0.0.100</td></tr>
+          <tr><td><code>Framed-IP-Pool</code></td><td>Pool IP yang digunakan</td><td>pppoe-pool</td></tr>
+          <tr><td><code>Framed-Route</code></td><td>Route khusus untuk user</td><td>192.168.10.0/24</td></tr>
+          <tr><td><code>Mikrotik-Rate-Limit</code></td><td>Bandwidth limit</td><td>5M/10M</td></tr>
+          <tr><td><code>Session-Timeout</code></td><td>Durasi maksimal sesi</td><td>3600 (detik)</td></tr>
+          <tr><td><code>Idle-Timeout</code></td><td>Timeout jika idle</td><td>300 (detik)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Keamanan            -->
+      <!-- ============================== -->
+      <h2 id="keamanan">10. Keamanan &amp; Best Practices</h2>
+
+      <p>Menjaga keamanan User Manager sangat penting karena server ini menyimpan data sensitif semua pengguna jaringan Anda.</p>
+
+      <h3>10.1 Keamanan Dasar</h3>
+      <ul>
+        <li><strong>Ganti password default admin</strong> segera setelah instalasi</li>
+        <li><strong>Batasi akses web interface</strong> hanya dari IP tertentu</li>
+        <li><strong>Gunakan shared secret yang kuat</strong> (minimal 16 karakter, kombinasi huruf-angka-symbol)</li>
+        <li><strong>Enkripsi komunikasi</strong> antara NAS dan RADIUS server menggunakan IPsec atau jaringan terisolasi</li>
+        <li><strong>Backup database</strong> secara berkala</li>
+      </ul>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Keamanan User Manager</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Ganti password admin
+/user-manager customer set [find name=admin] \
+  password=MyStr0ngP@ss!
+
+# Batasi akses web interface dari firewall
+/ip firewall filter add \
+  chain=input \
+  dst-port=80,443 \
+  protocol=tcp \
+  src-address=192.168.1.0/24 \
+  action=accept \
+  comment="Allow User Manager access"
+
+/ip firewall filter add \
+  chain=input \
+  dst-port=80,443 \
+  protocol=tcp \
+  action=drop \
+  comment="Block external User Manager access"
+
+# Batasi akses RADIUS port
+/ip firewall filter add \
+  chain=input \
+  dst-port=1812-1813 \
+  protocol=udp \
+  src-address=192.168.1.1 \
+  action=accept \
+  comment="Allow RADIUS from NAS"
+
+/ip firewall filter add \
+  chain=input \
+  dst-port=1812-1813 \
+  protocol=udp \
+  action=drop \
+  comment="Block other RADIUS access"
+</pre>
+      </div>
+
+      <h3>10.2 Backup &amp; Restore</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Backup User Manager</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Backup database User Manager
+/system backup save name=userman-backup
+
+# Export user data ke file
+/user-manager user print file=users-export
+
+# Backup via FTP/SCP
+/tool fetch address=ftp.example.com \
+  src-path=userman-backup.backup \
+  user=backupuser \
+  password=backpass \
+  mode=ftp \
+  upload=yes \
+  dst-path=/backups/userman-backup.backup
+</pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Troubleshooting     -->
+      <!-- ============================== -->
+      <h2 id="troubleshooting">11. Troubleshooting</h2>
+
+      <p>Berikut masalah umum dan solusi saat menggunakan MikroTik User Manager:</p>
+
+      <h3>11.1 Debug RADIUS</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Debug RADIUS</span>
+          <button class="code-copy">Salin</button>
+        </div>
+<pre>
+# Aktifkan debug logging untuk RADIUS
+/system logging add \
+  topics=radius \
+  action=memory
+
+# Lihat log RADIUS
+/log print where topics~"radius"
+
+# Cek apakah RADIUS server reachable
+/tool ping 192.168.1.100
+
+# Cek port RADIUS terbuka
+/tool port-scan address=192.168.1.100 port=1812
+
+# Test autentikasi dari CLI
+/radius check-connection address=192.168.1.100 \
+  secret=rahasia123 \
+  service=hotspot
+</pre>
+      </div>
+
+      <h3>11.2 Masalah Umum</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>Masalah</th><th>Penyebab</th><th>Solusi</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>User tidak bisa login</td><td>Shared secret salah</td><td>Pastikan secret sama di NAS dan UM</td></tr>
+          <tr><td>RADIUS timeout</td><td>Firewall memblokir port</td><td>Buka port 1812/1813 UDP</td></tr>
+          <tr><td>Profile tidak terpakai</td><td>Limitation tidak terhubung</td><td>Hubungkan profile dengan limitation</td></tr>
+          <tr><td>Accounting tidak jalan</td><td>Accounting port salah</td><td>Pastikan port 1813 terkonfigurasi</td></tr>
+          <tr><td>Web UI tidak bisa diakses</td><td>Package tidak aktif</td><td>Enable user-manager package</td></tr>
+          <tr><td>Bandwidth limit tidak bekerja</td><td>Rate limit format salah</td><td>Gunakan format yang benar (rx/tx)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================== -->
+      <!-- QUIZ                            -->
+      <!-- ============================== -->
+      <h2 id="quiz">Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quiz10">
+        <h3>🧠 Tes Pemahaman: MikroTik User Manager</h3>
+        <p>Uji pemahaman Anda tentang materi di atas!</p>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>1. Port default apa yang digunakan untuk RADIUS authentication?</strong></p>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Port 80</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Port 443</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Port 1812</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Port 3799</div>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>2. Apa fungsi dari parameter "shared-users" pada User Manager?</strong></p>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Membagi bandwidth antar user</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Membatasi jumlah device yang login bersamaan</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Mengatur prioritas koneksi</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Mengaktifkan fitur sharing file</div>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Apa yang terjadi jika shared-users diset ke 1?</strong></p>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Login baru akan memutus sesi yang lama</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) User tidak bisa login sama sekali</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) User hanya bisa login satu kali seumur hidup</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Bandwidth dibagi rata ke 1 Mbps</div>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4. Komponen apa yang TIDAK termasuk dalam AAA (Authentication, Authorization, Accounting)?</strong></p>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Authentication</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Authorization</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Accounting</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Administration</div>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>5. Fitur apa yang memungkinkan User Manager untuk memutus sesi user dari server?</strong></p>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="5" data-answer="a">a) DHCP Release</div>
+            <div class="quiz-option" data-question="5" data-answer="b">b) SNMP Trap</div>
+            <div class="quiz-option" data-question="5" data-answer="c">c) CoA (Change of Authorization)</div>
+            <div class="quiz-option" data-question="5" data-answer="d">d) ARP Reply</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+        <!-- AdSense: In-article bottom -->
+      </div>
+
+      <!-- ARTICLE NAVIGATION -->
+      <div class="article-nav">
+        <a href="mikrotik-routing.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">MikroTik Routing &amp; Firewall</span>
+        </a>
+        <a href="mikrotik-hotspot.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">MikroTik Hotspot Configuration</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial networking terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+      <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="../images/logo_beebane_webp.webp" alt="BeebaneLabs" class="footer-logo" loading="lazy" width="40" height="22">
+          <p>Portal tutorial teknologi & IT Indonesia. Pemrograman, IoT, cybersecurity, networking — mulai belajar gratis, konten original.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Kategori</h4>
+          <ul>
+            <li><a href="../kategori/iot.html">IoT & Embedded</a></li>
+            <li><a href="../kategori/mikrotik.html">Networking</a></li>
+            <li><a href="../kategori/python.html">Pemrograman</a></li>
+            <li><a href="../kategori/keamanan.html">Cybersecurity</a></li>
+            <li><a href="../kategori/dashboard.html">Dashboard & Cloud</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Populer</h4>
+          <ul>
+            <li><a href="esp32-fundamentals.html">Tutorial ESP32</a></li>
+            <li><a href="mikrotik-routing.html">Konfigurasi MikroTik</a></li>
+            <li><a href="lora-communication.html">Proyek LoRa</a></li>
+            <li><a href="dashboard-monitoring.html">Dashboard IoT</a></li>
+            <li><a href="mqtt-protocol.html">MQTT untuk Pemula</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Lainnya</h4>
+          <ul>
+            <li><a href="../about.html">Tentang Kami</a></li>
+            <li><a href="../privacy-policy.html">Kebijakan Privasi</a></li>
+            <li><a href="../contact.html">Kontak</a></li>
+            <li><a href="../rss.xml">RSS Feed</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-social">
+          <a href="https://github.com/Beebane25" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <p>&copy; 2026 BeebaneLabs. Semua hak dilindungi.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== BACK TO TOP ========== -->
+  <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
+
+  <!-- ========== SCRIPTS ========== -->
+  <script src="../js/app.js?v=9.5"></script>
+  <script src="../js/mobile-zoom.js?v=9.2"></script>
+  <script>
+    // Initialize quiz with correct answers
+    initQuiz('quiz10', ['c', 'b', 'a', 'd', 'c']);
+  </script>
+<button class="theme-toggle-floating" onclick="ThemeToggle.toggle()" title="Ganti tema" aria-label="Ganti tema">☀️</button>
+<!-- MOBILE QUICK MENU -->
+  <div id="quickMenuBackdrop" class="quick-menu-backdrop" onclick="MobileQuickMenu.close()"></div>
+  <button id="quickMenuBtn" class="quick-menu-btn" onclick="MobileQuickMenu.toggle()" title="Menu" aria-label="Menu cepat">⚙️</button>
+  <div id="quickMenuPanel" class="quick-menu-panel">
+    <div class="quick-menu-section">
+      <span class="quick-menu-label">🔍 Zoom</span>
+      <div class="quick-menu-row">
+        <button onclick="MobileQuickMenu.zoomOut()" aria-label="Perkecil">−</button>
+        <span id="quickMenuZoomLevel" class="zoom-level">100%</span>
+        <button onclick="MobileQuickMenu.zoomIn()" aria-label="Perbesar">+</button>
+        <button onclick="MobileQuickMenu.resetZoom()" style="font-size:0.8rem" aria-label="Reset zoom">↺</button>
+      </div>
+    </div>
+    <div class="quick-menu-section">
+      <span class="quick-menu-label">🎨 Tema</span>
+      <button class="quick-menu-row quick-menu-theme-btn" onclick="MobileQuickMenu.toggleTheme()" aria-label="Ganti tema">
+        <span id="quickMenuThemeIcon">☀️</span> <span>Ganti Tema</span>
+      </button>
+    </div>
+  </div>
+<!-- Service Worker Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
