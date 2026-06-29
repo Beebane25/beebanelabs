@@ -1,112 +1,123 @@
-// BeebaneLabs Service Worker v2.0 — Enhanced caching strategy
-const CACHE_NAME = 'beebanelabs-v4';
-const FONT_CACHE = 'beebanelabs-fonts-v1';
-const IMAGE_CACHE = 'beebanelabs-images-v1';
+/* BeebaneLabs Service Worker v1.0
+   Cache-first for static assets, stale-while-revalidate for pages,
+   network-first for API calls.
+*/
 
-const STATIC_ASSETS = [
-  '/',
-  '/css/style.css',
-  '/css/mobile-quick-menu.css',
-  '/js/app.js',
-  '/images/logo_beebane.png',
+const CACHE_NAME = 'beebanelabs-v1';
+const STATIC_CACHE = 'beebanelabs-static-v1';
+const PAGE_CACHE = 'beebanelabs-pages-v1';
+
+// Static assets to pre-cache on install
+const PRECACHE_URLS = [
+  '/offline.html',
+  '/css/style.css?v=13.3',
+  '/js/app.js?v=9.5',
+  '/js/security.js',
+  '/manifest.json',
   '/images/logo_beebane_webp.webp',
   '/favicon.ico'
 ];
 
-// Install: cache critical static assets
-self.addEventListener('install', event => {
+// Install: pre-cache critical assets
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+    caches.open(STATIC_CACHE)
+      .then(cache => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// Activate: clean old caches (keep current versions)
-self.addEventListener('activate', event => {
-  const validCaches = [CACHE_NAME, FONT_CACHE, IMAGE_CACHE];
+// Activate: clean old caches
+self.addEventListener('activate', (event) => {
+  const keepCaches = [STATIC_CACHE, PAGE_CACHE];
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => !validCaches.includes(k)).map(k => caches.delete(k)))
-    )
+      Promise.all(
+        keys.filter(k => !keepCaches.includes(k)).map(k => caches.delete(k))
+      )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch handler with multi-cache strategy
-self.addEventListener('fetch', event => {
+// Fetch strategy
+self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
-  // Skip API calls and serverless functions
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/functions/')) return;
-
-  // Skip third-party tracking/analytics/ads (never cache these)
-  if (url.hostname.includes('googlesyndication') ||
-      url.hostname.includes('google-analytics') ||
-      url.hostname.includes('googletagmanager') ||
-      url.hostname.includes('pagead') ||
-      url.hostname.includes('adtrafficquality') ||
-      url.hostname.includes('doubleclick') ||
-      url.hostname.includes('adservice')) return;
-
-  // Google Fonts: cache-first (fonts rarely change)
-  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
-    event.respondWith(
-      caches.open(FONT_CACHE).then(cache =>
-        cache.match(event.request).then(cached => {
-          if (cached) return cached;
-          return fetch(event.request).then(response => {
-            if (response.ok) cache.put(event.request, response.clone());
-            return response;
-          }).catch(() => cached); // Graceful fallback on CSP/network errors
-        })
-      )
-    );
+  // Skip API calls (network-first)
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(networkFirst(event.request));
     return;
   }
 
-  // Images: cache-first with separate cache
-  if (event.request.destination === 'image' || url.pathname.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/i)) {
-    event.respondWith(
-      caches.open(IMAGE_CACHE).then(cache =>
-        cache.match(event.request).then(cached => {
-          return cached || fetch(event.request).then(response => {
-            if (response.ok) cache.put(event.request, response.clone());
-            return response;
-          });
-        })
-      )
-    );
+  // Skip external resources (CDN, fonts, ads)
+  if (url.origin !== location.origin) return;
+
+  // Static assets (cache-first)
+  if (isStaticAsset(url.pathname)) {
+    event.respondWith(cacheFirst(event.request, STATIC_CACHE));
     return;
   }
 
-  // Static assets (CSS/JS): stale-while-revalidate
-  if (url.pathname.endsWith('.css') || url.pathname.endsWith('.js') ||
-      url.hostname.includes('cdn.jsdelivr.net') || url.hostname.includes('unpkg.com')) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then(cache =>
-        cache.match(event.request).then(cached => {
-          if (cached) return cached;
-          return fetch(event.request).then(response => {
-            if (response.ok) cache.put(event.request, response.clone());
-            return response;
-          }).catch(() => cached || new Response('', { status: 408 })); // Graceful fallback
-        })
-      )
-    );
+  // HTML pages (stale-while-revalidate)
+  if (url.pathname.endsWith('.html') || url.pathname === '/' || !url.pathname.includes('.')) {
+    event.respondWith(staleWhileRevalidate(event.request, PAGE_CACHE));
     return;
   }
-
-  // HTML pages: network-first with cache fallback
-  event.respondWith(
-    fetch(event.request).then(response => {
-      if (response.ok) {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-      }
-      return response;
-    }).catch(() => caches.match(event.request))
-  );
 });
+
+// Cache-first strategy
+async function cacheFirst(request, cacheName) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(cacheName);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch {
+    return new Response('Offline', { status: 503 });
+  }
+}
+
+// Stale-while-revalidate strategy
+async function staleWhileRevalidate(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+
+  const fetchPromise = fetch(request).then(response => {
+    if (response.ok) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  }).catch(() => {
+    // If fetch fails and we have cached version, return it
+    if (cached) return cached;
+    // Otherwise return offline page
+    return caches.match('/offline.html');
+  });
+
+  return cached || fetchPromise;
+}
+
+// Network-first strategy (for API)
+async function networkFirst(request) {
+  try {
+    return await fetch(request);
+  } catch {
+    return new Response(JSON.stringify({ error: 'Offline' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+// Check if path is a static asset
+function isStaticAsset(pathname) {
+  const extensions = ['.css', '.js', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf'];
+  return extensions.some(ext => pathname.endsWith(ext));
+}
