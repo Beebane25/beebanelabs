@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08090a">
+  <link rel="preconnect" href="https://*.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BeebaneLabs">
+  <link rel="apple-touch-icon" href="/images/logo_beebane.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes">
+  <title>ESP32-CAM Video Streaming: MJPEG, Face Detection &amp; Telegram | BeebaneLabs</title>
+  <meta name="description" content="Tutorial lengkap ESP32-CAM video streaming. Pelajari OV2640 setup, MJPEG stream, face detection, web server, dan Telegram bot integration.">
+  <meta name="keywords" content="ESP32-CAM, OV2640, MJPEG streaming, ESP32 video, face detection ESP32, Telegram bot ESP32, ESP32 web server, IoT kamera">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="og:title" content="ESP32-CAM Video Streaming: MJPEG, Face Detection &amp; Telegram">
+  <meta property="og:description" content="Tutorial komprehensif ESP32-CAM dari setup hingga streaming video dan notifikasi Telegram.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://beebanelabs.pages.dev/articles/esp32-camera-streaming.html">
+  <meta property="og:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ESP32-CAM Video Streaming: MJPEG, Face Detection &amp; Telegram">
+  <meta name="twitter:description" content="Tutorial ESP32-CAM dari setup hingga streaming dan notifikasi Telegram.">
+  <meta name="twitter:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png">
+  <meta property="article:published_time" content="2026-06-29">
+  <meta property="article:section" content="IoT &amp; Embedded">
+  <meta property="article:tag" content="ESP32-CAM">
+  <meta property="article:tag" content="OV2640">
+  <meta property="article:tag" content="Video Streaming">
+  <meta property="article:tag" content="IoT">
+  <link rel="canonical" href="https://beebanelabs.pages.dev/articles/esp32-camera-streaming.html">
+  <link rel="stylesheet" href="../css/style.css?v=13.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "ESP32-CAM Video Streaming: MJPEG, Face Detection &amp; Telegram",
+    "description": "Tutorial komprehensif ESP32-CAM dari setup hingga streaming video dan notifikasi Telegram.",
+    "author": { "@type": "Organization", "name": "BeebaneLabs" },
+    "datePublished": "2026-06-29",
+    "publisher": { "@type": "Organization", "name": "BeebaneLabs" }
+  }
+  </script>
+<script>
+(function(){
+  var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';
+  function loadAds(){
+    if(window._adsLoaded) return;
+    window._adsLoaded=true;
+    var s=document.createElement('script');
+    s.async=true;s.crossOrigin='anonymous';s.src=src;
+    document.head.appendChild(s);
+    ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+      document.removeEventListener(e,loadAds,{passive:true});
+    });
+  }
+  ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+    document.addEventListener(e,loadAds,{passive:true,once:true});
+  });
+  setTimeout(loadAds,5000);
+})();
+</script>
+  <script type="speculationrules">{ "prerender": [{ "where": { "href_matches": "/*" }, "eagerness": "moderate" }] }</script>
+</head>
+<body>
+  <noscript><style>.article-content,.articles-grid,.category-section,.hero{display:block!important;opacity:1!important;transform:none!important}.reveal{opacity:1!important;transform:none!important}</style></noscript>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+  <div class="reading-progress-bar" id="readingProgress"></div>
+
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="navbar-brand">
+        <picture><source srcset="../images/logo_beebane_webp.webp" type="image/webp"><img src="../images/logo_beebane_webp.webp" alt="BeebaneLabs" class="brand-logo" width="40" height="22"></picture>
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="../index.html">Beranda</a></li>
+        <li><a href="../kategori.html">Kategori</a></li>
+        <li><a href="../about.html">Tentang</a></li>
+        <li><a href="../pricing.html">Harga</a></li>
+      </ul>
+      <div class="navbar-search" id="searchTrigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Cari tutorial...</span>
+        <kbd>/</kbd>
+      </div>
+      <div id="authNavArea"></div>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" onclick="document.getElementById('searchOverlay').classList.remove('active')" aria-label="Tutup">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a><span class="separator">/</span>
+        <a href="../index.html#categories">IoT</a><span class="separator">/</span>
+        <span class="current">ESP32-CAM Streaming</span>
+      </div>
+      <span class="category-tag">IoT</span>
+      <h1>ESP32-CAM Video Streaming: MJPEG, Face Detection &amp; Telegram Bot</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Buat sistem kamera pintar dengan ESP32-CAM yang bisa streaming video, deteksi wajah, dan kirim notifikasi ke Telegram</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#overview">Overview ESP32-CAM</a></li>
+          <li><a href="#hardware">Setup Hardware &amp; Wiring</a></li>
+          <li><a href="#ov2640">OV2640 Camera Configuration</a></li>
+          <li><a href="#mjpeg">MJPEG Video Streaming</a></li>
+          <li><a href="#webserver">Web Server &amp; Control Panel</a></li>
+          <li><a href="#face-detection">Face Detection</a></li>
+          <li><a href="#telegram">Telegram Bot Integration</a></li>
+          <li><a href="#motion">Motion Detection &amp; Alert</a></li>
+          <li><a href="#optimasi">Optimasi Performa</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="overview">1. Overview ESP32-CAM</h2>
+
+      <p>ESP32-CAM adalah modul kompak berbasis ESP32 dengan kamera OV2640 built-in, slot microSD, dan LED flash. Dengan harga di bawah Rp50.000, modul ini menjadi solusi paling populer untuk proyek kamera IoT murah.</p>
+
+      <h3>Spesifikasi ESP32-CAM</h3>
+
+      <table class="spec-table">
+        <thead><tr><th>Spesifikasi</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Processor</td><td>ESP32-S (Xtensa dual-core 240MHz)</td></tr>
+          <tr><td>RAM</td><td>520 KB SRAM + 4 MB PSRAM (opsional)</td></tr>
+          <tr><td>Flash</td><td>4 MB</td></tr>
+          <tr><td>Kamera</td><td>OV2640 (2MP, JPEG output)</td></tr>
+          <tr><td>Resolusi</td><td>UXGA (1600x1200) hingga QQVGA (160x120)</td></tr>
+          <tr><td>WiFi</td><td>802.11 b/g/n (2.4 GHz)</td></tr>
+          <tr><td>Bluetooth</td><td>BLE 4.2</td></tr>
+          <tr><td>GPIO</td><td>9 pin (terbatas karena kamera)</td></tr>
+          <tr><td>SD Card</td><td>MicroSD (FAT32, max 4GB)</td></tr>
+          <tr><td>Dimensi</td><td>27mm × 40.5mm × 4.5mm</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Perhatian GPIO</div>
+        <p>ESP32-CAM menggunakan banyak GPIO internal untuk kamera, sehingga tersisa <strong>hanya 9 GPIO</strong> yang bisa dipakai user (GPIO 0, 1, 3, 4, 12, 13, 14, 15, 16). GPIO 0 harus HIGH saat normal boot (LOW saat flashing). GPIO 1 dan 3 adalah UART TX/RX.</p>
+      </div>
+
+      <div class="compare-grid cols-2">
+        <div class="compare-card" style="--card-color: #00e5ff">
+          <div class="cc-icon">📷</div>
+          <div class="cc-title">ESP32-CAM (AI Thinker)</div>
+          <div class="cc-subtitle">Board Paling Populer</div>
+          <ul class="cc-features">
+            <li><span class="check">✅</span> Harga murah (~30rb)</li>
+            <li><span class="check">✅</span> PSRAM 4MB built-in</li>
+            <li><span class="check">✅</span> LED flash on-board</li>
+            <li><span class="check">✅</span> MicroSD slot</li>
+            <li><span class="cross">❌</span> Tidak ada USB-to-serial</li>
+            <li><span class="cross">❌</span> Pin terbatas</li>
+          </ul>
+        </div>
+        <div class="compare-card" style="--card-color: #ffeb00">
+          <div class="cc-icon">📷</div>
+          <div class="cc-title">ESP32-S3 Cam</div>
+          <div class="cc-subtitle">Generasi Baru</div>
+          <ul class="cc-features">
+            <li><span class="check">✅</span> USB OTG built-in</li>
+            <li><span class="check">✅</span> RAM lebih besar (512KB + PSRAM)</li>
+            <li><span class="check">✅</span> AI acceleration</li>
+            <li><span class="check">✅</span> OV5640 (5MP) support</li>
+            <li><span class="cross">❌</span> Lebih mahal (~60rb)</li>
+            <li><span class="cross">❌</span> Ekosistem lebih muda</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="hardware">2. Setup Hardware &amp; Wiring</h2>
+
+      <p>ESP32-CAM tidak memiliki USB-to-serial onboard, jadi kita memerlukan FTDI adapter atau board ESP32-CAM-MB (yang sudah include USB) untuk memprogramnya.</p>
+
+      <h3>Wiring dengan FTDI Adapter</h3>
+
+      <table class="spec-table">
+        <thead><tr><th>ESP32-CAM Pin</th><th>FTDI Pin</th><th>Keterangan</th></tr></thead>
+        <tbody>
+          <tr><td>5V</td><td>5V / VCC</td><td>Power supply</td></tr>
+          <tr><td>GND</td><td>GND</td><td>Ground</td></tr>
+          <tr><td>U0R (GPIO3)</td><td>TX</td><td>UART receive</td></tr>
+          <tr><td>U0T (GPIO1)</td><td>RX</td><td>UART transmit</td></tr>
+          <tr><td>GPIO0</td><td>GND (saat flash)</td><td>Flash mode (lepas setelah flash)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Flashing</div>
+        <p>Untuk <strong>mem-flash</strong>: hubungkan GPIO0 ke GND lalu tekan RESET. Untuk <strong>menjalankan program</strong>: lepas GPIO0 dari GND lalu tekan RESET. Board ESP32-CAM-MB melakukan ini otomatis.</p>
+      </div>
+
+      <h3>PlatformIO Configuration</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">INI (platformio.ini)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>[env:esp32cam]
+platform = espressif32
+board = esp32cam
+framework = arduino
+monitor_speed = 115200
+board_build.partitions = huge_app.csv
+
+; Tambahkan PSRAM
+build_flags =
+    -DBOARD_HAS_PSRAM
+    -mfix-esp32-psram-cache-issue
+
+; Upload via FTDI
+upload_speed = 460800
+upload_port = COM3</code></pre>
+      </div>
+
+      <!-- SECTION 3 -->
+      <h2 id="ov2640">3. OV2640 Camera Configuration</h2>
+
+      <p>OV2640 adalah sensor kamera 2MP yang mendukung output JPEG hardware. Di ESP32-CAM, konfigurasi kamera ditangani oleh library <code>esp_camera.h</code>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ (Arduino)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>#include "esp_camera.h"
+
+// Pin mapping untuk AI-Thinker ESP32-CAM
+#define PWDN_GPIO_NUM     32
+#define RESET_GPIO_NUM    -1
+#define XCLK_GPIO_NUM      0
+#define SIOD_GPIO_NUM     26
+#define SIOC_GPIO_NUM     27
+#define Y9_GPIO_NUM       35
+#define Y8_GPIO_NUM       34
+#define Y7_GPIO_NUM       39
+#define Y6_GPIO_NUM       36
+#define Y5_GPIO_NUM       21
+#define Y4_GPIO_NUM       19
+#define Y3_GPIO_NUM       18
+#define Y2_GPIO_NUM        5
+#define VSYNC_GPIO_NUM    25
+#define HREF_GPIO_NUM     23
+#define PCLK_GPIO_NUM     22
+
+bool initCamera() {
+  camera_config_t config;
+  config.ledc_channel = LEDC_CHANNEL_0;
+  config.ledc_timer   = LEDC_TIMER_0;
+  config.pin_d0       = Y2_GPIO_NUM;
+  config.pin_d1       = Y3_GPIO_NUM;
+  config.pin_d2       = Y4_GPIO_NUM;
+  config.pin_d3       = Y5_GPIO_NUM;
+  config.pin_d4       = Y6_GPIO_NUM;
+  config.pin_d5       = Y7_GPIO_NUM;
+  config.pin_d6       = Y8_GPIO_NUM;
+  config.pin_d7       = Y9_GPIO_NUM;
+  config.pin_xclk     = XCLK_GPIO_NUM;
+  config.pin_pclk     = PCLK_GPIO_NUM;
+  config.pin_vsync    = VSYNC_GPIO_NUM;
+  config.pin_href     = HREF_GPIO_NUM;
+  config.pin_sccb_sda = SIOD_GPIO_NUM;
+  config.pin_sccb_scl = SIOC_GPIO_NUM;
+  config.pin_pwdn     = PWDN_GPIO_NUM;
+  config.pin_reset    = RESET_GPIO_NUM;
+  config.xclk_freq_hz = 20000000;  // 20 MHz clock
+  config.pixel_format = PIXFORMAT_JPEG;
+  config.grab_mode    = CAMERA_GRAB_LATEST;
+  config.fb_location  = CAMERA_FB_IN_PSRAM;
+  config.jpeg_quality = 12;
+  config.fb_count     = 2;  // Double buffer untuk streaming
+
+  // Resolusi berdasarkan PSRAM
+  if (psramFound()) {
+    config.frame_size   = FRAMESIZE_UXGA;  // 1600x1200
+    config.jpeg_quality = 10;
+    config.fb_count     = 2;
+    Serial.println("PSRAM ditemukan — resolusi UXGA");
+  } else {
+    config.frame_size   = FRAMESIZE_SVGA;  // 800x600
+    config.jpeg_quality = 12;
+    config.fb_count     = 1;
+    config.fb_location  = CAMERA_FB_IN_DRAM;
+    Serial.println("PSRAM tidak ditemukan — resolusi SVGA");
+  }
+
+  esp_err_t err = esp_camera_init(&amp;config);
+  if (err != ESP_OK) {
+    Serial.printf("Camera init GAGAL: 0x%x\n", err);
+    return false;
+  }
+
+  // Fine-tune sensor settings
+  sensor_t *s = esp_camera_sensor_get();
+  if (s) {
+    s->set_brightness(s, 1);     // -2 to 2
+    s->set_contrast(s, 1);       // -2 to 2
+    s->set_saturation(s, 0);     // -2 to 2
+    s->set_whitebal(s, 1);       // Auto white balance
+    s->set_awb_gain(s, 1);       // AWB gain
+    s->set_wb_mode(s, 0);        // 0=Auto, 1=Sunny, 2=Cloudy, 3=Office, 4=Home
+    s->set_exposure_ctrl(s, 1);  // Auto exposure
+    s->set_aec2(s, 1);           // AEC DSP
+    s->set_gain_ctrl(s, 1);      // Auto gain
+    s->set_agc_gain(s, 0);       // 0-30
+    s->set_gainceiling(s, (gainceiling_t)6);  // 2x-128x
+    s->set_bpc(s, 1);            // Black pixel correct
+    s->set_wpc(s, 1);            // White pixel correct
+    s->set_lenc(s, 1);           // Lens correction
+    s->set_hmirror(s, 0);        // Horizontal mirror
+    s->set_vflip(s, 0);          // Vertical flip
+    s->set_dcw(s, 1);            // Downsize EN
+  }
+
+  Serial.println("Camera OK!");
+  return true;
+}
+
+void captureAndSave() {
+  camera_fb_t *fb = esp_camera_fb_get();
+  if (!fb) {
+    Serial.println("Capture gagal");
+    return;
+  }
+  Serial.printf("Captured: %dx%d, %d bytes\n",
+    fb->width, fb->height, fb->len);
+
+  // Simpan ke SD card
+  File file = SD_MMC.open("/photo.jpg", FILE_WRITE);
+  if (file) {
+    file.write(fb->buf, fb->len);
+    file.close();
+    Serial.println("Tersimpan di SD card!");
+  }
+
+  esp_camera_fb_return(fb);
+}</code></pre>
+      </div>
+
+      <h3>Resolusi yang Didukung OV2640</h3>
+
+      <table class="spec-table">
+        <thead><tr><th>Framesize</th><th>Resolusi</th><th>Ukuran JPEG</th><th>FPS (est.)</th></tr></thead>
+        <tbody>
+          <tr><td>FRAMESIZE_QQVGA</td><td>160×120</td><td>~2-5 KB</td><td>30+</td></tr>
+          <tr><td>FRAMESIZE_QVGA</td><td>320×240</td><td>~5-15 KB</td><td>25-30</td></tr>
+          <tr><td>FRAMESIZE_VGA</td><td>640×480</td><td>~15-40 KB</td><td>15-25</td></tr>
+          <tr><td>FRAMESIZE_SVGA</td><td>800×600</td><td>~30-70 KB</td><td>10-15</td></tr>
+          <tr><td>FRAMESIZE_XGA</td><td>1024×768</td><td>~50-120 KB</td><td>5-10</td></tr>
+          <tr><td>FRAMESIZE_UXGA</td><td>1600×1200</td><td>~80-200 KB</td><td>2-5</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="mjpeg">4. MJPEG Video Streaming</h2>
+
+      <p>MJPEG (Motion JPEG) adalah format streaming yang paling cocok untuk ESP32-CAM. Setiap frame dikirim sebagai JPEG individual, sehingga tidak perlu codec kompresi video yang berat.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ (Arduino - MJPEG Stream Handler)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>#include "esp_camera.h"
+#include &lt;WiFi.h&gt;
+#include &lt;WebServer.h&gt;
+
+WebServer server(80);
+
+// MJPEG streaming handler
+void handleStream() {
+  WiFiClient client = server.client();
+  String response = "HTTP/1.1 200 OK\r\n"
+                    "Content-Type: multipart/x-mixed-replace;boundary=frame\r\n"
+                    "\r\n";
+  client.print(response);
+
+  Serial.println("Stream client terhubung");
+
+  while (client.connected()) {
+    camera_fb_t *fb = esp_camera_fb_get();
+    if (!fb) {
+      Serial.println("Capture gagal");
+      break;
+    }
+
+    // Kirim boundary dan header JPEG
+    String header = "--frame\r\n"
+                    "Content-Type: image/jpeg\r\n"
+                    "Content-Length: " + String(fb->len) + "\r\n"
+                    "\r\n";
+
+    client.print(header);
+    client.write(fb->buf, fb->len);
+    client.print("\r\n");
+
+    esp_camera_fb_return(fb);
+
+    // Yield untuk mencegah WDT reset
+    yield();
+
+    // Rate limiting: ~10 FPS
+    delay(100);
+  }
+
+  Serial.println("Stream client terputus");
+}
+
+// Single capture handler
+void handleCapture() {
+  camera_fb_t *fb = esp_camera_fb_get();
+  if (!fb) {
+    server.send(500, "text/plain", "Capture failed");
+    return;
+  }
+
+  server.sendHeader("Content-Disposition", "inline; filename=capture.jpg");
+  server.send_P(200, "image/jpeg", (const char *)fb->buf, fb->len);
+  esp_camera_fb_return(fb);
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  // Init camera
+  if (!initCamera()) {
+    Serial.println("Camera init failed!");
+    return;
+  }
+
+  // Connect WiFi
+  WiFi.begin("SSID", "PASSWORD");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.printf("\nWiFi: %s\n", WiFi.localIP().toString().c_str());
+
+  // Setup web routes
+  server.on("/", HTTP_GET, handleRoot);
+  server.on("/stream", HTTP_GET, handleStream);
+  server.on("/capture", HTTP_GET, handleCapture);
+  server.on("/control", HTTP_GET, handleControl);
+  server.begin();
+
+  Serial.println("Server siap di http://" + WiFi.localIP().toString());
+}
+
+void loop() {
+  server.handleClient();
+}</code></pre>
+      </div>
+
+      <h3>HTML Viewer untuk MJPEG Stream</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">HTML</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>&lt;!-- Embedded HTML di ESP32-CAM --&gt;
+const char index_html[] PROGMEM = R"rawliteral(
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;meta name="viewport" content="width=device-width,initial-scale=1"&gt;
+  &lt;title&gt;ESP32-CAM&lt;/title&gt;
+  &lt;style&gt;
+    body { font-family: Arial; background: #1a1a2e; color: #fff;
+           text-align: center; margin: 0; padding: 20px; }
+    .stream-container { margin: 20px auto; max-width: 800px; }
+    img { width: 100%; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .controls { margin: 20px 0; }
+    button { padding: 10px 20px; margin: 5px; border: none;
+             border-radius: 8px; background: #4ecdc4; color: #fff;
+             cursor: pointer; font-size: 16px; }
+    button:hover { background: #45b7aa; }
+    select { padding: 10px; border-radius: 8px; font-size: 16px; }
+    .info { background: #16213e; padding: 15px; border-radius: 10px; margin: 10px; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;📷 ESP32-CAM Live&lt;/h1&gt;
+  &lt;div class="stream-container"&gt;
+    &lt;img id="stream" src="/stream" alt="Live Stream"&gt;
+  &lt;/div&gt;
+  &lt;div class="controls"&gt;
+    &lt;button onclick="capturePhoto()"&gt;📸 Ambil Foto&lt;/button&gt;
+    &lt;select id="resolution" onchange="setResolution(this.value)"&gt;
+      &lt;option value="0"&gt;UXGA (1600x1200)&lt;/option&gt;
+      &lt;option value="5" selected&gt;SVGA (800x600)&lt;/option&gt;
+      &lt;option value="8"&gt;VGA (640x480)&lt;/option&gt;
+      &lt;option value="10"&gt;QVGA (320x240)&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;select id="quality" onchange="setQuality(this.value)"&gt;
+      &lt;option value="10"&gt;Kualitas Tinggi&lt;/option&gt;
+      &lt;option value="15" selected&gt;Kualitas Sedang&lt;/option&gt;
+      &lt;option value="20"&gt;Kualitas Rendah&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/div&gt;
+  &lt;div class="info"&gt;
+    &lt;span id="fps"&gt;FPS: --&lt;/span&gt; |
+    &lt;span id="res"&gt;Resolusi: --&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;script&gt;
+    function capturePhoto() {
+      window.open('/capture', '_blank');
+    }
+    function setResolution(val) {
+      fetch('/control?var=framesize&amp;val=' + val);
+    }
+    function setQuality(val) {
+      fetch('/control?var=quality&amp;val=' + val);
+    }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+)rawliteral";</code></pre>
+      </div>
+
+      <!-- SECTION 5 -->
+      <h2 id="webserver">5. Web Server &amp; Control Panel</h2>
+
+      <p>Kita bisa membangun web server lengkap di ESP32-CAM yang menyediakan halaman kontrol dengan pengaturan resolusi, brightness, contrast, dan parameter kamera lainnya.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ (Control Handler)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>// Handler untuk parameter kamera via HTTP
+void handleControl() {
+  if (!server.hasArg("var") || !server.hasArg("val")) {
+    server.send(400, "text/plain", "Missing parameters");
+    return;
+  }
+
+  String var = server.arg("var");
+  int val = server.arg("val").toInt();
+
+  sensor_t *s = esp_camera_sensor_get();
+  if (!s) {
+    server.send(500, "text/plain", "Sensor not available");
+    return;
+  }
+
+  int res = 0;
+  if (var == "framesize") {
+    res = s->set_framesize(s, (framesize_t)val);
+  } else if (var == "quality") {
+    res = s->set_quality(s, val);
+  } else if (var == "brightness") {
+    res = s->set_brightness(s, val);
+  } else if (var == "contrast") {
+    res = s->set_contrast(s, val);
+  } else if (var == "saturation") {
+    res = s->set_saturation(s, val);
+  } else if (var == "hmirror") {
+    res = s->set_hmirror(s, val);
+  } else if (var == "vflip") {
+    res = s->set_vflip(s, val);
+  } else if (var == "flash") {
+    // Kontrol LED flash
+    int flashPin = 4;
+    if (val == 0) {
+      analogWrite(flashPin, 0);
+    } else {
+      analogWrite(flashPin, val * 25);  // 1-10 level
+    }
+    res = 0;
+  } else {
+    server.send(400, "text/plain", "Unknown variable");
+    return;
+  }
+
+  if (res == 0) {
+    server.send(200, "text/plain", "OK");
+  } else {
+    server.send(500, "text/plain", "Set failed");
+  }
+}
+
+// Status handler — info sistem
+void handleStatus() {
+  String json = "{";
+  json += "\"ip\":\"" + WiFi.localIP().toString() + "\",";
+  json += "\"rssi\":" + String(WiFi.RSSI()) + ",";
+  json += "\"freeHeap\":" + String(ESP.getFreeHeap()) + ",";
+  json += "\"psram\":" + String(ESP.getFreePsram()) + ",";
+  json += "\"uptime\":" + String(millis() / 1000);
+  json += "}";
+  server.send(200, "application/json", json);
+}</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="face-detection">6. Face Detection</h2>
+
+      <p>ESP32 memiliki built-in face detection engine yang menggunakan hardware accelerator. Fitur ini tersedia melalui library <code>fd_forward.h</code> dan bisa mendeteksi beberapa wajah secara real-time.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ (Face Detection)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>#include "fd_forward.h"
+#include "fr_forward.h"
+#include "esp_camera.h"
+
+// Inisialisasi face detection
+static mtmn_config_t initFaceDetection() {
+  mtmn_config_t mtmn_config = {0};
+  mtmn_config.type = FAST;
+  mtmn_config.min_face = 80;       // Minimum face size (px)
+  mtmn_config.pyramid = 0.707;     // Pyramid scaling factor
+  mtmn_config.pyramid_times = 4;   // Pyramid levels
+  mtmn_config.p_threshold.score = 0.6;
+  mtdm_config.p_threshold.nms = 0.7;
+  mtmn_config.p_threshold.candidate_number = 20;
+  mtmn_config.r_threshold.score = 0.7;
+  mtmn_config.r_threshold.nms = 0.7;
+  mtmn_config.r_threshold.candidate_number = 10;
+  mtmn_config.o_threshold.score = 0.7;
+  mtmn_config.o_threshold.nms = 0.7;
+  mtmn_config.o_threshold.candidate_number = 1;
+  return mtmn_config;
+}
+
+// Detect faces dari camera frame
+void detectFaces(camera_fb_t *fb) {
+  static mtmn_config_t mtmn_config = initFaceDetection();
+
+  // Konversi JPEG ke RGB888
+  dl_matrix3du_t *image_matrix = dl_matrix3du_alloc(1, fb->width, fb->height, 3);
+  if (!image_matrix) {
+    Serial.println("Gagal alokasi matrix");
+    return;
+  }
+
+  bool converted = fmt2rgb888(fb->buf, fb->len, PIXFORMAT_JPEG, image_matrix->item);
+  if (!converted) {
+    dl_matrix3du_free(image_matrix);
+    Serial.println("Konversi gagal");
+    return;
+  }
+
+  // Jalankan face detection
+  box_array_t *net_boxes = face_detect(image_matrix, &amp;mtmn_config);
+
+  if (net_boxes &amp;&amp; net_boxes->len &gt; 0) {
+    Serial.printf("Terdeteksi %d wajah!\n", net_boxes->len);
+
+    for (int i = 0; i &lt; net_boxes->len; i++) {
+      int x = net_boxes->box[i].box_p[0];
+      int y = net_boxes->box[i].box_p[1];
+      int w = net_boxes->box[i].box_p[2] - x;
+      int h = net_boxes->box[i].box_p[3] - y;
+      float score = net_boxes->box[i].score[0];
+
+      Serial.printf("  Wajah %d: x=%d y=%d %dx%d score=%.2f\n",
+        i+1, x, y, w, h, score);
+
+      // Bisa diintegrasi dengan notifikasi Telegram
+      if (score &gt; 0.8) {
+        sendTelegramAlert(fb);
+      }
+    }
+
+    dl_lib_free(net_boxes->box);
+    dl_lib_free(net_boxes);
+  }
+
+  dl_matrix3du_free(image_matrix);
+}</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Face Detection Performance</div>
+        <p>Face detection pada ESP32 memerlukan resolusi QVGA (320×240) atau QQVGA (160×120) untuk performa real-time. Pada resolusi VGA atau lebih tinggi, proses deteksi memerlukan waktu 200-500ms per frame. Gunakan resolusi rendah untuk face detection, resolusi tinggi untuk capture foto.</p>
+      </div>
+
+      <!-- SECTION 7 -->
+      <h2 id="telegram">7. Telegram Bot Integration</h2>
+
+      <p>Telegram Bot API adalah cara terbaik untuk menerima notifikasi dan foto dari ESP32-CAM. Kita bisa membuat bot yang mengirim foto ketika wajah terdeteksi atau motion terdeteksi.</p>
+
+      <h3>Langkah Setup Telegram Bot</h3>
+
+      <ul>
+        <li>Buka Telegram dan cari <strong>@BotFather</strong></li>
+        <li>Ketik <code>/newbot</code> dan ikuti instruksi</li>
+        <li>Salin <strong>Bot Token</strong> yang diberikan</li>
+        <li>Ketik <code>/start</code> ke bot kamu untuk mendapatkan <strong>Chat ID</strong></li>
+        <li>Akses <code>https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code> untuk mendapatkan Chat ID</li>
+      </ul>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ (Telegram Bot)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>#include &lt;WiFiClientSecure.h&gt;
+#include &lt;HTTPClient.h&gt;
+
+// Ganti dengan token dan chat ID kamu
+const char* BOT_TOKEN = "123456789:ABCdefGhIjKlMnOpQrStUvWxYz";
+const char* CHAT_ID = "987654321";
+
+// Kirim foto ke Telegram
+bool sendTelegramPhoto(camera_fb_t *fb) {
+  WiFiClientSecure client;
+  client.setInsecure();  // Skip SSL verification (hanya untuk development)
+
+  if (!client.connect("api.telegram.org", 443)) {
+    Serial.println("Koneksi Telegram gagal");
+    return false;
+  }
+
+  // Buat multipart form data
+  String boundary = "----ESP32CAM" + String(millis());
+
+  // Header
+  String header = "POST /bot" + String(BOT_TOKEN) +
+                  "/sendPhoto HTTP/1.1\r\n" +
+                  "Host: api.telegram.org\r\n" +
+                  "Content-Type: multipart/form-data; boundary=" + boundary + "\r\n";
+
+  // Form fields
+  String chatIdField = "--" + boundary + "\r\n" +
+    "Content-Disposition: form-data; name=\"chat_id\"\r\n\r\n" +
+    String(CHAT_ID) + "\r\n";
+
+  String captionField = "--" + boundary + "\r\n" +
+    "Content-Disposition: form-data; name=\"caption\"\r\n\r\n" +
+    "📷 ESP32-CAM Alert! " + String(millis()/1000) + "s\r\n";
+
+  String photoField = "--" + boundary + "\r\n" +
+    "Content-Disposition: form-data; name=\"photo\"; filename=\"capture.jpg\"\r\n" +
+    "Content-Type: image/jpeg\r\n\r\n";
+
+  String footer = "\r\n--" + boundary + "--\r\n";
+
+  // Hitung total content length
+  int contentLength = chatIdField.length() + captionField.length() +
+                      photoField.length() + fb->len + footer.length();
+
+  header += "Content-Length: " + String(contentLength) + "\r\n\r\n";
+
+  // Kirim request
+  client.print(header);
+  client.print(chatIdField);
+  client.print(captionField);
+  client.write(fb->buf, fb->len);
+  client.print(footer);
+
+  // Baca response
+  unsigned long timeout = millis();
+  while (client.connected() &amp;&amp; !client.available()) {
+    if (millis() - timeout &gt; 10000) {
+      Serial.println("Timeout!");
+      return false;
+    }
+    delay(10);
+  }
+
+  String response = client.readString();
+  bool success = response.indexOf("\"ok\":true") &gt; 0;
+  Serial.printf("Telegram photo: %s\n", success ? "OK" : "FAIL");
+  return success;
+}
+
+// Kirim text message
+void sendTelegramMessage(String message) {
+  HTTPClient http;
+  String url = "https://api.telegram.org/bot" + String(BOT_TOKEN) +
+               "/sendMessage?chat_id=" + String(CHAT_ID) +
+               "&amp;text=" + message;
+
+  http.begin(url);
+  int code = http.GET();
+  Serial.printf("Telegram msg: %d\n", code);
+  http.end();
+}
+
+// Poll untuk pesan dari Telegram (command handler)
+void checkTelegramCommands() {
+  HTTPClient http;
+  static int lastUpdateId = 0;
+
+  String url = "https://api.telegram.org/bot" + String(BOT_TOKEN) +
+               "/getUpdates?offset=" + String(lastUpdateId + 1) +
+               "&amp;timeout=1";
+
+  http.begin(url);
+  int code = http.GET();
+
+  if (code == 200) {
+    String response = http.getString();
+    // Parse dan handle commands
+    if (response.indexOf("\"text\":\"/photo\"") &gt; 0) {
+      camera_fb_t *fb = esp_camera_fb_get();
+      if (fb) {
+        sendTelegramPhoto(fb);
+        esp_camera_fb_return(fb);
+      }
+    } else if (response.indexOf("\"text\":\"/status\"") &gt; 0) {
+      String msg = "🔋 ESP32-CAM Status:\n";
+      msg += "Free Heap: " + String(ESP.getFreeHeap()) + " bytes\n";
+      msg += "Uptime: " + String(millis() / 1000) + "s\n";
+      msg += "WiFi RSSI: " + String(WiFi.RSSI()) + " dBm";
+      sendTelegramMessage(msg);
+    }
+
+    // Update offset
+    int idx = response.lastIndexOf("\"update_id\":");
+    if (idx &gt; 0) {
+      String idStr = response.substring(idx + 13);
+      lastUpdateId = idStr.toInt();
+    }
+  }
+
+  http.end();
+}</code></pre>
+      </div>
+
+      <!-- SECTION 8 -->
+      <h2 id="motion">8. Motion Detection &amp; Alert</h2>
+
+      <p>Selain face detection, kita juga bisa mendeteksi perubahan gerakan dengan membandingkan frame secara berurutan. Ini berguna untuk sistem keamanan yang mengirim foto ketika ada pergerakan.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ (Motion Detection)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>#include "img_converters.h"
+#include "fb_gfx.h"
+
+// Motion detection dengan frame differencing
+class MotionDetector {
+  private:
+    uint8_t *prevFrame;
+    int frameSize;
+    int threshold;
+    unsigned long lastAlert;
+
+  public:
+    MotionDetector(int w, int h, int thresh = 30) {
+      frameSize = w * h;
+      prevFrame = (uint8_t *)malloc(frameSize);
+      threshold = thresh;
+      lastAlert = 0;
+      memset(prevFrame, 0, frameSize);
+    }
+
+    // Deteksi motion dari frame grayscale
+    bool detect(camera_fb_t *fb) {
+      // Konversi ke grayscale
+      uint8_t *gray = (uint8_t *)malloc(fb->width * fb->height);
+
+      // Simplified: ambil setiap 3 byte (R) dari RGB
+      for (int i = 0; i &lt; frameSize &amp;&amp; i * 3 &lt; fb->len; i++) {
+        gray[i] = fb->buf[i * 3];  // Ambil channel R saja
+      }
+
+      // Hitung perbedaan pixel
+      int diffCount = 0;
+      for (int i = 0; i &lt; frameSize; i++) {
+        int diff = abs((int)gray[i] - (int)prevFrame[i]);
+        if (diff &gt; threshold) {
+          diffCount++;
+        }
+      }
+
+      // Simpan frame sebelumnya
+      memcpy(prevFrame, gray, frameSize);
+      free(gray);
+
+      // Hitung persentase perubahan
+      float changePercent = (float)diffCount / frameSize * 100;
+      bool motionDetected = changePercent &gt; 5.0;  // 5% perubahan
+
+      if (motionDetected) {
+        Serial.printf("Motion: %.1f%% perubahan\n", changePercent);
+      }
+
+      return motionDetected;
+    }
+
+    // Cooldown: kirim alert tidak lebih sering dari 30 detik
+    bool shouldAlert() {
+      if (millis() - lastAlert &gt; 30000) {
+        lastAlert = millis();
+        return true;
+      }
+      return false;
+    }
+};
+
+// Penggunaan dalam loop
+MotionDetector motion(320, 240, 30);
+
+void loop() {
+  server.handleClient();
+  checkTelegramCommands();
+
+  camera_fb_t *fb = esp_camera_fb_get();
+  if (fb) {
+    if (motion.detect(fb) &amp;&amp; motion.shouldAlert()) {
+      Serial.println("🚨 Motion detected!");
+      sendTelegramPhoto(fb);
+      sendTelegramMessage("🚨 Gerakan terdeteksi!");
+    }
+    esp_camera_fb_return(fb);
+  }
+
+  delay(200);  // Cek setiap 200ms
+}</code></pre>
+      </div>
+
+      <!-- SECTION 9 -->
+      <h2 id="optimasi">9. Optimasi Performa</h2>
+
+      <ul>
+        <li><strong>Double buffering:</strong> Gunakan <code>fb_count = 2</code> agar capture berikutnya bisa dimulai sambil frame sebelumnya masih dikirim</li>
+        <li><strong>CAMERA_GRAB_LATEST:</strong> Selalu ambil frame terbaru, lewati frame lama</li>
+        <li><strong>Reduce resolusi untuk face detection:</strong> Gunakan QQVGA (160×120) untuk face detection, UXGA untuk foto</li>
+        <li><strong>WiFi power management:</strong> Matikan WiFi sleep untuk latency lebih rendah, tapi lebih boros listrik</li>
+        <li><strong>PSRAM allocation:</strong> Gunakan PSRAM untuk frame buffer agar SRAM bisa dipakai untuk kode</li>
+        <li><strong>WDT timeout:</strong> Tambahkan <code>yield()</code> dalam loop panjang untuk mencegah watchdog reset</li>
+      </ul>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Streaming Stabil</div>
+        <p>Untuk streaming yang stabil, gunakan resolusi VGA (640×480) dengan JPEG quality 15. Ini memberikan balance yang baik antara kualitas dan frame rate (~15 FPS). Jika hanya butuh face detection, QVGA (320×240) dengan quality 20 sudah cukup.</p>
+      </div>
+
+      <!-- SECTION 10 -->
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quiz01">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Format streaming video apa yang paling cocok untuk ESP32-CAM?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) H.264</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) MPEG-4</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) MJPEG</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) VP9</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Mengapa ESP32-CAM memerlukan FTDI adapter?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Untuk power supply</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Karena tidak punya USB-to-serial onboard</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Untuk meningkatkan WiFi</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Untuk koneksi kamera</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Resolusi minimum untuk face detection real-time di ESP32?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) UXGA (1600×1200)</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) VGA (640×480)</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) QVGA (320×240) atau lebih kecil</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Resolusi tidak berpengaruh</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Mengapa MJPEG lebih cocok dari H.264 untuk ESP32?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) MJPEG lebih efisien dari H.264</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) H.264 memerlukan codec video yang berat</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) MJPEG mendukung audio</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) H.264 tidak mendukung WiFi</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: GPIO berapa yang digunakan LED flash pada ESP32-CAM AI Thinker?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) GPIO 2</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) GPIO 4</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) GPIO 12</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) GPIO 33</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="esp32-rust.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Rust on ESP32</span>
+        </a>
+        <a href="esp32-sleep-modes.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">ESP32 Deep Sleep</span>
+        </a>
+      </div>
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+      <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="../images/logo_beebane_webp.webp" alt="BeebaneLabs" class="footer-logo" loading="lazy" width="40" height="22">
+          <p>Portal tutorial teknologi &amp; IT Indonesia. Pemrograman, IoT, cybersecurity, networking — mulai belajar gratis, konten original.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Kategori</h4>
+          <ul>
+            <li><a href="../kategori/iot.html">IoT &amp; Embedded</a></li>
+            <li><a href="../kategori/mikrotik.html">Networking</a></li>
+            <li><a href="../kategori/python.html">Pemrograman</a></li>
+            <li><a href="../kategori/keamanan.html">Cybersecurity</a></li>
+            <li><a href="../kategori/dashboard.html">Dashboard &amp; Cloud</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Populer</h4>
+          <ul>
+            <li><a href="esp32-fundamentals.html">Tutorial ESP32</a></li>
+            <li><a href="mikrotik-routing.html">Konfigurasi MikroTik</a></li>
+            <li><a href="lora-communication.html">Proyek LoRa</a></li>
+            <li><a href="dashboard-monitoring.html">Dashboard IoT</a></li>
+            <li><a href="mqtt-protocol.html">MQTT untuk Pemula</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Lainnya</h4>
+          <ul>
+            <li><a href="../about.html">Tentang Kami</a></li>
+            <li><a href="../privacy-policy.html">Kebijakan Privasi</a></li>
+            <li><a href="../contact.html">Kontak</a></li>
+            <li><a href="../rss.xml">RSS Feed</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-social">
+          <a href="https://github.com/Beebane25" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <p>&copy; 2026 BeebaneLabs. Semua hak dilindungi.</p>
+      </div>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
+
+  <script src="../js/app.js?v=9.5"></script>
+  <script src="../js/mobile-zoom.js?v=9.2"></script>
+  <script>initQuiz('quiz01', ['c', 'b', 'c', 'b', 'b']);</script>
+<button class="theme-toggle-floating" onclick="ThemeToggle.toggle()" title="Ganti tema" aria-label="Ganti tema">☀️</button>
+  <div id="quickMenuBackdrop" class="quick-menu-backdrop" onclick="MobileQuickMenu.close()"></div>
+  <button id="quickMenuBtn" class="quick-menu-btn" onclick="MobileQuickMenu.toggle()" title="Menu" aria-label="Menu cepat">⚙️</button>
+  <div id="quickMenuPanel" class="quick-menu-panel">
+    <div class="quick-menu-section">
+      <span class="quick-menu-label">🔍 Zoom</span>
+      <div class="quick-menu-row">
+        <button onclick="MobileQuickMenu.zoomOut()" aria-label="Perkecil">−</button>
+        <span id="quickMenuZoomLevel" class="zoom-level">100%</span>
+        <button onclick="MobileQuickMenu.zoomIn()" aria-label="Perbesar">+</button>
+        <button onclick="MobileQuickMenu.resetZoom()" style="font-size:0.8rem" aria-label="Reset zoom">↺</button>
+      </div>
+    </div>
+    <div class="quick-menu-section">
+      <span class="quick-menu-label">🎨 Tema</span>
+      <button class="quick-menu-row quick-menu-theme-btn" onclick="MobileQuickMenu.toggleTheme()" aria-label="Ganti tema">
+        <span id="quickMenuThemeIcon">☀️</span> <span>Ganti Tema</span>
+      </button>
+    </div>
+  </div>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#08090a">
+  <link rel="preconnect" href="https://*.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BeebaneLabs">
+  <link rel="apple-touch-icon" href="/images/logo_beebane.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.1, maximum-scale=3.0, user-scalable=yes">
+  <title>REST API Versioning Strategies | BeebaneLabs</title>
+  <meta name="description" content="Tutorial lengkap REST API Versioning — URL path vs header vs query parameter, backward compatibility, deprecation strategies, dan dokumentasi API terbaik.">
+  <meta name="keywords" content="REST API Versioning, API Design, Backward Compatibility, Deprecation, URL Versioning, Header Versioning, Semantic Versioning, API Documentation, OpenAPI, Breaking Changes">
+  <meta name="author" content="BeebaneLabs">
+  <meta property="og:title" content="REST API Versioning Strategies | BeebaneLabs">
+  <meta property="og:description" content="Panduan komprehensif strategi versioning REST API — URL, header, query, backward compatibility, dan deprecation.">
+  <meta property="og:type" content="article"><meta property="og:url" content="https://beebanelabs.pages.dev/articles/rest-api-versioning.html">
+  <meta property="og:image" content="https://beebanelabs.pages.dev/images/logo_beebane.png"><meta property="og:site_name" content="BeebaneLabs">
+  <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="REST API Versioning | BeebaneLabs">
+  <meta name="article:published_time" content="2026-06-29"><meta name="article:section" content="Protokol">
+  <link rel="canonical" href="https://beebanelabs.pages.dev/articles/rest-api-versioning.html">
+  <link rel="stylesheet" href="../css/style.css?v=13.3">
+  <link rel="stylesheet" href="../css/mobile-quick-menu.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"REST API Versioning Strategies","description":"Panduan komprehensif strategi versioning REST API.","author":{"@type":"Organization","name":"BeebaneLabs"},"datePublished":"2026-06-29","publisher":{"@type":"Organization","name":"BeebaneLabs"}}</script>
+<script>
+(function(){var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';function loadAds(){if(window._adsLoaded)return;window._adsLoaded=true;var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src=src;document.head.appendChild(s);['scroll','mousedown','touchstart','keydown'].forEach(function(e){document.removeEventListener(e,loadAds,{passive:true})})}['scroll','mousedown','touchstart','keydown'].forEach(function(e){document.addEventListener(e,loadAds,{passive:true,once:true})});setTimeout(loadAds,5000)})();
+</script>
+  <script type="speculationrules">{ "prerender": [{ "where": { "href_matches": "/*" }, "eagerness": "moderate" }] }</script>
+</head>
+<body>
+  <noscript><style>.article-content,.articles-grid,.category-section,.hero{display:block!important;opacity:1!important;transform:none!important}.reveal{opacity:1!important;transform:none!important}</style></noscript>
+  <a href="#main-content" class="skip-link">Skip ke konten utama</a>
+  <div class="reading-progress-bar" id="readingProgress"></div>
+  <nav class="navbar" id="navbar"><div class="navbar-inner"><a href="../index.html" class="navbar-brand"><picture><source srcset="../images/logo_beebane_webp.webp" type="image/webp"><img src="../images/logo_beebane_webp.webp" alt="BeebaneLabs" class="brand-logo" width="40" height="22"></picture></a><ul class="navbar-links" id="navLinks"><li><a href="../index.html">Beranda</a></li><li><a href="../kategori.html">Kategori</a></li><li><a href="../about.html">Tentang</a></li><li><a href="../pricing.html">Harga</a></li></ul><div class="navbar-search" id="searchTrigger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>Cari tutorial...</span><kbd>/</kbd></div><div id="authNavArea"></div><button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button></div></nav>
+  <div class="search-overlay" id="searchOverlay"><button class="search-close-btn" onclick="document.getElementById('searchOverlay').classList.remove('active')" aria-label="Tutup">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Protokol</a><span class="separator">/</span><span class="current">API Versioning</span></div>
+      <span class="category-tag">Protokol</span>
+      <h1>REST API Versioning Strategies</h1>
+      <p class="article-subtitle">Panduan komprehensif strategi versioning REST API — URL path, header, query parameter, content negotiation, backward compatibility, deprecation policy, dan best practices dokumentasi</p>
+      <div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 13 menit baca</span><span class="difficulty menengah">Menengah</span></div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#mengapa">Mengapa Versioning Penting?</a></li>
+          <li><a href="#url-path">URL Path Versioning</a></li>
+          <li><a href="#header-versioning">Header Versioning</a></li>
+          <li><a href="#query-versioning">Query Parameter Versioning</a></li>
+          <li><a href="#content-negotiation">Content Negotiation Versioning</a></li>
+          <li><a href="#comparison">Perbandingan Strategi</a></li>
+          <li><a href="#backward-compat">Backward Compatibility</a></li>
+          <li><a href="#deprecation">Deprecation Policy</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="mengapa">1. Mengapa Versioning Penting?</h2>
+      <p>Ketika API digunakan oleh banyak consumer (mobile apps, web, third-party integrations), Anda tidak bisa sembarangan mengubah response structure. <strong>Versioning</strong> memungkinkan Anda menambah fitur baru tanpa memecah aplikasi yang sudah ada.</p>
+
+      <h3>Breaking vs Non-Breaking Changes</h3>
+      <table class="net-table">
+        <thead><tr><th>Breaking Change ❌</th><th>Non-Breaking Change ✅</th></tr></thead>
+        <tbody>
+          <tr><td>Menghapus field dari response</td><td>Menambah field baru ke response</td></tr>
+          <tr><td>Mengubah tipe data field</td><td>Mengubah nilai default field</td></tr>
+          <tr><td>Mengubah URL structure</td><td>Menambah query parameter optional</td></tr>
+          <tr><td>Menghapus endpoint</td><td>Menambah endpoint baru</td></tr>
+          <tr><td>Mengubah required parameter menjadi tidak ada</td><td>Menambah optional parameter</td></tr>
+          <tr><td>Mengubah error response format</td><td>Menambah informasi di error response</td></tr>
+          <tr><td>Mengubah authentication method</td><td>Menambah auth method baru (kompatibel)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 2 -->
+      <h2 id="url-path">2. URL Path Versioning</h2>
+      <p>Strategi paling populer dan paling sederhana: nomor versi dimasukkan langsung di URL path.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# URL Path Versioning — Contoh:
+GET /api/v1/users/123
+GET /api/v2/users/123
+
+# Response v1:
+{
+  "id": 123,
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+
+# Response v2 (restructure, breaking change):
+{
+  "data": {
+    "id": 123,
+    "attributes": {
+      "full_name": "John Doe",
+      "contact": {
+        "email": "john@example.com",
+        "phone": "+62812345678"
+      }
+    },
+    "links": {
+      "self": "/api/v2/users/123",
+      "orders": "/api/v2/users/123/orders"
+    }
+  },
+  "meta": {
+    "api_version": "2.0",
+    "request_id": "abc-123"
+  }
+}
+
+# Contoh dari industri:
+# Twitter:   https://api.twitter.com/2/tweets
+# GitHub:    https://api.github.com/v3/users
+# Stripe:    https://api.stripe.com/v1/charges
+# Google:    https://www.googleapis.com/youtube/v3/videos
+</pre>
+      </div>
+
+      <h3>Implementasi di Express.js</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+const express = require('express');
+const app = express();
+
+// ===== URL Path Versioning =====
+
+// v1 Router
+const v1 = express.Router();
+v1.get('/users/:id', async (req, res) => {
+    const user = await db.users.findById(req.params.id);
+    // v1 format: flat response
+    res.json({
+        id: user.id,
+        name: user.name,
+        email: user.email
+    });
+});
+
+// v2 Router
+const v2 = express.Router();
+v2.get('/users/:id', async (req, res) => {
+    const user = await db.users.findById(req.params.id);
+    // v2 format: JSON:API style
+    res.json({
+        data: {
+            id: user.id,
+            type: 'user',
+            attributes: {
+                full_name: user.name,
+                contact: { email: user.email }
+            },
+            relationships: {
+                orders: { links: { related: `/api/v2/users/${user.id}/orders` } }
+            }
+        }
+    });
+});
+
+// Mount routers
+app.use('/api/v1', v1);
+app.use('/api/v2', v2);
+
+// Version negotiation: default ke latest
+app.use('/api', (req, res, next) => {
+    if (!req.path.match(/^\/v\d+/)) {
+        // Redirect ke versi default
+        return res.redirect(307, `/api/v2${req.path}`);
+    }
+    next();
+});
+
+// Deprecation middleware
+app.use('/api/v1', (req, res, next) => {
+    res.set('Deprecation', 'true');
+    res.set('Sunset', 'Sat, 01 Jan 2027 00:00:00 GMT');
+    res.set('Link', '&lt;/api/v2' + req.path + '&gt;; rel="successor-version"');
+    next();
+});
+
+app.listen(3000);
+</pre>
+      </div>
+
+      <!-- SECTION 3 -->
+      <h2 id="header-versioning">3. Header Versioning</h2>
+      <p>Versi dinegosiasikan melalui HTTP header — URL tetap bersih dan tidak berubah antar versi.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# Custom Header Versioning:
+GET /api/users/123 HTTP/1.1
+Host: api.example.com
+X-API-Version: 2
+
+# Atau via Accept header (content negotiation):
+GET /api/users/123 HTTP/1.1
+Host: api.example.com
+Accept: application/vnd.myapp.v2+json
+
+# Response headers:
+HTTP/1.1 200 OK
+Content-Type: application/vnd.myapp.v2+json
+X-API-Version: 2
+Vary: Accept, X-API-Version  ← Penting untuk caching!
+
+# Contoh dari GitHub:
+Accept: application/vnd.github.v3+json
+
+# Contoh dari Stripe (hybrid):
+# Stripe menggunakan URL versioning tapi juga header
+# untuk minor version:
+Stripe-Version: 2024-12-18
+</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+const express = require('express');
+const app = express();
+
+// ===== Header Versioning Middleware =====
+function versionRouter(versionHandlers) {
+    return (req, res, next) => {
+        // Baca versi dari header
+        let version = req.headers['x-api-version'] || '1';
+
+        // Atau dari Accept header
+        const accept = req.headers['accept'] || '';
+        const match = accept.match(/application\/vnd\.myapp\.v(\d+)\+json/);
+        if (match) version = match[1];
+
+        // Set versi di request object
+        req.apiVersion = parseInt(version);
+
+        // Tambah response headers
+        res.set('X-API-Version', version);
+        res.set('Vary', 'Accept, X-API-Version');
+
+        // Cari handler untuk versi ini
+        const handler = versionHandlers[version] || versionHandlers['default'];
+        if (!handler) {
+            return res.status(400).json({
+                error: `API version ${version} not supported`,
+                supported_versions: Object.keys(versionHandlers)
+            });
+        }
+
+        handler(req, res, next);
+    };
+}
+
+// Usage
+app.get('/api/users/:id', versionRouter({
+    1: (req, res) => {
+        const user = getUserV1(req.params.id);
+        res.json(user); // flat format
+    },
+    2: (req, res) => {
+        const user = getUserV2(req.params.id);
+        res.json({ data: user, meta: { version: 2 } }); // structured format
+    },
+    default: (req, res) => {
+        const user = getUserV2(req.params.id);
+        res.json({ data: user, meta: { version: 2 } });
+    }
+}));
+
+app.listen(3000);
+</pre>
+      </div>
+
+      <!-- SECTION 4 -->
+      <h2 id="query-versioning">4. Query Parameter Versioning</h2>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# Query Parameter Versioning:
+GET /api/users/123?version=2
+GET /api/users/123?v=2
+GET /api/users/123?api-version=2024-01-15
+
+# Kelebihan:
+# ✅ Mudah di-test di browser
+# ✅ URL tetap relatif bersih
+# ✅ Mudah di-cache (per query string)
+
+# Kekurangan:
+# ❌ Bisa ter-cache oleh CDN/proxy (masalah jika versi berubah)
+# ❌ Tidak "clean" dari segi URL design
+# ❌ Query parameter seharusnya untuk filtering, bukan versioning
+
+# Digunakan oleh:
+# Azure API Management: ?api-version=2024-01-01
+# beberapa API enterprise
+</pre>
+      </div>
+
+      <!-- SECTION 5 -->
+      <h2 id="content-negotiation">5. Content Negotiation Versioning</h2>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# Content Negotiation — paling "RESTful" menurut purists
+
+# Menggunakan Accept header dengan media type custom:
+GET /api/users/123 HTTP/1.1
+Accept: application/vnd.myapp.user.v2+json
+
+# Server bisa men-negosiasikan format:
+# 1. Client mengirim Accept header dengan preferred version
+# 2. Server memeriksa versi yang didukung
+# 3. Server merespons dengan Content-Type yang sesuai
+# 4. Jika versi tidak didukung → 406 Not Acceptable
+
+# Contoh Accept header:
+# application/vnd.myapp.user.v1+json    → User format v1
+# application/vnd.myapp.user.v2+json    → User format v2
+# application/vnd.myapp.order.v1+json   → Order format v1
+# application/vnd.myapp.v2+json         → Semua format v2
+
+# Response:
+HTTP/1.1 200 OK
+Content-Type: application/vnd.myapp.user.v2+json
+Vary: Accept
+
+# Jika versi tidak didukung:
+HTTP/1.1 406 Not Acceptable
+Content-Type: application/problem+json
+{
+  "type": "https://api.example.com/errors/unsupported-version",
+  "title": "Unsupported API Version",
+  "detail": "Version 3 is not supported. Available: 1, 2",
+  "status": 406
+}
+</pre>
+      </div>
+
+      <!-- SECTION 6 -->
+      <h2 id="comparison">6. Perbandingan Strategi</h2>
+      <table class="net-table">
+        <thead><tr><th>Aspek</th><th>URL Path</th><th>Header</th><th>Query Param</th><th>Content Negotiation</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Visibility</strong></td><td>⭐⭐⭐ Terlihat jelas</td><td>⭐⭐ Tersembunyi</td><td>⭐⭐⭐ Terlihat</td><td>⭐⭐ Tersembunyi</td></tr>
+          <tr><td><strong>URL Cleanliness</strong></td><td>⭐⭐ Versi di URL</td><td>⭐⭐⭐ Bersih</td><td>⭐⭐ Ada query</td><td>⭐⭐⭐ Bersih</td></tr>
+          <tr><td><strong>Caching</strong></td><td>⭐⭐⭐ Mudah</td><td>⭐⭐ Perlu Vary</td><td>⭐⭐ Bisa salah cache</td><td>⭐⭐ Perlu Vary</td></tr>
+          <tr><td><strong>Discoverability</strong></td><td>⭐⭐⭐ Intuitif</td><td>⭐⭐ Perlu dokumentasi</td><td>⭐⭐⭐ Mudah</td><td>⭐⭐ Kompleks</td></tr>
+          <tr><td><strong>Bookmark/Share</strong></td><td>⭐⭐⭐ Ya</td><td>⭐ Tidak</td><td>⭐⭐⭐ Ya</td><td>⭐ Tidak</td></tr>
+          <tr><td><strong>REST Purity</strong></td><td>⭐⭐ Bukan resource berbeda</td><td>⭐⭐⭐ Negotiation</td><td>⭐⭐ Kurang tepat</td><td>⭐⭐⭐ Paling RESTful</td></tr>
+          <tr><td><strong>Popularity</strong></td><td>⭐⭐⭐ Paling populer</td><td>⭐⭐ GitHub, Stripe</td><td>⭐ Azure</td><td>⭐⭐ Pendekatan purist</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Rekomendasi</div>
+        <p>Untuk mayoritas API publik, <strong>URL path versioning</strong> (<code>/v1</code>, <code>/v2</code>) adalah pilihan terbaik karena sederhana, intuitif, mudah di-test, dan paling banyak dipahami developer. Gunakan header versioning jika Anda ingin URL bersih dan API Anda sudah stabil (Stripe, GitHub approach).</p>
+      </div>
+
+      <!-- SECTION 7 -->
+      <h2 id="backward-compat">7. Backward Compatibility</h2>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# Best Practices untuk Backward Compatibility:
+
+# 1. TAMBAH, jangan hapus atau ubah
+# ✅ Tambah field baru di response (consumer ignore yang tidak dikenal)
+# ✅ Tambah optional parameter di request
+# ❌ Jangan hapus field yang sudah ada
+# ❌ Jangan ubah tipe data field
+
+# 2. EVOLUSI tanpa breaking change
+# Sebelum (v1):
+{ "name": "John Doe" }
+
+# Setelah — TETAP v1, tapi tambah field:
+{ "name": "John Doe", "first_name": "John", "last_name": "Doe" }
+# → Consumer lama masih bisa baca "name"
+# → Consumer baru bisa pakai "first_name"/"last_name"
+
+# 3. EXPAND contract bukan SHRINK
+# ✅ Tambah enum value baru (consumer handle unknown values)
+# ❌ Jangan hapus enum value
+
+# 4. Gunakan default values
+# Tambah parameter baru dengan default value yang mempertahankan
+# behavior lama:
+# POST /api/users
+# v1: { "name": "John" }
+# v2-compatible: { "name": "John", "send_welcome_email": true } ← default true (sama dengan v1)
+
+# 5. Nullable vs Required
+# ✅ Tambah field nullable (consumer cek null)
+# ❌ Jangan membuat field yang dulunya optional menjadi required
+</pre>
+      </div>
+
+      <!-- SECTION 8 -->
+      <h2 id="deprecation">8. Deprecation Policy</h2>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" onclick="copyToClipboard(this)">Salin</button></div>
+<pre>
+# Deprecation Framework yang Baik:
+
+# 1. COMMUNICATION — Beritahu consumer JAUH-JAUH hari
+#    - Email blast ke semua registered developers
+#    - Banner di developer portal
+#    - Deprecation notice di API response headers
+
+# 2. SUNSET HEADERS (RFC 8594)
+GET /api/v1/users HTTP/1.1
+
+HTTP/1.1 200 OK
+Deprecation: true
+Sunset: Sat, 01 Jul 2027 00:00:00 GMT
+Link: &lt;/api/v2/users&gt;; rel="successor-version"
+
+# 3. TIMELINE yang jelas
+# ┌──────────────────────────────────────────────────────────┐
+# │ Phase 1: Announcement (T-12 bulan)                       │
+# │ - Email ke semua consumer                                │
+# │ - Blog post, changelog                                   │
+# │ - Tambah deprecation headers                              │
+# ├──────────────────────────────────────────────────────────┤
+# │ Phase 2: Warning Period (T-6 bulan)                      │
+# │ - Response header Deprecation: true                      │
+# │ - Rate limit dikurangi 50%                               │
+# │ - Documentation: "Deprecated" badges                     │
+# ├──────────────────────────────────────────────────────────┤
+# │ Phase 3: Grace Period (T-3 bulan)                        │
+# │ - Error rate tinggi → kirim email reminder               │
+# │ - Rate limit dikurangi lagi                              │
+# │ - Sunset header ditambahkan                              │
+# ├──────────────────────────────────────────────────────────┤
+# │ Phase 4: Sunset (T = 0)                                  │
+# │ - Versi lama mengembalikan 410 Gone                      │
+# │ - Migration guide tersedia                               │
+# └──────────────────────────────────────────────────────────┘
+
+# Error response saat sunset:
+HTTP/1.1 410 Gone
+Content-Type: application/problem+json
+
+{
+  "type": "https://api.example.com/errors/version-sunset",
+  "title": "API Version Sunset",
+  "detail": "API v1 has been sunset. Please migrate to v2.",
+  "status": 410,
+  "migration_guide": "https://docs.example.com/migration/v1-to-v2"
+}
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- QUIZ -->
+      <h2 id="quiz">Quiz Pemahaman</h2>
+      <div class="quiz-container" id="quiz-api-ver">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Strategi versioning API yang paling populer digunakan?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) URL path versioning (/api/v1/)</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Query parameter (?v=1)</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Header versioning</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Content negotiation</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Mana yang termasuk breaking change?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Menambah field baru di response</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Menambah optional query parameter</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Menghapus field dari response</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Menambah endpoint baru</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: HTTP status code apa yang tepat untuk endpoint yang sudah sunset?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) 404 Not Found</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) 500 Internal Server Error</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) 410 Gone</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) 301 Moved Permanently</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Header apa yang standar untuk menandai API deprecation (RFC 8594)?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) X-Deprecated</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Sunset + Deprecation</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Warning</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) API-Status</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Prinsip utama backward compatibility?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Hapus field lama, ganti yang baru</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Tambah field baru, jangan hapus atau ubah yang lama</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Buat versi baru setiap bulan</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Jangan pernah mengubah response</div>
+          </div>
+        </div>
+        <button class="quiz-btn">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="graphql-federation.html" class="prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">GraphQL Federation &amp; Schema Stitching</span></a>
+        <a href="oauth2-oidc.html" class="next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">OAuth 2.0 dan OpenID Connect</span></a>
+      </div>
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter"><div class="container"><div class="newsletter-card fade-in"><h2>📬 Dapatkan Tutorial Terbaru</h2><p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p><form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form></div></div></section>
+  <footer class="footer"><div class="container"><div class="footer-grid"><div class="footer-brand"><img src="../images/logo_beebane_webp.webp" alt="BeebaneLabs" class="footer-logo" loading="lazy" width="40" height="22"><p>Portal tutorial teknologi &amp; IT Indonesia.</p></div><div class="footer-col"><h4>Kategori</h4><ul><li><a href="../kategori/iot.html">IoT</a></li><li><a href="../kategori/mikrotik.html">Networking</a></li><li><a href="../kategori/python.html">Pemrograman</a></li><li><a href="../kategori/keamanan.html">Cybersecurity</a></li><li><a href="../kategori/dashboard.html">Cloud</a></li></ul></div><div class="footer-col"><h4>Populer</h4><ul><li><a href="esp32-fundamentals.html">ESP32</a></li><li><a href="mikrotik-routing.html">MikroTik</a></li><li><a href="mqtt-protocol.html">MQTT</a></li></ul></div><div class="footer-col"><h4>Lainnya</h4><ul><li><a href="../about.html">Tentang</a></li><li><a href="../privacy-policy.html">Privasi</a></li><li><a href="../contact.html">Kontak</a></li></ul></div></div><div class="footer-bottom"><div class="footer-social"><a href="https://github.com/Beebane25" target="_blank" rel="noopener">GitHub</a></div><p>&copy; 2026 BeebaneLabs.</p></div></div></footer>
+  <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">↑</button>
+  <script src="../js/app.js?v=9.5"></script>
+  <script src="../js/mobile-zoom.js?v=9.2"></script>
+  <script>initQuiz('quiz-api-ver', ['a', 'c', 'c', 'b', 'b']);</script>
+<button class="theme-toggle-floating" onclick="ThemeToggle.toggle()" title="Ganti tema" aria-label="Ganti tema">☀️</button>
+<div id="quickMenuBackdrop" class="quick-menu-backdrop" onclick="MobileQuickMenu.close()"></div><button id="quickMenuBtn" class="quick-menu-btn" onclick="MobileQuickMenu.toggle()" title="Menu" aria-label="Menu cepat">⚙️</button><div id="quickMenuPanel" class="quick-menu-panel"><div class="quick-menu-section"><span class="quick-menu-label">🔍 Zoom</span><div class="quick-menu-row"><button onclick="MobileQuickMenu.zoomOut()" aria-label="Perkecil">−</button><span id="quickMenuZoomLevel" class="zoom-level">100%</span><button onclick="MobileQuickMenu.zoomIn()" aria-label="Perbesar">+</button><button onclick="MobileQuickMenu.resetZoom()" style="font-size:0.8rem" aria-label="Reset zoom">↺</button></div></div><div class="quick-menu-section"><span class="quick-menu-label">🎨 Tema</span><button class="quick-menu-row quick-menu-theme-btn" onclick="MobileQuickMenu.toggleTheme()" aria-label="Ganti tema"><span id="quickMenuThemeIcon">☀️</span> <span>Ganti Tema</span></button></div></div>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})});}</script>
+</body>
+</html>
