@@ -2328,7 +2328,49 @@ const ARTICLE_CATEGORIES = {
     slug: 'it-career',
     match: ['IT Career'],
     color: '#6366f1'
-  }
+  },
+  'esp32': {
+    name: 'ESP32 & ESP8266',
+    icon: '🔧',
+    slug: 'esp32',
+    match: ['ESP32'],
+    color: '#06b6d4'
+  },
+  'lora': {
+    name: 'LoRa & LPWAN',
+    icon: '📡',
+    slug: 'lora',
+    match: ['LoRa'],
+    color: '#8b5cf6'
+  },
+  'raspberry-pi': {
+    name: 'Raspberry Pi',
+    icon: '🍓',
+    slug: 'raspberry-pi',
+    match: ['Raspberry Pi'],
+    color: '#e11d48'
+  },
+  'networking-basic': {
+    name: 'Jaringan Dasar',
+    icon: '🌐',
+    slug: 'networking',
+    match: ['Networking'],
+    color: '#f97316'
+  },
+  'tools': {
+    name: 'Tools & IDE',
+    icon: '💻',
+    slug: 'tools',
+    match: ['Tools'],
+    color: '#14b8a6'
+  },
+  'cloud': {
+    name: 'Cloud & Firebase',
+    icon: '🔥',
+    slug: 'cloud',
+    match: ['Cloud'],
+    color: '#a855f7'
+  },
 };
 
 function getCategoryCounts() {
