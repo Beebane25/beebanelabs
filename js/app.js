@@ -270,12 +270,13 @@ for (const btn of document.querySelectorAll('.code-copy')) {
 }
 
 // === Copy to clipboard utility ===
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
     return true;
-  }).catch(() => {
+  } catch {
     return false;
-  });
+  }
 }
 
 // === Quiz System ===
@@ -1032,8 +1033,11 @@ const PaywallSystem = {
   },
 
   showTokenGate(f, tokens, logged) {
+    // FIX: Remove early-content-gate so lock screen is visible (v18.1)
+    const earlyGate = document.getElementById('early-content-gate');
+    if (earlyGate) earlyGate.remove();
     // Security: Sanitize slug to prevent DOM XSS (CWE-79)
-    f = String(f || '').replace(/[^a-zA-Z0-9\-_\.]/g, '');
+    f = String(f || '').replace(/[^a-zA-Z0-9\-\_\.]/g, '');
     const a = document.querySelector('.article-content');
     if (!a) return;
     const t = tokens !== undefined ? tokens : this.getTokens();
