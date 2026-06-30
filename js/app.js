@@ -682,33 +682,122 @@ function initReadingProgressBar() {
   if (!articleContent) return;
   const bar = document.createElement('div');
   bar.className = 'reading-progress';
+  bar.id = 'readingProgress';
   document.body.prepend(bar);
-  window.addEventListener('scroll', debounce(() => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-    bar.style.width = progress + '%';
-  }, 50), { passive: true });
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        bar.style.width = progress + '%';
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
 }
 
 // Reading Time Estimate (article pages)
 function initReadingTimeEstimate() {
   const articleContent = document.querySelector('.article-content');
   if (!articleContent) return;
-  const totalWords = articleContent.textContent.split(/\s+/).length;
-  const totalMinutes = Math.ceil(totalWords / 200);
+  const totalWords = articleContent.textContent.split(/\s+/).filter(w => w.length > 0).length;
+  const totalMinutes = Math.max(1, Math.ceil(totalWords / 200));
+  // Add badge near article title
+  const badge = document.createElement('span');
+  badge.className = 'reading-time-badge';
+  badge.textContent = '⏱ ~' + totalMinutes + ' menit baca';
+  const h1 = document.querySelector('.article-content h1') || document.querySelector('article h1') || document.querySelector('h1');
+  if (h1) {
+    h1.insertAdjacentElement('afterend', badge);
+  }
+  // Also keep the floating "menit tersisa" indicator
   const indicator = document.createElement('div');
   indicator.className = 'reading-time-remaining';
   indicator.textContent = totalMinutes + ' menit tersisa';
   document.body.appendChild(indicator);
-  window.addEventListener('scroll', debounce(() => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = docHeight > 0 ? scrollTop / docHeight : 0;
-    const remaining = Math.max(1, Math.ceil(totalMinutes * (1 - progress)));
-    indicator.textContent = remaining + ' menit tersisa';
-    indicator.classList.toggle('visible', scrollTop > 300 && scrollTop < docHeight - 200);
-  }, 100), { passive: true });
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? scrollTop / docHeight : 0;
+        const remaining = Math.max(1, Math.ceil(totalMinutes * (1 - progress)));
+        indicator.textContent = remaining + ' menit tersisa';
+        indicator.classList.toggle('visible', scrollTop > 300 && scrollTop < docHeight - 200);
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+}
+
+// Syntax Highlighting with Prism.js (article pages)
+function initSyntaxHighlighting() {
+  const articleContent = document.querySelector('.article-content');
+  if (!articleContent) return;
+  // Auto-detect language for unlabeled code blocks
+  document.querySelectorAll('.article-content pre code').forEach(block => {
+    if (!block.className.match(/language-/)) {
+      const text = block.textContent;
+      if (text.match(/^(import |from |def |class |print\(|if __name__|#!\/)/m) || text.match(/pip install/)) {
+        block.classList.add('language-python');
+      } else if (text.match(/^(const |let |var |function |=>|document\.|console\.|require\(|import .* from)/m)) {
+        block.classList.add('language-javascript');
+      } else if (text.match(/^(#include|void setup|void loop|digitalWrite|analogRead|Serial\.)/m)) {
+        block.classList.add('language-c');
+      } else if (text.match(/^(SELECT |INSERT |UPDATE |DELETE |CREATE TABLE|ALTER )/im)) {
+        block.classList.add('language-sql');
+      } else if (text.match(/^(sudo |apt |npm |yarn |git |curl |wget |cd |ls |mkdir |echo )/m)) {
+        block.classList.add('language-bash');
+      } else if (text.match(/^\s*[{\[]/) && text.match(/["':]/)) {
+        block.classList.add('language-json');
+      } else if (text.match(/^(---|\.\.\.|[\w-]+:)/m) && !text.match(/[{}();]/)) {
+        block.classList.add('language-yaml');
+      }
+    }
+  });
+  // Load Prism CSS theme
+  if (!document.querySelector('link[href*="prism"]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-okaidia.min.css';
+    document.head.appendChild(link);
+  }
+  // Load Prism core
+  const prismUrl = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js';
+  if (document.querySelector('script[src="' + prismUrl + '"]')) {
+    if (typeof Prism !== 'undefined') Prism.highlightAll();
+    return;
+  }
+  const script = document.createElement('script');
+  script.src = prismUrl;
+  script.async = true;
+  script.onload = () => {
+    const langComponents = [
+      'python', 'c', 'cpp', 'css', 'sql', 'bash', 'json', 'yaml', 'markdown'
+    ];
+    let loaded = 0;
+    const total = langComponents.length;
+    langComponents.forEach(lang => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-' + lang + '.min.js';
+      s.async = true;
+      s.onload = () => {
+        loaded++;
+        if (loaded === total && typeof Prism !== 'undefined') {
+          Prism.highlightAll();
+        }
+      };
+      document.head.appendChild(s);
+    });
+    // Also highlight after core loads (for javascript which is in core)
+    if (typeof Prism !== 'undefined') Prism.highlightAll();
+  };
+  document.head.appendChild(script);
 }
 
 // Service Worker Registration
@@ -3012,6 +3101,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initCopyCode();
   initMouseGlow();
   initSectionDividers();
+  initSyntaxHighlighting();
   initReadingProgressBar();
   initReadingTimeEstimate();
   initServiceWorker();
