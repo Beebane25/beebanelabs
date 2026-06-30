@@ -943,6 +943,8 @@ const PaywallSystem = {
   },
 
   showTokenGate(f, tokens, logged) {
+    // Security: Sanitize slug to prevent DOM XSS (CWE-79)
+    f = String(f || '').replace(/[^a-zA-Z0-9\-_\.]/g, '');
     const a = document.querySelector('.article-content');
     if (!a) return;
     const t = tokens !== undefined ? tokens : this.getTokens();
@@ -1366,7 +1368,7 @@ const AuthSystem = {
           </div>
           <div class="auth-form-group">
             <label>Password</label>
-            <input type="password" id="loginPassword" placeholder="Masukkan password" required>
+            <input type="password" id="loginPassword" placeholder="Masukkan password" required autocomplete="current-password">
           </div>
           <button type="submit" class="auth-submit">Masuk</button>
         </form>
@@ -1396,7 +1398,7 @@ const AuthSystem = {
             </div>
             <!-- Cloudflare Turnstile widget -->
             <div id="turnstileWidget" style="margin: 12px 0;"></div>
-            <input type="password" id="regPassword" placeholder="Min 8 karakter, huruf besar, angka, simbol" required minlength="8">
+            <input type="password" id="regPassword" placeholder="Min 8 karakter, huruf besar, angka, simbol" required minlength="8" autocomplete="new-password">
           </div>
           <button type="submit" class="auth-submit">Daftar Sekarang</button>
         </form>

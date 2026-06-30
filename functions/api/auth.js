@@ -139,8 +139,8 @@ export async function onRequestPost(context) {
 
       // Input validation
       if (!email) return cors(400, { error: 'Email harus diisi' }, origin);
-      // Flexible email regex - allows most valid email formats
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return cors(400, { error: 'Format email tidak valid. Contoh: nama@gmail.com' }, origin);
+      // Strict email regex - prevents XSS injection (CWE-79, CWE-20)
+      if (!/^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/.test(email.toLowerCase())) return cors(400, { error: 'Format email tidak valid. Contoh: nama@gmail.com' }, origin);
       if (!name || name.length < 2) return cors(400, { error: 'Nama harus diisi (minimal 2 karakter)' }, origin);
       if (name.length > 100) return cors(400, { error: 'Nama maksimal 100 karakter' }, origin);
       if (password.length < 8) return cors(400, { error: 'Password tidak memenuhi syarat (minimal 8 karakter, huruf besar, angka, dan simbol)' }, origin);
