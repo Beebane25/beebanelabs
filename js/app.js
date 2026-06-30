@@ -1995,8 +1995,42 @@ function injectArticleExtras() {
   // Share buttons
   const url = encodeURIComponent(window.location.href);
   const title = encodeURIComponent(document.title);
-  const shareHTML = '<div style="display:flex;align-items:center;gap:12px;padding:24px 0;border-top:1px solid var(--border-subtle);margin-top:32px;"><span style="font-size:0.85rem;color:var(--text-muted);font-weight:600;">Bagikan:</span><a href="https://twitter.com/intent/tweet?url='+url+'&text='+title+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-pill);background:rgba(29,161,242,0.1);border:1px solid rgba(29,161,242,0.3);color:#1da1f2;font-size:0.8rem;font-weight:600;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(29,161,242,0.2)\'" onmouseout="this.style.background=\'rgba(29,161,242,0.1)\'">𝕏 Twitter</a><a href="https://wa.me/?text='+title+'%20'+url+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-pill);background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.3);color:#25d366;font-size:0.8rem;font-weight:600;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(37,211,102,0.2)\'" onmouseout="this.style.background=\'rgba(37,211,102,0.1)\'">💬 WhatsApp</a><button onclick="navigator.clipboard.writeText(window.location.href);if(typeof Toast!==\'undefined\')Toast.show(\'Link disalin!\',\'success\')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-pill);background:var(--bg-hover);border:1px solid var(--border-standard);color:var(--text-secondary);font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;">📋 Salin Link</button></div>';
-  articleContent.insertAdjacentHTML('beforeend', shareHTML);
+  const shareDiv = document.createElement('div');
+  shareDiv.style.cssText = 'display:flex;align-items:center;gap:12px;padding:24px 0;border-top:1px solid var(--border-subtle);margin-top:32px;';
+  const shareLabel = document.createElement('span');
+  shareLabel.style.cssText = 'font-size:0.85rem;color:var(--text-muted);font-weight:600;';
+  shareLabel.textContent = 'Bagikan:';
+  shareDiv.appendChild(shareLabel);
+
+  const shareBtnStyle = 'display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-pill);font-size:0.8rem;font-weight:600;text-decoration:none;transition:all 0.2s;cursor:pointer;border:1px solid;';
+  const twitterBtn = document.createElement('a');
+  twitterBtn.href = 'https://twitter.com/intent/tweet?url=' + url + '&text=' + title;
+  twitterBtn.target = '_blank'; twitterBtn.rel = 'noopener';
+  twitterBtn.style.cssText = shareBtnStyle + 'background:rgba(29,161,242,0.1);border-color:rgba(29,161,242,0.3);color:#1da1f2;';
+  twitterBtn.textContent = '𝕏 Twitter';
+  twitterBtn.addEventListener('mouseenter', function() { this.style.background = 'rgba(29,161,242,0.2)'; });
+  twitterBtn.addEventListener('mouseleave', function() { this.style.background = 'rgba(29,161,242,0.1)'; });
+  shareDiv.appendChild(twitterBtn);
+
+  const waBtn = document.createElement('a');
+  waBtn.href = 'https://wa.me/?text=' + title + '%20' + url;
+  waBtn.target = '_blank'; waBtn.rel = 'noopener';
+  waBtn.style.cssText = shareBtnStyle + 'background:rgba(37,211,102,0.1);border-color:rgba(37,211,102,0.3);color:#25d366;';
+  waBtn.textContent = '💬 WhatsApp';
+  waBtn.addEventListener('mouseenter', function() { this.style.background = 'rgba(37,211,102,0.2)'; });
+  waBtn.addEventListener('mouseleave', function() { this.style.background = 'rgba(37,211,102,0.1)'; });
+  shareDiv.appendChild(waBtn);
+
+  const copyBtn = document.createElement('button');
+  copyBtn.style.cssText = shareBtnStyle + 'background:var(--bg-hover);border-color:var(--border-standard);color:var(--text-secondary);';
+  copyBtn.textContent = '📋 Salin Link';
+  copyBtn.addEventListener('click', function() {
+    navigator.clipboard.writeText(window.location.href);
+    if (typeof Toast !== 'undefined') Toast.show('Link disalin!', 'success');
+  });
+  shareDiv.appendChild(copyBtn);
+
+  articleContent.appendChild(shareDiv);
 
   // Related articles
   const allArticles = ALL_ARTICLES;
