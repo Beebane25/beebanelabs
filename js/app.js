@@ -1363,11 +1363,11 @@ const AuthSystem = {
         <!-- Login Form -->
         <form id="loginForm" onsubmit="AuthSystem.handleLogin(event)">
           <div class="auth-form-group">
-            <label>Email</label>
+            <label for="loginEmail">Email</label>
             <input type="email" id="loginEmail" placeholder="email@kamu.com" required>
           </div>
           <div class="auth-form-group">
-            <label>Password</label>
+            <label for="loginPassword">Password</label>
             <input type="password" id="loginPassword" placeholder="Masukkan password" required autocomplete="current-password">
           </div>
           <button type="submit" class="auth-submit">Masuk</button>
@@ -1376,15 +1376,15 @@ const AuthSystem = {
         <!-- Register Form -->
         <form id="registerForm" style="display:none;" onsubmit="AuthSystem.handleRegister(event)">
           <div class="auth-form-group">
-            <label>Nama Lengkap</label>
+            <label for="regName">Nama Lengkap</label>
             <input type="text" id="regName" placeholder="Nama kamu" required>
           </div>
           <div class="auth-form-group">
-            <label>Email</label>
+            <label for="regEmail">Email</label>
             <input type="email" id="regEmail" placeholder="email@kamu.com" required>
           </div>
           <div class="auth-form-group">
-            <label>Password</label>
+            <label for="regPassword">Password</label>
             <!-- Honeypot field (hidden from humans, filled by bots) -->
             <div style="position:absolute;left:-9999px;opacity:0;height:0;overflow:hidden;" aria-hidden="true">
               <label>Website</label>
