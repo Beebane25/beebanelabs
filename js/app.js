@@ -1903,7 +1903,13 @@ const Toast = {
     const safeMsg = String(msg).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const t = document.createElement('div');
     t.className = 'toast ' + type;
-    t.innerHTML = '<span class="toast-icon">' + (icons[type] || 'ℹ') + '</span><span class="toast-msg">' + safeMsg + '</span><button class="toast-close" aria-label="Tutup notifikasi" onclick="this.parentElement.remove()">×</button>';
+    t.innerHTML = '<span class="toast-icon">' + (icons[type] || 'ℹ') + '</span><span class="toast-msg">' + safeMsg + '</span>';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'toast-close';
+    closeBtn.setAttribute('aria-label', 'Tutup notifikasi');
+    closeBtn.textContent = '×';
+    closeBtn.addEventListener('click', function() { t.remove(); });
+    t.appendChild(closeBtn);
     this.container.appendChild(t);
     requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
     setTimeout(() => { t.classList.add('hide'); setTimeout(() => t.remove(), 300); }, duration);
@@ -1933,7 +1939,21 @@ const CookieConsent = {
   show() {
     const banner = document.createElement('div');
     banner.className = 'cookie-consent';
-    banner.innerHTML = '<p>🍪 Kami menggunakan cookie untuk meningkatkan pengalaman Anda. <a href="' + getAbsolutePage('privacy-policy.html') + '">Pelajari lebih lanjut</a></p><div class="cookie-btns"><button class="cookie-decline" onclick="CookieConsent.dismiss(this)">Tolak</button><button class="cookie-accept" onclick="CookieConsent.accept(this)">Terima</button></div>';
+    const privacyUrl = getAbsolutePage('privacy-policy.html');
+    banner.innerHTML = '<p>🍪 Kami menggunakan cookie untuk meningkatkan pengalaman Anda. <a href="' + privacyUrl + '">Pelajari lebih lanjut</a></p>';
+    const btnsDiv = document.createElement('div');
+    btnsDiv.className = 'cookie-btns';
+    const declineBtn = document.createElement('button');
+    declineBtn.className = 'cookie-decline';
+    declineBtn.textContent = 'Tolak';
+    declineBtn.addEventListener('click', function() { CookieConsent.dismiss(declineBtn); });
+    const acceptBtn = document.createElement('button');
+    acceptBtn.className = 'cookie-accept';
+    acceptBtn.textContent = 'Terima';
+    acceptBtn.addEventListener('click', function() { CookieConsent.accept(acceptBtn); });
+    btnsDiv.appendChild(declineBtn);
+    btnsDiv.appendChild(acceptBtn);
+    banner.appendChild(btnsDiv);
     document.body.appendChild(banner);
     requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('show')));
   },
