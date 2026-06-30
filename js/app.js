@@ -2037,8 +2037,38 @@ function injectArticleExtras() {
   const currentSlug = window.location.pathname.split('/').pop().replace('.html', '');
   const related = allArticles.filter(a => a.slug !== currentSlug).sort(() => 0.5 - Math.random()).slice(0, 3);
   if (related.length) {
-    const relHTML = '<div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border-subtle);"><h3 style="font-family:var(--font-heading);font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:20px;">📚 Artikel Terkait</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;">' + related.map(a => '<a href="../articles/' + a.slug + '.html" style="display:flex;align-items:center;gap:12px;padding:16px;background:var(--bg-card);border:1px solid var(--border-standard);border-radius:var(--radius-md);text-decoration:none;transition:all 0.2s;" onmouseover="this.style.borderColor=\'var(--accent-primary)\'" onmouseout="this.style.borderColor=\'var(--border-standard)\'"><span style="font-size:1.5rem;">' + a.icon + '</span><div><div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:2px;">' + a.title + '</div><div style="font-size:0.7rem;color:var(--text-subtle);text-transform:uppercase;">' + a.cat + '</div></div></a>').join('') + '</div></div>';
-    articleContent.insertAdjacentHTML('beforeend', relHTML);
+    const relSection = document.createElement('div');
+    relSection.style.cssText = 'margin-top:48px;padding-top:32px;border-top:1px solid var(--border-subtle);';
+    const relTitle = document.createElement('h3');
+    relTitle.style.cssText = 'font-family:var(--font-heading);font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:20px;';
+    relTitle.textContent = '📚 Artikel Terkait';
+    relSection.appendChild(relTitle);
+    const relGrid = document.createElement('div');
+    relGrid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;';
+    related.forEach(function(a) {
+      const link = document.createElement('a');
+      link.href = '../articles/' + a.slug + '.html';
+      link.style.cssText = 'display:flex;align-items:center;gap:12px;padding:16px;background:var(--bg-card);border:1px solid var(--border-standard);border-radius:var(--radius-md);text-decoration:none;transition:all 0.2s;';
+      link.addEventListener('mouseenter', function() { this.style.borderColor = 'var(--accent-primary)'; });
+      link.addEventListener('mouseleave', function() { this.style.borderColor = 'var(--border-standard)'; });
+      const icon = document.createElement('span');
+      icon.style.fontSize = '1.5rem';
+      icon.textContent = a.icon;
+      link.appendChild(icon);
+      const info = document.createElement('div');
+      const titleDiv = document.createElement('div');
+      titleDiv.style.cssText = 'font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:2px;';
+      titleDiv.textContent = a.title;
+      info.appendChild(titleDiv);
+      const catDiv = document.createElement('div');
+      catDiv.style.cssText = 'font-size:0.7rem;color:var(--text-subtle);text-transform:uppercase;';
+      catDiv.textContent = a.cat;
+      info.appendChild(catDiv);
+      link.appendChild(info);
+      relGrid.appendChild(link);
+    });
+    relSection.appendChild(relGrid);
+    articleContent.appendChild(relSection);
   }
 }
 
