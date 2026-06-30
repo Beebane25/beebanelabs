@@ -2322,7 +2322,7 @@ const ARTICLE_CATEGORIES = {
     match: ['IT Career', 'Certification', 'Professional Development', 'Career'],
     color: '#6366f1'
   },
-  'networking-basic': {
+  'networking': {
     name: 'Jaringan Dasar',
     icon: '🌐',
     slug: 'networking',
