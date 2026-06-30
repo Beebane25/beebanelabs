@@ -26,6 +26,8 @@ from dataclasses import dataclass, field
 
 BOX_DRAW = set("┌┐└┘│─├┤┬┴┼╔╗╚╝═║")
 ARROW_CHARS = set("▼▲►◄↓↑→←↔↻↩▷◁")
+FLOW_CHARS = set("→←↓↑▼▲►◄↔──►◄──▶▷◁●○⬤")
+TREE_CHARS = {"├", "└", "│"}
 
 # Characters that form box outlines
 H_CHAR = "─"
@@ -311,8 +313,9 @@ def is_diagram(text: str) -> bool:
     if not stripped:
         return False
 
+    lines = stripped.split("\n")
     first_line = ""
-    for line in stripped.split("\n"):
+    for line in lines:
         ls = line.strip()
         if ls:
             first_line = ls
@@ -324,16 +327,69 @@ def is_diagram(text: str) -> bool:
     if CODE_STARTERS.match(first_line):
         return False
 
-    # Count box-drawing characters
+    # Reject blocks that look like shell commands with section separators
+    # (lines starting with # and using ═ or ─ as decoration)
+    hash_lines = sum(1 for l in lines if l.strip().startswith("#"))
+    if hash_lines > len(lines) * 0.5 and hash_lines >= 4:
+        # Mostly comment lines — check if it's shell/SQL comments with decorations
+        has_equals = sum(1 for l in lines if re.match(r"^\s*#\s*[═]{3,}", l))
+        has_dashes_sep = sum(1 for l in lines if re.match(r"^\s*#\s*[-─]{5,}\s*$", l))
+        if has_equals >= 1 or has_dashes_sep >= 1:
+            return False
+        # Shell command blocks with ═ decorations
+        shell_cmds = sum(1 for l in lines if re.match(r"^\s*#\s+", l) and not any(c in l for c in "┌┐└┘├└"))
+        if shell_cmds >= 6:
+            return False
+
+    # Reject blocks that look like Cypress/test code with ═ section comments
+    if ("describe(" in stripped or "it(" in stripped) and "// ═══" in stripped:
+        return False
+
+    # Reject blocks that look like firewall rules / config files with ═ headers
+    if stripped.lstrip().startswith("rules_version") or "service cloud" in stripped or "service firebase" in stripped:
+        return False
+
+    # ── Positive detection ──
+
+    # Count box-drawing characters (excluding pure ═ / ─ separators)
     bd_count = sum(1 for ch in stripped if ch in BOX_DRAW)
-    if bd_count >= 5:
+    corner_count = sum(1 for ch in stripped if ch in "┌┐└┘")
+    if corner_count >= 4:
         return True
 
     # Count lines with ┌ or └
     corner_lines = sum(
-        1 for line in stripped.split("\n") if "┌" in line or "└" in line
+        1 for line in lines if "┌" in line or "└" in line
     )
     if corner_lines >= 3:
+        return True
+
+    # Detect tree structures: lines with ├── or └──
+    tree_lines = sum(1 for l in lines if "├──" in l or "└──" in l or "│   " in l)
+    if tree_lines >= 3:
+        return True
+
+    # Detect flow/arrow diagrams: lines with arrow chars
+    arrow_count = sum(1 for ch in stripped if ch in "→←↓↑▼▲►◄↔▶")
+    if arrow_count >= 2 and bd_count >= 3:
+        return True
+    if arrow_count >= 3:
+        return True
+
+    # Detect flow with ──► or ──→ patterns
+    flow_patterns = len(re.findall(r"[─━]{2,}[►→▶▷]|[►→▶▷][─━]{2,}", stripped))
+    if flow_patterns >= 2:
+        return True
+
+    # Detect lifecycle/state diagrams with │ and ▼/▲/→ arrows
+    vertical_arrow_lines = sum(
+        1 for l in lines if "│" in l and any(c in l for c in "▼▲→←↓↑")
+    )
+    if vertical_arrow_lines >= 2:
+        return True
+
+    # Detect box-drawing with sufficient complexity
+    if bd_count >= 10:
         return True
 
     return False
@@ -352,20 +408,475 @@ def _esc(text: str) -> str:
     )
 
 
+def _classify_diagram(text: str) -> str:
+    """Classify a diagram as 'tree', 'flow', 'box', or 'generic'."""
+    lines = text.strip().split("\n")
+
+    tree_chars = sum(1 for l in lines if "├──" in l or "└──" in l or "│   " in l or "│└" in l)
+    arrow_chars = sum(1 for ch in text if ch in "→←↓↑▼▲►◄↔▶▷◁")
+    corner_chars = sum(1 for ch in text if ch in "┌┐└┘")
+
+    # Tree if significant tree chars and more tree than arrow
+    if tree_chars >= 3 and tree_chars > arrow_chars:
+        return "tree"
+
+    # Flow if more arrows than corners
+    if arrow_chars >= 3 and arrow_chars > corner_chars:
+        return "flow"
+
+    # Box if we have corners
+    if corner_chars >= 4:
+        return "box"
+
+    # Try box detection anyway
+    return "box"
+
+
+def _generate_tree_svg(text: str, diagram_id: int = 0) -> str:
+    """Generate SVG for tree/directory structure diagrams."""
+    lines = text.replace("\r", "").split("\n")
+    # Remove leading/trailing blank lines
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    if not lines:
+        return ""
+
+    CW = 9
+    CH = 22
+    PAD = 20
+    FONT_CODE = "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace"
+
+    max_len = max(len(l) for l in lines)
+    svg_w = max_len * CW + PAD * 2
+    svg_h = len(lines) * CH + PAD * 2
+    uid = f"tree{diagram_id}"
+
+    # Detect root name (first non-blank line)
+    root_name = lines[0].strip() if lines else "root"
+
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" '
+        f'viewBox="0 0 {svg_w} {svg_h}" '
+        f'class="ascii-diagram" role="img" '
+        f'aria-label="Directory structure: {_esc(root_name)}" '
+        f'style="max-width:100%;height:auto;display:block;margin:1.5em auto">'
+    ]
+
+    # Background
+    parts.append(
+        f'<rect x="0" y="0" width="{svg_w}" height="{svg_h}" '
+        f'rx="10" ry="10" fill="#0a0a12" stroke="#1e1e2e" stroke-width="1"/>'
+    )
+
+    # Color palette for depth levels
+    depth_colors = [
+        "#e4e4e7",  # level 0 (root) — white
+        "#60a5fa",  # level 1 — blue
+        "#3ecf8e",  # level 2 — green
+        "#f59e0b",  # level 3 — amber
+        "#a78bfa",  # level 4 — purple
+        "#f472b6",  # level 5 — pink
+        "#38bdf8",  # level 6 — sky
+    ]
+    branch_color = "#4a4a5a"
+
+    for i, line in enumerate(lines):
+        y = PAD + i * CH + 15
+
+        # Determine depth by counting tree-drawing prefix chars
+        stripped = line.rstrip()
+        # Count leading tree chars to determine depth
+        depth = 0
+        for ch in stripped:
+            if ch in "│├└─ ":
+                if ch == " ":
+                    depth += 0.25
+            else:
+                break
+        # Rough depth: count "│   " or "    " blocks before content
+        depth = 0
+        temp = stripped
+        while temp.startswith("│   ") or temp.startswith("│  "):
+            depth += 1
+            temp = temp[4:] if temp.startswith("│   ") else temp[3:]
+        while temp.startswith("    "):
+            depth += 1
+            temp = temp[4:]
+        while temp.startswith("   "):
+            depth += 1
+            temp = temp[3:]
+
+        color = depth_colors[min(depth, len(depth_colors) - 1)]
+
+        # Check for annotations (← comment at end)
+        main_text = stripped
+        annotation = ""
+        if "←" in stripped:
+            parts_split = stripped.split("←", 1)
+            main_text = parts_split[0].rstrip()
+            annotation = "←" + parts_split[1]
+
+        # Draw the tree line text
+        x = PAD
+        # Draw branch connector chars in dim color
+        prefix_end = 0
+        for j, ch in enumerate(stripped):
+            if ch not in "│├└─ ":
+                prefix_end = j
+                break
+        else:
+            prefix_end = len(stripped)
+
+        if prefix_end > 0:
+            prefix = stripped[:prefix_end]
+            parts.append(
+                f'<text x="{x}" y="{y}" font-family="{FONT_CODE}" font-size="12" '
+                f'fill="{branch_color}">{_esc(prefix)}</text>'
+            )
+
+        # Draw the file/folder name
+        content = stripped[prefix_end:]
+        if content:
+            cx = x + prefix_end * CW
+            # Highlight folder names (ending with /)
+            is_folder = content.rstrip().endswith("/")
+            fill = color
+            weight = "600" if is_folder else "400"
+            parts.append(
+                f'<text x="{cx}" y="{y}" font-family="{FONT_CODE}" font-size="12" '
+                f'font-weight="{weight}" fill="{fill}">{_esc(content)}</text>'
+            )
+
+        # Draw annotation in dim color
+        if annotation:
+            ax = x + len(stripped) * CW + 8
+            parts.append(
+                f'<text x="{ax}" y="{y}" font-family="{FONT_CODE}" font-size="11" '
+                f'fill="#71717a" font-style="italic">{_esc(annotation.strip())}</text>'
+            )
+
+    parts.append("</svg>")
+    return "\n".join(parts)
+
+
+def _generate_flow_svg(text: str, diagram_id: int = 0) -> str:
+    """Generate SVG for flow/arrow diagrams without traditional box outlines."""
+    lines = text.replace("\r", "").split("\n")
+    # Remove leading/trailing blank lines
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    if not lines:
+        return ""
+
+    CW = 9
+    CH = 20
+    PAD = 24
+    FONT_CODE = "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace"
+    FONT_LABEL = "'Inter', 'Segoe UI', system-ui, sans-serif"
+
+    max_len = max(len(l) for l in lines)
+    svg_w = max_len * CW + PAD * 2
+    svg_h = len(lines) * CH + PAD * 2
+    uid = f"flow{diagram_id}"
+
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" '
+        f'viewBox="0 0 {svg_w} {svg_h}" '
+        f'class="ascii-diagram" role="img" '
+        f'aria-label="Flow diagram" '
+        f'style="max-width:100%;height:auto;display:block;margin:1.5em auto">'
+    ]
+
+    # Defs for arrows
+    parts.append("<defs>")
+    parts.append(
+        f'<marker id="{uid}-ah" markerWidth="10" markerHeight="7" '
+        f'refX="9" refY="3.5" orient="auto" markerUnits="strokeWidth">'
+        f'<path d="M0,0.5 L9,3.5 L0,6.5" fill="none" stroke="#f59e0b" '
+        f'stroke-width="1.2" stroke-linejoin="round"/></marker>'
+    )
+    parts.append(
+        f'<filter id="{uid}-ds" x="-8%" y="-8%" width="116%" height="124%">'
+        f'<feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" '
+        f'flood-opacity="0.5"/></filter>'
+    )
+    parts.append("</defs>")
+
+    # Background
+    parts.append(
+        f'<rect x="0" y="0" width="{svg_w}" height="{svg_h}" '
+        f'rx="10" ry="10" fill="#0a0a12" stroke="#1e1e2e" stroke-width="1"/>'
+    )
+
+    # Colors
+    arrow_color = "#f59e0b"
+    node_color = "#60a5fa"
+    dim_color = "#71717a"
+    bright_color = "#e4e4e7"
+    connector_color = "#4a4a5a"
+
+    # Parse the grid to identify nodes (text blocks) and connectors (arrows/lines)
+    grid = _normalize_grid(text)
+
+    for i, line in enumerate(lines):
+        y = PAD + i * CH + 14
+        stripped = line.rstrip()
+        if not stripped:
+            continue
+
+        # Identify segments: alternating between connectors and text
+        segments = _parse_flow_line(stripped)
+
+        x_offset = PAD
+        for seg_type, seg_text in segments:
+            if not seg_text:
+                continue
+
+            if seg_type == "arrow":
+                # Draw arrow connector
+                has_arrow_char = any(c in seg_text for c in "►→▶▷▼▲")
+                has_vertical = "│" in seg_text or "┃" in seg_text
+
+                if has_vertical:
+                    # Vertical connector
+                    parts.append(
+                        f'<text x="{x_offset}" y="{y}" font-family="{FONT_CODE}" '
+                        f'font-size="13" fill="{connector_color}">{_esc(seg_text)}</text>'
+                    )
+                elif has_arrow_char:
+                    # Horizontal arrow
+                    # Extract the arrow direction
+                    arrow_idx = next((j for j, c in enumerate(seg_text) if c in "►→▶▷"), -1)
+                    if arrow_idx >= 0:
+                        line_part = seg_text[:arrow_idx].rstrip("─━ ")
+                        head_part = seg_text[arrow_idx:]
+
+                        # Draw the line portion
+                        if line_part:
+                            line_start_x = x_offset
+                            line_end_x = x_offset + len(line_part) * CW
+                            line_y = y - 4
+                            parts.append(
+                                f'<line x1="{line_start_x}" y1="{line_y}" '
+                                f'x2="{line_end_x}" y2="{line_y}" '
+                                f'stroke="{arrow_color}" stroke-width="1.5"/>'
+                            )
+                        # Draw arrow head as text
+                        ax = x_offset + len(line_part) * CW
+                        parts.append(
+                            f'<text x="{ax}" y="{y}" font-family="{FONT_CODE}" '
+                            f'font-size="13" fill="{arrow_color}">{_esc(head_part)}</text>'
+                        )
+                    else:
+                        parts.append(
+                            f'<text x="{x_offset}" y="{y}" font-family="{FONT_CODE}" '
+                            f'font-size="13" fill="{arrow_color}">{_esc(seg_text)}</text>'
+                        )
+                else:
+                    # Plain connector (─ lines)
+                    line_y = y - 4
+                    line_start_x = x_offset + 2
+                    line_end_x = x_offset + len(seg_text) * CW - 2
+                    parts.append(
+                        f'<line x1="{line_start_x}" y1="{line_y}" '
+                        f'x2="{line_end_x}" y2="{line_y}" '
+                        f'stroke="{connector_color}" stroke-width="1"/>'
+                    )
+
+                x_offset += len(seg_text) * CW
+            else:
+                # Text node — draw with background
+                txt = seg_text.strip()
+                if not txt:
+                    x_offset += len(seg_text) * CW
+                    continue
+
+                # Check if this looks like a label/heading
+                is_heading = bool(re.match(r"^\d+\.\s", txt)) or txt.isupper()
+                is_comment = txt.startswith("#") or txt.startswith("//") or txt.startswith("/*")
+
+                if is_heading:
+                    color = bright_color
+                    font = FONT_LABEL
+                    weight = "600"
+                elif is_comment:
+                    color = dim_color
+                    font = FONT_CODE
+                    weight = "400"
+                else:
+                    color = node_color
+                    font = FONT_CODE
+                    weight = "400"
+
+                # Draw node background box if it looks like a real node
+                # (not just punctuation/whitespace)
+                alphanumeric = sum(1 for c in txt if c.isalnum())
+                if alphanumeric >= 2:
+                    text_w = len(txt) * CW + 12
+                    text_h = CH - 2
+                    nx = x_offset
+                    ny = y - CH + 6
+                    parts.append(
+                        f'<rect x="{nx}" y="{ny}" width="{text_w}" height="{text_h}" '
+                        f'rx="4" ry="4" fill="#0f1d3a" stroke="{color}" '
+                        f'stroke-width="0.8" opacity="0.6"/>'
+                    )
+
+                parts.append(
+                    f'<text x="{x_offset + 6}" y="{y}" font-family="{font}" '
+                    f'font-size="12" font-weight="{weight}" '
+                    f'fill="{color}">{_esc(txt)}</text>'
+                )
+                x_offset += len(seg_text) * CW
+
+    parts.append("</svg>")
+    return "\n".join(parts)
+
+
+def _parse_flow_line(line: str) -> List[Tuple[str, str]]:
+    """Parse a line into (type, text) segments where type is 'arrow' or 'text'."""
+    segments = []
+    i = 0
+    n = len(line)
+
+    while i < n:
+        ch = line[i]
+
+        # Check if we're at an arrow/connector character
+        if ch in "─━│┃┌┐└┘├┤┬┴┼►→▶▷▼▲◄←◁↻↩":
+            # Collect connector run
+            start = i
+            while i < n and line[i] in "─━│┃┌┐└┘├┤┬┴┼►→▶▷▼▲◄←◁↻↩":
+                i += 1
+            segments.append(("arrow", line[start:i]))
+        else:
+            # Collect text run
+            start = i
+            while i < n and line[i] not in "─━│┃┌┐└┘├┤┬┴┼►→▶▷▼▲◄←◁↻↩":
+                i += 1
+            segments.append(("text", line[start:i]))
+
+    # Merge adjacent text segments
+    merged = []
+    for seg_type, seg_text in segments:
+        if merged and merged[-1][0] == seg_type:
+            merged[-1] = (seg_type, merged[-1][1] + seg_text)
+        else:
+            merged.append((seg_type, seg_text))
+
+    return merged
+
+
+def _generate_generic_svg(text: str, diagram_id: int = 0) -> str:
+    """Generate SVG for diagrams that don't fit other categories.
+    Renders as styled monospace text with color-coded lines."""
+    lines = text.replace("\r", "").split("\n")
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    if not lines:
+        return ""
+
+    CW = 9
+    CH = 18
+    PAD = 24
+    FONT_CODE = "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace"
+
+    max_len = max(len(l) for l in lines)
+    svg_w = max_len * CW + PAD * 2
+    svg_h = len(lines) * CH + PAD * 2
+    uid = f"gen{diagram_id}"
+
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" '
+        f'viewBox="0 0 {svg_w} {svg_h}" '
+        f'class="ascii-diagram" role="img" '
+        f'aria-label="Diagram" '
+        f'style="max-width:100%;height:auto;display:block;margin:1.5em auto">'
+    ]
+
+    # Background
+    parts.append(
+        f'<rect x="0" y="0" width="{svg_w}" height="{svg_h}" '
+        f'rx="10" ry="10" fill="#0a0a12" stroke="#1e1e2e" stroke-width="1"/>'
+    )
+
+    for i, line in enumerate(lines):
+        y = PAD + i * CH + 14
+        stripped = line.rstrip()
+        if not stripped:
+            continue
+
+        # Color based on content
+        has_arrow = any(ch in stripped for ch in "→←↓↑▼▲►◄↔▶")
+        is_separator = bool(re.match(r"^\s*[═━─]{5,}\s*$", stripped))
+        is_heading = bool(re.match(r"^\s*\d+\.", stripped)) or (stripped.isupper() and len(stripped) > 3)
+
+        if is_separator:
+            color = "#4a4a5a"
+        elif is_heading:
+            color = "#e4e4e7"
+        elif has_arrow:
+            color = "#f59e0b"
+        else:
+            color = "#a1a1aa"
+
+        parts.append(
+            f'<text x="{PAD}" y="{y}" font-family="{FONT_CODE}" font-size="12" '
+            f'fill="{color}">{_esc(stripped)}</text>'
+        )
+
+    parts.append("</svg>")
+    return "\n".join(parts)
+
+
 def generate_svg(text: str, diagram_id: int = 0) -> str:
-    """Convert ASCII art text to an inline SVG string."""
+    """Convert ASCII art text to an inline SVG string.
+    Tries multiple strategies: box parsing, tree rendering, flow rendering, generic."""
     grid = _normalize_grid(text)
     if not grid:
         return ""
 
+    # ── Strategy 1: Box-based diagrams (existing logic) ──
+    all_boxes = find_all_boxes(grid)
+    if all_boxes:
+        # Sort by area descending — largest is the outer frame
+        all_boxes.sort(key=lambda b: b.area, reverse=True)
+
+        # If we have a reasonable number of boxes, proceed with box rendering
+        if len(all_boxes) >= 1:
+            return _generate_box_svg(text, grid, all_boxes, diagram_id)
+
+    # ── Strategy 2: Tree structures ──
+    diag_type = _classify_diagram(text)
+    if diag_type == "tree":
+        svg = _generate_tree_svg(text, diagram_id)
+        if svg:
+            return svg
+
+    # ── Strategy 3: Flow/arrow diagrams ──
+    if diag_type == "flow":
+        svg = _generate_flow_svg(text, diagram_id)
+        if svg:
+            return svg
+
+    # ── Strategy 4: Generic fallback ──
+    svg = _generate_generic_svg(text, diagram_id)
+    if svg:
+        return svg
+
+    return ""
+
+
+def _generate_box_svg(text: str, grid: list, all_boxes: List[Box], diagram_id: int = 0) -> str:
+    """Generate SVG for box-based diagrams (the original logic)."""
     rows = len(grid)
     cols = len(grid[0]) if grid else 0
-
-    # ── find boxes ──
-    all_boxes = find_all_boxes(grid)
-    if not all_boxes:
-        return ""  # nothing to convert
-
     # Sort by area descending — largest is the outer frame
     all_boxes.sort(key=lambda b: b.area, reverse=True)
 
