@@ -351,9 +351,11 @@ def is_diagram(text: str) -> bool:
 
     # ── Positive detection ──
 
-    # Count box-drawing characters (excluding pure ═ / ─ separators)
+    # Count box-drawing characters
     bd_count = sum(1 for ch in stripped if ch in BOX_DRAW)
     corner_count = sum(1 for ch in stripped if ch in "┌┐└┘")
+
+    # Boxes with corners
     if corner_count >= 4:
         return True
 
@@ -364,32 +366,15 @@ def is_diagram(text: str) -> bool:
     if corner_lines >= 3:
         return True
 
-    # Detect tree structures: lines with ├── or └──
-    tree_lines = sum(1 for l in lines if "├──" in l or "└──" in l or "│   " in l)
-    if tree_lines >= 3:
+    # Tree structures: lines with ├── or └── (these have lots of │ and ├ chars
+    # which count toward bd_count, but let's also explicitly detect them)
+    tree_lines = sum(1 for l in lines if "├──" in l or "└──" in l)
+    if tree_lines >= 2:
         return True
 
-    # Detect flow/arrow diagrams: lines with arrow chars
-    arrow_count = sum(1 for ch in stripped if ch in "→←↓↑▼▲►◄↔▶")
-    if arrow_count >= 2 and bd_count >= 3:
-        return True
-    if arrow_count >= 3:
-        return True
-
-    # Detect flow with ──► or ──→ patterns
-    flow_patterns = len(re.findall(r"[─━]{2,}[►→▶▷]|[►→▶▷][─━]{2,}", stripped))
-    if flow_patterns >= 2:
-        return True
-
-    # Detect lifecycle/state diagrams with │ and ▼/▲/→ arrows
-    vertical_arrow_lines = sum(
-        1 for l in lines if "│" in l and any(c in l for c in "▼▲→←↓↑")
-    )
-    if vertical_arrow_lines >= 2:
-        return True
-
-    # Detect box-drawing with sufficient complexity
-    if bd_count >= 10:
+    # Box-drawing characters with reasonable density
+    # (trees, flow diagrams, and complex diagrams all have many bd chars)
+    if bd_count >= 5:
         return True
 
     return False
