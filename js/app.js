@@ -1330,6 +1330,9 @@ const AuthSystem = {
     const modal = document.createElement('div');
     modal.id = 'authModal';
     modal.className = 'auth-modal-overlay';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Masuk atau Daftar');
     modal.innerHTML = `
       <div class="auth-modal">
         <button class="auth-close" aria-label="Tutup dialog masuk" onclick="AuthSystem.closeModal()">&times;</button>
@@ -1455,11 +1458,28 @@ const AuthSystem = {
   },
 
   showModal() {
-    document.getElementById('authModal').classList.add('active');
+    const modal = document.getElementById('authModal');
+    modal.classList.add('active');
+    // Accessibility: Trap focus inside modal
+    const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (focusable.length) focusable[0].focus();
+    // Accessibility: Close on Escape
+    this._escHandler = function(e) {
+      if (e.key === 'Escape') { AuthSystem.closeModal(); }
+      // Focus trap: cycle Tab within modal
+      if (e.key === 'Tab') {
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener('keydown', this._escHandler);
   },
 
   closeModal() {
     document.getElementById('authModal').classList.remove('active');
+    if (this._escHandler) { document.removeEventListener('keydown', this._escHandler); this._escHandler = null; }
     this.clearMessages();
   },
 
