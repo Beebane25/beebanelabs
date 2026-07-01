@@ -387,11 +387,24 @@ flowchart TD
       </div>
 <pre class="mermaid">
 flowchart TD
-    N0[Publisher]
-    N1[Publisher]
-    N2[Publisher]
-    N2 --> N1
-    N1 --> N0
+    subgraph qos0["QoS 0: At Most Once"]
+        A0["Publisher"] -->|"Fire & Forget"| B0["Broker"]
+        B0 -->|"No Ack"| C0["Subscriber"]
+    end
+    subgraph qos1["QoS 1: At Least Once"]
+        A1["Publisher"] -->|"Publish"| B1["Broker"]
+        B1 -->|"Deliver"| C1["Subscriber"]
+        C1 -->|"PUBACK ✅"| B1
+    end
+    subgraph qos2["QoS 2: Exactly Once"]
+        A2["Publisher"] -->|"PUBREL"| B2["Broker"]
+        B2 -->|"PUBREC"| C2["Subscriber"]
+        C2 -->|"PUBCOMP ✅"| B2
+    end
+
+    style qos0 fill:#0f2a1f,stroke:#3ecf8e
+    style qos1 fill:#0f1d3a,stroke:#60a5fa
+    style qos2 fill:#2a1f0a,stroke:#f59e0b
 </pre>
     </div>
       </div>
@@ -529,10 +542,21 @@ mosquitto_pub -t "sensor/suhu" -m "" -r
       
 <div class="diagram-box">
         <div class="diagram-label">Diagram: RETAIN MESSAGE FLOW</div>
-<pre><code>Broker
-Sensor
-Broker
-App</code></pre>
+<pre class="mermaid">
+flowchart TD
+    A["🌡️ Sensor"] -->|"Publish suhu=25.5 (retain)"| B["📡 Broker"]
+    B -->|"Simpan retained message"| B
+    C["📱 App Baru"] -->|"Subscribe sensor/suhu"| B
+    B -->|"Kirim retained: suhu=25.5"| C
+    D["📱 App Lama"] -->|"Sudah subscribe"| B
+    B -->|"Publish baru: suhu=26.0"| D
+    B -->|"Kirim retained baru: suhu=26.0"| C
+
+    style A fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+    style B fill:#0f1d3a,stroke:#60a5fa,stroke-width:2px
+    style C fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+    style D fill:#1a0f2e,stroke:#a78bfa,stroke-width:2px
+</pre>
     </div>
       </div>
 
@@ -678,7 +702,13 @@ client.connect("broker.example.com", 8883, 60)  # Port 8883 = MQTTS
       <h3>Clean Session vs Persistent Session</h3>
       <div class="diagram-box">
         <div class="diagram-label">Diagram: Session Behavior</div>
-<pre><code>CLEAN vs PERSISTENT SESSION</code></pre>
+<pre class="mermaid">
+flowchart TD
+    N0["CLEAN vs PERSISTENT SESSION"]
+
+
+    style N0 fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+</pre>
       </div>
 
       <!-- AD SLOT -->
