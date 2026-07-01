@@ -229,7 +229,7 @@
 
       <div class="diagram-box">
         <div class="diagram-label">Diagram: Arsitektur TimescaleDB</div>
-<pre>
+<pre><code>
 +--------------------------------------------------------------------+
 |                  ARSITEKTUR TIMESCALEDB                              |
 |                                                                    |
@@ -252,7 +252,7 @@
 |  |  Standard PostgreSQL: tables, indexes, views, functions  |      |
 |  +----------------------------------------------------------+      |
 +--------------------------------------------------------------------+
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -264,7 +264,7 @@
           <span class="code-lang">Bash — Instalasi TimescaleDB</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre># =============================================
+<pre><code># =============================================
 # Docker (recommended untuk development)
 # =============================================
 docker run -d --name timescaledb \
@@ -294,7 +294,7 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 -- Verifikasi
 SELECT default_version, installed_version
 FROM pg_available_extensions
-WHERE name = 'timescaledb';</pre>
+WHERE name = 'timescaledb';</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -308,7 +308,7 @@ WHERE name = 'timescaledb';</pre>
           <span class="code-lang">SQL — Hypertables</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- BUAT TABEL STANDAR dulu, lalu convert ke hypertable
 -- =============================================
 
@@ -374,7 +374,7 @@ CREATE TABLE financial_ticks (
 SELECT create_hypertable('financial_ticks', 'time');
 
 -- Cek hypertables
-SELECT * FROM timescaledb_information.hypertables;</pre>
+SELECT * FROM timescaledb_information.hypertables;</code></pre>
       </div>
 
       <h3>Mengelola Chunks</h3>
@@ -383,7 +383,7 @@ SELECT * FROM timescaledb_information.hypertables;</pre>
           <span class="code-lang">SQL — Chunk Management</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- Lihat semua chunks dari sebuah hypertable
+<pre><code>-- Lihat semua chunks dari sebuah hypertable
 SELECT chunk_name, range_start, range_end, is_compressed
 FROM timescaledb_information.chunks
 WHERE hypertable_name = 'sensor_readings'
@@ -400,7 +400,7 @@ FROM timescaledb_information.hypertables;
 SELECT set_chunk_time_interval('sensor_readings', INTERVAL '1 day');
 
 -- Add compression policy (otomatis compress chunk lama)
-SELECT add_compression_policy('sensor_readings', INTERVAL '7 days');</pre>
+SELECT add_compression_policy('sensor_readings', INTERVAL '7 days');</code></pre>
       </div>
 
       <h3>Insert Data ke Hypertable</h3>
@@ -409,7 +409,7 @@ SELECT add_compression_policy('sensor_readings', INTERVAL '7 days');</pre>
           <span class="code-lang">SQL — Insert Data</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- Insert data biasa (sama seperti PostgreSQL)
+<pre><code>-- Insert data biasa (sama seperti PostgreSQL)
 INSERT INTO sensor_readings (time, sensor_id, temperature, humidity, pressure, battery)
 VALUES
     (NOW() - INTERVAL '5 minutes', 1, 25.5, 65.2, 1013.25, 85.0),
@@ -433,7 +433,7 @@ FROM generate_series(1, 1000000);
 -- Gunakan COPY atau INSERT ... VALUES batch
 COPY sensor_readings (time, sensor_id, temperature, humidity, pressure, battery)
 FROM '/path/to/data.csv'
-WITH (FORMAT csv, HEADER true);</pre>
+WITH (FORMAT csv, HEADER true);</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -447,7 +447,7 @@ WITH (FORMAT csv, HEADER true);</pre>
           <span class="code-lang">SQL — Time-Series Queries</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- time_bucket: Group by interval waktu
 -- (mirip date_trunc tapi lebih fleksibel)
 -- =============================================
@@ -483,7 +483,7 @@ SELECT
     AVG(temperature) AS avg_temp
 FROM sensor_readings
 GROUP BY hari
-ORDER BY hari DESC;</pre>
+ORDER BY hari DESC;</code></pre>
       </div>
 
       <h3>Fungsi Time-Series Lainnya</h3>
@@ -492,7 +492,7 @@ ORDER BY hari DESC;</pre>
           <span class="code-lang">SQL — Advanced Time-Series Functions</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- first() dan last(): Ambil nilai pertama/terakhir
 -- dalam interval
 -- =============================================
@@ -540,7 +540,7 @@ SELECT
 FROM sensor_readings
 WHERE sensor_id = 1
   AND time &gt;= NOW() - INTERVAL '2 hours'
-ORDER BY time DESC;</pre>
+ORDER BY time DESC;</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -554,7 +554,7 @@ ORDER BY time DESC;</pre>
           <span class="code-lang">SQL — Compression</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- LANGKAH 1: Tentukan segmentby dan orderby
 -- =============================================
 ALTER TABLE sensor_readings SET (
@@ -593,7 +593,7 @@ SELECT
         (1.0 - after_compression_total_bytes::float / before_compression_total_bytes) * 100,
         2
     ) AS persen_penghematan
-FROM hypertable_compression_stats('sensor_readings');</pre>
+FROM hypertable_compression_stats('sensor_readings');</code></pre>
       </div>
 
       <div class="info-box tip">
@@ -612,7 +612,7 @@ FROM hypertable_compression_stats('sensor_readings');</pre>
           <span class="code-lang">SQL — Continuous Aggregates</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- CONTINUOUS AGGREGATE: Statistik per jam
 -- =============================================
 CREATE MATERIALIZED VIEW stats_per_jam
@@ -674,12 +674,12 @@ SELECT add_continuous_aggregate_policy('stats_per_hari',
 CALL refresh_continuous_aggregate('stats_per_jam', NOW() - INTERVAL '1 day', NOW());
 
 -- Lihat semua continuous aggregates
-SELECT * FROM timescaledb_information.continuous_aggregates;</pre>
+SELECT * FROM timescaledb_information.continuous_aggregates;</code></pre>
       </div>
 
       <div class="diagram-box">
         <div class="diagram-label">Diagram: Continuous Aggregates Hierarchy</div>
-<pre>
+<pre><code>
 +--------------------------------------------------------------------+
 |            CONTINUOUS AGGREGATES HIERARCHY                           |
 |                                                                    |
@@ -703,7 +703,7 @@ SELECT * FROM timescaledb_information.continuous_aggregates;</pre>
 |  | Paling cepat untuk query jangka panjang                      |  |
 |  +--------------------------------------------------------------+  |
 +--------------------------------------------------------------------+
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -716,7 +716,7 @@ SELECT * FROM timescaledb_information.continuous_aggregates;</pre>
           <span class="code-lang">SQL — Retention Policies</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- Auto-drop chunk yang lebih lama dari 90 hari
 -- =============================================
 SELECT add_retention_policy('sensor_readings', INTERVAL '90 days');
@@ -746,7 +746,7 @@ SELECT remove_retention_policy('sensor_readings');
 -- Data panas (recent) di SSD, data dingin (lama) di object storage
 
 -- Contoh setup tiering (memerlukan license Tiered)
--- SELECT add_tiering_policy('sensor_readings', INTERVAL '30 days');</pre>
+-- SELECT add_tiering_policy('sensor_readings', INTERVAL '30 days');</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -759,7 +759,7 @@ SELECT remove_retention_policy('sensor_readings');
           <span class="code-lang">SQL — IoT Monitoring</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- Deteksi anomali: sensor dengan temperatur di atas rata-rata
+<pre><code>-- Deteksi anomali: sensor dengan temperatur di atas rata-rata
 WITH sensor_avg AS (
     SELECT
         sensor_id,
@@ -792,7 +792,7 @@ FROM sensor_readings s
 WHERE time &gt;= NOW() - INTERVAL '2 hours'
 GROUP BY s.sensor_id
 HAVING NOW() - MAX(s.time) &gt; INTERVAL '30 minutes'
-ORDER BY offline_duration DESC;</pre>
+ORDER BY offline_duration DESC;</code></pre>
       </div>
 
       <h3>Monitoring: Aplikasi Performance</h3>
@@ -801,7 +801,7 @@ ORDER BY offline_duration DESC;</pre>
           <span class="code-lang">SQL — App Monitoring</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- Endpoint terlambat (response time &gt; 1 detik)
+<pre><code>-- Endpoint terlambat (response time &gt; 1 detik)
 SELECT
     time_bucket('5 minutes', time) AS bucket,
     endpoint,
@@ -825,7 +825,7 @@ SELECT
 FROM app_metrics
 WHERE time &gt;= NOW() - INTERVAL '24 hours'
 GROUP BY jam, status_code
-ORDER BY jam DESC, jumlah DESC;</pre>
+ORDER BY jam DESC, jumlah DESC;</code></pre>
       </div>
 
       <h3>Finance: Stock Ticks</h3>
@@ -834,7 +834,7 @@ ORDER BY jam DESC, jumlah DESC;</pre>
           <span class="code-lang">SQL — Financial Data</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- OHLCV (Open, High, Low, Close, Volume) per 5 menit
+<pre><code>-- OHLCV (Open, High, Low, Close, Volume) per 5 menit
 SELECT
     time_bucket('5 minutes', time) AS bucket,
     symbol,
@@ -858,7 +858,7 @@ SELECT
 FROM financial_ticks
 WHERE time &gt;= NOW() - INTERVAL '24 hours'
 GROUP BY jam, symbol
-ORDER BY jam DESC;</pre>
+ORDER BY jam DESC;</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>

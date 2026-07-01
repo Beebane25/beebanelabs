@@ -226,7 +226,7 @@
           <span class="code-lang">Redis CLI — XADD Commands</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # XADD: menambahkan event ke stream
 # Format: XADD stream_name ID field1 value1 field2 value2 ...
 
@@ -250,7 +250,7 @@ XADD orders MINID ~ 1688000000000 * event_type "shipped" order_id "ORD-001"
 XLEN orders          # Jumlah entries
 XRANGE orders - +    # Semua entries (dari awal ke akhir)
 XRANGE orders - + COUNT 5  # 5 entries pertama
-</pre>
+</code></pre>
       </div>
 
       <h3>2.1 Struktur ID Streams</h3>
@@ -262,7 +262,7 @@ XRANGE orders - + COUNT 5  # 5 entries pertama
           <span class="code-lang">Python — Producer dengan redis-py</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 import redis
 import json
 from datetime import datetime
@@ -308,7 +308,7 @@ for i in range(100):
         'user_id': str(i % 10),
         'page': f'/page/{i}'
     })
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -321,7 +321,7 @@ for i in range(100):
           <span class="code-lang">Redis CLI — XREAD Commands</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # XREAD: membaca events dari stream
 # Baca semua events
 XREAD COUNT 10 STREAMS orders 0
@@ -342,7 +342,7 @@ XREAD COUNT 5 STREAMS orders events 0 0
 
 # Membaca events terakhir
 XREVRANGE orders + - COUNT 5
-</pre>
+</code></pre>
       </div>
 
       <div class="code-block">
@@ -350,7 +350,7 @@ XREVRANGE orders + - COUNT 5
           <span class="code-lang">Python — Consumer Blocking Read</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 import redis
 import json
 
@@ -373,7 +373,7 @@ def consume_events_simple(stream, last_id='$'):
 
 # Jalankan consumer
 # consume_events_simple('orders')
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -388,7 +388,7 @@ def consume_events_simple(stream, last_id='$'):
           <span class="code-lang">Redis CLI — Consumer Group Commands</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # Membuat consumer group
 # ID 0 = mulai dari awal stream
 XGROUP CREATE orders order-processors 0
@@ -417,7 +417,7 @@ XACK orders order-processors 1688012345678-0 1688012345679-0
 XINFO GROUPS orders
 XINFO CONSUMERS orders order-processors
 XINFO STREAM orders
-</pre>
+</code></pre>
       </div>
 
       <div class="code-block">
@@ -425,7 +425,7 @@ XINFO STREAM orders
           <span class="code-lang">Python — Producer-Consumer dengan Consumer Group</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 import redis
 import json
 import threading
@@ -495,7 +495,7 @@ def process_order(data):
 # threading.Thread(target=consumer, args=('worker-1',), daemon=True).start()
 # threading.Thread(target=consumer, args=('worker-2',), daemon=True).start()
 # threading.Thread(target=consumer, args=('worker-3',), daemon=True).start()
-</pre>
+</code></pre>
       </div>
 
       <div class="info-box tip">
@@ -515,7 +515,7 @@ def process_order(data):
           <span class="code-lang">Redis CLI — Pending Entries Management</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # XPENDING: melihat entries yang belum di-ACK
 XPENDING orders order-processors
 
@@ -542,7 +542,7 @@ XDEL orders 1688012345678-0
 # Menghapus entries yang sudah di-ACK (dengan trimming)
 XTRIM orders MAXLEN ~ 5000
 XTRIM orders MINID ~ 1688000000000-0
-</pre>
+</code></pre>
       </div>
 
       <div class="code-block">
@@ -550,7 +550,7 @@ XTRIM orders MINID ~ 1688000000000-0
           <span class="code-lang">Python — Dead Letter Queue Pattern</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 import redis
 import time
 
@@ -600,7 +600,7 @@ def claim_and_process_stalled(consumer_name, idle_ms=60000, max_retries=3):
                 except Exception as e:
                     print(f"Failed to process {message_id}: {e}")
                     # Tidak ACK → akan di-claim lagi nanti
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -613,7 +613,7 @@ def claim_and_process_stalled(consumer_name, idle_ms=60000, max_retries=3):
           <span class="code-lang">Redis CLI — Stream Info &amp; Management</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # XINFO STREAM: informasi lengkap tentang stream
 XINFO STREAM orders
 
@@ -654,7 +654,7 @@ XGROUP DELCONSUMER orders order-processors worker-1
 
 # Menghapus consumer group
 XGROUP DESTROY orders order-processors
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -669,7 +669,7 @@ XGROUP DESTROY orders order-processors
           <span class="code-lang">Python — CQRS dengan Redis Streams</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 import redis
 import json
 
@@ -744,7 +744,7 @@ class OrderProjection:
 
     def get_order(self, order_id):
         return self.orders.get(order_id)
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>

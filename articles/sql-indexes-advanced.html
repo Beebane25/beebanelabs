@@ -289,7 +289,7 @@ flowchart TD
           <span class="code-lang">SQL — Setup Tabel untuk Latihan Index</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- SETUP DATABASE UNTUK LATIHAN INDEX
 -- =============================================
 
@@ -344,7 +344,7 @@ SELECT
     END,
     'Indonesia'
 FROM generate_series(1, 500000);
-</pre>
+</code></pre>
       </div>
 
       <!-- AD SLOT -->
@@ -390,7 +390,7 @@ search</code></pre>
           <span class="code-lang">SQL — B-tree Index</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- DEFAULT INDEX = B-tree
 -- =============================================
 
@@ -442,7 +442,7 @@ SELECT * FROM orders WHERE customer_email LIKE 'user123%';  -- prefix!
 SELECT * FROM orders WHERE customer_email LIKE '%gmail.com'; -- suffix!
 SELECT * FROM orders WHERE UPPER(product_name) = 'LAPTOP';  -- function!
 SELECT * FROM orders WHERE total_amount + 1000 > 50000;     -- expression!
-</pre>
+</code></pre>
       </div>
 
       <div class="info-box tip">
@@ -521,7 +521,7 @@ Tapi O(1) tercepat!</code></pre>
           <span class="code-lang">SQL — Composite Index</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- MEMBUAT COMPOSITE INDEX
 -- =============================================
 
@@ -585,7 +585,7 @@ ON orders (order_status, customer_id);
 -- =============================================
 CREATE INDEX idx_orders_cust_lower_status
 ON orders (customer_id, LOWER(order_status));
-</pre>
+</code></pre>
       </div>
 
       <h3>Visualisasi Composite Index</h3>
@@ -640,7 +640,7 @@ flowchart TD
           <span class="code-lang">SQL — Covering Index</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- TANPA covering index: butuh table access
 -- =============================================
 
@@ -688,7 +688,7 @@ INCLUDE (customer_id, total_amount, order_status);
 -- MySQL 8.0: cukup tambahkan semua kolom ke composite index
 CREATE INDEX idx_orders_covering_mysql
 ON orders (category, order_date, customer_id, total_amount, order_status);
-</pre>
+</code></pre>
       </div>
 
       <h3>Kapan Covering Index Tepat?</h3>
@@ -726,7 +726,7 @@ ON orders (category, order_date, customer_id, total_amount, order_status);
           <span class="code-lang">SQL — Partial Index (PostgreSQL)</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- PARTIAL INDEX: Hanya untuk data yang relevan
 -- =============================================
 
@@ -778,7 +778,7 @@ WHERE order_status = 'pending' AND order_date >= '2026-06-01';
 CREATE NONCLUSTERED INDEX idx_orders_pending_sqlserver
 ON orders (customer_id, order_date)
 WHERE order_status = 'pending';
-</pre>
+</code></pre>
       </div>
 
       <div class="info-box tip">
@@ -803,7 +803,7 @@ WHERE order_status = 'pending';
           <span class="code-lang">SQL — Expression Index</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- MASALAH: Fungsi pada WHERE mematikan index
 -- =============================================
 
@@ -863,7 +863,7 @@ ADD COLUMN email_lower VARCHAR(200) GENERATED ALWAYS AS (LOWER(customer_email)) 
 CREATE INDEX idx_email_lower_mysql ON orders (email_lower);
 
 SELECT * FROM orders WHERE email_lower = 'user1234@email.com';
-</pre>
+</code></pre>
       </div>
 
       <!-- AD SLOT -->
@@ -883,7 +883,7 @@ SELECT * FROM orders WHERE email_lower = 'user1234@email.com';
           <span class="code-lang">SQL — EXPLAIN ANALYZE</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- EXPLAIN: Lihat rencana eksekusi
 -- =============================================
 
@@ -954,7 +954,7 @@ ANALYZE orders;
 
 -- MySQL:
 ANALYZE TABLE orders;
-</pre>
+</code></pre>
       </div>
 
       <!-- AD SLOT -->
@@ -974,7 +974,7 @@ ANALYZE TABLE orders;
           <span class="code-lang">SQL — Anti-Pattern: Index Berlebihan</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- ❌ SALAH: Membuat index untuk setiap kolom
+<pre><code>-- ❌ SALAH: Membuat index untuk setiap kolom
 CREATE INDEX idx_1 ON orders (customer_id);
 CREATE INDEX idx_2 ON orders (order_date);
 CREATE INDEX idx_3 ON orders (category);
@@ -1009,7 +1009,7 @@ FROM pg_stat_user_indexes
 WHERE schemaname = 'public'
 ORDER BY idx_scan ASC;
 -- Index dengan idx_scan = 0 → TIDAK PERNAH dipakai → hapus!
-</pre>
+</code></pre>
       </div>
 
       <h3>Kesalahan 2: Urutan Kolom Salah</h3>
@@ -1019,7 +1019,7 @@ ORDER BY idx_scan ASC;
           <span class="code-lang">SQL — Anti-Pattern: Urutan Kolom</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- ❌ Index kurang selektif duluan
+<pre><code>-- ❌ Index kurang selektif duluan
 CREATE INDEX idx_bad ON orders (order_status, category, customer_id);
 -- order_status hanya punya 4 nilai → tidak selektif
 
@@ -1057,7 +1057,7 @@ FROM orders;
 -- customer_id: ~2% selektif (sangat bagus → duluan)
 -- category: ~0.001% selektif (kurang bagus → belakangan)
 -- order_status: ~0.0008% selektif (sangat kurang → paling belakang)
-</pre>
+</code></pre>
       </div>
 
       <h3>Kesalahan 3: Function pada Kolom Terindeks</h3>
@@ -1067,7 +1067,7 @@ FROM orders;
           <span class="code-lang">SQL — Anti-Pattern: Function di WHERE</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- ❌ Fungsi pada kolom mematikan index
+<pre><code>-- ❌ Fungsi pada kolom mematikan index
 SELECT * FROM orders WHERE YEAR(order_date) = 2026;
 SELECT * FROM orders WHERE DATE(order_date) = '2026-06-26';
 SELECT * FROM orders WHERE UPPER(category) = 'ELEKTRONIK';
@@ -1081,7 +1081,7 @@ SELECT * FROM orders WHERE total_amount > 1000000 / 1.1;  -- pindahkan ke konsta
 
 -- Atau gunakan expression index jika memang butuh fungsi:
 CREATE INDEX idx_orders_year ON orders (EXTRACT(YEAR FROM order_date));
-</pre>
+</code></pre>
       </div>
 
       <!-- AD SLOT -->
@@ -1099,7 +1099,7 @@ CREATE INDEX idx_orders_year ON orders (EXTRACT(YEAR FROM order_date));
           <span class="code-lang">SQL — Studi Kasus: E-Commerce Performance</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<pre>-- =============================================
+<pre><code>-- =============================================
 -- SKENARIO: Dashboard admin e-commerce
 -- Query lambat, perlu dioptimasi
 -- =============================================
@@ -1170,7 +1170,7 @@ REINDEX TABLE orders;
 
 -- PostgreSQL modern: gunakan CONCURRENTLY agar tidak lock tabel
 REINDEX INDEX CONCURRENTLY idx_orders_cat_date;
-</pre>
+</code></pre>
       </div>
 
       <!-- AD SLOT -->

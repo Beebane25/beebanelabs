@@ -117,7 +117,7 @@
       <h2 id="hypothesis">2. Hypothesis-Driven Hunting</h2>
       <p>Pendekatan dimulai dengan hipotesis tentang bagaimana attacker beroperasi, lalu mengumpulkan data untuk membuktikan atau menyanggah.</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">Template — Hunting Hypothesis</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
-<pre># =============================================
+<pre><code># =============================================
 +# Threat Hunting Hypothesis Template
 +# =============================================
 
@@ -147,7 +147,7 @@
 +| where query_len > 50
 +| stats count avg(query_len) as avg_len
 +  by dest
-+| where count > 100 AND avg_len > 50</pre>
++| where count > 100 AND avg_len > 50</code></pre>
       </div>
 
       <h2 id="mitre">3. MITRE ATT&CK Mapping</h2>
@@ -166,7 +166,7 @@
       <h2 id="ioc">4. IOC-Based Hunting</h2>
       <p>IOC hunting mencari artifact spesifik yang terkait serangan — IP, domain, file hash, atau registry key.</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">Splunk — IOC Hunting</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
-<pre># =============================================
+<pre><code># =============================================
 +# IOC Hunting Queries
 +# =============================================
 
@@ -192,13 +192,13 @@
 +index=windows EventCode=4104
 +| where ScriptBlockText LIKE "%-enc%"
 +  OR ScriptBlockText LIKE "%FromBase64String%"
-+| table _time, Computer, ScriptBlockText</pre>
++| table _time, Computer, ScriptBlockText</code></pre>
       </div>
 
       <h2 id="behavioral">5. Behavioral Analytics</h2>
       <p>Mencari anomali perilaku yang menyimpang dari baseline, mengindikasikan kompromi tanpa IOC yang diketahui.</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">Splunk — Behavioral Hunting</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
-<pre># =============================================
+<pre><code># =============================================
 +# Behavioral Analytics Hunting
 +# =============================================
 
@@ -225,14 +225,14 @@
 +| stats count by _time, dest_domain
 +| eventstats avg(count) as avg_count,
 +    stdev(count) as std_count by dest_domain
-+| where count > avg_count + (3 * std_count)</pre>
++| where count > avg_count + (3 * std_count)</code></pre>
       </div>
 
       <h2 id="techniques">6. Hunting Techniques</h2>
       <h3>Stacking (Frequency Analysis)</h3>
       <p>Menemukan anomali dengan menghitung frekuensi kemunculan. Nilai yang sangat jarang layak diperiksa.</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">Splunk — Stacking</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
-<pre># =============================================
+<pre><code># =============================================
 +# Stacking Analysis
 +# =============================================
 
@@ -251,7 +251,7 @@
 
 +# Rare service installations
 +index=windows EventCode=7045
-+| rare limit=20 ServiceName, ImagePath</pre>
++| rare limit=20 ServiceName, ImagePath</code></pre>
       </div>
 
       <h2 id="tools">7. Hunting Tools &amp; Infrastructure</h2>
@@ -275,7 +275,7 @@
       <h3>Hunting with YARA Rules</h3>
       <p>YARA adalah pattern matching tool yang sangat powerful untuk mengidentifikasi dan mengkategorikan malware samples. Dalam threat hunting, YARA digunakan untuk scanning endpoint dan memory.</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">YARA — Threat Hunting Rules</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
-<pre># =============================================
+<pre><code># =============================================
 +# YARA Rules untuk Threat Hunting
 +# =============================================
 
@@ -320,13 +320,13 @@
 
 +# Scan with Velociraptor
 +# VQL: SELECT * FROM glob(globs="/**/*.{exe,dll,sys}")
-+#       WHERE yara(file=FullPath, rules=yara_rules)</pre>
++#       WHERE yara(file=FullPath, rules=yara_rules)</code></pre>
       </div>
 
       <h3>Memory Forensics for Hunting</h3>
       <p>Memory forensik sangat penting untuk threat hunting karena banyak malware yang hanya hidup di memory (fileless malware). Tool seperti Volatility memungkinkan analisis memory dump.</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Memory Forensics</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
-<pre># =============================================
+<pre><code># =============================================
 +# Memory Forensics untuk Threat Hunting
 +# =============================================
 
@@ -366,13 +366,13 @@
 
 +# 4. Scan memory dump with YARA
 +vol -f memdump.raw windows.vadyarascan \
-+  --yara-rules hunting_rules.yar</pre>
++  --yara-rules hunting_rules.yar</code></pre>
       </div>
 
       <h3>Network-Based Hunting</h3>
       <p>Network traffic analysis mengungkap komunikasi C2, data exfiltration, dan lateral movement yang mungkin tidak terlihat di endpoint logs.</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">Zeek — Network Hunting Scripts</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
-<pre># =============================================
+<pre><code># =============================================
 +# Network Hunting dengan Zeek (Bro)
 +# =============================================
 
@@ -412,14 +412,14 @@
 +# DNS query analysis
 +tshark -r capture.pcap -Y "dns" \
 +  -T fields -e dns.qry.name -e dns.qry.type \
-+  | sort | uniq -c | sort -rn | head -50</pre>
++  | sort | uniq -c | sort -rn | head -50</code></pre>
       </div>
 
 
 +      <h3>Hunting Playbooks</h3>
 +      <p>Hunting playbook mendokumentasikan prosedur berburu yang dapat direplikasi. Setiap playbook terdiri dari hipotesis, data sources, queries, dan triage criteria.</p>
 +      <div class="code-block"><div class="code-header"><span class="code-lang">Template — Hunting Playbook</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
-+<pre># =============================================
++<pre><code># =============================================
 +# Hunting Playbook: Credential Dumping
 +# =============================================
 
@@ -476,13 +476,13 @@
 +# 3. Force password reset for all accounts
 +#    that were logged into the endpoint
 +# 4. Check for lateral movement using
-+#    compromised credentials</pre>
++#    compromised credentials</code></pre>
 +      </div>
 +
 +      <h3>Automating Hunts with Jupyter Notebooks</h3>
 +      <p>Jupyter Notebooks sangat baik untuk threat hunting karena mendukung iteraktif data analysis, visualisasi, dan dokumentasi dalam satu file.</p>
 +      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Jupyter Hunting Notebook</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
-+<pre># =============================================
++<pre><code># =============================================
 +# Threat Hunting Jupyter Notebook
 +# =============================================
 
@@ -534,7 +534,7 @@
 +process_counts = df['process_name'].value_counts()
 +rare = process_counts[process_counts &lt; 5]
 +print(f"Rare processes (&lt;5 occurrences): {len(rare)}")
-+rare.head(20)</pre>
++rare.head(20)</code></pre>
 +      </div>
 +
 +      <h3>Hunting Metrics &amp; Reporting</h3>

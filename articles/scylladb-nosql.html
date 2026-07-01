@@ -266,7 +266,7 @@
           <span class="code-lang">Terminal — Instalasi ScyllaDB</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # Metode 1: Docker (recommended untuk testing)
 docker run -d --name scylla-node1 \
     -p 9042:9042 \
@@ -297,7 +297,7 @@ sudo systemctl enable scylla-server
 # Verifikasi
 nodetool status
 cqlsh -e "SELECT release_version FROM system.local;"
-</pre>
+</code></pre>
       </div>
 
       <h3>2.1 Multi-Node Cluster</h3>
@@ -307,7 +307,7 @@ cqlsh -e "SELECT release_version FROM system.local;"
           <span class="code-lang">Docker — 3-Node ScyllaDB Cluster</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # Node 1 (seed node)
 docker run -d --name scylla1 --hostname scylla1 \
     -p 9042:9042 \
@@ -345,7 +345,7 @@ docker exec -it scylla1 nodetool status
 # UN  172.17.0.2  256 KB    256     33.3%   xxx       rack1
 # UN  172.17.0.3  256 KB    256     33.3%   xxx       rack1
 # UN  172.17.0.4  256 KB    256     33.3%   xxx       rack1
-</pre>
+</code></pre>
       </div>
 
       <div class="info-box tip">
@@ -367,7 +367,7 @@ docker exec -it scylla1 nodetool status
           <span class="code-lang">CQL — Keyspace dan Tabel</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Membuat keyspace (analog dengan database)
 CREATE KEYSPACE IF NOT EXISTS myapp
 WITH replication = {
@@ -410,7 +410,7 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     PRIMARY KEY ((sensor_id, date), reading_time)
 ) WITH CLUSTERING ORDER BY (reading_time DESC)
   AND default_time_to_live = 7776000;  -- TTL 90 hari
-</pre>
+</code></pre>
       </div>
 
       <h3>3.2 CRUD Operations</h3>
@@ -420,7 +420,7 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
           <span class="code-lang">CQL — Operasi CRUD</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- INSERT
 INSERT INTO users (user_id, username, email, created_at)
 VALUES (uuid(), 'budi_santoso', 'budi@example.com', toTimestamp(now()));
@@ -467,7 +467,7 @@ BEGIN BATCH
     INSERT INTO user_stats (user_id, login_count, last_login)
     VALUES (uuid(), 1, toTimestamp(now()));
 APPLY BATCH;
-</pre>
+</code></pre>
       </div>
 
       <h3>3.3 Data Model Design Principles</h3>
@@ -482,7 +482,7 @@ APPLY BATCH;
           <span class="code-lang">CQL — Data Model untuk Berbagai Query Pattern</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Pattern 1: Cari user by email
 CREATE TABLE users_by_email (
     email TEXT PRIMARY KEY,
@@ -521,7 +521,7 @@ CREATE INDEX ON users (email);
 -- Alternatif: SSTable Attached Secondary Index (SASI)
 CREATE CUSTOM INDEX ON users (username)
 USING 'StorageAttachedIndex';
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -549,7 +549,7 @@ USING 'StorageAttachedIndex';
           <span class="code-lang">CQL — Konfigurasi Compaction</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Mengubah compaction strategy
 ALTER TABLE users WITH compaction = {
     'class': 'LeveledCompactionStrategy',
@@ -578,7 +578,7 @@ ALTER TABLE large_table WITH compaction = {
 
 -- Memaksa compaction (hanya untuk testing/ops)
 -- nodetool compact myapp users
-</pre>
+</code></pre>
       </div>
 
       <h3>4.2 TTL &amp; Tombstones</h3>
@@ -588,7 +588,7 @@ ALTER TABLE large_table WITH compaction = {
           <span class="code-lang">CQL — TTL dan gc_grace_seconds</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- TTL: data otomatis dihapus setelah N detik
 INSERT INTO sensor_readings (sensor_id, date, reading_time, temperature, humidity)
 VALUES (uuid(), '2026-06-29', now(), 25.5, 60.0)
@@ -605,7 +605,7 @@ ALTER TABLE temp_data WITH gc_grace_seconds = 86400;  -- 1 hari
 -- Tips: Hindari tombstone heavy scan
 -- Tambahkan tombstone_warn_threshold untuk monitoring
 ALTER TABLE messages WITH tombstone_warn_threshold = 1000;
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -622,7 +622,7 @@ ALTER TABLE messages WITH tombstone_warn_threshold = 1000;
           <span class="code-lang">Terminal — Repair Operations</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # Full repair: membandingkan semua data
 nodetool repair myapp users
 
@@ -643,7 +643,7 @@ sctool repair add --cluster my-cluster --keyspace myapp --interval 3d
 
 # Cek repair status
 sctool repair list --cluster my-cluster
-</pre>
+</code></pre>
       </div>
 
       <div class="info-box tip">
@@ -663,7 +663,7 @@ sctool repair list --cluster my-cluster
           <span class="code-lang">CQL — Mengaktifkan &amp; Menggunakan CDC</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Aktifkan CDC pada tabel
 ALTER TABLE users WITH cdc = {
     'enabled': true,
@@ -703,7 +703,7 @@ LIMIT 10;
 --     "kafka.topic": "scylla-cdc-users"
 --   }
 -- }
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -718,7 +718,7 @@ LIMIT 10;
           <span class="code-lang">Terminal — Mengaktifkan Alternator</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # Mengaktifkan Alternator pada ScyllaDB node
 # Tambahkan flag berikut saat menjalankan ScyllaDB:
 # --alternator-port 8000
@@ -765,7 +765,7 @@ aws dynamodb query \
 aws dynamodb scan \
     --endpoint-url http://localhost:8000 \
     --table-name Music
-</pre>
+</code></pre>
       </div>
 
       <div class="info-box tip">
@@ -785,7 +785,7 @@ aws dynamodb scan \
           <span class="code-lang">Terminal — Monitoring ScyllaDB</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # Cluster status
 nodetool status
 
@@ -810,7 +810,7 @@ docker run -d --name scylla-monitoring \
     -p 3000:3000 \
     -v /var/lib/scylla-monitoring:/etc/scylla-monitoring \
     scylladb/scylla-monitoring:latest
-</pre>
+</code></pre>
       </div>
 
       <h3>8.2 Best Practices</h3>

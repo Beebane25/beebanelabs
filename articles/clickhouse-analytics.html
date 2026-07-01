@@ -274,7 +274,7 @@
           <span class="code-lang">Linux — Instalasi ClickHouse</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # Metode 1: Install dari official repository (Ubuntu/Debian)
 sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 \
     --recv 8919F6BD2B48D754
@@ -301,7 +301,7 @@ clickhouse-client --query "SELECT version()"
 
 # Koneksi dari luar
 clickhouse-client --host localhost --port 9000
-</pre>
+</code></pre>
       </div>
 
       <h3>2.2 Membuat Database &amp; Tabel Pertama</h3>
@@ -311,7 +311,7 @@ clickhouse-client --host localhost --port 9000
           <span class="code-lang">SQL — Database &amp; Tabel ClickHouse</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Membuat database
 CREATE DATABASE IF NOT EXISTS analytics;
 
@@ -355,7 +355,7 @@ SELECT
 FROM analytics.page_views
 GROUP BY country, device_type
 ORDER BY total_views DESC;
-</pre>
+</code></pre>
       </div>
 
       <h3>2.3 Data Types Penting</h3>
@@ -396,7 +396,7 @@ ORDER BY total_views DESC;
           <span class="code-lang">SQL — Berbagai Jenis MergeTree Engine</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- 1. MergeTree Standar
 CREATE TABLE raw_events (
     event_time DateTime,
@@ -452,7 +452,7 @@ CREATE TABLE inventory (
     sign Int8  -- 1 = baris aktif, -1 = baris dihapus
 ) ENGINE = CollapsingMergeTree(sign)
 ORDER BY (warehouse_id, product_id);
-</pre>
+</code></pre>
       </div>
 
       <h3>3.2 PARTITION BY &amp; ORDER BY Strategy</h3>
@@ -462,7 +462,7 @@ ORDER BY (warehouse_id, product_id);
           <span class="code-lang">SQL — Partitioning &amp; Ordering Best Practices</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Partition: gunakan granularity yang tepat
 -- - Per hari untuk data sangat besar (>100M rows/day)
 -- - Per bulan untuk data sedang
@@ -494,7 +494,7 @@ ORDER BY partition;
 
 -- Force merge parts (biasanya otomatis)
 OPTIMIZE TABLE events_optimized FINAL;
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -511,7 +511,7 @@ OPTIMIZE TABLE events_optimized FINAL;
           <span class="code-lang">SQL — Materialized Views untuk Pre-Aggregasi</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- 1. Materialized View dengan AggregatingMergeTree
 -- Target tabel dulu
 CREATE TABLE mv_hourly_stats (
@@ -587,7 +587,7 @@ AS SELECT
     ) AS event_category,
     country AS region
 FROM raw_events;
-</pre>
+</code></pre>
       </div>
 
       <h3>4.2 Monitoring Materialized Views</h3>
@@ -597,7 +597,7 @@ FROM raw_events;
           <span class="code-lang">SQL — Monitoring MV</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Cek status materialized views
 SELECT
     database,
@@ -627,7 +627,7 @@ FROM system.query_log
 WHERE query LIKE '%MATERIALIZED%'
 ORDER BY event_time DESC
 LIMIT 10;
-</pre>
+</code></pre>
       </div>
 
       <div class="info-box warning">
@@ -649,7 +649,7 @@ LIMIT 10;
           <span class="code-lang">SQL — Projections untuk Multi-Order Data</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Tabel dengan projection
 CREATE TABLE events (
     event_time DateTime,
@@ -701,7 +701,7 @@ ORDER BY projection_name;
 
 -- Force rebuild projection
 ALTER TABLE events MATERIALIZE PROJECTION proj_by_country;
-</pre>
+</code></pre>
       </div>
 
       <div class="info-box tip">
@@ -716,7 +716,7 @@ ALTER TABLE events MATERIALIZE PROJECTION proj_by_country;
           <span class="code-lang">SQL — Skip Index untuk Filter Cepat</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Bloom filter untuk kolom yang sering di-filter
 ALTER TABLE events ADD INDEX idx_page_url (page_url)
     TYPE bloom_filter GRANULARITY 3;
@@ -745,7 +745,7 @@ SELECT
     granularity_in_blocks
 FROM system.data_skipping_indices
 WHERE table = 'events';
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -762,7 +762,7 @@ WHERE table = 'events';
           <span class="code-lang">XML — Konfigurasi Cluster di config.xml</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 <!-- /etc/clickhouse-server/config.d/cluster.xml -->
 &lt;clickhouse&gt;
   &lt;remote_servers&gt;
@@ -792,7 +792,7 @@ WHERE table = 'events';
     &lt;/analytics_cluster&gt;
   &lt;/remote_servers&gt;
 &lt;/clickhouse&gt;
-</pre>
+</code></pre>
       </div>
 
       <h3>6.2 Distributed Tables</h3>
@@ -802,7 +802,7 @@ WHERE table = 'events';
           <span class="code-lang">SQL — Membuat &amp; Menggunakan Distributed Tables</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Di setiap node, buat tabel local
 CREATE TABLE events_local ON CLUSTER analytics_cluster (
     event_time DateTime,
@@ -837,7 +837,7 @@ SELECT * FROM events_local WHERE country = 'ID';
 
 -- Cluster info
 SELECT * FROM system.clusters WHERE cluster = 'analytics_cluster';
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -852,7 +852,7 @@ SELECT * FROM system.clusters WHERE cluster = 'analytics_cluster';
           <span class="code-lang">SQL — Window Functions di ClickHouse</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Running total dan ranking
 SELECT
     user_id,
@@ -890,7 +890,7 @@ SELECT
         event_time
     ) AS seconds_since_prev
 FROM events;
-</pre>
+</code></pre>
       </div>
 
       <h3>7.2 Fungsi Agregasi Khas ClickHouse</h3>
@@ -900,7 +900,7 @@ FROM events;
           <span class="code-lang">SQL — Fungsi Agregasi Lanjutan</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- argMax / argMin: mengambil nilai kolom lain saat max/min tercapai
 SELECT
     user_id,
@@ -940,7 +940,7 @@ SELECT
     histogram(20)(duration) AS duration_distribution
 FROM events
 GROUP BY event_type;
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>
@@ -971,7 +971,7 @@ GROUP BY event_type;
           <span class="code-lang">SQL — Monitoring Queries</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Query yang sedang running
 SELECT
     query_id,
@@ -1015,7 +1015,7 @@ SELECT
     absolute_delay,
     queue_size
 FROM system.replicas;
-</pre>
+</code></pre>
       </div>
 
       <div class="ad-slot ad-slot-wide"></div>

@@ -293,7 +293,7 @@
           <span class="code-lang">Linux — Instalasi CockroachDB</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # Download CockroachDB binary terbaru
 wget -qO- https://binaries.cockroachdb.com/cockroach-v24.1.0.linux-amd64.tgz | tar xvz
 
@@ -309,7 +309,7 @@ pip install psycopg2-binary sqlalchemy
 
 # Node.js:
 npm install pg
-</pre>
+</code></pre>
       </div>
 
       <h3>2.2 Memulai Single-Node Cluster</h3>
@@ -319,7 +319,7 @@ npm install pg
           <span class="code-lang">Terminal — Single-Node Development Cluster</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # Buat direktori untuk data
 mkdir -p ~/cockroach-data
 
@@ -352,7 +352,7 @@ INSERT INTO users (name, email, region) VALUES
     ('Sari', 'sari@example.com', 'us-east1');
 
 SELECT * FROM users;
-</pre>
+</code></pre>
       </div>
 
       <h3>2.3 Multi-Node Cluster Lokal</h3>
@@ -362,7 +362,7 @@ SELECT * FROM users;
           <span class="code-lang">Terminal — 3-Node Cluster untuk Development</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # Node 1
 cockroach start \
   --insecure \
@@ -395,7 +395,7 @@ cockroach init --insecure --host=localhost:26257
 
 # Cek status cluster
 cockroach node status --insecure --host=localhost:26257
-</pre>
+</code></pre>
       </div>
 
       <div class="info-box tip">
@@ -429,7 +429,7 @@ cockroach node status --insecure --host=localhost:26257
           <span class="code-lang">SQL — Demonstrasi Serializability</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- CockroachDB SELALU dalam serializable isolation
 -- Tidak perlu SET TRANSACTION ISOLATION LEVEL
 
@@ -452,7 +452,7 @@ SHOW TRANSACTION ISOLATION LEVEL;
 -- Retry logic di aplikasi (penting!)
 -- CockroachDB mengembalikan error 40001 (serialization failure)
 -- ketika transaksi perlu di-retry
-</pre>
+</code></pre>
       </div>
 
       <h3>3.2 Transaction Contention & Retry</h3>
@@ -464,7 +464,7 @@ SHOW TRANSACTION ISOLATION LEVEL;
           <span class="code-lang">Python — Transaction Retry Logic</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 import psycopg2
 from psycopg2 import errors
 import time
@@ -499,7 +499,7 @@ def transfer_balance(cur):
     return True
 
 execute_with_retry(conn, transfer_balance)
-</pre>
+</code></pre>
       </div>
 
       <div class="info-box warning">
@@ -556,7 +556,7 @@ execute_with_retry(conn, transfer_balance)
           <span class="code-lang">SQL — Mengelola dan Memantau Ranges</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Melihat informasi ranges
 SHOW RANGES FROM TABLE users;
 
@@ -601,7 +601,7 @@ FROM crdb_internal.ranges_no_leases r
 JOIN crdb_internal.node_metrics m ON r.lease_holder = m.node_id
 ORDER BY reads_per_second DESC
 LIMIT 10;
-</pre>
+</code></pre>
       </div>
 
       <h3>4.3 Index & Range Interaction</h3>
@@ -612,7 +612,7 @@ LIMIT 10;
           <span class="code-lang">SQL — Primary Key untuk Distribusi Optimal</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- HINDARI: Auto-increment ID bisa menyebabkan hot spot
 -- Semua write masuk ke range terakhir
 CREATE TABLE bad_example (
@@ -640,7 +640,7 @@ CREATE TABLE events (
     payload JSONB,
     PRIMARY KEY (region, created_at, event_id)
 );
-</pre>
+</code></pre>
       </div>
 
       <!-- AD SLOT -->
@@ -662,7 +662,7 @@ CREATE TABLE events (
           <span class="code-lang">Terminal — Memulai Node dengan Locality</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 # Node di US East
 cockroach start \
   --insecure \
@@ -692,7 +692,7 @@ cockroach start \
 
 # Initialize cluster
 cockroach init --insecure --host=node-us-east:26257
-</pre>
+</code></pre>
       </div>
 
       <h3>5.2 Zone Configuration</h3>
@@ -702,7 +702,7 @@ cockroach init --insecure --host=node-us-east:26257
           <span class="code-lang">SQL — Zone Configuration untuk Locality</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Konfigurasi zona untuk tabel: replika di setiap region
 ALTER TABLE users CONFIGURE ZONE USING
     num_replicas = 3,
@@ -737,7 +737,7 @@ ALTER PARTITION eu_west OF TABLE users CONFIGURE ZONE USING
 ALTER PARTITION ap_south OF TABLE users CONFIGURE ZONE USING
     constraints = '{+region=ap-south: 2}',
     lease_preferences = '[[+region=ap-south]]';
-</pre>
+</code></pre>
       </div>
 
       <div class="info-box tip">
@@ -764,7 +764,7 @@ ALTER PARTITION ap_south OF TABLE users CONFIGURE ZONE USING
           <span class="code-lang">SQL — Changefeed ke Kafka dan Cloud Storage</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Aktifkan rangefeed di cluster
 SET CLUSTER SETTING kv.rangefeed.enabled = true;
 
@@ -796,7 +796,7 @@ WITH updated, envelope = 'wrapped',
 CREATE CHANGEFEED FOR TABLE orders (id, status, total)
 INTO 'kafka://kafka-broker:9022?topic_prefix=order_changes'
 WITH updated, resolved;
-</pre>
+</code></pre>
       </div>
 
       <h3>6.2 Memantau &amp; Mengelola Changefeeds</h3>
@@ -806,7 +806,7 @@ WITH updated, resolved;
           <span class="code-lang">SQL — Mengelola Changefeed Jobs</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Melihat semua changefeed jobs
 SHOW JOBS WHEN COMPLETE SELECT * FROM [SHOW CHANGEFEED JOBS];
 
@@ -838,7 +838,7 @@ ALTER CHANGEFEED 12345 SET sink_uri = 'kafka://new-broker:9092';
 
 -- Menambah tabel ke changefeed
 ALTER CHANGEFEED 12345 ADD TABLE new_table;
-</pre>
+</code></pre>
       </div>
 
       <h3>6.3 Format Output Changefeed</h3>
@@ -873,7 +873,7 @@ ALTER CHANGEFEED 12345 ADD TABLE new_table;
           <span class="code-lang">SQL — Multi-Region Database Setup</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Pastikan node sudah diberi locality saat startup
 -- Set database sebagai multi-region
 ALTER DATABASE mydb SET PRIMARY REGION "us-east1";
@@ -914,7 +914,7 @@ CREATE TABLE local_configs (
     key STRING PRIMARY KEY,
     value STRING
 ) LOCALITY REGIONAL BY TABLE IN REGION "us-east1";
-</pre>
+</code></pre>
       </div>
 
       <h3>7.2 Memahami Survival Goals</h3>
@@ -936,7 +936,7 @@ CREATE TABLE local_configs (
           <span class="code-lang">SQL — Optimasi Multi-Region Queries</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Gunakan gateway_region() untuk otomatis mengaitkan baris
 -- dengan region dari koneksi
 INSERT INTO user_accounts (email, name, crdb_region)
@@ -967,7 +967,7 @@ SELECT
 FROM user_accounts u
 JOIN orders o ON u.id = o.user_id
 GROUP BY u.crdb_region;
-</pre>
+</code></pre>
       </div>
 
       <!-- AD SLOT -->
@@ -987,7 +987,7 @@ GROUP BY u.crdb_region;
           <span class="code-lang">SQL — EXPLAIN dan Query Optimasi</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Analisis query plan
 EXPLAIN SELECT * FROM users WHERE region = 'us-east';
 
@@ -1017,7 +1017,7 @@ FROM crdb_internal.table_indexes ti
 JOIN crdb_internal.index_usage_statistics ts
     ON ti.index_id = ts.index_id AND ti.table_id = ts.table_id
 WHERE ti.descriptor_name = 'users';
-</pre>
+</code></pre>
       </div>
 
       <h3>8.2 Cluster Monitoring</h3>
@@ -1027,7 +1027,7 @@ WHERE ti.descriptor_name = 'users';
           <span class="code-lang">SQL — Monitoring Cluster Health</span>
           <button class="code-copy" aria-label="Salin kode">Salin</button>
         </div>
-<pre>
+<pre><code>
 -- Node liveness
 SELECT node_id, address, is_live
 FROM crdb_internal.gossip_nodes;
@@ -1055,7 +1055,7 @@ SELECT
 FROM crdb_internal.node_statement_statistics
 ORDER BY count DESC
 LIMIT 20;
-</pre>
+</code></pre>
       </div>
 
       <h3>8.3 Checklist Production</h3>
