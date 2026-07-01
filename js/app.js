@@ -2068,10 +2068,11 @@ const CookieConsent = {
     btnsDiv.appendChild(acceptBtn);
     banner.appendChild(btnsDiv);
     document.body.appendChild(banner);
+    document.body.classList.add('cookie-visible');
     requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('show')));
   },
-  accept(btn) { localStorage.setItem(this.KEY, 'accepted'); btn.closest('.cookie-consent').classList.remove('show'); setTimeout(() => btn.closest('.cookie-consent').remove(), 400); Toast.show('Cookie diterima! Terima kasih.', 'success'); },
-  dismiss(btn) { localStorage.setItem(this.KEY, 'declined'); btn.closest('.cookie-consent').classList.remove('show'); setTimeout(() => btn.closest('.cookie-consent').remove(), 400); }
+  accept(btn) { localStorage.setItem(this.KEY, 'accepted'); document.body.classList.remove('cookie-visible'); btn.closest('.cookie-consent').classList.remove('show'); setTimeout(() => btn.closest('.cookie-consent').remove(), 400); Toast.show('Cookie diterima! Terima kasih.', 'success'); },
+  dismiss(btn) { localStorage.setItem(this.KEY, 'declined'); document.body.classList.remove('cookie-visible'); btn.closest('.cookie-consent').classList.remove('show'); setTimeout(() => btn.closest('.cookie-consent').remove(), 400); }
 };
 
 // === THEME TOGGLE (Global - applies to ALL pages via html element) ===
