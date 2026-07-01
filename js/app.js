@@ -3075,6 +3075,25 @@ function renderGroupedArticles(filter) {
   grid.innerHTML = html;
 }
 
+// === DYNAMIC COUNTS (Auto-update from ALL_ARTICLES) ===
+function updateDynamicCounts() {
+  // 1. Update hero stat total
+  const heroStat = document.querySelector('.stat-number');
+  if (heroStat) {
+    heroStat.textContent = ALL_ARTICLES.length + '+';
+  }
+
+  // 2. Update category card counts
+  const counts = getCategoryCounts();
+  document.querySelectorAll('.category-card[data-cat]').forEach(function(card) {
+    var catKey = card.getAttribute('data-cat');
+    var countEl = card.querySelector('.article-count');
+    if (countEl && counts[catKey] !== undefined) {
+      countEl.textContent = counts[catKey] + '+ Tutorial';
+    }
+  });
+}
+
 // === INITIALIZE ALL SYSTEMS ===
 document.addEventListener('DOMContentLoaded', async () => {
   AuthSystem.init();
@@ -3102,6 +3121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initScrollReveal();
   initParticles();
   animateCounters();
+  updateDynamicCounts(); // Auto-update hero stat + category counts from ALL_ARTICLES
   initCopyCode();
   initMouseGlow();
   initSectionDividers();
