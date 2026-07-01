@@ -229,31 +229,31 @@
         
 <pre class="mermaid">
 flowchart TD
-    N0[/"VECTOR DATABASE CONCEPT"/]
-    N1[/"Input Text"/]
-    N2[/"Embedding Model"/]
-    N3[/"Vector (angka)"/]
-    N4[/"Simpan di DB"/]
-    N5[/"'sepatu olahraga'"/]
-    N6[/"(0.23, -0.45, 0.87, ..., 0.12)  (384D)"/]
-    N7[/"'running shoes'"/]
-    N8[/"(0.25, -0.42, 0.85, ..., 0.15)  (384D)"/]
-    N9[/"'sneakers joging'"/]
-    N10[/"(0.21, -0.48, 0.82, ..., 0.10)  (384D)"/]
-    N11[/"'mobil sport'"/]
-    N12[/"(-0.67, 0.34, -0.21, ..., 0.78) (384D)"/]
-    N13[/"Semantic Search: 'sepatu lari'"/]
-    N14[/"vector query"/]
-    N15[/"Hasil (by cosine similarity):"/]
-    N16[/"1. 'running shoes'"/]
-    N17[/"0.98 (sangat mirip) ✅"/]
-    N18[/"2. 'sepatu olahraga'"/]
-    N19[/"0.95 (mirip) ✅"/]
-    N20[/"3. 'sneakers joging'"/]
-    N21[/"0.93 (mirip) ✅"/]
-    N22[/"4. 'mobil sport'"/]
-    N23[/"0.12 (tidak mirip) ❌"/]
-    N24[/"Data yang 'bermakna sama' punya vektor yang ber..."/]
+    N0["VECTOR DATABASE CONCEPT"]
+    N1["Input Text"]
+    N2["Embedding Model"]
+    N3["Vector (angka)"]
+    N4["Simpan di DB"]
+    N5["'sepatu olahraga'"]
+    N6["(0.23, -0.45, 0.87, ..., 0.12)  (384D)"]
+    N7["'running shoes'"]
+    N8["(0.25, -0.42, 0.85, ..., 0.15)  (384D)"]
+    N9["'sneakers joging'"]
+    N10["(0.21, -0.48, 0.82, ..., 0.10)  (384D)"]
+    N11["'mobil sport'"]
+    N12["(-0.67, 0.34, -0.21, ..., 0.78) (384D)"]
+    N13["Semantic Search: 'sepatu lari'"]
+    N14["vector query"]
+    N15["Hasil (by cosine similarity):"]
+    N16["1. 'running shoes'"]
+    N17["0.98 (sangat mirip) ✅"]
+    N18["2. 'sepatu olahraga'"]
+    N19["0.95 (mirip) ✅"]
+    N20["3. 'sneakers joging'"]
+    N21["0.93 (mirip) ✅"]
+    N22["4. 'mobil sport'"]
+    N23["0.12 (tidak mirip) ❌"]
+    N24["Data yang 'bermakna sama' punya vektor yang ber..."]
     N0 --> N1
     N1 --> N2
     N2 --> N3
@@ -336,178 +336,14 @@ flowchart TD
         </tbody>
       </table>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python — Membuat Embeddings</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># =============================================
-# EMBEDDING dengan OpenAI
-# =============================================
-# pip install openai
-
-import openai
-
-client = openai.OpenAI(api_key="sk-...")
-
-# Buat embedding untuk satu teks
-response = client.embeddings.create(
-    model="text-embedding-3-small",
-    input="Mesin ini adalah panduan lengkap belajar Python untuk pemula"
-)
-
-vector = response.data[0].embedding
-print(f"Dimensi: {len(vector)}")  # 1536
-print(f"5 elemen pertama: {vector[:5]}")
-# [0.0234, -0.0456, 0.0789, -0.0123, 0.0567]
-
-# Buat embedding untuk banyak teks sekaligus (batch)
-texts = [
-    "Cara belajar Python untuk pemula",
-    "Tutorial JavaScript dasar",
-    "Panduan database MySQL",
-    "Resep nasi goreng spesial",
-    "Jadwal pertandingan sepak bola"
-]
-
-response = client.embeddings.create(
-    model="text-embedding-3-small",
-    input=texts
-)
-
-embeddings = [item.embedding for item in response.data]
-print(f"Jumlah embedding: {len(embeddings)}")  # 5
-
-
-# =============================================
-# EMBEDDING dengan Sentence Transformers (GRATIS, LOKAL)
-# =============================================
-# pip install sentence-transformers
-
-from sentence_transformers import SentenceTransformer
-
-model = SentenceTransformer('all-MiniLM-L6-v2')
-
-# Embedding satu teks
-vector = model.encode("Belajar Python dari nol")
-print(f"Dimensi: {len(vector)}")  # 384
-
-# Embedding batch
-texts = [
-    "Cara belajar Python untuk pemula",
-    "Tutorial JavaScript dasar",
-    "Panduan database MySQL",
-    "Resep nasi goreng spesial"
-]
-vectors = model.encode(texts)
-print(f"Shape: {vectors.shape}")  # (4, 384)
-
-
-# =============================================
-# EMBEDDING MULTILINGUAL (untuk bahasa Indonesia)
-# =============================================
-model_multi = SentenceTransformer('intfloat/multilingual-e5-large')
-
-# Embedding bahasa Indonesia
-vector_id = model_multi.encode("query: Apa itu machine learning?")
-print(f"Dimensi: {len(vector_id)}")  # 1024
-</code></pre>
       </div>
-
-      <div class="info-box tip">
-        <div class="info-box-title">💡 Tips Embedding</div>
-        <ul>
-          <li><strong>Konsistensi model</strong> — gunakan model yang SAMA untuk indexing dan querying</li>
-          <li><strong>Bahasa Indonesia</strong> — gunakan multilingual model (multilingual-e5, BGE-M3)</li>
-          <li><strong>Chunking</strong> — pecah dokumen panjang menjadi chunk 200-500 token sebelum embedding</li>
-          <li><strong>Prefix query</strong> — beberapa model butuh prefix "query:" atau "passage:"</li>
-        </ul>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 3: Pinecone Setup       -->
-      <!-- ============================== -->
-      <h2 id="pinecone-setup">3. Setup Pinecone</h2>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python — Setup Pinecone</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># =============================================
-# STEP 1: Install
-# =============================================
-# pip install pinecone
-
-# =============================================
-# STEP 2: Inisialisasi Pinecone
-# =============================================
-from pinecone import Pinecone, ServerlessSpec
-
-# Inisialisasi client
-pc = Pinecone(api_key="YOUR_PINECONE_API_KEY")
-
-# =============================================
-# STEP 3: Buat Index (database untuk vektor)
-# =============================================
-
-# Cek index yang sudah ada
-existing_indexes = pc.list_indexes().names()
-print(f"Index yang ada: {existing_indexes}")
-
-# Buat index baru jika belum ada
-if 'tutorial-index' not in existing_indexes:
-    pc.create_index(
-        name='tutorial-index',
-        dimension=1536,       # Sesuai dimensi embedding model
-        metric='cosine',      # cosine, euclidean, dotproduct
-        spec=ServerlessSpec(
-            cloud='aws',
-            region='us-east-1'
-        )
-    )
-    print("Index 'tutorial-index' berhasil dibuat!")
-
-# Connect ke index
-index = pc.Index('tutorial-index')
-
-# Cek statistik index
-stats = index.describe_index_stats()
-print(f"Total vectors: {stats.total_vector_count}")
-print(f"Dimension: {stats.dimension}")
-print(f"Namespaces: {list(stats.namespaces.keys())}")
-
-
-# =============================================
-# METRIC DISTANCE: Pilih yang sesuai
-# =============================================
-# cosine   → Cocok untuk semantic search (paling umum)
-#            Mengukur sudut antara 2 vektor (0-1, 1=identik)
-#
-# euclidean → Mengukur jarak fisik antara 2 titik
-#             Cocok untuk data numerik/spatial
-#
-# dotproduct → Seperti cosine tapi tanpa normalisasi
-#              Cocok untuk vektor yang sudah normalized
-</code></pre>
-      </div>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Similarity Metrics</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: Directory structure</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"pinecone-rag-project/"/]
-    N1[/"app.py"/]
-    N2[/"embeddings.py"/]
-    N3[/"requirements.txt"/]
-    N4[/".env"/]
+    N0["pinecone-rag-project/"]
+    N1["app.py"]
+    N2["embeddings.py"]
+    N3["requirements.txt"]
+    N4[".env"]
     N0 --> N1
 </pre>
     </div>
@@ -523,330 +359,16 @@ flowchart TD
       <!-- ============================== -->
       <h2 id="crud">4. CRUD Operations — Upsert, Query, Delete</h2>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python — Pinecone CRUD Operations</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># =============================================
-# UPSERT: Menyimpan vektor (create/update)
-# =============================================
-
-# Format: list of (id, vector, metadata)
-vectors_to_upsert = [
-    {
-        "id": "doc_001",
-        "values": [0.023, -0.045, 0.078, 0.012, 0.056],  # ... 1536 dim
-        "metadata": {
-            "title": "Tutorial Python Pemula",
-            "category": "programming",
-            "language": "id",
-            "source": "beebanelabs.com",
-            "year": 2026,
-            "chunk_text": "Python adalah bahasa pemrograman serbaguna..."
-        }
-    },
-    {
-        "id": "doc_002",
-        "values": [0.025, -0.042, 0.085, 0.015, 0.050],
-        "metadata": {
-            "title": "Belajar JavaScript untuk Pemula",
-            "category": "programming",
-            "language": "id",
-            "source": "beebanelabs.com",
-            "year": 2026,
-            "chunk_text": "JavaScript adalah bahasa pemrograman web..."
-        }
-    },
-    {
-        "id": "doc_003",
-        "values": [-0.067, 0.034, -0.021, 0.078, 0.091],
-        "metadata": {
-            "title": "Resep Nasi Goreng Spesial",
-            "category": "cooking",
-            "language": "id",
-            "source": "resepmama.com",
-            "year": 2025,
-            "chunk_text": "Nasi goreng adalah makanan khas Indonesia..."
-        }
-    }
-]
-
-# Upsert ke index
-index.upsert(vectors=vectors_to_upsert)
-print(f"Berhasil upsert {len(vectors_to_upsert)} vektor")
-
-# Cek statistik setelah upsert
-stats = index.describe_index_stats()
-print(f"Total vektor: {stats.total_vector_count}")
-
-
-# =============================================
-# UPSERT dengan NAMESPACE (partition data)
-# =============================================
-
-# Namespace memisahkan data dalam index yang sama
-index.upsert(
-    vectors=[
-        {"id": "art_001", "values": [...], "metadata": {"title": "..."}}
-    ],
-    namespace="articles"  # Namespace untuk artikel
-)
-
-index.upsert(
-    vectors=[
-        {"id": "prod_001", "values": [...], "metadata": {"title": "..."}}
-    ],
-    namespace="products"  # Namespace untuk produk
-)
-
-
-# =============================================
-# QUERY: Mencari vektor mirip
-# =============================================
-
-# Buat embedding untuk query
-query_text = "cara belajar coding untuk pemula"
-query_vector = get_embedding(query_text)  # Fungsi embedding Anda
-
-# Cari 3 vektor paling mirip
-results = index.query(
-    vector=query_vector,
-    top_k=3,
-    include_metadata=True
-)
-
-# Tampilkan hasil
-for match in results.matches:
-    print(f"ID: {match.id}")
-    print(f"Score: {match.score:.4f}")  # Similarity score
-    print(f"Title: {match.metadata.get('title')}")
-    print(f"Category: {match.metadata.get('category')}")
-    print(f"Text: {match.metadata.get('chunk_text', '')[:100]}...")
-    print("---")
-
-
-# =============================================
-# QUERY dengan FILTER
-# =============================================
-
-# Filter berdasarkan metadata
-filtered_results = index.query(
-    vector=query_vector,
-    top_k=5,
-    include_metadata=True,
-    filter={
-        "category": {"$eq": "programming"},  # Hanya programming
-        "year": {"$gte": 2025}               # Tahun >= 2025
-    }
-)
-
-# Filter operators:
-# $eq    — sama dengan
-# $ne    — tidak sama
-# $gt    — lebih besar
-# $gte   — lebih besar atau sama
-# $lt    — kurang dari
-# $lte   — kurang dari atau sama
-# $in    — dalam daftar
-# $nin   — tidak dalam daftar
-
-
-# =============================================
-# FETCH: Ambil vektor by ID
-# =============================================
-fetched = index.fetch(ids=["doc_001", "doc_002"])
-for vid, vector_data in fetched.vectors.items():
-    print(f"ID: {vid}")
-    print(f"Metadata: {vector_data.metadata}")
-
-
-# =============================================
-# UPDATE: Ubah metadata vektor
-# =============================================
-index.update(
-    id="doc_001",
-    set_metadata={"views": 1500, "updated": True}
-)
-
-
-# =============================================
-# DELETE: Hapus vektor
-# =============================================
-
-# Hapus by ID
-index.delete(ids=["doc_003"])
-
-# Hapus semua dalam namespace
-index.delete(delete_all=True, namespace="articles")
-
-# Hapus dengan filter
-index.delete(filter={"category": {"$eq": "deprecated"}})
-</code></pre>
       </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 5: Similarity Search    -->
-      <!-- ============================== -->
-      <h2 id="similarity">5. Similarity Search &amp; Filtering</h2>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python — Advanced Similarity Search</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># =============================================
-# SEMANTIC SEARCH: Pencarian bermakna
-# =============================================
-
-def semantic_search(query, top_k=5, filter_dict=None):
-    """Pencarian semantic yang bisa difilter"""
-    query_vector = get_embedding(query)
-
-    results = index.query(
-        vector=query_vector,
-        top_k=top_k,
-        include_metadata=True,
-        filter=filter_dict
-    )
-
-    return [
-        {
-            "id": match.id,
-            "score": match.score,
-            "title": match.metadata.get("title", ""),
-            "text": match.metadata.get("chunk_text", ""),
-            "category": match.metadata.get("category", ""),
-            "metadata": match.metadata
-        }
-        for match in results.matches
-    ]
-
-# Contoh penggunaan:
-# "machine learning" → menemukan artikel tentang ML, AI, deep learning
-results = semantic_search("machine learning untuk pemula")
-for r in results:
-    print(f"[{r['score']:.3f}] {r['title']}")
-
-# Dengan filter:
-results = semantic_search(
-    "tutorial coding",
-    filter_dict={"category": "programming", "language": "id"}
-)
-
-
-# =============================================
-# HYBRID SEARCH: Vector + Metadata filter
-# =============================================
-
-# Cari artikel programming, tapi yang terbaru
-results = index.query(
-    vector=get_embedding("framework web terbaik"),
-    top_k=10,
-    include_metadata=True,
-    filter={
-        "category": {"$in": ["programming", "web-dev"]},
-        "year": {"$gte": 2025},
-        "language": {"$eq": "id"}
-    }
-)
-
-
-# =============================================
-# MULTI-QUERY: Gabungkan beberapa query
-# =============================================
-
-import numpy as np
-
-def multi_query_search(queries, weights=None, top_k=5):
-    """Gabungkan beberapa query menjadi satu vektor"""
-    if weights is None:
-        weights = [1.0 / len(queries)] * len(queries)
-
-    # Buat embedding untuk setiap query
-    vectors = [get_embedding(q) for q in queries]
-
-    # Weighted average
-    combined = np.zeros_like(vectors[0])
-    for vec, weight in zip(vectors, weights):
-        combined += np.array(vec) * weight
-
-    # Normalize
-    combined = combined / np.linalg.norm(combined)
-
-    return index.query(
-        vector=combined.tolist(),
-        top_k=top_k,
-        include_metadata=True
-    )
-
-# Contoh: cari yang tentang "Python" DAN "data science"
-results = multi_query_search(
-    ["Python programming", "data science tutorial"],
-    weights=[0.6, 0.4]  # Python lebih diprioritaskan
-)
-
-
-# =============================================
-# SEARCH + RE-RANKING
-# =============================================
-
-def search_with_rerank(query, top_k=20, final_k=5):
-    """Ambil banyak hasil, lalu re-rank"""
-    # Step 1: Ambil kandidat dari vector search
-    candidates = index.query(
-        vector=get_embedding(query),
-        top_k=top_k,
-        include_metadata=True
-    )
-
-    # Step 2: Re-rank berdasarkan relevance (misal dengan LLM)
-    texts = [m.metadata.get("chunk_text", "") for m in candidates.matches]
-
-    # Contoh sederhana: re-rank berdasarkan keyword overlap
-    query_words = set(query.lower().split())
-    scored = []
-    for match, text in zip(candidates.matches, texts):
-        text_words = set(text.lower().split())
-        overlap = len(query_words & text_words)
-        final_score = match.score * 0.7 + (overlap / len(query_words)) * 0.3
-        scored.append((match, final_score))
-
-    scored.sort(key=lambda x: x[1], reverse=True)
-    return scored[:final_k]
-</code></pre>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 6: RAG                  -->
-      <!-- ============================== -->
-      <h2 id="rag">6. RAG — Retrieval Augmented Generation</h2>
-
-      <p><strong>RAG (Retrieval Augmented Generation)</strong> adalah teknik yang menggabungkan <strong>retrieval</strong> (mengambil data relevan dari vector database) dengan <strong>generation</strong> (LLM menghasilkan jawaban). Ini memungkinkan LLM menjawab pertanyaan berdasarkan data spesifik Anda — tanpa perlu fine-tuning!</p>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: RAG Pipeline</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: RAG Pipeline</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"User Query: 'Berapa harga paket Enterprise Beeb..."/]
-    N1[/"STEP 1: RETRIEVAL Query → Embedding → Vector Se..."/]
-    N2[/"Top-K Results: 'Paket Enterprise: Rp 5jt/bulan...."/]
-    N3[/"STEP 2: AUGMENTATION Gabungkan: System Prompt +..."/]
-    N4[/"→ Prompt lengkap untuk LLM"/]
-    N5[/"STEP 3: GENERATION LLM (GPT-4, Claude, dll) gen..."/]
-    N6[/"'Paket Enterprise: Rp 5jt/bulan...' ✅ Akurat!"/]
+    N0["User Query: 'Berapa harga paket Enterprise Beeb..."]
+    N1["STEP 1: RETRIEVAL Query → Embedding → Vector Se..."]
+    N2["Top-K Results: 'Paket Enterprise: Rp 5jt/bulan...."]
+    N3["STEP 2: AUGMENTATION Gabungkan: System Prompt +..."]
+    N4["→ Prompt lengkap untuk LLM"]
+    N5["STEP 3: GENERATION LLM (GPT-4, Claude, dll) gen..."]
+    N6["'Paket Enterprise: Rp 5jt/bulan...' ✅ Akurat!"]
     N0 --> N1
     N1 --> N2
     N2 --> N3

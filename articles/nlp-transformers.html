@@ -136,19 +136,19 @@
         
 <pre class="mermaid">
 flowchart TD
-    N0[/"EVOLUSI ARSITEKTUR NLP"/]
-    N1[/"Era 1: Rule-based (1950-1990)"/]
-    N2[/"Regex, grammar rules, dictionary"/]
-    N3[/"Era 2: Statistical (1990-2013)"/]
-    N4[/"Bag of Words, TF-IDF, Naive Bayes, SVM"/]
-    N5[/"Era 3: Deep Learning (2013-2017)"/]
-    N6[/"Word2Vec, GloVe, RNN, LSTM, GRU"/]
-    N7[/"❌ Vanishing gradient, sequential processing"/]
-    N8[/"Era 4: Transformers (2017-sekarang)"/]
-    N9[/"Attention mechanism, parallel processing"/]
-    N10[/"BERT (2018), GPT-2 (2019), GPT-3 (2020)"/]
-    N11[/"GPT-4 (2023), Llama 3 (2024)"/]
-    N12[/"✅ State-of-the-art di hampir semua task NLP!"/]
+    N0["EVOLUSI ARSITEKTUR NLP"]
+    N1["Era 1: Rule-based (1950-1990)"]
+    N2["Regex, grammar rules, dictionary"]
+    N3["Era 2: Statistical (1990-2013)"]
+    N4["Bag of Words, TF-IDF, Naive Bayes, SVM"]
+    N5["Era 3: Deep Learning (2013-2017)"]
+    N6["Word2Vec, GloVe, RNN, LSTM, GRU"]
+    N7["❌ Vanishing gradient, sequential processing"]
+    N8["Era 4: Transformers (2017-sekarang)"]
+    N9["Attention mechanism, parallel processing"]
+    N10["BERT (2018), GPT-2 (2019), GPT-3 (2020)"]
+    N11["GPT-4 (2023), Llama 3 (2024)"]
+    N12["✅ State-of-the-art di hampir semua task NLP!"]
     N0 --> N1
     N1 --> N2
     N2 --> N3
@@ -180,80 +180,31 @@ flowchart TD
       <h2 id="tokenization">2. Tokenization</h2>
       <p><strong>Tokenization</strong> adalah proses mengubah teks menjadi token (unit kecil) yang bisa dipahami model. Berbeda dari split kata biasa, tokenizer modern menggunakan subword tokenization.</p>
 
-      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Tokenization dengan Hugging Face</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
-<pre><code># =============================================
-# Tokenization dengan Hugging Face
-# =============================================
-from transformers import AutoTokenizer
-
-# Load tokenizer
-tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-
-# Tokenisasi teks
-text = "Transformers merevolusi NLP dengan attention mechanism!"
-tokens = tokenizer(text)
-print(f"Input IDs: {tokens['input_ids']}")
-print(f"Attention Mask: {tokens['attention_mask']}")
-
-# Decode kembali ke teks
-decoded = tokenizer.decode(tokens['input_ids'])
-print(f"Decoded: {decoded}")
-
-# Lihat token individual
-tokens_list = tokenizer.tokenize(text)
-print(f"Tokens: {tokens_list}")
-# ['transform', '##ers', 'mer', '##evo', '##lusi', 'nlp', 'dengan', 
-#  'attention', 'mechanism', '!']
-
-# BERT menggunakan WordPiece: kata umum = 1 token, kata jarang dipecah
-# "merevolusi" → ["mer", "##evo", "##lusi"] (subword pieces)
-
-# Batch tokenization
-texts = ["Halo dunia", "NLP sangat menarik", "Belajar AI"]
-batch = tokenizer(texts, padding=True, truncation=True, max_length=128,
-                  return_tensors="pt")
-print(f"Batch shape: {batch['input_ids'].shape}")
-
-# Tokenizer untuk GPT (BPE - Byte Pair Encoding)
-gpt_tokenizer = AutoTokenizer.from_pretrained("gpt2")
-gpt_tokens = gpt_tokenizer.tokenize(text)
-print(f"GPT tokens: {gpt_tokens}")</code></pre>
       </div>
-
-      <h3>Jenis Tokenization</h3>
-      <table class="net-table"><thead><tr><th>Metode</th><th>Digunakan Oleh</th><th>Cara Kerja</th></tr></thead><tbody>
-        <tr><td>WordPiece</td><td>BERT</td><td>Pecah kata jarang jadi subword</td></tr>
-        <tr><td>BPE (Byte Pair Encoding)</td><td>GPT, Llama</td><td>Merge karakter yang sering muncul</td></tr>
-        <tr><td>SentencePiece</td><td>T5, mBART</td><td>Language-agnostic, tanpa pre-tokenize</td></tr>
-        <tr><td>WordLevel</td><td>Model lama</td><td>Satu kata = satu token</td></tr>
-      </tbody></table>
-
-      <h2 id="attention">3. Attention Mechanism</h2>
-      <p><strong>Self-Attention</strong> adalah mekanisme inti Transformers. Setiap token "melihat" semua token lain dalam sequence dan memutuskan mana yang paling relevan untuk konteksnya.</p>
-
-      <div class="diagram-box"><div class="diagram-label">Diagram: Self-Attention</div>
+<div class="diagram-box">
+<div class="diagram-label">Diagram: Self-Attention</div>
 <div class="diagram-box">
         
 <pre class="mermaid">
 flowchart TD
-    N0[/"SELF-ATTENTION MECHANISM"/]
-    N1[/"Input: 'Kucing duduk di atas tikar'"/]
-    N2[/"Untuk setiap kata, hitung:"/]
-    N3[/"1. Query (Q): 'Apa yang saya cari?'"/]
-    N4[/"2. Key (K):   'Apa yang saya tawarkan?'"/]
-    N5[/"3. Value (V): 'Informasi apa yang saya punya?'"/]
-    N6[/"Attention(Q,K,V) = softmax(Q·K^T / √d_k) · V"/]
-    N7[/"Kata 'duduk' mencari:"/]
-    N8[/"Kucing (siapa yang duduk?)"/]
-    N9[/"attention tinggi"/]
-    N10[/"tikar (duduk di mana?)"/]
-    N11[/"attention tinggi"/]
-    N12[/"di, atas"/]
-    N13[/"attention medium (preposisi)"/]
-    N14[/"Multi-Head Attention:"/]
-    N15[/"Jalankan 8-12 attention paralel (heads)"/]
-    N16[/"Setiap head fokus pada pola berbeda"/]
-    N17[/"Gabungkan hasilnya"/]
+    N0["SELF-ATTENTION MECHANISM"]
+    N1["Input: 'Kucing duduk di atas tikar'"]
+    N2["Untuk setiap kata, hitung:"]
+    N3["1. Query (Q): 'Apa yang saya cari?'"]
+    N4["2. Key (K):   'Apa yang saya tawarkan?'"]
+    N5["3. Value (V): 'Informasi apa yang saya punya?'"]
+    N6["Attention(Q,K,V) = softmax(Q·K^T / √d_k) · V"]
+    N7["Kata 'duduk' mencari:"]
+    N8["Kucing (siapa yang duduk?)"]
+    N9["attention tinggi"]
+    N10["tikar (duduk di mana?)"]
+    N11["attention tinggi"]
+    N12["di, atas"]
+    N13["attention medium (preposisi)"]
+    N14["Multi-Head Attention:"]
+    N15["Jalankan 8-12 attention paralel (heads)"]
+    N16["Setiap head fokus pada pola berbeda"]
+    N17["Gabungkan hasilnya"]
     N0 --> N1
     N1 --> N2
     N2 --> N3
@@ -275,70 +226,24 @@ flowchart TD
     </div>
       </div>
 
-      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Visualisasi Attention</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
-<pre><code># =============================================
-# Visualisasi Attention Weights
-# =============================================
-from transformers import AutoTokenizer, AutoModel
-import torch
-import numpy as np
-
-model_name = "bert-base-uncased"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModel.from_pretrained(model_name, output_attentions=True)
-
-text = "The cat sat on the mat"
-inputs = tokenizer(text, return_tensors="pt")
-tokens = tokenizer.convert_ids_to_tokens(inputs["input_ids"][0])
-
-with torch.no_grad():
-    outputs = model(**inputs)
-
-# Ambil attention dari layer terakhir, head pertama
-attention = outputs.attentions[-1][0, 0].numpy()
-# Shape: (seq_len, seq_len)
-
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots(figsize=(8, 6))
-im = ax.imshow(attention, cmap="Blues")
-ax.set_xticks(range(len(tokens)))
-ax.set_yticks(range(len(tokens)))
-ax.set_xticklabels(tokens, rotation=45)
-ax.set_yticklabels(tokens)
-ax.set_title("Self-Attention Weights (Layer 12, Head 1)")
-plt.colorbar(im)
-plt.tight_layout()
-plt.savefig("attention_heatmap.png", dpi=150)
-print("Attention heatmap disimpan!")
-
-# Multi-Head Attention
-print(f"Jumlah layers: {len(outputs.attentions)}")  # 12
-print(f"Jumlah heads per layer: {outputs.attentions[0].shape[1]}")  # 12
-print(f"Sequence length: {outputs.attentions[0].shape[2]}")</code></pre>
       </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide"></div>
-
-      <h2 id="bert">4. Arsitektur BERT</h2>
-      <p><strong>BERT (Bidirectional Encoder Representations from Transformers)</strong> adalah model encoder-only yang dilatih dengan dua teknik: <strong>Masked Language Modeling (MLM)</strong> dan <strong>Next Sentence Prediction (NSP)</strong>.</p>
-
-      <div class="diagram-box"><div class="diagram-label">Diagram: BERT vs GPT Architecture</div>
+<div class="diagram-box">
+<div class="diagram-label">Diagram: BERT vs GPT Architecture</div>
 <div class="diagram-box">
         
 <pre class="mermaid">
 flowchart TD
-    N0[/"BERT (Encoder-only) GPT (Decoder-only)"/]
-    N1[/"(CLS) tok1 tok2 (MASK) tok1 tok2 tok3"/]
-    N2[/"(NEXT)"/]
-    N3[/"Encoder Decoder"/]
-    N4[/"(Bidirect.) (Causal)"/]
-    N5[/"12 layers 12+ layers"/]
-    N6[/"(output embeddings) (next token pred)"/]
-    N7[/"Untuk: klasifikasi,"/]
-    N8[/"Untuk: text generation,"/]
-    N9[/"NER, QA, similarity chatbot, summarization"/]
-    N10[/"(understanding tasks) (generation tasks)"/]
+    N0["BERT (Encoder-only) GPT (Decoder-only)"]
+    N1["(CLS) tok1 tok2 (MASK) tok1 tok2 tok3"]
+    N2["(NEXT)"]
+    N3["Encoder Decoder"]
+    N4["(Bidirect.) (Causal)"]
+    N5["12 layers 12+ layers"]
+    N6["(output embeddings) (next token pred)"]
+    N7["Untuk: klasifikasi,"]
+    N8["Untuk: text generation,"]
+    N9["NER, QA, similarity chatbot, summarization"]
+    N10["(understanding tasks) (generation tasks)"]
     N0 --> N1
     N1 --> N2
     N2 --> N3

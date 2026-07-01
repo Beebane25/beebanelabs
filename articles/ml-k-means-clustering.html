@@ -275,10 +275,7 @@ yang jelas ○ Cluster 1, △ Cluster 2, □ Cluster 3
       <p>Algoritma K-Means bekerja secara iteratif untuk mempartisi dataset menjadi K cluster non-overlapping. Setiap titik data dimiliki oleh tepat satu cluster. Berikut adalah langkah-langkah detailnya:</p>
 
       <h3>Langkah-Langkah Algoritma K-Means</h3>
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Algoritma K-Means Iterasi</div>
-
-      </div>
+      
 
       <h3>Visualisasi Per Iterasi</h3>
       <div class="diagram-box">
@@ -338,147 +335,11 @@ Euclidean: √(Σ(xᵢ-yᵢ)²)</code></pre>
 
       <h3>K-Means dengan Dataset Buatan</h3>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python — K-Means Clustering Dasar</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-from sklearn.datasets import make_blobs
-from sklearn.preprocessing import StandardScaler
-
-# === GENERATE DATASET ===
-# Membuat dataset sintetis dengan 3 cluster
-np.random.seed(42)
-X, y_true = make_blobs(
-    n_samples=300,          # 300 titik data
-    centers=4,              # 4 pusat cluster asli
-    cluster_std=0.60,       # Standar deviasi tiap cluster
-    random_state=42
-)
-
-print(f"Dataset shape: {X.shape}")
-print(f"Fitur: 2 (x1, x2)")
-print(f"Cluster asli: {len(np.unique(y_true))}")
-
-# Visualisasi data asli (tanpa label)
-plt.figure(figsize=(10, 5))
-
-plt.subplot(1, 2, 1)
-plt.scatter(X[:, 0], X[:, 1], s=30, alpha=0.7, c='gray')
-plt.title('Data Asli (Tanpa Label)')
-plt.xlabel('Fitur 1')
-plt.ylabel('Fitur 2')
-plt.grid(True, alpha=0.3)
-
-# === TERAPKAN K-MEANS ===
-kmeans = KMeans(
-    n_clusters=4,           # Jumlah cluster
-    init='k-means++',       # Inisialisasi cerdas
-    n_init=10,              # Jalankan 10x, pilih terbaik
-    max_iter=300,           # Maks iterasi
-    random_state=42
-)
-
-# Fit model
-kmeans.fit(X)
-
-# Hasil clustering
-labels = kmeans.labels_             # Label cluster tiap titik
-centroids = kmeans.cluster_centers_ # Koordinat centroid
-inertia = kmeans.inertia_           # WCSS value
-
-print(f"\nHasil Clustering:")
-print(f"  Jumlah cluster: {kmeans.n_clusters}")
-print(f"  Inertia (WCSS): {inertia:.2f}")
-print(f"  Iterasi: {kmeans.n_iter_}")
-print(f"\nCentroid:")
-for i, c in enumerate(centroids):
-    print(f"  Cluster {i}: ({c[0]:.2f}, {c[1]:.2f})")
-
-# Distribusi cluster
-unique, counts = np.unique(labels, return_counts=True)
-print(f"\nDistribusi cluster:")
-for u, c in zip(unique, counts):
-    print(f"  Cluster {u}: {c} titik ({c/len(X)*100:.1f}%)")
-
-# Visualisasi hasil
-plt.subplot(1, 2, 2)
-colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4']
-for i in range(4):
-    mask = labels == i
-    plt.scatter(X[mask, 0], X[mask, 1], s=30, alpha=0.7,
-                c=colors[i], label=f'Cluster {i}')
-plt.scatter(centroids[:, 0], centroids[:, 1], s=200, c='black',
-            marker='★', edgecolors='white', linewidth=2,
-            label='Centroid', zorder=5)
-plt.title(f'K-Means Clustering (K=4, Inertia={inertia:.0f})')
-plt.xlabel('Fitur 1')
-plt.ylabel('Fitur 2')
-plt.legend()
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
-</code></pre>
       </div>
-
-      <h3>Prediksi Cluster untuk Data Baru</h3>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python — Prediksi Data Baru</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># Prediksi cluster untuk data baru
-data_baru = np.array([
-    [0, 4],    # Titik baru 1
-    [-3, -2],  # Titik baru 2
-    [5, 2],    # Titik baru 3
-])
-
-cluster_baru = kmeans.predict(data_baru)
-jarak_centroid = kmeans.transform(data_baru)  # Jarak ke semua centroid
-
-print("Prediksi cluster data baru:")
-for i, (point, cluster) in enumerate(zip(data_baru, cluster_baru)):
-    jarak = jarak_centroid[i]
-    print(f"  Titik {point} → Cluster {cluster}")
-    print(f"    Jarak ke centroid: {[f'{d:.2f}' for d in jarak]}")
-</code></pre>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 4: Elbow Method        -->
-      <!-- ============================== -->
-      <h2 id="elbow-method">4. Elbow Method — Menentukan Jumlah Cluster Optimal</h2>
-
-      <p>Salah satu tantangan terbesar dalam K-Means adalah menentukan <strong>jumlah cluster (K) yang optimal</strong>. Terlalu sedikit cluster = underfitting, terlalu banyak = overfitting. <strong>Elbow Method</strong> adalah teknik populer untuk memilih K terbaik.</p>
-
-      <h3>Cara Kerja Elbow Method</h3>
-      <ol>
-        <li>Jalankan K-Means untuk berbagai nilai K (misal K=1 sampai K=10)</li>
-        <li>Catat nilai <strong>Inertia (WCSS)</strong> untuk setiap K</li>
-        <li>Plot K vs Inertia</li>
-        <li>Cari <strong>"siku" (elbow)</strong> — titik di mana penurunan inertia mulai melambat secara signifikan</li>
-        <li>K pada titik siku adalah jumlah cluster optimal</li>
-      </ol>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Elbow Method</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: Inertia (WCSS)</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"Inertia (WCSS)"/]
-    N1[/"K"/]
+    N0["Inertia (WCSS)"]
+    N1["K"]
     N0 --> N1
 </pre>
     </div>

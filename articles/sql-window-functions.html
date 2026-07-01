@@ -242,217 +242,6 @@
       </table>
 
       <div class="diagram-box">
-        <div class="diagram-label">Diagram: Perbandingan Aggregate vs Window Function</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: AGGREGATE (GROUP BY) vs WINDOW FUNCTION (OVER)</div>
-<pre class="mermaid">
-flowchart TD
-    N0[INPUT DATA Nama   Kota  Sales Ali    JKT   100 ...]
-    N1[GROUP BY Result Kota  Total BDG   400 JKT   300...]
-    N2[Window Function Result Nama  Kota Sales Total A...]
-    N3[/"GROUP BY = reduces rows  |  OVER() = preserves ..."/]
-    N0 --> N1
-    N0 --> N2
-</pre>
-    </div>
-      </div>
-
-      <h3>Setup Data Latihan</h3>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">SQL — Setup Tabel & Data</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>-- =============================================
--- SETUP DATABASE UNTUK LATIHAN
--- =============================================
-
--- Tabel karyawan
-CREATE TABLE karyawan (
-    id          INT PRIMARY KEY AUTO_INCREMENT,
-    nama        VARCHAR(100) NOT NULL,
-    departemen  VARCHAR(50) NOT NULL,
-    posisi      VARCHAR(50),
-    gaji        DECIMAL(12,2) NOT NULL,
-    tanggal_masuk DATE NOT NULL
-);
-
--- Tabel penjualan
-CREATE TABLE penjualan (
-    id          INT PRIMARY KEY AUTO_INCREMENT,
-    nama_sales  VARCHAR(100) NOT NULL,
-    wilayah     VARCHAR(50) NOT NULL,
-    bulan       VARCHAR(20) NOT NULL,
-    jumlah      INT NOT NULL,
-    revenue     DECIMAL(15,2) NOT NULL
-);
-
--- Insert data karyawan
-INSERT INTO karyawan (nama, departemen, posisi, gaji, tanggal_masuk) VALUES
-('Ali Rahman',     'Engineering', 'Junior Dev',    8000000,  '2024-01-15'),
-('Budi Santoso',   'Engineering', 'Senior Dev',    15000000, '2020-03-01'),
-('Citra Dewi',     'Marketing',   'Staff',         7000000,  '2023-06-10'),
-('Dina Marlina',   'Marketing',   'Manager',       18000000, '2019-08-20'),
-('Eka Putra',      'Engineering', 'Junior Dev',    8500000,  '2024-05-01'),
-('Fitri Handayani','Finance',     'Staff',         7500000,  '2023-02-15'),
-('Gilang Pratama', 'Finance',     'Manager',       17000000, '2020-01-10'),
-('Hana Wijaya',    'Engineering', 'Senior Dev',    14000000, '2021-04-25'),
-('Indra Kusuma',   'Marketing',   'Staff',         7200000,  '2023-09-01'),
-('Joko Susilo',    'Finance',     'Staff',         7800000,  '2022-11-20');
-
--- Insert data penjualan
-INSERT INTO penjualan (nama_sales, wilayah, bulan, jumlah, revenue) VALUES
-('Andi',  'Jakarta',  'Januari',   45, 45000000),
-('Andi',  'Jakarta',  'Februari',  52, 52000000),
-('Andi',  'Jakarta',  'Maret',     38, 38000000),
-('Budi',  'Bandung',  'Januari',   60, 60000000),
-('Budi',  'Bandung',  'Februari',  55, 55000000),
-('Budi',  'Bandung',  'Maret',     70, 70000000),
-('Citra', 'Jakarta',  'Januari',   30, 30000000),
-('Citra', 'Jakarta',  'Februari',  42, 42000000),
-('Citra', 'Jakarta',  'Maret',     50, 50000000),
-('Dina',  'Surabaya', 'Januari',   35, 35000000),
-('Dina',  'Surabaya', 'Februari',  48, 48000000),
-('Dina',  'Surabaya', 'Maret',     55, 55000000);
-</code></pre>
-      </div>
-
-      <div class="info-box tip">
-        <div class="info-box-title">💡 Kompatibilitas Database</div>
-        <p>Window functions didukung oleh <strong>PostgreSQL</strong> (sejak 8.4), <strong>MySQL 8.0+</strong>, <strong>SQL Server</strong>, <strong>Oracle</strong>, dan <strong>SQLite 3.25+</strong>. Jika masih menggunakan MySQL 5.7 atau lebih lama, Anda perlu upgrade untuk menggunakan fitur ini.</p>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 2: Syntax Dasar         -->
-      <!-- ============================== -->
-      <h2 id="syntax-dasar">2. Syntax Dasar &amp; OVER Clause</h2>
-
-      <p>Syntax dasar window function menggunakan clause <code>OVER()</code>. Clause ini mendefinisikan "jendela" (window) data yang akan digunakan untuk perhitungan.</p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">SQL — Syntax Dasar Window Function</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: Window Function Syntax</div>
-<pre class="mermaid">
-flowchart TD
-    N0["function(") OVER ( ... ") ( ) = optional  |  Each..."]
-    N1[/"PARTITION BY column Membagi data menjadi partisi"/]
-    N2[/"ORDER BY column ("ASC|DESC") Mengurutkan dalam pa..."/]
-    N3[/"frame_clause ROWS / RANGE boundaries"/]
-    N4["Window Functions ROW_NUMBER(") RANK(") DENSE_RANK..."]
-    N0 --> N1
-    N1 --> N4
-    N4 --> N2
-    N2 --> N3
-</pre>
-    </div>
-      </div>
-
-      <div class="info-box warning">
-        <div class="info-box-title">⚠️ Window Functions Tidak Bisa di WHERE</div>
-        <p>Window functions <strong>tidak bisa</strong> digunakan langsung di clause <code>WHERE</code> karena urutan eksekusi SQL. Window functions dieksekusi <strong>setelah</strong> WHERE, GROUP BY, dan HAVING. Untuk filter hasil window function, gunakan <strong>subquery</strong> atau <strong>CTE (Common Table Expression)</strong>.</p>
-      </div>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">SQL — Filter Hasil Window Function</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>-- =============================================
--- SALAH: Window function di WHERE (ERROR!)
--- =============================================
--- SELECT nama, gaji, RANK() OVER(ORDER BY gaji DESC) AS ranking
--- FROM karyawan
--- WHERE ranking <= 3;  -- ERROR! "ranking" belum ada di sini
-
--- =============================================
--- BENAR: Gunakan CTE atau subquery
--- =============================================
--- Metode 1: CTE (Common Table Expression)
-WITH ranked AS (
-    SELECT
-        nama,
-        gaji,
-        RANK() OVER(ORDER BY gaji DESC) AS ranking
-    FROM karyawan
-)
-SELECT * FROM ranked
-WHERE ranking <= 3;
-
--- Metode 2: Subquery
-SELECT * FROM (
-    SELECT
-        nama,
-        gaji,
-        RANK() OVER(ORDER BY gaji DESC) AS ranking
-    FROM karyawan
-) sub
-WHERE ranking <= 3;
-</code></pre>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 3: PARTITION BY         -->
-      <!-- ============================== -->
-      <h2 id="partition-by">3. PARTITION BY — Membagi Window</h2>
-
-      <p><code>PARTITION BY</code> membagi data menjadi kelompok-kelompok (partisi) sebelum window function dijalankan. Setiap partisi dihitung secara independen — mirip dengan GROUP BY, tetapi tanpa mengurangi baris.</p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">SQL — PARTITION BY</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: PARTITION BY</div>
-<pre><code>Tabel Karyawan Nama       Dept       Gaji Fitri...
-Finance Partition Fitri   7.5jt Gilang  17jt Jo...
-/&quot;SUM = 32.3jt&quot;/
-Engineering Partition Ali     8jt Budi    15jt ...
-/&quot;SUM = 45.5jt&quot;/
-Marketing Partition Citra   7jt Dina    18jt In...
-/&quot;SUM = 32.2jt&quot;/
-/&quot;Setiap partisi dihitung secara independen total...&quot;/</code></pre>
-    </div>
-      </div>
-
-      <div class="info-box tip">
-        <div class="info-box-title">💡 PARTITION BY vs GROUP BY</div>
-        <p><code>PARTITION BY</code> mempertahankan semua baris asli — hanya menambah kolom baru. <code>GROUP BY</code> mereduksi baris. Anda bisa menggunakan keduanya sekaligus dalam satu query (GROUP BY di level query, PARTITION BY di window function).</p>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 4: ROW_NUMBER           -->
-      <!-- ============================== -->
-      <h2 id="row-number">4. ROW_NUMBER() — Penomoran Baris</h2>
-
-      <p><code>ROW_NUMBER()</code> menetapkan nomor urut unik ke setiap baris dalam window-nya. Nomor ini dimulai dari 1 dan tidak pernah duplikat — bahkan jika nilai ORDER BY sama.</p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">SQL — ROW_NUMBER()</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<div class="diagram-box">
         <div class="diagram-label">Diagram: ROW_NUMBER</div>
 <pre><code>ROW_NUMBER(&quot;) OVER(ORDER BY gaji DESC&quot;) Dina  Mar...
 1
@@ -491,19 +280,18 @@ PARTITION BY departemen Each partition gets own...
           <span class="code-lang">SQL — RANK vs DENSE_RANK</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: ROW_NUMBER vs RANK vs DENSE_RANK</div>
+</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"Nama Gaji ROW_NUM RANK DENSE_RANK Note"/]
-    N1[/"Dina 18jt 1 1 1"/]
-    N2[/"Gilang 17jt 2 2 2"/]
-    N3[/"Budi 15jt 3 3 3"/]
-    N4[/"Hana 14jt 4 4 4"/]
-    N5[/"Ali 8jt 6 6 6 tie!"/]
-    N6[/"Joko 8jt 7 6 6 tie!"/]
-    N7[/"Fitri 7.5jt 8 8 7"/]
-    N8[/"Indra 7.2jt 9 9 8"/]
+    N0["Nama Gaji ROW_NUM RANK DENSE_RANK Note"]
+    N1["Dina 18jt 1 1 1"]
+    N2["Gilang 17jt 2 2 2"]
+    N3["Budi 15jt 3 3 3"]
+    N4["Hana 14jt 4 4 4"]
+    N5["Ali 8jt 6 6 6 tie!"]
+    N6["Joko 8jt 7 6 6 tie!"]
+    N7["Fitri 7.5jt 8 8 7"]
+    N8["Indra 7.2jt 9 9 8"]
     N9[ROW_NUMBER 6, 7 Selalu unik, tidak ada tie Urut...]
     N10["RANK 6, 8  (gap!) Tie = sama, lalu loncat Cocok..."]
     N11["DENSE_RANK 6, 7  (no gap) Tie = sama, lanjut be..."]
@@ -550,24 +338,16 @@ flowchart TD
       <!-- ============================== -->
       <h2 id="lag-lead">6. LAG() &amp; LEAD() — Akses Baris Lain</h2>
 
-      <p><code>LAG()</code> mengakses nilai dari baris <strong>sebelumnya</strong>, sedangkan <code>LEAD()</code> mengakses nilai dari baris <strong>berikutnya</strong>. Ini sangat berguna untuk perhitungan selisih, pertumbuhan, dan perbandingan antar periode.</p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">SQL — LAG() & LEAD()</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: LAG and LEAD</div>
+      <p><code>LAG()</code> mengakses nilai dari baris <strong>sebelumnya</strong>, sedangkan <code>LEAD()</code> mengakses nilai dari baris <strong>berikutnya</strong>. Ini sangat berguna untuk perhitungan selisih, pertumbuhan, dan perbandingan antar periode.</p></div>
 <pre class="mermaid">
 flowchart TD
     N0["Andi — Jan Revenue: 45jt"]
     N1["Andi — Feb Revenue: 52jt"]
     N2["Andi — Mar Revenue: 38jt"]
-    N3[/"LAG(revenue, 1, 0) Feb gets Jan value: 45jt"/]
-    N4[/"LEAD(revenue, 1, 0) Jan gets Feb value: 52jt"/]
-    N5[/"Result — LAG Example Bulan Revenue LAG (prev) S..."/]
-    N6[/"LEAD = look forward  |  LAG = look backward  | ..."/]
+    N3["LAG(revenue, 1, 0) Feb gets Jan value: 45jt"]
+    N4["LEAD(revenue, 1, 0) Jan gets Feb value: 52jt"]
+    N5["Result — LAG Example Bulan Revenue LAG (prev) S..."]
+    N6["LEAD = look forward  |  LAG = look backward  | ..."]
     N0 --> N1
     N1 --> N2
     N2 --> N3
@@ -607,25 +387,19 @@ flowchart TD
 
       <p><code>NTILE(n)</code> membagi baris menjadi <strong>n kelompok</strong> yang sama besar dan menetapkan nomor kelompok (1 sampai n) ke setiap baris. Berguna untuk membuat kuartil, persentil, atau kategori.</p>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">SQL — NTILE()</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: NTILE</div>
+      </div>
 <pre class="mermaid">
 flowchart TD
     N0[Dina 18jt Gilang 17jt]
-    N1[/"Q1 — Top 25%"/]
+    N1["Q1 — Top 25%"]
     N2[Budi 15jt Hana 14jt Eka 8.5jt]
-    N3[/"Q2 — 25-50%"/]
+    N3["Q2 — 25-50%"]
     N4[Ali 8jt Joko 7.8jt]
-    N5[/"Q3 — 50-75%"/]
+    N5["Q3 — 50-75%"]
     N6[Fitri 7.5jt Indra 7.2jt Citra 7jt]
-    N7[/"Q4 — Bottom 25%"/]
-    N8[/"NTILE membagi baris menjadi N kelompok sama bes..."/]
-    N9[/"NTILE(2) → Top/Bottom  |  NTILE(3) → Tinggi/Sed..."/]
+    N7["Q4 — Bottom 25%"]
+    N8["NTILE membagi baris menjadi N kelompok sama bes..."]
+    N9["NTILE(2) → Top/Bottom  |  NTILE(3) → Tinggi/Sed..."]
     N0 --> N1
     N1 --> N2
     N2 --> N3
@@ -656,6 +430,7 @@ flowchart TD
           <span class="code-lang">SQL — Frame Clause</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
+</div>
 <div class="diagram-box">
         <div class="diagram-label">Diagram: Frame Clause</div>
 <pre><code>n PRECEDING

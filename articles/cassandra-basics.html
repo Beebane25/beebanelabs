@@ -252,68 +252,9 @@
 
       <h3>Instalasi Cassandra</h3>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Bash — Instalasi Cassandra</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># =============================================
-# INSTALASI CASSANDRA (Ubuntu/Debian)
-# =============================================
-
-# Install Java (wajib)
-sudo apt install openjdk-11-jdk -y
-
-# Tambah repository Cassandra
-echo "deb https://debian.cassandra.apache.org 41x main" | \
-  sudo tee /etc/apt/sources.list.d/cassandra.sources.list
-
-# Import key
-curl https://downloads.apache.org/cassandra/KEYS | sudo apt-key add -
-
-# Install
-sudo apt update
-sudo apt install cassandra -y
-
-# Cek status
-sudo systemctl status cassandra
-nodetool status
-
-# =============================================
-# CQLSH — Command Line Client
-# =============================================
-# CQLSH sudah terinstal bersama Cassandra
-cqlsh
-cqlsh -u cassandra -p cassandra  # login
-
-# =============================================
-# Docker (alternatif lebih mudah)
-# =============================================
-docker run -d --name cassandra \
-  -p 9042:9042 \
-  cassandra:4.1
-
-# Tunggu ~30 detik sampai ready
-docker exec -it cassandra cqlsh
-</code></pre>
       </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 2: Arsitektur           -->
-      <!-- ============================== -->
-      <h2 id="arsitektur">2. Arsitektur Distributed</h2>
-
-      <p>Cassandra menggunakan arsitektur <strong>peer-to-peer</strong> — semua node sama (tidak ada master/slave). Setiap node bisa menerima read dan write request. Data didistribusikan ke semua node menggunakan <strong>consistent hashing</strong>.</p>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Arsitektur Cassandra Cluster</div>
 <div class="diagram-box">
-        <div class="diagram-label">Diagram: Cassandra Cluster (6 Nodes)</div>
+        <div class="diagram-label">Diagram: Arsitektur Cassandra Cluster</div>
 <pre class="mermaid">
 flowchart TD
     N0["Node 1 Token: 0 Data: A-F"]
@@ -323,7 +264,7 @@ flowchart TD
     N4["Node 5 Token: 112 Replica"]
     N5["Node 6 Token: 140 Replica"]
     N6[Client]
-    N7[/"Key Concepts: ● Client → ANY node bisa menerima..."/]
+    N7["Key Concepts: ● Client → ANY node bisa menerima..."]
     N0 --> N1
     N1 --> N2
     N2 --> N6
@@ -360,8 +301,6 @@ flowchart TD
 
       <div class="diagram-box">
         <div class="diagram-label">Diagram: Write Path di Cassandra</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: Write Path di Cassandra</div>
 <pre><code>Client
 Commit Log
 MemTable (in-memory)
@@ -383,226 +322,14 @@ Replicate to N nodes
 
       <p>Data model Cassandra berbeda dari RDBMS. Yang paling penting: <strong>data modeling di Cassandra dimulai dari query</strong>, bukan dari entitas (unlike RDBMS yang dimulai dari normalisasi).</p>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">CQL — Data Model</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>-- =============================================
--- KEYSPACE = "Database" di Cassandra
--- =============================================
-CREATE KEYSPACE IF NOT EXISTS ecommerce
-WITH replication = {
-    'class': 'NetworkTopologyStrategy',
-    'datacenter1': 3,    -- 3 replica di datacenter1
-    'datacenter2': 2     -- 2 replica di datacenter2
-}
-AND durable_writes = true;
-
--- Gunakan keyspace
-USE ecommerce;
-
-
--- =============================================
--- TABEL: Data disimpan dalam tabel
--- =============================================
-CREATE TABLE IF NOT EXISTS products (
-    product_id   UUID,
-    category     TEXT,
-    product_name TEXT,
-    price        DECIMAL,
-    stock        INT,
-    description  TEXT,
-    created_at   TIMESTAMP,
-    tags         SET<TEXT>,         -- Set collection
-    PRIMARY KEY (product_id)
-);
-
-CREATE TABLE IF NOT EXISTS orders (
-    customer_id  UUID,
-    order_id     TIMEUUID,
-    product_id   UUID,
-    product_name TEXT,
-    quantity     INT,
-    total        DECIMAL,
-    status       TEXT,
-    order_date   TIMESTAMP,
-    PRIMARY KEY (customer_id, order_id)
-) WITH CLUSTERING ORDER BY (order_id DESC);
-
-
--- =============================================
--- TIPE DATA CASSANDRA
--- =============================================
--- Text types:    TEXT, VARCHAR, ASCII
--- Number types:  INT, BIGINT, SMALLINT, TINYINT, VARINT,
---                FLOAT, DOUBLE, DECIMAL
--- Date types:    TIMESTAMP, DATE, TIME, DURATION
--- ID types:      UUID, TIMEUUID (auto timestamp)
--- Collection:    LIST<T>, SET<T>, MAP<K,V>
--- Other:         BOOLEAN, BLOB, INET, TUPLE<...>, FROZEN<...>
-
-
--- =============================================
--- COLLECTION TYPES
--- =============================================
-CREATE TABLE user_profiles (
-    user_id     UUID PRIMARY KEY,
-    name        TEXT,
-    emails      SET<TEXT>,           -- Kumpulan email unik
-    phone_numbers LIST<TEXT>,        -- Kumpulan telepon (bisa duplikat)
-    preferences MAP<TEXT, TEXT>,     -- Key-value preferences
-    address     FROZEN<TUPLE<TEXT, TEXT, TEXT>>  -- (street, city, country)
-);
-</code></pre>
       </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 4: CQL Dasar            -->
-      <!-- ============================== -->
-      <h2 id="cql-dasar">4. CQL Dasar — CRUD Operations</h2>
-
-      <p><strong>CQL (Cassandra Query Language)</strong> mirip SQL tetapi dengan beberapa perbedaan penting. Tidak ada JOIN, tidak ada subquery, dan WHERE clause sangat terbatas — hanya bisa filter berdasarkan partition key dan clustering columns.</p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">CQL — CRUD Operations</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>-- =============================================
--- INSERT
--- =============================================
-INSERT INTO products (product_id, category, product_name, price, stock, created_at)
-VALUES (uuid(), 'Elektronik', 'Laptop ASUS ROG', 15000000, 50, toTimestamp(now()));
-
-INSERT INTO products (product_id, category, product_name, price, stock, tags)
-VALUES (uuid(), 'Fashion', 'Kaos Polos', 85000, 200, {'cotton', 'unisex', 'casual'});
-
--- INSERT dengan TTL (data otomatis hilang setelah 86400 detik = 1 hari)
-INSERT INTO products (product_id, category, product_name, price)
-VALUES (uuid(), 'Promo', 'Flash Sale Item', 50000)
-USING TTL 86400;
-
-
--- =============================================
--- SELECT
--- =============================================
--- Select semua (HATI-HATI di tabel besar!)
-SELECT * FROM products;
-
--- Select dengan filter pada primary key
-SELECT * FROM products WHERE product_id = 550e8400-e29b-41d4-a716-446655440000;
-
--- Select berdasarkan customer_id (partition key)
-SELECT * FROM orders WHERE customer_id = a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11;
-
--- Select dengan LIMIT
-SELECT * FROM orders
-WHERE customer_id = a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
-LIMIT 10;
-
--- Select dengan RANGE pada clustering column
-SELECT * FROM orders
-WHERE customer_id = a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
-  AND order_id > maxTimeuuid('2026-01-01')
-  AND order_id < minTimeuuid('2026-07-01');
-
--- Select dengan IN (multiple partition keys)
-SELECT * FROM orders
-WHERE customer_id IN (
-    a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11,
-    b5eebc99-9c0b-4ef8-bb6d-6bb9bd380a22
-);
-
--- Aggregation
-SELECT COUNT(*) FROM orders
-WHERE customer_id = a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11;
-
-SELECT SUM(total) FROM orders
-WHERE customer_id = a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11;
-
-SELECT AVG(quantity), MIN(total), MAX(total) FROM orders
-WHERE customer_id = a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11;
-
-
--- =============================================
--- UPDATE
--- =============================================
-UPDATE products SET stock = stock - 1
-WHERE product_id = 550e8400-e29b-41d4-a716-446655440000;
-
-UPDATE products SET price = 14500000, tags = tags + {'gaming'}
-WHERE product_id = 550e8400-e29b-41d4-a716-446655440000;
-
--- Update dengan TTL
-UPDATE products USING TTL 3600 SET stock = 0
-WHERE product_id = 550e8400-e29b-41d4-a716-446655440000;
-
-
--- =============================================
--- DELETE
--- =============================================
--- Delete satu baris
-DELETE FROM products
-WHERE product_id = 550e8400-e29b-41d4-a716-446655440000;
-
--- Delete kolom tertentu
-DELETE description FROM products
-WHERE product_id = 550e8400-e29b-41d4-a716-446655440000;
-
--- Delete dengan range (clustering column)
-DELETE FROM orders
-WHERE customer_id = a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
-  AND order_id < minTimeuuid('2025-01-01');
-
-
--- =============================================
--- BATCH (multiple write dalam satu operasi)
--- =============================================
-BEGIN BATCH
-    INSERT INTO orders (customer_id, order_id, product_id, product_name, quantity, total, status)
-    VALUES (a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11, now(), 550e8400-e29b-41d4-a716-446655440000,
-            'Laptop ASUS ROG', 1, 15000000, 'pending');
-
-    UPDATE products SET stock = stock - 1
-    WHERE product_id = 550e8400-e29b-41d4-a716-446655440000;
-APPLY BATCH;
-</code></pre>
-      </div>
-
-      <div class="info-box warning">
-        <div class="info-box-title">⚠️ BATASAN CQL</div>
-        <p>CQL <strong>TIDAK mendukung</strong>: JOIN, subquery, GROUP BY (kecuali COUNT/SUM/AVG/MIN/MAX pada partition), UNION, HAVING, LIKE, OR di WHERE, dan filter pada non-key kolom tanpa secondary index. Ini bukan bug — Cassandra sengaja dibatasi untuk menjaga performa di skala besar.</p>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 5: Primary Key          -->
-      <!-- ============================== -->
-      <h2 id="primary-key">5. Primary Key — Partition Key &amp; Clustering</h2>
-
-      <p>Memahami primary key di Cassandra adalah <strong>konsep terpenting</strong>. Primary key menentukan bagaimana data didistribusikan (partition key) dan diurutkan (clustering columns).</p>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Struktur Primary Key Cassandra</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: PRIMARY KEY = Partition Key + Clustering Columns</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"PRIMARY KEY (customer_id, order_date, order_id)..."/]
+    N0["PRIMARY KEY (customer_id, order_date, order_id)..."]
     N1[Partition Key customer_id]
     N2[Clustering Column order_date]
     N3[Clustering Column order_id]
-    N4[/"● Partition Key → tentukan node penyimpanan ● C..."/]
+    N4["● Partition Key → tentukan node penyimpanan ● C..."]
     N0 --> N1
     N1 --> N2
     N2 --> N3

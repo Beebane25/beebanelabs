@@ -275,129 +275,7 @@
       <h3>Prinsip 1: Declarative Configuration</h3>
       <p>Seluruh sistem yang di-deploy harus didefinisikan secara <strong>declarative</strong>, bukan imperatif. Ini berarti Anda mendeskripsikan <em>apa yang diinginkan</em> (desired state), bukan <em>bagaimana cara mencapainya</em>.</p>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">YAML — Declarative vs Imperative</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># ❌ IMPERATIVE (cara lama — "how to do it")
-# kubectl create deployment nginx --image=nginx:1.25 --replicas=3
-# kubectl expose deployment nginx --port=80 --type=ClusterIP
-# kubectl scale deployment nginx --replicas=5
-
-# ✅ DECLARATIVE (GitOps — "what to have")
-# deploy-nginx.yaml — committed di Git
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx
-  namespace: production
-  labels:
-    app: nginx
-    version: "1.25"
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-        - name: nginx
-          image: nginx:1.25
-          ports:
-            - containerPort: 80
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: 500m
-              memory: 256Mi
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 80
-            initialDelaySeconds: 5
-            periodSeconds: 10
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx
-  namespace: production
-spec:
-  selector:
-    app: nginx
-  ports:
-    - port: 80
-      targetPort: 80
-  type: ClusterIP
-</code></pre>
       </div>
-
-      <h3>Prinsip 2: Versioned &amp; Immutable</h3>
-      <p>Seluruh desired state harus disimpan di <strong>Git</strong> yang mendukung versioning, immutability, dan history. Setiap perubahan tercatat dengan siapa, kapan, dan mengapa (commit message).</p>
-
-      <h3>Prinsip 3: Pulled &amp; Auto-Approved</h3>
-      <p>Software agent di dalam cluster <strong>menarik (pull)</strong> desired state dari Git, bukan push dari CI/CD. Agent ini otomatis mendeteksi perubahan dan menerapkannya tanpa perlu approval manual (untuk environment tertentu).</p>
-
-      <h3>Prinsip 4: Continuously Reconciled</h3>
-      <p>Agent secara <strong>continuous</strong> membandingkan desired state (Git) dengan actual state (cluster). Jika ada drift (perbedaan), agent otomatis mengembalikan cluster ke desired state.</p>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: 4 Prinsip GitOps dalam Aksi</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: GITOPS WORKFLOW</div>
-<pre class="mermaid">
-flowchart TD
-    N0[/"GITOPS AGENT (ArgoCD) • Monitor Git repo for ch..."/]
-    N1[/"GIT REPOSITORY (Versioned, Immutable, Auditable)"/]
-    N2[/"KUBERNETES CLUSTER (Always matches Git desired ..."/]
-    N1 --> N0
-    N0 --> N2
-</pre>
-    </div>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 3: Arsitektur          -->
-      <!-- ============================== -->
-      <h2 id="arsitektur">3. Arsitektur GitOps</h2>
-
-      <p>Arsitektur GitOps modern melibatkan beberapa komponen yang bekerja sama untuk menciptakan pipeline deployment yang otomatis, aman, dan terauditasi. Berikut gambaran arsitektur standar yang digunakan di banyak perusahaan.</p>
-
-      <h3>Repo Structure: Monorepo vs Polyrepo</h3>
-      <table class="net-table">
-        <thead>
-          <tr>
-            <th>Aspek</th>
-            <th>App Repo + Config Repo (Polyrepo)</th>
-            <th>Monorepo (Satu Repo)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Struktur</td><td>Source code di app repo, manifest di config repo</td><td>Source code dan manifest dalam satu repo</td></tr>
-          <tr><td>Keamanan</td><td>Tim infra manage config repo, developer manage app repo</td><td>Akses tercampur, perlu CODEOWNERS</td></tr>
-          <tr><td>Review</td><td>PR terpisah, clear ownership</td><td>PR tunggal, perlu careful review</td></tr>
-          <tr><td>Rekomendasi</td><td>✅ Direkomendasikan untuk tim besar</td><td>Cocok untuk tim kecil atau startup</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Direktori Config Repository</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">File Structure — GitOps Config Repository</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
 <div class="diagram-box">
         <div class="diagram-label">Diagram: gitops-config/</div>
 <pre><code>/&quot;gitops-config/&quot;/
@@ -861,11 +739,9 @@ spec:
       <h3>Arsitektur Multi-Cluster</h3>
       <div class="diagram-box">
         <div class="diagram-label">Diagram: ArgoCD Multi-Cluster Architecture</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: ARGOCD CONTROL PLANE</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"ArgoCD Server • Web UI (Single Pane of Glass) •..."/]
+    N0["ArgoCD Server • Web UI (Single Pane of Glass) •..."]
     N1[Staging Cluster Auto-sync Auto-prune main branch]
     N2[Prod US Cluster Manual sync release/ v1.2]
     N3[Prod EU Cluster Manual sync release/ v1.2]
@@ -901,55 +777,11 @@ flowchart TD
       </div>
 
       <h3>Security &amp; RBAC</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">YAML — ArgoCD RBAC Policy</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># argocd-rbac-cm ConfigMap
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: argocd-rbac-cm
-  namespace: argocd
-data:
-  # Default policy: read-only
-  policy.default: role:readonly
-
-  policy.csv: |
-    # Admin bisa melakukan semua aksi
-    p, role:admin, *, *, */*, allow
-
-    # Developer bisa sync aplikasi tertentu
-    p, role:developer, applications, get, staging/*, allow
-    p, role:developer, applications, sync, staging/*, allow
-    p, role:developer, applications, action/*, staging/*, allow
-
-    # Production hanya bisa di-read, sync butuh approval
-    p, role:developer, applications, get, production/*, allow
-
-    # SRE team bisa manage semua
-    p, role:sre, applications, *, */*, allow
-    p, role:sre, clusters, *, *, allow
-
-    # Assign user ke roles
-    g, alice, role:admin
-    g, bob, role:developer
-    g, carol, role:sre
-
-  # Scopes: match groups dari SSO
-  scopes: "[groups]"
-</code></pre>
       </div>
-
-      <h3>Arsitektur Deployment Pipeline yang Disarankan</h3>
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Enterprise GitOps Pipeline</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: ENTERPRISE GITOPS PIPELINE</div>
+</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"KUBERNETES CLUSTERS • Always matches Git • Auto..."/]
+    N0["KUBERNETES CLUSTERS • Always matches Git • Auto..."]
     N1[ArgoCD Staging Production]
     N2["CI Pipeline (GitHub Actions)"]
     N3["Config Repo (Git)"]

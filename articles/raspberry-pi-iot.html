@@ -283,19 +283,17 @@
       <!-- DIAGRAM -->
       <div class="diagram-box">
         <div class="diagram-label">Diagram: Arsitektur IoT dengan Raspberry Pi sebagai Gateway</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: Arsitektur IoT dengan Raspberry Pi sebagai Gateway</div>
 <pre class="mermaid">
 flowchart TD
     N0[ESP32 No.1 DHT22]
     N1[ESP32 No.2 Ultrasonic]
     N2[Arduino PIR Sensor]
-    N3[/"MQTT Broker (Mosquitto)"/]
-    N4[/"RASPBERRY PI 4"/]
+    N3["MQTT Broker (Mosquitto)"]
+    N4["RASPBERRY PI 4"]
     N5[Python Script Subscriber MQTT]
     N6[SQLite / JSON Penyimpanan Data]
-    N7[/"Flask Server Dashboard Web (Port 5000)"/]
-    N8[/"Web Browser Dashboard IoT"/]
+    N7["Flask Server Dashboard Web (Port 5000)"]
+    N8["Web Browser Dashboard IoT"]
     N5 --> N6
     N6 --> N7
 </pre>
@@ -334,122 +332,9 @@ flowchart TD
 
       <p>Setelah microSD card ter-flash, masukkan ke Raspberry Pi, colok power supply, dan tunggu sekitar 1-2 menit untuk boot pertama kali.</p>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Terminal — Akses SSH ke Raspberry Pi</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('ssh pi@raspberrypi.local\n# atau gunakan IP langsung:\nssh pi@192.168.1.100\n# Password default: raspberry (ubah segera!)')">Salin</button>
-        </div>
-<pre><code>
-# Akses Raspberry Pi dari komputer lain via SSH
-ssh pi@raspberrypi.local
-
-# Atau gunakan IP address langsung
-ssh pi@192.168.1.100
-
-# Password default: raspberry (HARUS diubah!)
-# Pada versi baru, password di-set saat flashing via Imager
-</code></pre>
       </div>
+<div class="diagram-box">
 
-      <h3>Langkah 3: Update dan Install Paket Dasar</h3>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Terminal — Update Raspberry Pi</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
-        </div>
-<pre><code>
-# Update daftar paket
-sudo apt update && sudo apt upgrade -y
-
-# Install paket dasar untuk IoT
-sudo apt install -y python3-pip python3-venv git curl
-
-# Install library GPIO untuk Python
-pip3 install RPi.GPIO gpiozero
-
-# Install paho-mqtt untuk MQTT client
-pip3 install paho-mqtt
-
-# Install Flask untuk web server
-pip3 install flask
-
-# Verifikasi semua terinstal
-python3 --version
-pip3 --version
-</code></pre>
-      </div>
-
-      <h3>Langkah 4: Aktifkan Interface GPIO</h3>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Terminal — Aktifkan GPIO</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
-        </div>
-<pre><code>
-# Jalankan Raspberry Pi Configuration Tool
-sudo raspi-config
-
-# Navigasi: Interface Options → I2C → Enable
-# Navigasi: Interface Options → SPI → Enable
-# Navigasi: Interface Options → SSH → Enable
-# Navigasi: Interface Options → Serial Port → 
-#   Login shell over serial: No
-#   Serial port hardware enabled: Yes
-# Reboot setelah perubahan
-sudo reboot
-</code></pre>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 3: GPIO Raspberry Pi   -->
-      <!-- ============================== -->
-      <h2 id="gpio-raspberry-pi">3. GPIO di Raspberry Pi</h2>
-
-      <p><strong>GPIO</strong> (<em>General Purpose Input/Output</em>) adalah pin pada Raspberry Pi yang bisa dikonfigurasi sebagai input maupun output digital. Raspberry Pi 4 memiliki <strong>40 pin GPIO</strong> yang tersusun dalam dua baris. Dari total 40 pin, terdapat 26 GPIO yang bisa diprogram, sementara sisanya adalah pin power (3.3V, 5V, GND).</p>
-
-      <div class="info-box warning">
-        <div class="info-box-title">⚠️ Peringatan Penting!</div>
-        <p>GPIO Raspberry Pi beroperasi pada tegangan <strong>3.3V</strong>, bukan 5V seperti Arduino. Memberikan input 5V langsung ke pin GPIO akan merusak Raspberry Pi secara permanen. Gunakan <strong>logic level converter</strong> jika perlu berkomunikasi dengan perangkat 5V.</p>
-      </div>
-
-      <h3>Pinout Raspberry Pi 4</h3>
-
-      <table class="net-table">
-        <thead>
-          <tr>
-            <th>Pin (BCM)</th>
-            <th>Fisik (BOARD)</th>
-            <th>Fungsi Default</th>
-            <th>Keterangan</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>GPIO 2</td><td>3</td><td>I2C SDA</td><td>Data I2C, juga bisa GPIO</td></tr>
-          <tr><td>GPIO 3</td><td>5</td><td>I2C SCL</td><td>Clock I2C, juga bisa GPIO</td></tr>
-          <tr><td>GPIO 4</td><td>7</td><td>GPIO</td><td>Umum, sering dipakai untuk DHT</td></tr>
-          <tr><td>GPIO 14</td><td>8</td><td>UART TX</td><td>Serial transmit</td></tr>
-          <tr><td>GPIO 15</td><td>10</td><td>UART RX</td><td>Serial receive</td></tr>
-          <tr><td>GPIO 17</td><td>11</td><td>GPIO</td><td>Input/Output umum</td></tr>
-          <tr><td>GPIO 18</td><td>12</td><td>PWM / GPIO</td><td>PWM0 untuk kontrol servo</td></tr>
-          <tr><td>GPIO 27</td><td>13</td><td>GPIO</td><td>Input/Output umum</td></tr>
-          <tr><td>GPIO 22</td><td>15</td><td>GPIO</td><td>Input/Output umum</td></tr>
-          <tr><td>GPIO 23</td><td>16</td><td>GPIO</td><td>Input/Output umum</td></tr>
-          <tr><td>GPIO 24</td><td>18</td><td>GPIO</td><td>Input/Output umum</td></tr>
-          <tr><td>GPIO 25</td><td>22</td><td>GPIO</td><td>Input/Output umum</td></tr>
-          <tr><td>GPIO 10 (MOSI)</td><td>19</td><td>SPI</td><td>SPI Data Out</td></tr>
-          <tr><td>GPIO 9 (MISO)</td><td>21</td><td>SPI</td><td>SPI Data In</td></tr>
-        </tbody>
-      </table>
-
-      <!-- DIAGRAM: Pinout -->
-      <div class="diagram-box">
         <div class="diagram-label">Diagram: Raspberry Pi 4 GPIO Pinout (40-Pin Header)</div>
 <pre><code>
               Raspberry Pi 4 GPIO Header (Tampak Atas)
@@ -586,8 +471,7 @@ finally:
         <p><strong>DHT22</strong> memiliki rentang suhu -40°C hingga 80°C dengan akurasi ±0.5°C, lebih baik dari DHT11 (0-50°C, ±2°C). DHT22 juga lebih cepat dalam pembacaan data. Untuk proyek IoT serius, DHT22 sangat direkomendasikan.</p>
       </div>
 
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Rangkaian Raspberry Pi + DHT22</div>
+      
 <div class="diagram-box">
         <div class="diagram-label">Diagram: Rangkaian Raspberry Pi + DHT22</div>
 <pre><code>Raspberry Pi Power 3.3V Data Pin Ground
@@ -1197,13 +1081,12 @@ if __name__ == "__main__":
 
       <p>Sekarang kita akan menggabungkan semua yang telah dipelajari menjadi satu proyek lengkap: <strong>Gateway IoT</strong> yang menerima data dari sensor via MQTT, menyimpan ke database SQLite, dan menampilkan di dashboard Flask secara real-time.</p>
 
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Alur Data Proyek Gateway IoT</div>
+      
 <div class="diagram-box">
         
 <pre class="mermaid">
 flowchart TD
-    N0[/"SQLite Database iot_data.db"/]
+    N0["SQLite Database iot_data.db"]
     N1[ESP32 No.3 DHT22 + Relay MQTT ▶ iot/sensor/ esp...]
     N2[ESP32 No.1 DHT22 MQTT ▶ RASPBERRY PI iot/sensor...]
     N3[ESP32 No.2 HC-SR04 mqtt_subscriber.py MQTT - Te...]

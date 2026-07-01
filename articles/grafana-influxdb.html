@@ -284,89 +284,9 @@
 
       <p>Docker memungkinkan menjalankan InfluxDB tanpa perlu menginstal dependencies ke sistem. Cukup jalankan satu perintah:</p>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Terminal — Jalankan InfluxDB via Docker</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('docker run -d \\\n  --name influxdb \\\n  -p 8086:8086 \\\n  -v influxdb-data:/var/lib/influxdb2 \\\n  -v influxdb-config:/etc/influxdb2 \\\n  -e DOCKER_INFLUXDB_INIT_MODE=setup \\\n  -e DOCKER_INFLUXDB_INIT_USERNAME=admin \\\n  -e DOCKER_INFLUXDB_INIT_PASSWORD=influxdb12345 \\\n  -e DOCKER_INFLUXDB_INIT_ORG=my-org \\\n  -e DOCKER_INFLUXDB_INIT_BUCKET=iot-data \\\n  -e DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-token \\\n  influxdb:2.7')">Salin</button>
-        </div>
-<pre><code>docker run -d \
-  --name influxdb \
-  -p 8086:8086 \
-  -v influxdb-data:/var/lib/influxdb2 \
-  -v influxdb-config:/etc/influxdb2 \
-  -e DOCKER_INFLUXDB_INIT_MODE=setup \
-  -e DOCKER_INFLUXDB_INIT_USERNAME=admin \
-  -e DOCKER_INFLUXDB_INIT_PASSWORD=influxdb12345 \
-  -e DOCKER_INFLUXDB_INIT_ORG=my-org \
-  -e DOCKER_INFLUXDB_INIT_BUCKET=iot-data \
-  -e DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-token \
-  influxdb:2.7</code></pre>
       </div>
+<div class="diagram-box">
 
-      <p>Penjelasan parameter penting:</p>
-      <ul>
-        <li><code>-p 8086:8086</code> — Membuka port web interface InfluxDB</li>
-        <li><code>-v influxdb-data:/var/lib/influxdb2</code> — Persistent volume untuk data</li>
-        <li><code>-e DOCKER_INFLUXDB_INIT_BUCKET=iot-data</code> — Bucket awal bernama "iot-data"</li>
-        <li><code>-e DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=...</code> — Token API untuk autentikasi</li>
-      </ul>
-
-      <p>Setelah container berjalan, akses InfluxDB UI di <strong>http://localhost:8086</strong>.</p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Terminal — Verifikasi & Cek Status</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('docker logs influxdb\ndocker ps | grep influxdb')">Salin</button>
-        </div>
-<pre><code># Cek log InfluxDB
-docker logs influxdb
-
-# Cek status container
-docker ps | grep influxdb
-
-# Output yang diharapkan:
-# CONTAINER ID  IMAGE         STATUS         PORTS
-# a1b2c3d4e5f6  influxdb:2.7  Up 2 minutes   0.0.0.0:8086->8086/tcp</code></pre>
-      </div>
-
-      <h3>Metode 2: Instalasi Manual di Ubuntu/Debian</h3>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Terminal — Instalasi Manual InfluxDB 2.x</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# 1. Tambah repository InfluxDB\ncurl --silent --location -O https://repos.influxdata.com/influxdata-archive.key\necho \"943666881a1b8d9b849b74caebf02d3465d6beb716510d86a39f6c8dc8267464  influxdata-archive.key\" | sha256sum --check - && cat influxdata-archive.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive.gpg > /dev/null\necho \"deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive.gpg] https://repos.influxdata.com/debian stable main\" | sudo tee /etc/apt/sources.list.d/influxdata.list\n\n# 2. Instalasi\nsudo apt-get update && sudo apt-get install influxdb2\n\n# 3. Jalankan service\nsudo systemctl enable influxdb\nsudo systemctl start influxdb\n\n# 4. Setup awal via CLI\ninflux setup --username admin --password influxdb12345 --org my-org --bucket iot-data --retention 0 --force">Salin</button>
-        </div>
-<pre><code># 1. Tambah repository InfluxDB
-curl --silent --location -O https://repos.influxdata.com/influxdata-archive.key
-echo "943666881a1b8d9b849b74caebf02d3465d6beb716510d86a39f6c8dc8267464  influxdata-archive.key" | sha256sum --check - && cat influxdata-archive.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive.gpg > /dev/null
-echo "deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive.gpg] https://repos.influxdata.com/debian stable main" | sudo tee /etc/apt/sources.list.d/influxdata.list
-
-# 2. Instalasi
-sudo apt-get update && sudo apt-get install influxdb2
-
-# 3. Jalankan service
-sudo systemctl enable influxdb
-sudo systemctl start influxdb
-
-# 4. Setup awal via CLI
-influx setup \
-  --username admin \
-  --password influxdb12345 \
-  --org my-org \
-  --bucket iot-data \
-  --retention 0 \
-  --force</code></pre>
-      </div>
-
-      <div class="info-box warning">
-        <div class="info-box-title">⚠️ Keamanan Token API</div>
-        <p>Token API yang dibuat saat setup awal bersifat <strong>admin full-access</strong>. Di lingkungan produksi, buat token terpisah dengan permission spesifik (read/write bucket tertentu) melalui UI InfluxDB → API Tokens → Generate API Token. Jangan pernah commit token ke repository Git!</p>
-      </div>
-
-      <h3>Konsep Dasar InfluxDB</h3>
-      <p>Penting untuk memahami struktur data InfluxDB sebelum mulai:</p>
-
-      <div class="diagram-box">
         <div class="diagram-label">Diagram: Struktur Data InfluxDB</div>
 <pre><code>Tag: location=server-room-1
 Measurement: suhu_ruang
@@ -693,8 +613,7 @@ docker network connect iot-monitoring grafana</code></pre>
 
       <h3>Sintaks Dasar Flux</h3>
 
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Alur Query Flux</div>
+      
 <div class="diagram-box">
         
 <pre class="mermaid">
@@ -710,118 +629,9 @@ flowchart TD
 
       <h3>Contoh Query Penting</h3>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Flux — 7 Contoh Query Berguna</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('// 1. Rata-rata suhu per jam\nfrom(bucket: \"iot-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> aggregateWindow(every: 1h, fn: mean)\n  |> yield(name: \"rata_rata_per_jam\")\n\n// 2. Suhu maksimum hari ini\nfrom(bucket: \"iot-data\")\n  |> range(start: today())\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> max()\n  |> yield(name: \"suhu_maks_hari_ini\")\n\n// 3. Nilai terakhir dari semua field\nfrom(bucket: \"iot-data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> last()\n  |> yield(name: \"nilai_terakhir\")\n\n// 4. Suhu rata-rata per lokasi\nfrom(bucket: \"iot-data\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> group(columns: [\"location\"])\n  |> mean()\n  |> yield(name: \"rata_rata_per_lokasi\")\n\n// 5. Batasi jumlah hasil (top 10)\nfrom(bucket: \"iot-data\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> sort(columns: [\"_value\"], desc: true)\n  |> limit(n: 10)\n  |> yield(name: \"top_10_suhu\")\n\n// 6. Agregasi bergerak (moving average 5 data terakhir)\nfrom(bucket: \"iot-data\")\n  |> range(start: -6h)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> movingAverage(n: 5)\n  |> yield(name: \"moving_average\")\n\n// 7. Transformasi ke Fahrenheit\nfrom(bucket: \"iot-data\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> map(fn: (r) => ({ r with _value: r._value * 1.8 + 32.0 }))\n  |> yield(name: \"suhu_fahrenheit\")')">Salin</button>
-        </div>
-<pre><code>// 1. Rata-rata suhu per jam
-from(bucket: "iot-data")
-  |> range(start: -24h)
-  |> filter(fn: (r) => r._measurement == "suhu_ruang")
-  |> filter(fn: (r) => r._field == "suhu")
-  |> aggregateWindow(every: 1h, fn: mean)
-  |> yield(name: "rata_rata_per_jam")
-
-// 2. Suhu maksimum hari ini
-from(bucket: "iot-data")
-  |> range(start: today())
-  |> filter(fn: (r) => r._measurement == "suhu_ruang")
-  |> filter(fn: (r) => r._field == "suhu")
-  |> max()
-  |> yield(name: "suhu_maks_hari_ini")
-
-// 3. Nilai terakhir dari semua field
-from(bucket: "iot-data")
-  |> range(start: -5m)
-  |> filter(fn: (r) => r._measurement == "suhu_ruang")
-  |> last()
-  |> yield(name: "nilai_terakhir")
-
-// 4. Suhu rata-rata per lokasi
-from(bucket: "iot-data")
-  |> range(start: -1h)
-  |> filter(fn: (r) => r._measurement == "suhu_ruang")
-  |> filter(fn: (r) => r._field == "suhu")
-  |> group(columns: ["location"])
-  |> mean()
-  |> yield(name: "rata_rata_per_lokasi")
-
-// 5. Batasi jumlah hasil (top 10)
-from(bucket: "iot-data")
-  |> range(start: -1h)
-  |> filter(fn: (r) => r._measurement == "suhu_ruang")
-  |> filter(fn: (r) => r._field == "suhu")
-  |> sort(columns: ["_value"], desc: true)
-  |> limit(n: 10)
-  |> yield(name: "top_10_suhu")
-
-// 6. Agregasi bergerak (moving average 5 data terakhir)
-from(bucket: "iot-data")
-  |> range(start: -6h)
-  |> filter(fn: (r) => r._measurement == "suhu_ruang")
-  |> filter(fn: (r) => r._field == "suhu")
-  |> movingAverage(n: 5)
-  |> yield(name: "moving_average")
-
-// 7. Transformasi ke Fahrenheit
-from(bucket: "iot-data")
-  |> range(start: -1h)
-  |> filter(fn: (r) => r._measurement == "suhu_ruang")
-  |> filter(fn: (r) => r._field == "suhu")
-  |> map(fn: (r) => ({ r with _value: r._value * 1.8 + 32.0 }))
-  |> yield(name: "suhu_fahrenheit")</code></pre>
       </div>
+<div class="diagram-box">
 
-      <h3>Fungsi Agregasi yang Sering Digunakan</h3>
-      <table class="net-table">
-        <thead>
-          <tr>
-            <th>Fungsi</th>
-            <th>Fungsi</th>
-            <th>Contoh Penggunaan</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td><code>mean()</code></td><td>Rata-rata</td><td>Suhu rata-rata per jam</td></tr>
-          <tr><td><code>min()</code></td><td>Minimum</td><td>Suhu terendah hari ini</td></tr>
-          <tr><td><code>max()</code></td><td>Maksimum</td><td>Suhu tertinggi hari ini</td></tr>
-          <tr><td><code>sum()</code></td><td>jumlah total</td><td>Total energi terkonsumsi</td></tr>
-          <tr><td><code>count()</code></td><td>Jumlah data point</td><td>Jumlah pembacaan sensor</td></tr>
-          <tr><td><code>stddev()</code></td><td>Standar deviasi</td><td>Stabilitas pembacaan sensor</td></tr>
-          <tr><td><code>percentile()</code></td><td>Persentil</td><td>P99 latency</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Fungsi Window (aggregateWindow)</h3>
-      <p>Fungsi <code>aggregateWindow()</code> membagi data ke dalam jendela waktu sebelum mengagregasi. Parameter <code>every</code> menentukan ukuran jendela:</p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Flux — Contoh Window</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('|> aggregateWindow(every: 1m, fn: mean)   // Rata-rata per menit\n|> aggregateWindow(every: 5m, fn: mean)   // Rata-rata per 5 menit\n|> aggregateWindow(every: 1h, fn: mean)   // Rata-rata per jam\n|> aggregateWindow(every: 1d, fn: mean)   // Rata-rata per hari')">Salin</button>
-        </div>
-<pre><code>|> aggregateWindow(every: 1m, fn: mean)   // Rata-rata per menit
-|> aggregateWindow(every: 5m, fn: mean)   // Rata-rata per 5 menit
-|> aggregateWindow(every: 1h, fn: mean)   // Rata-rata per jam
-|> aggregateWindow(every: 1d, fn: mean)   // Rata-rata per hari</code></pre>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 7: Alerting di Grafana  -->
-      <!-- ============================== -->
-      <h2 id="alerting-grafana">7. Alerting di Grafana</h2>
-
-      <p>Alerting adalah fitur kritis untuk sistem monitoring IoT. Grafana memungkinkan kamu membuat aturan alert yang akan mengirim notifikasi ke email, Telegram, Slack, atau webhook saat nilai data melewati threshold tertentu.</p>
-
-      <h3>Konsep Alerting di Grafana</h3>
-
-      <div class="diagram-box">
         <div class="diagram-label">Diagram: Alur Alerting Grafana</div>
 <pre><code>Contact
 Point
@@ -938,8 +748,7 @@ Chat ID: 123456789</code></pre>
 
       <h3>Arsitektur Sistem</h3>
 
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Arsitektur Sistem Monitoring Suhu IoT</div>
+      
 <div class="diagram-box">
         
 <pre class="mermaid">

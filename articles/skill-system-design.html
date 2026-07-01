@@ -232,8 +232,6 @@
 
       <div class="diagram-box">
         <div class="diagram-label">Diagram: High-Level System Architecture</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: System Architecture</div>
 <pre class="mermaid">
 flowchart TD
     N0["Client (Browser)"]
@@ -295,80 +293,11 @@ flowchart TD
 
       <h3>Contoh: Scalability Calculation</h3>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Back-of-the-Envelope Estimation — Twitter-like System</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># Asumsi:
-# - 200 juta DAU (Daily Active Users)
-# - Setiap user membaca 10 tweets/hari = 2 miliar reads/hari
-# - Setiap user membuat 2 tweets/hari = 400 juta writes/hari
-
-# Write per detik:
-# 400,000,000 / 86,400 ≈ 4,629 writes/detik
-
-# Read per detik:
-# 2,000,000,000 / 86,400 ≈ 23,148 reads/detik
-
-# Storage per hari (rata-rata tweet 300 bytes):
-# 400,000,000 × 300 bytes = 120 GB/hari = 43.8 TB/tahun
-
-# Bandwidth (read, 1 KB per tweet + metadata):
-# 23,148 reads/detik × 1 KB = ~23 MB/detik ≈ 184 Mbps
-
-# Kesimpulan:
-# - Database perlu handle ~5K writes/detik → perlu sharding
-# - Cache sangat krusial untuk 23K reads/detik
-# - CDN untuk media (foto, video)
-# - Message queue untuk async fanout tweet ke followers</code></pre>
       </div>
-
-      <h3>Micro vs Macro Scaling</h3>
-      <div class="info-box info">
-        <div class="info-box-title">📋 Strategi Scaling</div>
-        <ul>
-          <li><strong>Database Replication</strong> — Primary untuk write, replica untuk read</li>
-          <li><strong>Database Sharding</strong> — Bagi data ke beberapa database berdasarkan key</li>
-          <li><strong>Service Decomposition</strong> — Pisahkan service berdasarkan domain (microservices)</li>
-          <li><strong>Async Processing</strong> — Gunakan message queue untuk operasi yang tidak perlu real-time</li>
-          <li><strong>Auto-scaling</strong> — Tambah/kurangi server otomatis berdasarkan load</li>
-        </ul>
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 3: Load Balancing       -->
-      <!-- ============================== -->
-      <h2 id="loadbalancing">3. Load Balancing</h2>
-
-      <p><strong>Load Balancer</strong> mendistribusikan traffic ke beberapa server secara merata. Ini adalah komponen kunci untuk high availability dan horizontal scaling.</p>
-
-      <h3>Jenis Load Balancing</h3>
-      <table class="net-table">
-        <thead>
-          <tr>
-            <th>Algoritma</th>
-            <th>Cara Kerja</th>
-            <th>Cocok Untuk</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Round Robin</td><td>Request bergantian ke tiap server secara berurutan</td><td>Server dengan spec sama, request uniform</td></tr>
-          <tr><td>Weighted Round Robin</td><td>Seperti round robin tapi server dengan kapasitas lebih mendapat lebih banyak</td><td>Server dengan spec berbeda</td></tr>
-          <tr><td>Least Connections</td><td>Kirim ke server dengan koneksi aktif paling sedikit</td><td>Request dengan durasi bervariasi</td></tr>
-          <tr><td>IP Hash</td><td>Hash dari IP client menentukan server tujuan</td><td>Session affinity / sticky session</td></tr>
-          <tr><td>Consistent Hashing</td><td>Distribusi berdasarkan hash ring — minimal reshuffling saat scaling</td><td>Distributed cache, database sharding</td></tr>
-        </tbody>
-      </table>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Load Balancer Architecture</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: Load Balancer Architecture</div>
 <pre class="mermaid">
 flowchart TD
     N0[Clients]
-    N1[/"Load Balancer (L4/L7) Round Robin / Least Conn ..."/]
+    N1["Load Balancer (L4/L7) Round Robin / Least Conn ..."]
     N2["Server 1 (App)"]
     N3["Server 2 (App)"]
     N4["Server 3 (App)"]
@@ -395,82 +324,16 @@ flowchart TD
       <h3>Database Scaling Strategies</h3>
 
       <h4>1. Read Replicas</h4>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">PostgreSQL — Replication Setup</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># Primary server (postgresql.conf)
-wal_level = replica
-max_wal_senders = 5
-wal_keep_size = '1GB'
-
-# Replica server (postgresql.conf)
-primary_conninfo = 'host=primary-db port=5432 user=replicator'
-hot_standby = on
-
-# Aplikasi: routing query ke primary/replica
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL  // Primary untuk write
-    }
-  }
-});
-
-// Untuk read-heavy operations, gunakan replica
-const readPrisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_REPLICA_URL  // Replica untuk read
-    }
-  }
-});
-
-// Write ke primary
-await prisma.user.create({ data: { name: 'Budi' } });
-
-// Read dari replica
-const users = await readPrisma.user.findMany();</code></pre>
       </div>
-
-      <h4>2. Database Sharding</h4>
-      <div class="info-box info">
-        <div class="info-box-title">📋 Sharding Strategies</div>
-        <table class="net-table">
-          <thead>
-            <tr>
-              <th>Strategy</th>
-              <th>Cara Kerja</th>
-              <th>Pro</th>
-              <th>Kontra</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Range-based</td><td>Berdasarkan range ID/tanggal</td><td>Sederhana, range query mudah</td><td>Hotspot pada shard terbaru</td></tr>
-            <tr><td>Hash-based</td><td>Hash dari shard key</td><td>Distribusi merata</td><td>Range query sulit</td></tr>
-            <tr><td>Directory-based</td><td>Lookup table untuk mapping</td><td>Fleksibel</td><td>Single point of failure</td></tr>
-            <tr><td>Geo-based</td><td>Berdasarkan lokasi user</td><td>Latency rendah per region</td><td>Cross-region query kompleks</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h4>3. CAP Theorem</h4>
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: CAP Theorem</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: CAP Theorem</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"Consistency"/]
-    N1[/"CP (Consistency + Partition): MongoDB, HBase"/]
-    N2[/"Data konsisten tapi bisa reject request saat pa..."/]
-    N3[/"AP (Availability + Partition): Cassandra, DynamoDB"/]
-    N4[/"Selalu available tapi data bisa inconsistency s..."/]
-    N5[/"CA (Consistency + Availability): PostgreSQL (si..."/]
-    N6[/"Konsisten dan available, tapi tidak partition-t..."/]
+    N0["Consistency"]
+    N1["CP (Consistency + Partition): MongoDB, HBase"]
+    N2["Data konsisten tapi bisa reject request saat pa..."]
+    N3["AP (Availability + Partition): Cassandra, DynamoDB"]
+    N4["Selalu available tapi data bisa inconsistency s..."]
+    N5["CA (Consistency + Availability): PostgreSQL (si..."]
+    N6["Konsisten dan available, tapi tidak partition-t..."]
     N0 --> N1
     N0 --> N3
     N0 --> N5
@@ -512,229 +375,10 @@ flowchart TD
 
       <h3>Caching Patterns</h3>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Redis — Caching Patterns Implementation</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>import Redis from 'ioredis';
-const redis = new Redis();
-
-// ============================================
-// PATTERN 1: Cache-Aside (Lazy Loading)
-// ============================================
-async function getUserById(id: string) {
-  const cacheKey = `user:${id}`;
-
-  // 1. Check cache dulu
-  const cached = await redis.get(cacheKey);
-  if (cached) {
-    console.log('Cache HIT');
-    return JSON.parse(cached);
-  }
-
-  // 2. Cache miss → query database
-  console.log('Cache MISS');
-  const user = await db.user.findUnique({ where: { id } });
-
-  // 3. Simpan ke cache (TTL 5 menit)
-  if (user) {
-    await redis.setex(cacheKey, 300, JSON.stringify(user));
-  }
-
-  return user;
-}
-
-// ============================================
-// PATTERN 2: Write-Through
-// ============================================
-async function updateUser(id: string, data: UserUpdate) {
-  // 1. Update database
-  const user = await db.user.update({ where: { id }, data });
-
-  // 2. Langsung update cache
-  await redis.setex(`user:${id}`, 300, JSON.stringify(user));
-
-  return user;
-}
-
-// ============================================
-// PATTERN 3: Cache Invalidation
-// ============================================
-async function deleteUser(id: string) {
-  await db.user.delete({ where: { id } });
-  // Hapus dari cache
-  await redis.del(`user:${id}`);
-}
-
-// ============================================
-// PATTERN 4: Cache Stampede Prevention
-// ============================================
-async function getPopularProducts() {
-  const cacheKey = 'popular:products';
-  const ttl = 3600; // 1 jam
-
-  let data = await redis.get(cacheKey);
-  if (data) return JSON.parse(data);
-
-  // Gunakan lock untuk hindari stampede
-  const lockKey = `${cacheKey}:lock`;
-  const locked = await redis.set(lockKey, '1', 'NX', 'EX', 30);
-
-  if (locked) {
-    const products = await db.product.findMany({
-      orderBy: { views: 'desc' },
-      take: 50
-    });
-    await redis.setex(cacheKey, ttl, JSON.stringify(products));
-    await redis.del(lockKey);
-    return products;
-  }
-
-  // Tunggu sebentar lalu coba dari cache lagi
-  await new Promise(r => setTimeout(r, 100));
-  return getPopularProducts();
-}</code></pre>
       </div>
-
-      <div class="info-box warning">
-        <div class="info-box-title">⚠️ Cache Invalidation adalah Masalah Sulit</div>
-        <p>Phil Butler pernah berkata: <em>"There are only two hard things in Computer Science: cache invalidation and naming things."</em> Pastikan kamu menetapkan TTL yang tepat, dan punya strategi invalidation yang jelas saat data berubah.</p>
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 6: Message Queue        -->
-      <!-- ============================== -->
-      <h2 id="messagequeue">6. Message Queue &amp; Async Processing</h2>
-
-      <p><strong>Message queue</strong> memungkinkan komunikasi async antar service. Alih-alih memanggil service lain secara langsung (synchronous), kamu mengirim pesan ke queue dan service lain memprosesnya kapan pun siap.</p>
-
-      <h3>Kapan Menggunakan Message Queue?</h3>
-      <table class="net-table">
-        <thead>
-          <tr>
-            <th>Use Case</th>
-            <th>Tanpa Queue</th>
-            <th>Dengan Queue</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Email notification</td><td>User tunggu 3 detik saat checkout</td><td>Response instant, email dikirim async</td></tr>
-          <tr><td>Image processing</td><td>Upload timeout untuk file besar</td><td>Upload selesai, processing di background</td></tr>
-          <tr><td>Order processing</td><td>Satu kegagalan = semua gagal</td><td>Retry otomatis, processing terus walau ada error</td></tr>
-          <tr><td>Analytics logging</td><td>Write ke analytics di setiap request = lambat</td><td>Log ke queue, batch insert ke analytics DB</td></tr>
-        </tbody>
-      </table>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">TypeScript — RabbitMQ Producer &amp; Consumer</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>import amqplib from 'amqplib';
-
-// === PRODUCER: Mengirim pesan ke queue ===
-async function sendOrderNotification(order: Order) {
-  const conn = await amqplib.connect('amqp://localhost');
-  const channel = await conn.createChannel();
-
-  const queue = 'order_notifications';
-  await channel.assertQueue(queue, { durable: true });
-
-  const message = {
-    type: 'ORDER_CREATED',
-    data: {
-      orderId: order.id,
-      userId: order.userId,
-      total: order.total,
-      timestamp: new Date().toISOString()
-    }
-  };
-
-  channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
-    persistent: true  // Pesan tetap ada walau RabbitMQ restart
-  });
-
-  console.log('Order notification sent:', order.id);
-  await channel.close();
-  await conn.close();
-}
-
-// === CONSUMER: Memproses pesan dari queue ===
-async function processOrderNotifications() {
-  const conn = await amqplib.connect('amqp://localhost');
-  const channel = await conn.createChannel();
-
-  const queue = 'order_notifications';
-  await channel.assertQueue(queue, { durable: true });
-
-  // Prefetch: proses 1 pesan sekaligus
-  channel.prefetch(1);
-
-  console.log('Waiting for order notifications...');
-
-  channel.consume(queue, async (msg) => {
-    if (!msg) return;
-
-    const { type, data } = JSON.parse(msg.content.toString());
-
-    try {
-      switch (type) {
-        case 'ORDER_CREATED':
-          await sendEmail(data.userId, 'Order confirmed!');
-          await updateAnalytics(data);
-          await notifyWarehouse(data.orderId);
-          break;
-      }
-
-      // Acknowledge: pesan berhasil diproses
-      channel.ack(msg);
-    } catch (error) {
-      // Reject & requeue: pesan akan diproses ulang
-      channel.nack(msg, false, true);
-    }
-  });
-}</code></pre>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide"></div>
-
-      <!-- ============================== -->
-      <!-- SECTION 7: Microservices        -->
-      <!-- ============================== -->
-      <h2 id="microservices">7. Microservices Architecture</h2>
-
-      <p><strong>Microservices</strong> adalah arsitektur di mana aplikasi dibagi menjadi service-service kecil yang independen, masing-masing bertanggung jawab atas satu fungsi bisnis.</p>
-
-      <h3>Monolith vs Microservices</h3>
-      <table class="net-table">
-        <thead>
-          <tr>
-            <th>Aspek</th>
-            <th>Monolith</th>
-            <th>Microservices</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Deployment</td><td>Satu aplikasi, satu deploy</td><td>Per-service deploy independen</td></tr>
-          <tr><td>Scaling</td><td>Scale seluruh aplikasi</td><td>Scale per service sesuai beban</td></tr>
-          <tr><td>Technology</td><td>Satu tech stack</td><td>Bebas pilih tech stack per service</td></tr>
-          <tr><td>Team</td><td>Tim besar, satu codebase</td><td>Tim kecil, ownership jelas</td></tr>
-          <tr><td>Complexity</td><td>Sederhana di awal</td><td>Operational complexity tinggi</td></tr>
-          <tr><td>Communication</td><td>Function call</td><td>Network call (HTTP/gRPC/message queue)</td></tr>
-          <tr><td>Data</td><td>Satu database</td><td>Database per service</td></tr>
-          <tr><td>Cocok untuk</td><td>Startup, MVP, tim kecil</td><td>Produk mature, tim besar</td></tr>
-        </tbody>
-      </table>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Microservices E-Commerce Architecture</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: Microservices E-Commerce</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"API GATEWAY — Authentication, Rate Limiting, Ro..."/]
+    N0["API GATEWAY — Authentication, Rate Limiting, Ro..."]
     N1[User Service - Register - Auth - Profile]
     N2[Product Service - Search - CRUD - Stock]
     N3[Order Service - Create - Status - History]
@@ -743,7 +387,7 @@ flowchart TD
     N6["Product DB (Postgres)"]
     N7["Order DB (Postgres)"]
     N8["Payment DB (Postgres)"]
-    N9[/"Communication: Sync: REST/gRPC antar service As..."/]
+    N9["Communication: Sync: REST/gRPC antar service As..."]
     N0 --> N1
     N0 --> N2
     N0 --> N3
@@ -767,164 +411,18 @@ flowchart TD
       <h2 id="patterns">8. Design Patterns untuk Distributed System</h2>
 
       <h3>1. Circuit Breaker Pattern</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">TypeScript — Circuit Breaker Implementation</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>enum CircuitState {
-  CLOSED = 'CLOSED',     // Normal — request lewat
-  OPEN = 'OPEN',         // Gagal terus — block request
-  HALF_OPEN = 'HALF_OPEN' // Testing — coba beberapa request
-}
-
-class CircuitBreaker {
-  private state = CircuitState.CLOSED;
-  private failureCount = 0;
-  private lastFailureTime = 0;
-  private readonly threshold = 5;         // Max failures
-  private readonly timeout = 30000;       // 30 detik cooldown
-
-  async call(fn: () => Promise<any>): Promise<any> {
-    if (this.state === CircuitState.OPEN) {
-      if (Date.now() - this.lastFailureTime > this.timeout) {
-        this.state = CircuitState.HALF_OPEN;
-      } else {
-        throw new Error('Circuit is OPEN — service unavailable');
-      }
-    }
-
-    try {
-      const result = await fn();
-      this.onSuccess();
-      return result;
-    } catch (error) {
-      this.onFailure();
-      throw error;
-    }
-  }
-
-  private onSuccess() {
-    this.failureCount = 0;
-    this.state = CircuitState.CLOSED;
-  }
-
-  private onFailure() {
-    this.failureCount++;
-    this.lastFailureTime = Date.now();
-    if (this.failureCount >= this.threshold) {
-      this.state = CircuitState.OPEN;
-    }
-  }
-}
-
-// Penggunaan
-const paymentBreaker = new CircuitBreaker();
-const result = await paymentBreaker.call(() =>
-  paymentService.processPayment(orderId, amount)
-);</code></pre>
       </div>
-
-      <h3>2. Rate Limiting Pattern</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Redis — Token Bucket Rate Limiter</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>-- Redis Lua script: Token Bucket Rate Limiter
--- KEYS[1] = rate_limit:{user_id}
--- ARGV[1] = max_tokens (e.g., 100)
--- ARGV[2] = refill_rate (e.g., 10 per second)
--- ARGV[3] = current_timestamp
-
-local key = KEYS[1]
-local max_tokens = tonumber(ARGV[1])
-local refill_rate = tonumber(ARGV[2])
-local now = tonumber(ARGV[3])
-
-local data = redis.call('HMGET', key, 'tokens', 'last_refill')
-local tokens = tonumber(data[1]) or max_tokens
-local last_refill = tonumber(data[2]) or now
-
--- Refill tokens
-local elapsed = now - last_refill
-local new_tokens = math.min(max_tokens, tokens + elapsed * refill_rate)
-
-if new_tokens >= 1 then
-  -- Consume 1 token
-  redis.call('HMSET', key, 'tokens', new_tokens - 1, 'last_refill', now)
-  redis.call('EXPIRE', key, 3600)
-  return 1  -- Allowed
-else
-  redis.call('HMSET', key, 'tokens', new_tokens, 'last_refill', now)
-  return 0  -- Rate limited
-end</code></pre>
-      </div>
-
-      <h3>3. Other Important Patterns</h3>
-      <table class="net-table">
-        <thead>
-          <tr>
-            <th>Pattern</th>
-            <th>Fungsi</th>
-            <th>Contoh Penggunaan</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Saga Pattern</td><td>Distributed transactions across microservices</td><td>Order → Payment → Inventory → Shipping</td></tr>
-          <tr><td>CQRS</td><td>Pisahkan model read dan write</td><td>Read model dioptimasi untuk query, write model untuk konsistensi</td></tr>
-          <tr><td>Event Sourcing</td><td>Simpan semua perubahan sebagai event</td><td>Audit trail, financial transactions</td></tr>
-          <tr><td>Retry with Exponential Backoff</td><td>Retry failed request dengan delay meningkat</td><td>API calls ke service eksternal</td></tr>
-          <tr><td>Bulkhead</td><td>Isolasikan failure agar tidak menyebar</td><td>Thread pool per service dependency</td></tr>
-        </tbody>
-      </table>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide"></div>
-
-      <!-- ============================== -->
-      <!-- SECTION 9: Case Study           -->
-      <!-- ============================== -->
-      <h2 id="casestudy">9. Case Study: Mendesain URL Shortener</h2>
-
-      <p>Mari kita terapkan semua konsep di atas untuk mendesain sistem URL Shortener seperti bit.ly.</p>
-
-      <h3>Step 1: Requirements</h3>
-      <div class="info-box info">
-        <div class="info-box-title">📋 Functional &amp; Non-Functional Requirements</div>
-        <p><strong>Functional:</strong></p>
-        <ul>
-          <li>User bisa memendekkan URL panjang menjadi short URL</li>
-          <li>User bisa redirect dari short URL ke URL asli</li>
-          <li>Custom alias (opsional)</li>
-          <li>Analytics: jumlah klik, referer, geolocation</li>
-        </ul>
-        <p><strong>Non-Functional:</strong></p>
-        <ul>
-          <li>100 juta URL baru per bulan</li>
-          <li>Read:Write ratio = 100:1 (banyak redirect, sedikit create)</li>
-          <li>Latency redirect &lt; 100ms</li>
-          <li>99.99% availability</li>
-          <li>URL tidak expired (atau custom TTL)</li>
-        </ul>
-      </div>
-
-      <h3>Step 2: High-Level Design</h3>
-      <div class="diagram-box">
-        <div class="diagram-label">URL Shortener Architecture</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: URL Shortener Architecture</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"Load Balancer (Nginx/ALB)"/]
-    N1[/"API Server (Node.js / Go)"/]
+    N0["Load Balancer (Nginx/ALB)"]
+    N1["API Server (Node.js / Go)"]
     N2["Cache (Redis)"]
     N3["URL DB (Postgres/DynamoDB)"]
     N4["Analytics (Kafka → Clickhouse)"]
     N5["Read Flow (99.9% traffic) 1. User buka short UR..."]
     N6["Write Flow (0.1% traffic) 1. User submit long U..."]
-    N7[/"Short URL Generation Base62 encode dari auto-in..."/]
-    N8[/"CREATE TABLE urls (id, short_code, long_url, us..."/]
+    N7["Short URL Generation Base62 encode dari auto-in..."]
+    N8["CREATE TABLE urls (id, short_code, long_url, us..."]
     N0 --> N1
     N1 --> N2
     N1 --> N3

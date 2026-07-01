@@ -251,14 +251,12 @@
 
       <div class="diagram-box">
         <div class="diagram-label">Diagram: Mengapa Cookie-Based Auth Rentan terhadap CSRF</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: Cookie-Based Authentication and CSRF</div>
 <pre class="mermaid">
 flowchart TD
     N0[Browser Korban]
     N1["Cookie: session_id=abc123xyz Domain: bank.examp..."]
     N2[Server bank.example]
-    N3[/"⚠️ CSRF Problem: Browser mengirim cookie otomat..."/]
+    N3["⚠️ CSRF Problem: Browser mengirim cookie otomat..."]
     N0 --> N1
     N1 --> N2
     N2 --> N3
@@ -280,86 +278,18 @@ flowchart TD
 
       <h3>Skenario Serangan: Transfer Uang</h3>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">HTML — Payload Serangan CSRF</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>&lt;!--
-  Halaman ini dibuat oleh penyerang.
-  Korban yang sudah login di bank.example.com
-  mengunjungi halaman ini secara tidak sengaja.
---&gt;
-
-&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;Anda Memenangkan Hadiah!&lt;/title&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;h1&gt;Selamat! Anda memenangkan iPhone!&lt;/h1&gt;
-
-  &lt;!-- Skenario 1: CSRF via Form (POST) --&gt;
-  &lt;!-- Form ini otomatis di-submit menggunakan JavaScript --&gt;
-  &lt;form id="csrf-form" action="https://bank.example.com/transfer" method="POST"&gt;
-    &lt;input type="hidden" name="to_account" value="ATTACKER_ACCOUNT"&gt;
-    &lt;input type="hidden" name="amount" value="10000000"&gt;
-    &lt;input type="hidden" name="currency" value="IDR"&gt;
-  &lt;/form&gt;
-  &lt;script&gt;
-    // Form otomatis di-submit begitu halaman dimuat
-    document.getElementById('csrf-form').submit();
-  &lt;/script&gt;
-
-  &lt;!-- Skenario 2: CSRF via Image Tag (GET) --&gt;
-  &lt;!-- Beberapa aplikasi rentan karena menggunakan GET untuk aksi --&gt;
-  &lt;img src="https://bank.example.com/transfer?to=ATTACKER&amp;amount=10000000"
-       style="display:none" alt=""&gt;
-
-  &lt;!-- Skenario 3: CSRF via XMLHttpRequest (XHR) --&gt;
-  &lt;script&gt;
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'https://bank.example.com/transfer', true);
-    xhr.withCredentials = true; // Kirim cookie
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.send('to_account=ATTACKER&amp;amount=10000000');
-  &lt;/script&gt;
-
-  &lt;!-- Skenario 4: CSRF via Fetch API --&gt;
-  &lt;script&gt;
-    fetch('https://bank.example.com/transfer', {
-      method: 'POST',
-      credentials: 'include', // Kirim cookie
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        to_account: 'ATTACKER_ACCOUNT',
-        amount: 10000000
-      })
-    });
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
       </div>
-
-      <h3>Alur Serangan CSRF Langkah Demi Langkah</h3>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Alur Serangan CSRF</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: CSRF Attack Flow</div>
 <pre class="mermaid">
 flowchart TD
     N0["Korban (Already logged in)"]
     N1["Bank App (Target)"]
     N2["Attacker (evil.com)"]
-    N3[/"1. Attacker membuat halaman dengan hidden form/JS"/]
-    N4[/"3. Browser auto-submit POST /transfer ke bank.com"/]
-    N5[/"4. POST /transfer Cookie: session=abc123"/]
-    N6[/"5. Bank App menerima request ✅ Cookie valid (se..."/]
-    N7[/"💀 Uang berhasil ditransfer ke attacker!"/]
-    N8[/"🛡️ Pertahanan: CSRF Token, SameSite Cookies, Re..."/]
+    N3["1. Attacker membuat halaman dengan hidden form/JS"]
+    N4["3. Browser auto-submit POST /transfer ke bank.com"]
+    N5["4. POST /transfer Cookie: session=abc123"]
+    N6["5. Bank App menerima request ✅ Cookie valid (se..."]
+    N7["💀 Uang berhasil ditransfer ke attacker!"]
+    N8["🛡️ Pertahanan: CSRF Token, SameSite Cookies, Re..."]
     N0 --> N1
     N1 --> N2
     N2 --> N3
@@ -374,68 +304,15 @@ flowchart TD
 
       <h3>Server-Side: Kode Rentan</h3>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python Flask — Endpoint Transfer Rentan CSRF</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># ❌ RENTAN: Endpoint tanpa perlindungan CSRF
-from flask import Flask, request, session, jsonify
-
-app = Flask(__name__)
-app.secret_key = 'rahasia-sangat-rahasia'
-
-@app.route('/login', methods=['POST'])
-def login():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    if authenticate(username, password):
-        session['user_id'] = get_user_id(username)
-        session['username'] = username
-        return jsonify({"message": "Login berhasil"})
-    return jsonify({"error": "Gagal login"}), 401
-
-# ❌ TIDAK ADA CSRF PROTECTION!
-@app.route('/transfer', methods=['POST'])
-def transfer():
-    if 'user_id' not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-
-    to_account = request.form.get('to_account')
-    amount = int(request.form.get('amount', 0))
-
-    # Langsung eksekusi tanpa validasi asal request
-    execute_transfer(session['user_id'], to_account, amount)
-    return jsonify({"message": f"Transfer Rp{amount:,} berhasil ke {to_account}"})
-</code></pre>
       </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 3: Synchronizer Token  -->
-      <!-- ============================== -->
-      <h2 id="synchronizer-token">3. Synchronizer Token Pattern</h2>
-
-      <p><strong>Synchronizer Token Pattern</strong> adalah teknik pertahanan CSRF yang paling umum dan direkomendasikan. Server menghasilkan token unik yang tidak dapat diprediksi dan menyimpannya di session pengguna. Token ini kemudian disisipkan ke dalam setiap form HTML yang membutuhkan proteksi. Saat form disubmit, server memverifikasi bahwa token yang dikirim cocok dengan token yang tersimpan di session.</p>
-
-      <h3>Cara Kerja Synchronizer Token</h3>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Synchronizer Token Pattern</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: Synchronizer Token Pattern</div>
 <pre class="mermaid">
 flowchart TD
     N0["Browser (User)"]
     N1["Server (Session Store)"]
-    N2[/"Generate CSRF token → simpan di session"/]
-    N3[/"🔑 csrf_token: a3f8b2c1..."/]
-    N4[/"Verify: token match? session vs body"/]
-    N5[/"✅ Token valid → request diproses | ❌ Token sala..."/]
+    N2["Generate CSRF token → simpan di session"]
+    N3["🔑 csrf_token: a3f8b2c1..."]
+    N4["Verify: token match? session vs body"]
+    N5["✅ Token valid → request diproses | ❌ Token sala..."]
     N0 --> N1
     N1 --> N2
     N2 --> N3
@@ -447,196 +324,12 @@ flowchart TD
 
       <h3>Implementasi di Flask</h3>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python Flask — Implementasi CSRF Token</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># ✅ AMAN: Implementasi Synchronizer Token
-from flask import Flask, request, session, abort, render_template_string
-import secrets
-import hmac
-
-app = Flask(__name__)
-app.secret_key = secrets.token_hex(32)
-
-def generate_csrf_token():
-    """Generate atau ambil CSRF token dari session"""
-    if '_csrf_token' not in session:
-        session['_csrf_token'] = secrets.token_hex(32)
-    return session['_csrf_token']
-
-def validate_csrf_token(token):
-    """Validasi CSRF token menggunakan constant-time comparison"""
-    session_token = session.get('_csrf_token')
-    if not session_token or not token:
-        return False
-    # Gunakan hmac.compare_digest untuk mencegah timing attack
-    return hmac.compare_digest(session_token, token)
-
-# Inject token ke semua template
-@app.context_processor
-def inject_csrf_token():
-    return dict(csrf_token=generate_csrf_token)
-
-# Middleware untuk validasi CSRF pada semua POST request
-@app.before_request
-def csrf_protect():
-    if request.method == 'POST':
-        # Cek token dari form field atau header
-        token = request.form.get('csrf_token') or request.headers.get('X-CSRF-Token')
-        if not validate_csrf_token(token):
-            abort(403, "CSRF token tidak valid atau tidak ada")
-
-# Template HTML dengan CSRF token
-TRANSFER_FORM = '''
-&lt;form method="POST" action="/transfer"&gt;
-    &lt;input type="hidden" name="csrf_token" value="{{ csrf_token() }}"&gt;
-    &lt;label&gt;Rekening Tujuan:
-        &lt;input type="text" name="to_account" required&gt;
-    &lt;/label&gt;
-    &lt;label&gt;Jumlah (IDR):
-        &lt;input type="number" name="amount" min="10000" required&gt;
-    &lt;/label&gt;
-    &lt;button type="submit"&gt;Transfer&lt;/button&gt;
-&lt;/form&gt;
-'''
-
-@app.route('/transfer', methods=['GET'])
-def transfer_form():
-    return render_template_string(TRANSFER_FORM)
-
-@app.route('/transfer', methods=['POST'])
-def transfer():
-    if 'user_id' not in session:
-        abort(401)
-    to_account = request.form.get('to_account')
-    amount = int(request.form.get('amount', 0))
-    execute_transfer(session['user_id'], to_account, amount)
-    return f"Transfer Rp{amount:,} berhasil!"
-</code></pre>
       </div>
-
-      <h3>Implementasi di Express.js (Node.js)</h3>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">JavaScript Express — CSRF Token dengan csurf</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>// ✅ AMAN: Implementasi CSRF di Express.js
-const express = require('express');
-const session = require('express-session');
-const crypto = require('crypto');
-const app = express();
-
-app.use(session({
-  secret: crypto.randomBytes(64).toString('hex'),
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    secure: true,      // Hanya HTTPS
-    httpOnly: true,     // Tidak bisa diakses JS
-    sameSite: 'strict'  // SameSite strict
-  }
-}));
-
-// Middleware CSRF custom
-function csrfProtection(req, res, next) {
-  if (req.method === 'GET') {
-    // Generate token untuk form
-    if (!req.session.csrfToken) {
-      req.session.csrfToken = crypto.randomBytes(32).toString('hex');
-    }
-    next();
-  } else if (req.method === 'POST') {
-    const token = req.body._csrf || req.headers['x-csrf-token'];
-    if (!token || token !== req.session.csrfToken) {
-      return res.status(403).json({
-        error: 'CSRF token tidak valid'
-      });
-    }
-    // Regenerate token setelah setiap POST (one-time token)
-    req.session.csrfToken = crypto.randomBytes(32).toString('hex');
-    next();
-  }
-}
-
-app.use(csrfProtection);
-
-// Template engine (EJS)
-app.get('/transfer', (req, res) => {
-  res.send(`
-    &lt;form method="POST" action="/transfer"&gt;
-      &lt;input type="hidden" name="_csrf" value="${req.session.csrfToken}"&gt;
-      &lt;input type="text" name="to_account" placeholder="Rekening Tujuan"&gt;
-      &lt;input type="number" name="amount" placeholder="Jumlah"&gt;
-      &lt;button type="submit"&gt;Transfer&lt;/button&gt;
-    &lt;/form&gt;
-  `);
-});
-
-app.post('/transfer', (req, res) => {
-  const { to_account, amount } = req.body;
-  // Proses transfer...
-  res.json({ message: `Transfer Rp${amount} berhasil ke ${to_account}` });
-});
-
-app.listen(3000, () => console.log('Server berjalan di port 3000'));
-</code></pre>
-      </div>
-
-      <div class="info-box tip">
-        <div class="info-box-title">💡 Perbedaan Synchronizer Token vs Random CSRF Token</div>
-        <ul>
-          <li><strong>Synchronizer Token</strong>: Token disimpan di session server, diverifikasi setiap request POST</li>
-          <li><strong>One-Time Token</strong>: Token di-regenerate setelah setiap penggunaan — lebih aman tapi bisa bermasalah dengan back button</li>
-          <li><strong>Per-Request Token</strong>: Token baru untuk setiap halaman, cocok untuk SPA</li>
-          <li><strong>Token harus cryptographically random</strong> — gunakan <code>secrets.token_hex()</code> atau <code>crypto.randomBytes()</code></li>
-          <li><strong>JANGAN gunakan token yang bisa diprediksi</strong> seperti timestamp atau user ID</li>
-        </ul>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 4: SameSite Cookies    -->
-      <!-- ============================== -->
-      <h2 id="samesite-cookies">4. SameSite Cookies</h2>
-
-      <p><strong>SameSite</strong> adalah atribut pada cookie yang menentukan apakah cookie boleh dikirim dalam cross-site request. Ini adalah pertahanan <strong>browser-level</strong> terhadap CSRF yang sangat efektif dan memerlukan sedikit atau tanpa perubahan kode di sisi server. Atribut ini didukung oleh semua browser modern.</p>
-
-      <h3>Nilai SameSite Cookie</h3>
-      <table class="net-table">
-        <thead>
-          <tr>
-            <th>Nilai</th>
-            <th>Perilaku</th>
-            <th>Keamanan</th>
-            <th>Contoh Kasus</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td><code>Strict</code></td><td>Cookie TIDAK dikirim dalam request cross-site sama sekali</td><td>Paling aman</td><td>Link dari email atau situs lain tidak akan mengirim cookie</td></tr>
-          <tr><td><code>Lax</code></td><td>Cookie dikirim untuk navigasi top-level GET, tapi TIDAK untuk POST/img/iframe</td><td>Seimbang</td><td>Default browser modern — link di email tetap berfungsi</td></tr>
-          <tr><td><code>None</code></td><td>Cookie dikirim dalam SEMUA request cross-site</td><td>Paling lemah</td><td>Harus diikuti dengan Secure flag — untuk integrasi lintas domain</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Detail Setiap Nilai SameSite</h3>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: SameSite Cookie Behavior</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: SameSite Cookie Behavior</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"SameSite=Strict ✅ bank.com langsung → cookie DI..."/]
-    N1[/"SameSite=Lax (Default) ✅ bank.com langsung → co..."/]
-    N2[/"SameSite=None; Secure ✅ SEMUA request → cookie ..."/]
+    N0["SameSite=Strict ✅ bank.com langsung → cookie DI..."]
+    N1["SameSite=Lax (Default) ✅ bank.com langsung → co..."]
+    N2["SameSite=None; Secure ✅ SEMUA request → cookie ..."]
     N0 --> N1
     N1 --> N2
 </pre>

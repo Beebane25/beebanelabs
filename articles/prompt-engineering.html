@@ -203,265 +203,7 @@
 
       <p>Prompt engineering bukan hanya tentang "menulis pertanyaan". Ini melibatkan <strong>struktur, konteks, instruksi, dan strategi</strong> yang membuat LLM berpikir lebih baik.</p>
 
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Evolusi Prompting Techniques</div>
-<div class="diagram-box">
-        
-<pre class="mermaid">
-flowchart TD
-    N0[/"EVOLUSI PROMPT ENGINEERING"/]
-    N1[/"Level 1: Zero-Shot          'Jelaskan RAG'"/]
-    N2[/"Level 2: Few-Shot           'Contoh: X"/]
-    N3["Y, Z W. Sekarang: A"]
-    N4[/"?'"/]
-    N5[/"Level 3: Chain-of-Thought   'Jelaskan langkah d..."/]
-    N6[/"Level 4: Self-Consistency   'Generate 5 jawaban..."/]
-    N7[/"Level 5: Tree-of-Thought    'Eksplorasi multipl..."/]
-    N8[/"Level 6: ReAct              'Pikir"/]
-    N9[Aksi]
-    N10[/"Observasi"/]
-    N11[/"Ulangi'"/]
-    N12[/"Level 7: Multi-Agent        'Beberapa AI bekerj..."/]
-    N13[/"Semakin tinggi level, semakin kompleks tugas ya..."/]
-    N0 --> N1
-    N1 --> N2
-    N2 --> N3
-    N3 --> N4
-    N4 --> N5
-    N5 --> N6
-    N6 --> N7
-    N7 --> N8
-    N8 --> N9
-    N9 --> N10
-    N10 --> N11
-    N11 --> N12
-    N12 --> N13
-</pre>
-    </div>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide"><!-- AdSense --></div>
-
-      <!-- SECTION 2 -->
-      <h2 id="zero-shot">2. Zero-Shot Prompting</h2>
-
-      <p><strong>Zero-shot</strong> berarti memberikan tugas tanpa contoh sama sekali. LLM mengandalkan pengetahuan training untuk memahami apa yang diminta.</p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python — Zero-Shot Prompting</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># =============================================
-# Zero-Shot Prompting
-# =============================================
-from openai import OpenAI
-client = OpenAI()
-
-# Contoh 1: Zero-shot sederhana (buruk)
-response = client.chat.completions.create(
-    model="gpt-4o",
-    messages=[
-        {"role": "user", "content": "Klasifikasikan sentiment dari: 'Produk ini bagus sekali!'"}
-    ]
-)
-# Output: "Positif"  ← Cukup baik untuk tugas sederhana
-
-# Contoh 2: Zero-shot dengan role & instruksi (lebih baik)
-response = client.chat.completions.create(
-    model="gpt-4o",
-    messages=[
-        {"role": "system", "content": """Anda adalah analis sentimen profesional.
-Klasifikasikan teks ke dalam salah satu kategori:
-- Positif
-- Negatif
-- Netral
-
-Berikan jawaban dalam format:
-Kategori: [kategori]
-Confidence: [tinggi/sedang/rendah]
-Alasan: [alasan singkat]"""},
-        {"role": "user", "content": "Produk ini bagus sekali!"}
-    ]
-)
-# Output lebih terstruktur dan informatif!</code></pre>
-      </div>
-
-      <div class="info-box tip">
-        <div class="info-box-title">💡 Tips Zero-Shot</div>
-        <ul>
-          <li><strong>Gunakan system prompt</strong> — tetapkan role dan format output</li>
-          <li><strong>Spesifik</strong> — jangan "jelaskan AI", tapi "jelaskan konsep RAG dalam 3 paragraf untuk developer junior"</li>
-          <li><strong>Format output</strong> — minta format JSON, bullet points, atau tabel untuk konsistensi</li>
-          <li><strong>Batasan</strong> — zero-shot kurang optimal untuk tugas kompleks atau niche</li>
-        </ul>
-      </div>
-
-      <!-- SECTION 3 -->
-      <h2 id="few-shot">3. Few-Shot Prompting</h2>
-
-      <p><strong>Few-shot</strong> berarti memberikan beberapa contoh (biasanya 2-5) sebelum meminta LLM mengerjakan tugas. Ini sangat efektif untuk tugas klasifikasi, ekstraksi, dan transformasi format.</p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python — Few-Shot Prompting</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># =============================================
-# Few-Shot Prompting
-# =============================================
-
-# Contoh 1: Few-shot klasifikasi
-few_shot_prompt = """Klasifikasikan sentimen dari ulasan pelanggan.
-
-Contoh:
-Ulasan: "Pengiriman cepat, produk sesuai deskripsi!"
-Sentimen: Positif
-
-Ulasan: "Barang rusak saat sampai, sangat kecewa."
-Sentimen: Negatif
-
-Ulasan: "Biasa saja, tidak ada yang istimewa."
-Sentimen: Netral
-
-Sekarang klasifikasikan:
-Ulasan: "Kualitas bagus tapi harga terlalu mahal untuk ukuran segitu."
-Sentimen:"""
-
-response = client.chat.completions.create(
-    model="gpt-4o",
-    messages=[{"role": "user", "content": few_shot_prompt}]
-)
-
-# Contoh 2: Few-shot untuk ekstraksi informasi
-extraction_prompt = """Ekstrak informasi dari teks berikut ke format JSON.
-
-Contoh 1:
-Teks: "John, usia 25 tahun, bekerja di Google sebagai Software Engineer di Mountain View."
-Output: {"nama": "John", "usia": 25, "perusahaan": "Google", "posisi": "Software Engineer", "lokasi": "Mountain View"}
-
-Contoh 2:
-Teks: "Sarah, 30 tahun, Data Scientist di Tokopedia, Jakarta."
-Output: {"nama": "Sarah", "usia": 30, "perusahaan": "Tokopedia", "posisi": "Data Scientist", "lokasi": "Jakarta"}
-
-Sekarang ekstrak:
-Teks: "Budi, 28 tahun, Backend Engineer di Gojek, berlokasi di Jakarta Selatan."
-Output:"""
-
-# Contoh 3: Few-shot untuk code generation
-code_prompt = """Ubah deskripsi menjadi Python function.
-
-Contoh:
-Deskripsi: "Fungsi untuk menghitung luas lingkaran dari jari-jari"
-```python
-import math
-def luas_lingkaran(r):
-    return math.pi * r ** 2
-```
-
-Contoh:
-Deskripsi: "Fungsi untuk cek apakah bilangan prima"
-```python
-def is_prima(n):
-    if n < 2: return False
-    for i in range(2, int(n**0.5) + 1):
-        if n % i == 0: return False
-    return True
-```
-
-Sekarang buat:
-Deskripsi: "Fungsi untuk menghitung BMI dari berat(kg) dan tinggi(m)"
-```python"""</code></pre>
-      </div>
-
-      <h3>Few-Shot Best Practices</h3>
-      <table class="net-table">
-        <thead>
-          <tr>
-            <th>Aspek</th>
-            <th>Rekomendasi</th>
-            <th>Alasan</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Jumlah contoh</td><td>3-5 contoh</td><td>Terlalu sedikit ambigu, terlalu banyak boros token</td></tr>
-          <tr><td>Variasi</td><td>Beragam edge case</td><td>LLM belajar pola, termasuk edge case</td></tr>
-          <tr><td>Urutan</td><td>Mirip contoh akhir duluan</td><td>Recency bias — LLM lebih ingat contoh terakhir</td></tr>
-          <tr><td>Format</td><td>Konsisten</td><td>Format yang konsisten = output yang konsisten</td></tr>
-        </tbody>
-      </table>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide"><!-- AdSense --></div>
-
-      <!-- SECTION 4 -->
-      <h2 id="chain-of-thought">4. Chain-of-Thought (CoT)</h2>
-
-      <p><strong>Chain-of-Thought (CoT)</strong> meminta LLM untuk <strong>menunjukkan proses berpikir</strong> langkah demi langkah sebelum memberikan jawaban akhir. Teknik ini secara dramatis meningkatkan performa pada tugas matematika, logika, dan reasoning.</p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python — Chain-of-Thought Prompting</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># =============================================
-# Chain-of-Thought (CoT) Prompting
-# =============================================
-
-# ----- Zero-Shot CoT -----
-# Cukup tambahkan "Let's think step by step"
-cot_zero_shot = """Sebuah toko punya 150 apel. Hari pertama terjual 40%, 
-hari kedua terjual sisa 30%. Berapa apel yang tersisa?
-
-Mari kita pikirkan langkah demi langkah."""
-
-response = client.chat.completions.create(
-    model="gpt-4o",
-    messages=[{"role": "user", "content": cot_zero_shot}]
-)
-# LLM akan menjawab:
-# 1. Hari pertama: 150 × 40% = 60 terjual, sisa 90
-# 2. Hari kedua: 90 × 30% = 27 terjual, sisa 63
-# Jawaban: 63 apel
-
-# ----- Few-Shot CoT (dengan contoh reasoning) -----
-cot_few_shot = """Jawab soal matematika berikut dengan menunjukkan langkah penyelesaian.
-
-Contoh:
-Soal: Jika 5 orang bisa menyelesaikan pekerjaan dalam 10 hari, berapa hari jika 10 orang?
-Pikirkan: Semakin banyak orang, semakin sedikit hari. Ini proporsi terbalik.
-Langkah: 5 × 10 = 10 orang × x hari → x = 50/10 = 5 hari
-Jawaban: 5 hari
-
-Sekarang:
-Soal: Sebuah kolam bisa diisi oleh pipa A dalam 6 jam dan pipa B dalam 4 jam. Jika keduanya dibuka bersamaan, berapa jam untuk mengisi penuh?
-Pikirkan:"""
-
-# ----- CoT dengan XML Tags (struktur lebih jelas) -----
-cot_structured = """Anda adalah matematikawan. Selesaikan soal berikut.
-
-<soal>
-Sebuah mobil berangkat dari A ke B (jarak 240 km) dengan kecepatan 60 km/jam. 
-Setelah 2 jam, kecepatan ditambah 20 km/jam. Berapa total waktu perjalanan?
-</soal>
-
-<pemikiran>
-Analisis soal langkah demi langkah:
-1. Identifikasi apa yang diketahui dan ditanya
-2. Hitung jarak tempuh di fase pertama
-3. Hitung sisa jarak
-4. Hitung waktu untuk sisa jarak
-5. Totalkan
-</pemikiran>
-
-<mulai_analisis>"""</code></pre>
-      </div>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: CoT vs Standard Prompting</div>
-
-      </div>
+      
 
       <h3>Kapan Menggunakan CoT?</h3>
       <table class="net-table">
@@ -558,10 +300,7 @@ print(f"Confidence: {result['confidence']}")
 
       <p><strong>Tree-of-Thought</strong> memperluas CoT dengan memungkinkan LLM untuk <strong>menjelajahi beberapa jalur pemikiran</strong>, mengevaluasi setiap jalur, dan memilih yang terbaik. Mirip dengan algoritma beam search dalam berpikir.</p>
 
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Tree-of-Thought</div>
-
-      </div>
+      
 
       <div class="code-block">
         <div class="code-header">
@@ -650,15 +389,13 @@ result = tree_of_thought(
 
       <div class="diagram-box">
         <div class="diagram-label">Diagram: ReAct Loop</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: ReAct PATTERN</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"Thought (Pikir) 'User tanya harga saham AAPL. S..."/]
-    N1[/"Thought (Pikir lagi) 'Sudah dapat data. Sekaran..."/]
-    N2[/"Final Answer 'Harga saham AAPL hari ini $185.50..."/]
-    N3[/"Action (Aksi) search_stock_price("ticker='AAPL'")"/]
-    N4[/"Observation (Amati) Result: AAPL = $185.50, nai..."/]
+    N0["Thought (Pikir) 'User tanya harga saham AAPL. S..."]
+    N1["Thought (Pikir lagi) 'Sudah dapat data. Sekaran..."]
+    N2["Final Answer 'Harga saham AAPL hari ini $185.50..."]
+    N3["Action (Aksi) search_stock_price(#quot;ticker='AAPL'#quot;)"]
+    N4["Observation (Amati) Result: AAPL = $185.50, nai..."]
     N0 --> N3
     N3 --> N4
     N4 --> N1

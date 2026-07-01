@@ -281,318 +281,10 @@ flowchart TD
       </div>
 
       <h3>Install Terraform</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Bash — Install Terraform</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code class="language-Bash"># macOS (Homebrew)
-brew tap hashicorp/tap
-brew install hashicorp/tap/terraform
-# Ubuntu/Debian
-wget -O- https://apt.releases.hashicorp.com/gpg | \
-sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-echo &quot;deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
-https://apt.releases.hashicorp.com $(lsb_release -cs) main&quot; | \
-sudo tee /etc/apt/sources.list.d/hashicorp.list
-sudo apt update &amp;&amp; sudo apt install terraform
-# Windows (Chocolatey)
-choco install terraform
-# Verifikasi instalasi
-terraform version
-# Terraform v1.10.x on linux_amd64
-# Setup autocomplete (opsional)
-terraform -install-autocomplete</code></pre>
       </div>
-
-      <div class="info-box tip">
-        <div class="info-box-title">💡 Terraform Cloud vs Open Source</div>
-        <p>Terraform tersedia dalam versi <strong>open-source</strong> (gratis) dan <strong>Terraform Cloud/Enterprise</strong> (berbayar). Untuk belajar dan proyek kecil, versi open-source sudah sangat cukup. Terraform Cloud menambahkan fitur team collaboration, remote state management, dan policy enforcement.</p>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 2: HCL Syntax           -->
-      <!-- ============================== -->
-      <h2 id="hcl-syntax">2. HCL Syntax</h2>
-
-      <p><strong>HCL (HashiCorp Configuration Language)</strong> adalah bahasa deklaratif yang digunakan oleh Terraform untuk mendeskripsikan infrastruktur. HCL dirancang agar mudah dibaca manusia sekaligus bisa diproses oleh mesin.</p>
-
-      <h3>Dasar HCL</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">HCL — Sintaks Dasar</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code class="language-HCL"># Struktur dasar HCL
-# block_type &quot;label&quot; &quot;label&quot; {
-# key = value
-# nested_block {
-# key = value
-# }
-# }
-# Tipe Data
-# String
-app_name = &quot;beebane-api&quot;
-# Number
-instance_count = 3
-# Boolean
-enable_monitoring = true
-# List
-availability_zones = [&quot;us-east-1a&quot;, &quot;us-east-1b&quot;, &quot;us-east-1c&quot;]
-# Map
-tags = {
-Environment = &quot;production&quot;
-Project = &quot;beebane&quot;
-ManagedBy = &quot;terraform&quot;
-}
-# Variable Declarations
-variable &quot;region&quot; {
-description = &quot;AWS region untuk deployment&quot;
-type = string
-default = &quot;ap-southeast-1&quot; # Singapore
-}
-variable &quot;instance_type&quot; {
-description = &quot;Tipe EC2 instance&quot;
-type = string
-default = &quot;t3.micro&quot;
-}
-variable &quot;enable_ssl&quot; {
-description = &quot;Aktifkan SSL certificate&quot;
-type = bool
-default = true
-}
-variable &quot;allowed_ports&quot; {
-description = &quot;Daftar port yang diizinkan&quot;
-type = list(number)
-default = [80, 443, 22]
-}
-variable &quot;environment_config&quot; {
-description = &quot;Konfigurasi per environment&quot;
-type = map(object({
-instance_type = string
-min_size = number
-max_size = number
-}))
-default = {
-dev = {
-instance_type = &quot;t3.micro&quot;
-min_size = 1
-max_size = 2
-}
-staging = {
-instance_type = &quot;t3.small&quot;
-min_size = 1
-max_size = 3
-}
-production = {
-instance_type = &quot;t3.medium&quot;
-min_size = 2
-max_size = 10
-}
-}
-}
-# Output Declarations
-output &quot;instance_public_ip&quot; {
-description = &quot;Public IP dari EC2 instance&quot;
-value = aws_instance.web_server.public_ip
-}
-output &quot;database_endpoint&quot; {
-description = &quot;Endpoint database RDS&quot;
-value = aws_db_instance.main.endpoint
-sensitive = true # Tidak ditampilkan di terminal
-}
-# Locals — computed values
-locals {
-common_tags = {
-Project = var.project_name
-Environment = var.environment
-ManagedBy = &quot;terraform&quot;
-CreatedAt = timestamp()
-}
-name_prefix = &quot;${var.project_name}-${var.environment}&quot;
-}</code></pre>
-      </div>
-
-      <h3>Expressions &amp; Functions</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">HCL — Expressions &amp; Built-in Functions</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code class="language-HCL"># Conditional Expressions
-instance_type = var.environment == &quot;production&quot; ? &quot;t3.medium&quot; : &quot;t3.micro&quot;
-# For Expressions
-# Create list dari transformation
-instance_ids = [for instance in aws_instance.server : instance.id]
-# Create map dari list
-instance_map = { for az in var.availability_zones : az =&gt; &quot;${az}-instance&quot; }
-# Filter
-public_instances = [for i in aws_instance.server : i if i.public_ip != &quot;&quot;]
-# Splat Expression
-# Shortcut untuk [for x in list : x.attribute]
-instance_ids = aws_instance.server[*].id
-# String Interpolation
-name_tag = &quot;${var.project_name}-${var.environment}-server&quot;
-# Built-in Functions
-# String functions
-upper(&quot;hello&quot;) # &quot;HELLO&quot;
-lower(&quot;WORLD&quot;) # &quot;world&quot;
-format(&quot;Hello, %s!&quot;, var.name) # &quot;Hello, Budi!&quot;
-join(&quot;, &quot;, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]) # &quot;a, b, c&quot;
-split(&quot;,&quot;, &quot;a,b,c&quot;) # [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
-replace(&quot;hello-world&quot;, &quot;-&quot;, &quot;_&quot;) # &quot;hello_world&quot;
-trimspace(&quot; hello &quot;) # &quot;hello&quot;
-# Number functions
-max(5, 12, 9) # 12
-min(5, 12, 9) # 5
-ceil(4.2) # 5
-floor(4.8) # 4
-# Collection functions
-length([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]) # 3
-contains([&quot;a&quot;, &quot;b&quot;], &quot;a&quot;) # true
-flatten([[&quot;a&quot;, &quot;b&quot;], [&quot;c&quot;]]) # [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
-distinct([&quot;a&quot;, &quot;b&quot;, &quot;a&quot;]) # [&quot;a&quot;, &quot;b&quot;]
-merge({a=1}, {b=2}) # {a=1, b=2}
-lookup({a=1, b=2}, &quot;a&quot;, 0) # 1
-# File functions
-file(&quot;${path.module}/config.json&quot;)
-templatefile(&quot;${path.module}/init.tpl&quot;, { name = &quot;server1&quot; })
-filebase64(&quot;${path.module}/cert.pem&quot;)
-# Crypto functions
-md5(&quot;hello&quot;)
-sha256(&quot;hello&quot;)
-bcrypt(&quot;password&quot;)
-# Date/Time
-timestamp() # &quot;2026-06-25T10:00:00Z&quot;
-formatdate(&quot;DD MMM YYYY&quot;, timestamp()) # &quot;25 Jun 2026&quot;
-# IP functions
-cidrsubnet(&quot;10.0.0.0/16&quot;, 8, 1) # &quot;10.0.1.0/24&quot;
-cidrhost(&quot;10.0.1.0/24&quot;, 5) # &quot;10.0.1.5&quot;</code></pre>
-      </div>
-
-      <div class="info-box info">
-        <div class="info-box-title">📌 HCL vs JSON</div>
-        <p>Terraform mendukung dua format file: <code>.tf</code> (HCL) dan <code>.tf.json</code> (JSON). HCL lebih mudah dibaca dan merupakan format yang direkomendasikan. JSON berguna untuk programmatically generate config, tetapi jauh lebih verbose dan sulit dibaca.</p>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 3: Providers            -->
-      <!-- ============================== -->
-      <h2 id="providers">3. Providers</h2>
-
-      <p><strong>Provider</strong> adalah plugin Terraform yang berinteraksi dengan API cloud provider, SaaS, atau service lainnya. Provider meng-ekspose resource dan data source yang bisa Anda gunakan dalam konfigurasi Terraform. Terraform memiliki 3000+ provider dari berbagai vendor.</p>
-
-      <h3>Provider Configuration</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">HCL — Provider Setup</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code class="language-HCL"># providers.tf
-# Required providers — mendefinisikan provider yang dibutuhkan
-terraform {
-required_version = &quot;&gt;= 1.5.0&quot;
-required_providers {
-aws = {
-source = &quot;hashicorp/aws&quot;
-version = &quot;~&gt; 5.0&quot;
-}
-google = {
-source = &quot;hashicorp/google&quot;
-version = &quot;~&gt; 5.0&quot;
-}
-azurerm = {
-source = &quot;hashicorp/azurerm&quot;
-version = &quot;~&gt; 3.0&quot;
-}
-}
-# Remote state storage (S3)
-backend &quot;s3&quot; {
-bucket = &quot;beebane-terraform-state&quot;
-key = &quot;prod/terraform.tfstate&quot;
-region = &quot;ap-southeast-1&quot;
-dynamodb_table = &quot;terraform-locks&quot;
-encrypt = true
-}
-}
-# AWS Provider
-provider &quot;aws&quot; {
-region = var.aws_region
-profile = &quot;beebane&quot;
-default_tags {
-tags = {
-Environment = var.environment
-ManagedBy = &quot;terraform&quot;
-Project = &quot;beebane&quot;
-}
-}
-}
-# Google Cloud Provider
-provider &quot;google&quot; {
-project = var.gcp_project_id
-region = var.gcp_region
-}
-# Azure Provider
-provider &quot;azurerm&quot; {
-features {}
-subscription_id = var.azure_subscription_id
-}
-# Multiple AWS Regions
-# Untuk deploy ke beberapa region sekaligus
-provider &quot;aws&quot; {
-alias = &quot;us_east&quot;
-region = &quot;us-east-1&quot;
-}
-provider &quot;aws&quot; {
-alias = &quot;eu_west&quot;
-region = &quot;eu-west-1&quot;
-}</code></pre>
-      </div>
-
-      <h3>Install &amp; Manage Providers</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Bash — Terraform Commands</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code class="language-Bash"># Inisialisasi Terraform (download providers)
-terraform init
-# Output:
-# Initializing the backend...
-# Initializing provider plugins...
-# - Finding hashicorp/aws versions matching &quot;~&gt; 5.0&quot;...
-# - Installing hashicorp/aws v5.82.2...
-# Terraform has been successfully initialized!
-# Upgrade provider ke versi terbaru (sesuai constraint)
-terraform init -upgrade
-# Format kode HCL agar konsisten
-terraform fmt
-terraform fmt -recursive # Termasuk sub-folder
-# Validasi konfigurasi
-terraform validate
-# Lihat daftar provider yang digunakan
-terraform providers
-# Lihat dependency tree
-terraform graph | dot -Tpng &gt; graph.png</code></pre>
-      </div>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Terraform Provider Ecosystem</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: TERRAFORM PROVIDER ECOSYSTEM</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"Terraform Core • HCL Parser    • State Manager ..."/]
+    N0["Terraform Core • HCL Parser    • State Manager ..."]
     N1["Kubernetes Provider • Pods • Services • Deploym..."]
     N2["AWS Provider • EC2 • S3 • RDS • VPC • Lambda • EKS"]
     N3["Google Cloud Provider • GCE • GKE • Cloud SQL •..."]
@@ -621,314 +313,38 @@ flowchart TD
       <p><strong>Resource</strong> adalah blok yang mendeskripsikan satu atau lebih infrastruktur objects — seperti EC2 instance, VPC, S3 bucket, atau DNS record. <strong>Data source</strong> memungkinkan Anda mengambil data dari provider yang sudah ada (bukan membuat baru) untuk digunakan dalam konfigurasi.</p>
 
       <h3>Resource Blocks</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">HCL — Resources</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code class="language-HCL"># main.tf — AWS EC2 Instance
-# VPC — Virtual Private Cloud
-resource &quot;aws_vpc&quot; &quot;main&quot; {
-cidr_block = &quot;10.0.0.0/16&quot;
-enable_dns_hostnames = true
-enable_dns_support = true
-tags = {
-Name = &quot;${local.name_prefix}-vpc&quot;
-}
-}
-# Internet Gateway
-resource &quot;aws_internet_gateway&quot; &quot;main&quot; {
-vpc_id = aws_vpc.main.id
-tags = {
-Name = &quot;${local.name_prefix}-igw&quot;
-}
-}
-# Public Subnet
-resource &quot;aws_subnet&quot; &quot;public&quot; {
-count = 2
-vpc_id = aws_vpc.main.id
-cidr_block = cidrsubnet(&quot;10.0.0.0/16&quot;, 8, count.index)
-availability_zone = data.aws_availability_zones.available.names[count.index]
-map_public_ip_on_launch = true
-tags = {
-Name = &quot;${local.name_prefix}-public-${count.index + 1}&quot;
-Tier = &quot;public&quot;
-}
-}
-# Private Subnet
-resource &quot;aws_subnet&quot; &quot;private&quot; {
-count = 2
-vpc_id = aws_vpc.main.id
-cidr_block = cidrsubnet(&quot;10.0.0.0/16&quot;, 8, count.index + 10)
-availability_zone = data.aws_availability_zones.available.names[count.index]
-tags = {
-Name = &quot;${local.name_prefix}-private-${count.index + 1}&quot;
-Tier = &quot;private&quot;
-}
-}
-# Security Group
-resource &quot;aws_security_group&quot; &quot;web&quot; {
-name = &quot;${local.name_prefix}-web-sg&quot;
-description = &quot;Security group untuk web server&quot;
-vpc_id = aws_vpc.main.id
-# Allow HTTP
-ingress {
-description = &quot;HTTP&quot;
-from_port = 80
-to_port = 80
-protocol = &quot;tcp&quot;
-cidr_blocks = [&quot;0.0.0.0/0&quot;]
-}
-# Allow HTTPS
-ingress {
-description = &quot;HTTPS&quot;
-from_port = 443
-to_port = 443
-protocol = &quot;tcp&quot;
-cidr_blocks = [&quot;0.0.0.0/0&quot;]
-}
-# Allow SSH (hanya dari IP tertentu)
-ingress {
-description = &quot;SSH&quot;
-from_port = 22
-to_port = 22
-protocol = &quot;tcp&quot;
-cidr_blocks = [var.admin_ip]
-}
-# Allow all outbound
-egress {
-from_port = 0
-to_port = 0
-protocol = &quot;-1&quot;
-cidr_blocks = [&quot;0.0.0.0/0&quot;]
-}
-tags = {
-Name = &quot;${local.name_prefix}-web-sg&quot;
-}
-}
-# EC2 Instance
-resource &quot;aws_instance&quot; &quot;web_server&quot; {
-ami = data.aws_ami.ubuntu.id
-instance_type = var.instance_type
-subnet_id = aws_subnet.public[0].id
-vpc_security_group_ids = [aws_security_group.web.id]
-key_name = var.ssh_key_name
-root_block_device {
-volume_size = 30
-volume_type = &quot;gp3&quot;
-encrypted = true
-}
-user_data = base64encode(templatefile(&quot;${path.module}/scripts/init.sh&quot;, {
-app_name = var.project_name
-}))
-tags = {
-Name = &quot;${local.name_prefix}-web-server&quot;
-}
-lifecycle {
-create_before_destroy = true
-prevent_destroy = false
-}
-}</code></pre>
       </div>
-
-      <h3>Data Sources</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">HCL — Data Sources</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code class="language-HCL"># Data Sources — Mengambil informasi dari provider
-# Ambil daftar availability zones
-data &quot;aws_availability_zones&quot; &quot;available&quot; {
-state = &quot;available&quot;
-}
-# Ambil AMI Ubuntu terbaru
-data &quot;aws_ami&quot; &quot;ubuntu&quot; {
-most_recent = true
-owners = [&quot;099720109477&quot;] # Canonical
-filter {
-name = &quot;name&quot;
-values = [&quot;ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*&quot;]
-}
-filter {
-name = &quot;virtualization-type&quot;
-values = [&quot;hvm&quot;]
-}
-}
-# Ambil informasi caller (current AWS account)
-data &quot;aws_caller_identity&quot; &quot;current&quot; {}
-# Ambil IP publik saat ini (untuk SSH access)
-data &quot;http&quot; &quot;my_ip&quot; {
-url = &quot;https://api.ipify.org&quot;
-}
-# Menggunakan data source
-output &quot;account_id&quot; {
-value = data.aws_caller_identity.current.account_id
-}
-output &quot;ubuntu_ami_id&quot; {
-value = data.aws_ami.ubuntu.id
-}
-output &quot;my_public_ip&quot; {
-value = data.http.my_ip.response_body
-}
-# Data source dari Terraform state lain
-data &quot;terraform_remote_state&quot; &quot;network&quot; {
-backend = &quot;s3&quot;
-config = {
-bucket = &quot;beebane-terraform-state&quot;
-key = &quot;network/terraform.tfstate&quot;
-region = &quot;ap-southeast-1&quot;
-}
-}</code></pre>
-      </div>
-
-      <h3>Terraform Lifecycle &amp; Meta-Arguments</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">HCL — Meta-Arguments</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code class="language-HCL"># count — Membuat multiple resource
-resource &quot;aws_instance&quot; &quot;server&quot; {
-count = var.instance_count
-ami = data.aws_ami.ubuntu.id
-instance_type = var.instance_type
-subnet_id = aws_subnet.public[count.index % length(aws_subnet.public)]
-tags = {
-Name = &quot;${local.name_prefix}-server-${count.index + 1}&quot;
-}
-}
-# for_each — Membuat resource dari map/set
-resource &quot;aws_s3_bucket&quot; &quot;buckets&quot; {
-for_each = toset([&quot;logs&quot;, &quot;assets&quot;, &quot;backups&quot;])
-bucket = &quot;${local.name_prefix}-${each.key}&quot;
-tags = {
-Name = &quot;${local.name_prefix}-${each.key}&quot;
-Type = each.value
-}
-}
-# depends_on — Explicit dependency
-resource &quot;aws_instance&quot; &quot;app&quot; {
-ami = data.aws_ami.ubuntu.id
-instance_type = var.instance_type
-depends_on = [
-aws_internet_gateway.main,
-aws_security_group.web,
-]
-}
-# lifecycle — Control resource behavior
-resource &quot;aws_db_instance&quot; &quot;main&quot; {
-engine = &quot;postgres&quot;
-engine_version = &quot;16&quot;
-instance_class = &quot;db.t3.micro&quot;
-allocated_storage = 20
-db_name = &quot;beebane&quot;
-username = var.db_username
-password = var.db_password
-skip_final_snapshot = false
-final_snapshot_identifier = &quot;${local.name_prefix}-db-final-snapshot&quot;
-lifecycle {
-prevent_destroy = true # JANGAN HAPUS database ini!
-ignore_changes = [password] # Abaikan perubahan password
-}
-}</code></pre>
-      </div>
-
-      <div class="info-box tip">
-        <div class="info-box-title">💡 count vs for_each</div>
-        <p>Gunakan <code>count</code> untuk membuat N resource yang identik. Gunakan <code>for_each</code> ketika resource memiliki nama/konfigurasi yang berbeda satu sama lain. Peringatan: Hindari menggunakan <code>count</code> dengan list yang bisa berubah urutan — ini bisa menyebabkan resource yang tidak seharusnya berubah jadi di-replace.</p>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 5: State Management     -->
-      <!-- ============================== -->
-      <h2 id="state">5. State Management</h2>
-
-      <p><strong>State</strong> adalah file JSON yang berisi mapping antara konfigurasi Terraform dan resource aktual di infrastruktur. State memungkinkan Terraform mengetahui resource apa saja yang sudah dibuat, atributnya, dan dependency-nya. Tanpa state, Terraform tidak bisa menentukan perubahan apa yang perlu dilakukan.</p>
-
-      <h3>Local vs Remote State</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">HCL — State Configuration</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code class="language-HCL"># Local State (default)
-# File: terraform.tfstate di direktori kerja
-# ⚠️ JANGAN commit ke Git — bisa mengandung secrets!
-# ⚠️ Tidak aman untuk team collaboration
-# Remote State — S3 Backend (recommended)
-terraform {
-backend &quot;s3&quot; {
-bucket = &quot;beebane-terraform-state&quot;
-key = &quot;production/terraform.tfstate&quot;
-region = &quot;ap-southeast-1&quot;
-dynamodb_table = &quot;terraform-locks&quot; # State locking
-encrypt = true # Enkripsi at rest
-}
-}
-# Remote State — Terraform Cloud
-terraform {
-cloud {
-organization = &quot;beebane-labs&quot;
-workspaces {
-name = &quot;production&quot;
-}
-}
-}
-# State Locking (menghindari race condition)
-# Saat menggunakan S3 backend, DynamoDB table diperlukan:
-resource &quot;aws_dynamodb_table&quot; &quot;terraform_locks&quot; {
-name = &quot;terraform-locks&quot;
-billing_mode = &quot;PAY_PER_REQUEST&quot;
-hash_key = &quot;LockID&quot;
-attribute {
-name = &quot;LockID&quot;
-type = &quot;S&quot;
-}
-}</code></pre>
-      </div>
-
-      <h3>Terraform CLI Commands</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Bash — Terraform Workflow Commands</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
 <div class="diagram-box">
+
         
 <pre class="mermaid">
 flowchart TD
     N0[plan]
-    N1[/"apply"/]
-    N2[/"destroy"/]
-    N3[/"terraform init"/]
-    N4[/"terraform fmt -recursive"/]
-    N5[/"terraform validate"/]
-    N6[/"terraform plan"/]
-    N7[/"terraform plan -out=tfplan No. Simpan plan ke file"/]
-    N8[/"terraform plan -var='instance_type=t3.medium' N..."/]
-    N9[/"terraform apply"/]
-    N10[/"terraform apply tfplan No. Apply dari file plan"/]
-    N11[/"terraform apply -auto-approve No. Skip confirma..."/]
-    N12[/"terraform apply -target=aws_instance.web_server..."/]
-    N13[/"terraform destroy"/]
-    N14[/"terraform destroy -target=aws_instance.web_serv..."/]
-    N15[/"terraform state list"/]
-    N16[/"terraform state show aws_instance.web_server"/]
-    N17[/"terraform import aws_instance.web_server i-1234..."/]
-    N18[/"terraform state rm aws_instance.web_server"/]
-    N19[/"terraform state mv aws_instance.old_name aws_in..."/]
-    N20[/"terraform refresh"/]
-    N21[/"terraform taint aws_instance.web_server"/]
-    N22[/"terraform apply -replace=aws_instance.web_server"/]
-    N23[/"terraform workspace list"/]
-    N24[/"terraform workspace new staging"/]
-    N25[/"terraform workspace select production"/]
+    N1["apply"]
+    N2["destroy"]
+    N3["terraform init"]
+    N4["terraform fmt -recursive"]
+    N5["terraform validate"]
+    N6["terraform plan"]
+    N7["terraform plan -out=tfplan No. Simpan plan ke file"]
+    N8["terraform plan -var='instance_type=t3.medium' N..."]
+    N9["terraform apply"]
+    N10["terraform apply tfplan No. Apply dari file plan"]
+    N11["terraform apply -auto-approve No. Skip confirma..."]
+    N12["terraform apply -target=aws_instance.web_server..."]
+    N13["terraform destroy"]
+    N14["terraform destroy -target=aws_instance.web_serv..."]
+    N15["terraform state list"]
+    N16["terraform state show aws_instance.web_server"]
+    N17["terraform import aws_instance.web_server i-1234..."]
+    N18["terraform state rm aws_instance.web_server"]
+    N19["terraform state mv aws_instance.old_name aws_in..."]
+    N20["terraform refresh"]
+    N21["terraform taint aws_instance.web_server"]
+    N22["terraform apply -replace=aws_instance.web_server"]
+    N23["terraform workspace list"]
+    N24["terraform workspace new staging"]
+    N25["terraform workspace select production"]
     N0 --> N1
     N1 --> N2
     N2 --> N3
@@ -957,16 +373,11 @@ flowchart TD
 </pre>
     </div>
       </div>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: State Management Flow</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: STATE MANAGEMENT ARCHITECTURE</div>
 <pre class="mermaid">
 flowchart TD
     N0[.tf Config]
     N1[Terraform Engine]
-    N2[/"Plan Current vs Desired"/]
+    N2["Plan Current vs Desired"]
     N3[State File .tfstate]
     N4[S3 Backend + DynamoDB Lock]
     N5[Cloud Provider AWS / GCP / Azure]
@@ -1008,6 +419,7 @@ flowchart TD
           <span class="code-lang">HCL — Module Structure</span>
           <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
         </div>
+</div>
 <div class="diagram-box">
         <div class="diagram-label">Diagram: # STRUKTUR DIREKTORI</div>
 <pre><code>/&quot;No. STRUKTUR DIREKTORI&quot;/

@@ -216,10 +216,7 @@
         </tbody>
       </table>
 
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Komponen Time Series</div>
-
-      </div>
+      
 
       <!-- AD SLOT -->
       <div class="ad-slot ad-slot-wide"><!-- AdSense --></div>
@@ -227,163 +224,28 @@
       <!-- SECTION 2 -->
       <h2 id="eda">2. Exploratory Data Analysis</h2>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python — Time Series EDA</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># =============================================
-# Time Series EDA
-# =============================================
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from statsmodels.tsa.stattools import adfuller, acf, pacf
-from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
-
-# Load dataset
-df = pd.read_csv("data/penjualan.csv", parse_dates=["tanggal"])
-df = df.set_index("tanggal")
-df = df.asfreq("D")  # Set frekuensi harian
-
-# ----- 1. Basic Statistics -----
-print(f"Shape: {df.shape}")
-print(f"Date range: {df.index.min()} → {df.index.max()}")
-print(f"Missing values: {df['jumlah'].isna().sum()}")
-print(df.describe())
-
-# ----- 2. Time Series Plot -----
-fig, axes = plt.subplots(3, 1, figsize=(14, 10))
-
-# Plot utama
-axes[0].plot(df.index, df["jumlah"], linewidth=0.8)
-axes[0].set_title("Time Series Plot")
-axes[0].set_ylabel("Jumlah Penjualan")
-
-# Rolling statistics
-rolling_mean = df["jumlah"].rolling(window=30).mean()
-rolling_std = df["jumlah"].rolling(window=30).std()
-axes[1].plot(df.index, df["jumlah"], alpha=0.5, label="Original")
-axes[1].plot(df.index, rolling_mean, color="red", label="Rolling Mean (30d)")
-axes[1].plot(df.index, rolling_std, color="green", label="Rolling Std (30d)")
-axes[1].legend()
-axes[1].set_title("Rolling Statistics")
-
-# Distribution
-axes[2].hist(df["jumlah"].dropna(), bins=50, edgecolor="black")
-axes[2].set_title("Distribution")
-plt.tight_layout()
-plt.savefig("eda_timeseries.png", dpi=150)
-
-# ----- 3. ACF & PACF -----
-fig, axes = plt.subplots(1, 2, figsize=(14, 4))
-plot_acf(df["jumlah"].dropna(), lags=60, ax=axes[0])
-plot_pacf(df["jumlah"].dropna(), lags=60, ax=axes[1])
-axes[0].set_title("Autocorrelation Function (ACF)")
-axes[1].set_title("Partial Autocorrelation Function (PACF)")
-plt.tight_layout()
-plt.savefig("acf_pacf.png", dpi=150)
-
-# ----- 4. Seasonal Decomposition -----
-from statsmodels.tsa.seasonal import seasonal_decompose
-
-decomposition = seasonal_decompose(
-    df["jumlah"].dropna(), 
-    model="additive",  # atau "multiplicative"
-    period=30           # Periode musiman
-)
-
-fig, axes = plt.subplots(4, 1, figsize=(14, 10))
-decomposition.observed.plot(ax=axes[0], title="Observed")
-decomposition.trend.plot(ax=axes[1], title="Trend")
-decomposition.seasonal.plot(ax=axes[2], title="Seasonal")
-decomposition.resid.plot(ax=axes[3], title="Residual")
-plt.tight_layout()
-plt.savefig("decomposition.png", dpi=150)</code></pre>
       </div>
+<div class="diagram-box">
 
-      <!-- SECTION 3 -->
-      <h2 id="decomposition">3. Dekomposisi &amp; Stationarity</h2>
-
-      <p>Sebelum modeling, data time series harus <strong>stationary</strong> — artinya statistik (mean, variance) tidak berubah seiring waktu. Kebanyakan model (ARIMA) memerlukan data stationary.</p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Python — Stationarity Test &amp; Differencing</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># =============================================
-# Stationarity Test & Differencing
-# =============================================
-from statsmodels.tsa.stattools import adfuller
-
-# ----- Augmented Dickey-Fuller (ADF) Test -----
-def test_stationarity(series, name="Series"):
-    result = adfuller(series.dropna())
-    print(f"\n{'='*50}")
-    print(f"ADF Test: {name}")
-    print(f"{'='*50}")
-    print(f"ADF Statistic: {result[0]:.4f}")
-    print(f"p-value:       {result[1]:.4f}")
-    print(f"Critical Values:")
-    for key, val in result[4].items():
-        print(f"  {key}: {val:.4f}")
-    
-    if result[1] < 0.05:
-        print(f"✅ STATIONARY (p < 0.05)")
-    else:
-        print(f"❌ NOT STATIONARY (p >= 0.05)")
-    return result[1] < 0.05
-
-# Test original data
-test_stationarity(df["jumlah"], "Original")
-
-# ----- Differencing untuk membuat stationary -----
-# First differencing
-df["jumlah_diff1"] = df["jumlah"].diff()
-test_stationarity(df["jumlah_diff1"], "First Difference")
-
-# Second differencing (jika masih non-stationary)
-df["jumlah_diff2"] = df["jumlah"].diff().diff()
-test_stationarity(df["jumlah_diff2"], "Second Difference")
-
-# Seasonal differencing (period=12 untuk data bulanan)
-df["jumlah_seasonal_diff"] = df["jumlah"].diff(12)
-test_stationarity(df["jumlah_seasonal_diff"], "Seasonal Difference")
-
-# Log transform (untuk stabilkan variance)
-df["jumlah_log"] = np.log1p(df["jumlah"])
-test_stationarity(df["jumlah_log"], "Log Transform")</code></pre>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide"><!-- AdSense --></div>
-
-      <!-- SECTION 4 -->
-      <h2 id="arima">4. ARIMA &amp; SARIMA</h2>
-
-      <p><strong>ARIMA (AutoRegressive Integrated Moving Average)</strong> adalah model statistik klasik untuk time series forecasting. ARIMA memiliki 3 parameter: <strong>p</strong> (AR order), <strong>d</strong> (differencing), <strong>q</strong> (MA order).</p>
-
-      <div class="diagram-box">
         <div class="diagram-label">Diagram: ARIMA Components</div>
 <div class="diagram-box">
         
 <pre class="mermaid">
 flowchart TD
-    N0[/"ARIMA(p, d, q)"/]
-    N1[/"AR(p): AutoRegressive"/]
-    N2[/"Y(t) = c + φ1·Y(t-1) + φ2·Y(t-2) + ... + φp·Y(t..."/]
-    N3[/"Menggunakan nilai masa lalu untuk prediksi"/]
-    N4[/"p ditentukan dari PACF plot"/]
-    N5[/"I(d): Integrated (Differencing)"/]
-    N6[/"Y'(t) = Y(t) - Y(t-d)"/]
-    N7[/"Membuat data stationary"/]
-    N8[/"d = 0, 1, atau 2 (biasanya 1)"/]
-    N9[/"MA(q): Moving Average"/]
-    N10[/"Y(t) = c + ε(t) + θ1·ε(t-1) + θ2·ε(t-2) + ... +..."/]
-    N11[/"Menggunakan error masa lalu untuk prediksi"/]
-    N12[/"q ditentukan dari ACF plot"/]
-    N13[/"SARIMA = ARIMA + Seasonal component (P, D, Q, s)"/]
+    N0["ARIMA(p, d, q)"]
+    N1["AR(p): AutoRegressive"]
+    N2["Y(t) = c + φ1·Y(t-1) + φ2·Y(t-2) + ... + φp·Y(t..."]
+    N3["Menggunakan nilai masa lalu untuk prediksi"]
+    N4["p ditentukan dari PACF plot"]
+    N5["I(d): Integrated (Differencing)"]
+    N6["Y'(t) = Y(t) - Y(t-d)"]
+    N7["Membuat data stationary"]
+    N8["d = 0, 1, atau 2 (biasanya 1)"]
+    N9["MA(q): Moving Average"]
+    N10["Y(t) = c + ε(t) + θ1·ε(t-1) + θ2·ε(t-2) + ... +..."]
+    N11["Menggunakan error masa lalu untuk prediksi"]
+    N12["q ditentukan dari ACF plot"]
+    N13["SARIMA = ARIMA + Seasonal component (P, D, Q, s)"]
     N0 --> N1
     N1 --> N2
     N2 --> N3

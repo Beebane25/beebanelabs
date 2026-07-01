@@ -260,13 +260,11 @@
 
       <div class="diagram-box">
         <div class="diagram-label">Diagram: Arsitektur Jetpack Compose</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: JETPACK COMPOSE STACK</div>
 <pre class="mermaid">
 flowchart TD
-    N0[/"Your Composable UI Code @Composable @Composable..."/]
-    N1[/"Compose Runtime • State tracking dan recomposit..."/]
-    N2[/"Android View System • Canvas rendering • Touch ..."/]
+    N0["Your Composable UI Code @Composable @Composable..."]
+    N1["Compose Runtime • State tracking dan recomposit..."]
+    N2["Android View System • Canvas rendering • Touch ..."]
     N3["@Composable Screen()"]
     N4["@Composable Card()"]
     N0 --> N3
@@ -280,167 +278,7 @@ flowchart TD
       <h3>Setup Proyek Jetpack Compose</h3>
       <p>Untuk memulai menggunakan Jetpack Compose, Anda perlu mengonfigurasi build.gradle dengan dependency Compose dan mengaktifkan Compose compiler:</p>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Kotlin — build.gradle.kts (Module)</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.compose")
-}
-
-android {
-    namespace = "com.example.composeapp"
-    compileSdk = 35
-
-    defaultConfig {
-        applicationId = "com.example.composeapp"
-        minSdk = 24
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
-    }
-
-    buildFeatures {
-        compose = true  // Aktifkan Compose
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-}
-
-dependencies {
-    // Compose BOM — mengelola versi Compose secara konsisten
-    implementation(platform("androidx.compose:compose-bom:2025.01.00"))
-
-    // Core Compose
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-
-    // Activity Compose
-    implementation("androidx.activity:activity-compose:1.9.3")
-
-    // Navigation Compose
-    implementation("androidx.navigation:navigation-compose:2.8.5")
-
-    // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
-
-    // Debug
-    debugImplementation("androidx.compose.ui:ui-tooling")
-}
-</code></pre>
       </div>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Kotlin — MainActivity.kt</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            MaterialTheme {
-                Text(text = "Hello, Jetpack Compose!")
-            }
-        }
-    }
-}
-</code></pre>
-      </div>
-
-      <div class="info-box tip">
-        <div class="info-box-title">💡 Tips</div>
-        <p>Gunakan <strong>Compose BOM (Bill of Materials)</strong> untuk mengelola versi semua library Compose secara konsisten. Ini memastikan semua komponen Compose kompatibel satu sama lain tanpa perlu mendefinisikan versi masing-masing secara manual.</p>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 2: Deklaratif UI       -->
-      <!-- ============================== -->
-      <h2 id="deklaratif-ui">2. Paradigma Deklaratif UI</h2>
-
-      <p>Paradigma <strong>deklaratif</strong> berarti Anda mendeskripsikan <em>apa</em> yang ingin ditampilkan UI berdasarkan state saat ini, bukan secara imperatif menginstruksikan <em>bagaimana</em> UI harus diperbarui. Ketika state berubah, Compose secara otomatis memperbarui bagian UI yang terpengaruh melalui proses yang disebut <strong>recomposition</strong>.</p>
-
-      <h3>Imperatif vs Deklaratif</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Kotlin — Perbandingan Pendekatan</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code>// ═══════════════════════════════════════════════════════
-// PENDEKATAN IMPERATIF (XML View Tradisional)
-// ═══════════════════════════════════════════════════════
-
-// activity_main.xml
-// &lt;TextView android:id="@+id/counterText" android:text="0" /&gt;
-// &lt;Button android:id="@+id/incrementBtn" android:text="Tambah" /&gt;
-
-class MainActivity : AppCompatActivity() {
-    private var count = 0
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        val counterText = findViewById&lt;TextView&gt;(R.id.counterText)
-        val incrementBtn = findViewById&lt;Button&gt;(R.id.incrementBtn)
-
-        // Secara imperatif: update UI secara manual
-        incrementBtn.setOnClickListener {
-            count++
-            counterText.text = count.toString()  // manual update
-        }
-    }
-}
-
-// ═══════════════════════════════════════════════════════
-// PENDEKATAN DEKLARATIF (Jetpack Compose)
-// ═══════════════════════════════════════════════════════
-
-@Composable
-fun CounterScreen() {
-    var count by remember { mutableIntStateOf(0) }
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Counter: $count",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        Button(onClick = { count++ }) {
-            Text("Tambah")
-        }
-    }
-    // UI otomatis diperbarui saat count berubah!
-    // Tidak perlu manual memanggil setText atau invalidate
-}
-</code></pre>
-      </div>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Alur Recomposition</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: RECOMPOSITION FLOW</div>
 <pre class="mermaid">
 flowchart TD
     N0[Smart Diffing Algorithm]

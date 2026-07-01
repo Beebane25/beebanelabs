@@ -312,14 +312,12 @@ flowchart TD
 
       <div class="diagram-box">
         <div class="diagram-label">Diagram: MQTT Packet Structure</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: MQTT PACKET STRUCTURE</div>
 <pre class="mermaid">
 flowchart TD
     N0["FIXED HEADER (2+ bytes) Byte 1 Byte 2-5 Packet ..."]
-    N1[/"VARIABLE HEADER (0+ bytes) Tergantung tipe pack..."/]
-    N2[/"PAYLOAD (0+ bytes) Data aktual: sensor reading,..."/]
-    N3[/"Byte 1 Byte 2-5 Packet Type Remaining Length (4..."/]
+    N1["VARIABLE HEADER (0+ bytes) Tergantung tipe pack..."]
+    N2["PAYLOAD (0+ bytes) Data aktual: sensor reading,..."]
+    N3["Byte 1 Byte 2-5 Packet Type Remaining Length (4..."]
     N0 --> N3
     N3 --> N1
     N1 --> N2
@@ -386,234 +384,7 @@ flowchart TD
       <h3>Instalasi Mosquitto Broker</h3>
       <p>Mosquitto adalah broker MQTT open source yang paling populer dan cocok untuk memulai belajar.</p>
 
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Bash — Instalasi Mosquitto</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># Instalasi di Ubuntu/Debian
-sudo apt update
-sudo apt install mosquitto mosquitto-clients -y
-
-# Start dan enable service
-sudo systemctl start mosquitto
-sudo systemctl enable mosquitto
-
-# Cek status
-sudo systemctl status mosquitto
-# Output: Active: active (running)
-
-# Instalasi di Windows
-# Download dari https://mosquitto.org/download/
-# Jalankan installer, ikuti wizard
-
-# Instalasi di macOS dengan Homebrew
-brew install mosquitto
-brew services start mosquitto
-
-# Verifikasi dengan test subscriber (terminal 1)
-mosquitto_sub -h localhost -t "test/hello"
-
-# Publish pesan (terminal 2)
-mosquitto_pub -h localhost -t "test/hello" -m "Hello MQTT!"
-# Terminal 1 akan menerima: Hello MQTT!
-</code></pre>
       </div>
-
-      <h3>Konfigurasi Dasar Mosquitto</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Config — /etc/mosquitto/mosquitto.conf</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># /etc/mosquitto/mosquitto.conf
-
-# Listener port (default 1883)
-listener 1883
-
-# Izinkan koneksi tanpa autentikasi (untuk testing saja!)
-allow_anonymous true
-
-# Untuk produksi, gunakan autentikasi:
-# allow_anonymous false
-# password_file /etc/mosquitto/passwd
-
-# Logging
-log_dest file /var/log/mosquitto/mosquitto.log
-log_type all
-
-# Persistence
-persistence true
-persistence_location /var/lib/mosquitto/
-
-# Maximum connections
-max_connections -1  # unlimited
-
-# Message size limit
-message_size_limit 1048576  # 1 MB
-
-# TLS/SSL (produksi)
-# listener 8883
-# certfile /etc/mosquitto/certs/server.crt
-# cafile /etc/mosquitto/certs/ca.crt
-# keyfile /etc/mosquitto/certs/server.key
-</code></pre>
-      </div>
-
-      <h3>Membuat Password File</h3>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Bash — Autentikasi Mosquitto</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># Buat password file baru
-sudo mosquitto_passwd -c /etc/mosquitto/passwd admin
-# Masukkan password saat diminta
-
-# Tambah user baru
-sudo mosquitto_passwd -b /etc/mosquitto/passwd sensor1 password123
-
-# Update password user yang sudah ada
-sudo mosquitto_passwd -b /etc/mosquitto/passwd admin newpassword456
-
-# Hapus user
-sudo mosquitto_passwd -D /etc/mosquitto/passwd sensor1
-
-# Restart mosquitto setelah mengubah konfigurasi
-sudo systemctl restart mosquitto
-
-# Test dengan autentikasi
-mosquitto_sub -h localhost -t "sensor/suhu" -u admin -P newpassword456
-mosquitto_pub -h localhost -t "sensor/suhu" -m "25.5" -u sensor1 -P password123
-</code></pre>
-      </div>
-
-      <div class="info-box tip">
-        <div class="info-box-title">💡 Tips</div>
-        <p>Untuk development, Anda bisa menggunakan broker publik gratis seperti <strong>broker.hivemq.com:1883</strong> atau <strong>test.mosquitto.org:1883</strong>. Namun, jangan pernah menggunakannya untuk data produksi karena tidak ada privasi dan keamanan yang terjamin.</p>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 4: Topic                -->
-      <!-- ============================== -->
-      <h2 id="topic">4. Topic dan Hierarki Topik</h2>
-
-      <p><strong>Topic</strong> adalah string UTF-8 yang digunakan broker untuk memfilter dan mendistribusikan pesan. Topic berfungsi sebagai "alamat" yang menentukan ke mana pesan harus dikirim. Desain topic yang baik sangat penting untuk skalabilitas sistem IoT.</p>
-
-      <h3>Struktur Topic MQTT</h3>
-      <p>Topic menggunakan forward slash (<code>/</code>) sebagai pembatas hierarki, mirip dengan path di file system.</p>
-
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Hierarki Topic MQTT</div>
-<pre><code>HIERARKI TOPIC MQTT</code></pre>
-      </div>
-
-      <h3>Wildcards (Wildcard Characters)</h3>
-      <p>MQTT mendukung dua jenis wildcard untuk subscribe ke beberapa topik sekaligus:</p>
-
-      <table class="net-table">
-        <thead>
-          <tr>
-            <th>Wildcard</th>
-            <th>Nama</th>
-            <th>Fungsi</th>
-            <th>Contoh</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td><code>+</code></td><td>Single Level</td><td>Menangkap satu level saja</td><td><code>gedung1/+/ruang1/suhu</code> cocok dengan semua lantai di gedung1</td></tr>
-          <tr><td><code>#</code></td><td>Multi Level</td><td>Menangkap semua level di bawahnya</td><td><code>gedung1/#</code> cocok dengan semua topic di gedung1</td></tr>
-        </tbody>
-      </table>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Contoh — Wildcard Topics</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># Single Level Wildcard (+)
-# Subscribe ke suhu semua lantai gedung1, ruang1
-mosquitto_sub -t "gedung1/+/ruang1/suhu"
-
-# Ini akan menerima pesan dari:
-# gedung1/lantai1/ruang1/suhu   ✅
-# gedung1/lantai2/ruang1/suhu   ✅
-# gedung1/lantai3/ruang1/suhu   ✅
-# gedung2/lantai1/ruang1/suhu   ❌ (gedung berbeda)
-
-# Multi Level Wildcard (#)
-# Subscribe ke SEMUA topic di bawah gedung1
-mosquitto_sub -t "gedung1/#"
-
-# Ini akan menerima:
-# gedung1/lantai1/ruang1/suhu     ✅
-# gedung1/lantai1/ruang1/lampu    ✅
-# gedung1/lantai2/ruang1/lembab   ✅
-# Semua topic di bawah gedung1    ✅
-
-# Kombinasi wildcard
-mosquitto_sub -t "+/lantai1/#"
-# Cocok dengan: gedung1/lantai1/ruang1/suhu
-# Cocok dengan: gedung2/lantai1/any/topic/here
-
-# ⚠️ HANYA bisa digunakan di SUBSCRIBE, tidak di PUBLISH!
-# mosquitto_pub -t "gedung1/#" -m "test"  ← ERROR!
-</code></pre>
-      </div>
-
-      <h3>$SYS Topics (System Topics)</h3>
-      <p>Broker MQTT menyediakan topic khusus yang dimulai dengan <code>$SYS/</code> untuk informasi internal broker:</p>
-
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Contoh — $SYS Topics</span>
-          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
-        </div>
-<pre><code># Monitor broker statistics
-mosquitto_sub -t '$SYS/#' -v
-
-# Output contoh:
-# $SYS/broker/version mosquitto version 2.0.18
-# $SYS/broker/uptime 86400 seconds
-# $SYS/broker/clients/connected 42
-# $SYS/broker/clients/total 150
-# $SYS/broker/messages/sent 12345
-# $SYS/broker/messages/received 9876
-# $SYS/broker/load/messages/received/1min 15.23
-# $SYS/broker/load/messages/sent/1min 22.45
-
-# Topic $SYS tidak bisa di-publish secara manual
-# dan tidak termasuk dalam wildcard "#" biasa
-</code></pre>
-      </div>
-
-      <div class="info-box warning">
-        <div class="info-box-title">⚠️ Peringatan</div>
-        <p>Wildcard <code>#</code> di akhir topic bisa menyebabkan broker mengirim ribuan pesan sekaligus jika ada banyak data aktif. Gunakan wildcard dengan bijak dan hindari subscribe ke <code>#</code> tanpa filter yang spesifik pada sistem produksi.</p>
-      </div>
-
-      <!-- AD SLOT -->
-      <div class="ad-slot ad-slot-wide">
-        <!-- AdSense: In-article -->
-      </div>
-
-      <!-- ============================== -->
-      <!-- SECTION 5: QoS                  -->
-      <!-- ============================== -->
-      <h2 id="qos">5. Quality of Service (QoS)</h2>
-
-      <p>Salah satu fitur terpenting MQTT adalah <strong>Quality of Service (QoS)</strong> yang menentukan tingkat jaminan pengiriman pesan. MQTT menyediakan 3 level QoS yang bisa disesuaikan dengan kebutuhan aplikasi Anda.</p>
-
-      <h3>Tiga Level QoS</h3>
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Perbandingan QoS 0, 1, 2</div>
-<div class="diagram-box">
-        <div class="diagram-label">Diagram: QoS LEVELS</div>
 <pre class="mermaid">
 flowchart TD
     N0[Publisher]
@@ -755,8 +526,7 @@ mosquitto_pub -t "sensor/suhu" -m "" -r
       </div>
 
       <h3>Cara Kerja Retain Message</h3>
-      <div class="diagram-box">
-        <div class="diagram-label">Diagram: Retain Message Flow</div>
+      
 <div class="diagram-box">
         <div class="diagram-label">Diagram: RETAIN MESSAGE FLOW</div>
 <pre><code>Broker
