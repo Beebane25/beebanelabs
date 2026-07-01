@@ -1026,6 +1026,12 @@ const PaywallSystem = {
       // Remove early content gate - user has access
       const gateStyle = document.getElementById('early-content-gate');
       if (gateStyle) gateStyle.remove();
+      // Update article header badge to show unlocked status
+      const headerBadge = document.querySelector('.article-header .access-badge, .access-badge.token');
+      if (headerBadge) {
+        headerBadge.className = 'access-badge unlocked';
+        headerBadge.textContent = '✓ Dibuka';
+      }
       return;
     }
     this.showTokenGate(slug, result.tokens || 0, true);
@@ -1981,21 +1987,33 @@ function updateArticleCardStatus() {
   for (const card of cards) {
     const href = card.getAttribute('href') || '';
     const slug = href.split('/').pop().replace('.html', '');
-    if (!slug) return;
+    if (!slug) continue;
     const badge = card.querySelector('.access-badge');
+    const thumb = card.querySelector('.thumbnail');
     if (unlocked.includes(slug)) {
-      // Article is unlocked - show green badge
+      // Article is unlocked - show green badge + checkmark
       if (badge) {
         badge.className = 'access-badge unlocked';
         badge.textContent = '✓ Dibuka';
       }
+      // Remove any existing lock-icon
+      const existingLock = card.querySelector('.lock-icon');
+      if (existingLock) existingLock.remove();
       // Add checkmark circle on thumbnail
-      const thumb = card.querySelector('.thumbnail');
       if (thumb && !thumb.querySelector('.unlock-mark')) {
         const mark = document.createElement('div');
         mark.className = 'unlock-mark';
         mark.textContent = '✓';
         thumb.appendChild(mark);
+      }
+      card.classList.add('viewed');
+    } else if (badge && badge.classList.contains('token')) {
+      // Article is locked (TOKEN) - add lock icon if not present
+      if (thumb && !thumb.querySelector('.lock-icon') && !thumb.querySelector('.unlock-mark')) {
+        const lockIcon = document.createElement('div');
+        lockIcon.className = 'lock-icon locked';
+        lockIcon.textContent = '🔒';
+        thumb.appendChild(lockIcon);
       }
     }
   }
