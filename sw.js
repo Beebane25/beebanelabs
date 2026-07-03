@@ -12,7 +12,7 @@ const PRECACHE_URLS = [
   '/offline.html',
   '/offline',
   '/css/style.css?v=13.6',
-  '/js/app.js?v=18.0',
+  '/js/app.js?v=18.1',
   '/js/security.js',
   '/manifest.json',
   '/images/logo_beebane_webp.webp',
