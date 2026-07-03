@@ -863,19 +863,16 @@ const PaywallSystem = {
     return false;
   },
 
-  // Free article rules: all Pemula + all IT Career
+  // Free article rules: all Pemula only (NOT IT Career)
   isArticleFree(slug) {
     const article = typeof ALL_ARTICLES !== 'undefined' ? ALL_ARTICLES.find(a => a.slug === slug) : null;
     if (article) {
-      if (article.diff === 'pemula') return true;
-      if (article.cat === 'IT Career') return true;
+      // Trust ALL_ARTICLES as source of truth
+      return article.diff === 'pemula';
     }
-    // Fallback: check category page difficulty badge for articles not in ALL_ARTICLES
+    // Fallback ONLY for articles not in ALL_ARTICLES
     const diffBadge = document.querySelector('.difficulty');
     if (diffBadge && diffBadge.classList.contains('pemula')) return true;
-    // Check if IT Career page
-    const articleSection = document.querySelector('meta[name="article:section"], meta[property="article:section"]');
-    if (articleSection && articleSection.content === 'IT Career') return true;
     return false;
   },
 
