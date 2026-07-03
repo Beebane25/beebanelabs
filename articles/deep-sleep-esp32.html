@@ -382,7 +382,14 @@ flowchart TD
       </div>
 <pre class="mermaid">
 flowchart TD
-    N0["Multimeter (mode Amperemeter)"]
+    A["🔋 Baterai (+)"] -->|"Probe merah"| B["📡 Multimeter\n(mode Amperemeter)"]
+    B -->|"Probe hitam"| C["⚡ VIN ESP32"]
+    C --> D["🔧 ESP32 beroperasi normal"]
+    D --> E["📊 Baca arus di display multimeter"]
+    E --> F{"Arus > 150mA?"}
+    F -->|"Ya"| G["⚠️ Cek komponen\nboros daya"]
+    F -->|"Tidak"| H["✅ Konsumsi daya normal"]
+    H --> I["📝 Catat untuk baseline\ndeep sleep"]
 </pre>
     </div>
       </div>
@@ -404,7 +411,14 @@ flowchart TD
         <div class="diagram-label">Diagram: Rangkaian INA219 untuk Monitoring Daya ESP32</div>
 <pre class="mermaid">
 flowchart TD
-    N0["Baterai INA219 Modul ESP32"]
+    A["🔋 Baterai 18650\n(3.7V)"] -->|"VCC + GND"| B["📡 Modul INA219\n(I2C Sensor)"]
+    B -->|"VOUT + GND"| C["⚡ ESP32 DevKit"]
+    B -->|"SDA → GPIO21"| C
+    B -->|"SCL → GPIO22"| C
+    C --> D["📊 Baca data INA219\nvia I2C"]
+    D --> E["Tegangan Bus 📈"]
+    D --> F["Arus (mA) 📉"]
+    D --> G["Daya (mW) ⚡"]
 </pre>
     </div>
       </div>
@@ -495,10 +509,15 @@ void loop() {
         <div class="diagram-label">Diagram: Urutan Shutdown WiFi &amp; MQTT yang Benar</div>
 <pre class="mermaid">
 flowchart TD
-    N0["1. Pastikan semua data terkirim"]
-
-
-    style N0 fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+    A["📤 1. Kirim semua data sensor"] --> B["🔄 2. mqtt.loop + delay(500)"]
+    B --> C{"3. MQTT masih\nconnected?"}
+    C -->|"Ya"| D["🔌 4. mqtt.disconnect()"]
+    C -->|"Tidak"| E["⏭️ Skip disconnect"]
+    D --> F["📶 5. WiFi.disconnect(true)"]
+    E --> F
+    F --> G["❌ 6. WiFi.mode(WIFI_OFF)"]
+    G --> H["💤 7. Serial.flush()"]
+    H --> I["😴 8. esp_deep_sleep_start()"]
 </pre>
       </div>
 
@@ -893,10 +912,13 @@ void sleepDanBangun(long long detikTidur) {
         <div class="diagram-label">Diagram: Rangkaian Lengkap Proyek Sensor Suhu Battery</div>
 <pre class="mermaid">
 flowchart TD
-    N0["LiPo 18650 ESP32 DevKit DHT22"]
-
-
-    style N0 fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+    A["🔋 LiPo 18650\n(3.7V, 3400mAh)"] -->|"VIN + GND"| B["⚡ ESP32 DevKit"]
+    B -->|"GPIO4 + VCC + GND"| C["🌡️ Sensor DHT22\n(Suhu & Kelembaban)"]
+    B -->|"WiFi 2.4GHz"| D["📡 Router/Access Point"]
+    D -->|"MQTT Protocol"| E["🖥️ Broker MQTT (Mosquitto)"]
+    E -->|"Data"| F["💾 Database/Server"]
+    B -->|"Timer Wakeup"| G["💤 Deep Sleep Mode"]
+    G -->|"300 detik"| B
 </pre>
       </div>
 
