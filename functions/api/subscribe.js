@@ -12,6 +12,10 @@ export async function onRequestPost(context) {
 
   try {
     const body = await request.json();
+    // Type validation: prevent injection
+    if (typeof body.email !== 'string') {
+      return cors(400, { error: 'Input tidak valid' }, origin);
+    }
     const email = (body.email || '').trim().toLowerCase();
 
     // Validate email (strict — only allow valid email characters)

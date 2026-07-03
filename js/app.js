@@ -3147,6 +3147,44 @@ function updateDynamicCounts() {
 }
 
 // === INITIALIZE ALL SYSTEMS ===
+// Quick menu event listeners (replaces inline onclick handlers)
+function initQuickMenuListeners() {
+  // Search overlay
+  var mobileSearchBtn = document.getElementById('mobileSearchBtn');
+  if (mobileSearchBtn) mobileSearchBtn.addEventListener('click', function() {
+    var overlay = document.getElementById('searchOverlay');
+    if (overlay) overlay.classList.add('active');
+  });
+  var searchCloseBtn = document.querySelector('.search-close-btn');
+  if (searchCloseBtn) searchCloseBtn.addEventListener('click', function() {
+    var overlay = document.getElementById('searchOverlay');
+    if (overlay) overlay.classList.remove('active');
+  });
+  // Theme toggle floating
+  var themeFloating = document.querySelector('.theme-toggle-floating');
+  if (themeFloating) themeFloating.addEventListener('click', function() { ThemeToggle.toggle(); });
+  // Quick menu
+  var quickMenuBackdrop = document.getElementById('quickMenuBackdrop');
+  if (quickMenuBackdrop) quickMenuBackdrop.addEventListener('click', function() { MobileQuickMenu.close(); });
+  var quickMenuBtn = document.getElementById('quickMenuBtn');
+  if (quickMenuBtn) quickMenuBtn.addEventListener('click', function() { MobileQuickMenu.toggle(); });
+  // Zoom controls
+  var quickMenuRows = document.querySelectorAll('.quick-menu-row button');
+  quickMenuRows.forEach(function(btn) {
+    var label = btn.getAttribute('aria-label');
+    if (label === 'Perkecil') btn.addEventListener('click', function() { MobileQuickMenu.zoomOut(); });
+    else if (label === 'Perbesar') btn.addEventListener('click', function() { MobileQuickMenu.zoomIn(); });
+    else if (label === 'Reset zoom') btn.addEventListener('click', function() { MobileQuickMenu.resetZoom(); });
+  });
+  // Quick menu theme button
+  var quickThemeBtn = document.querySelector('.quick-menu-theme-btn');
+  if (quickThemeBtn) quickThemeBtn.addEventListener('click', function() { MobileQuickMenu.toggleTheme(); });
+  // Quick menu theme light/dark buttons
+  document.querySelectorAll('[data-theme-val]').forEach(function(btn) {
+    btn.addEventListener('click', function() { MobileQuickMenu.setTheme(btn.getAttribute('data-theme-val')); });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   AuthSystem.init();
   PaywallSystem.init();
@@ -3185,6 +3223,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderGroupedArticles('all');
   initArticleFilter();
   initCategoryFilter();
+  initQuickMenuListeners(); // Attach event listeners for quick menu buttons (replaces inline onclick)
+
+  // AdSense lazy-load (moved from inline script)
+  (function(){
+    var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';
+    function loadAds(){
+      if(window._adsLoaded) return;
+      window._adsLoaded=true;
+      var s=document.createElement('script');
+      s.async=true;s.crossOrigin='anonymous';s.src=src;
+      document.head.appendChild(s);
+      ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+        document.removeEventListener(e,loadAds,{passive:true});
+      });
+    }
+    ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+      document.addEventListener(e,loadAds,{passive:true,once:true});
+    });
+    setTimeout(loadAds,5000);
+  })();
 
   // FIX: Sync unlocked articles from server for logged-in users
   // This must happen AFTER initial render (sync is async, render is sync)

@@ -113,6 +113,10 @@ export async function onRequestPost(context) {
 
     // === REGISTER ===
     if (action === 'register') {
+      // Type validation: prevent NoSQL injection
+      if (typeof body.email !== 'string' || typeof body.password !== 'string') {
+        return cors(400, { error: 'Input tidak valid' }, origin);
+      }
       const email = (body.email || '').trim().toLowerCase();
       const name = sanitizeName(body.name || '');
       const password = body.password || '';
@@ -250,6 +254,10 @@ export async function onRequestPost(context) {
 
     // === LOGIN ===
     if (action === 'login') {
+      // Type validation: prevent NoSQL injection
+      if (typeof body.email !== 'string' || typeof body.password !== 'string') {
+        return cors(400, { error: 'Input tidak valid' }, origin);
+      }
       const email = (body.email || '').trim().toLowerCase();
       const password = body.password || '';
       if (!email || !password) return cors(400, { error: 'Email dan password harus diisi' }, origin);
