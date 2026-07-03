@@ -3087,7 +3087,21 @@ const ALL_ARTICLES = [
   { slug: 'wireless-penetration-testing', title: 'Wireless Penetration Testing', icon: '🐝', cat: 'Keamanan', desc: 'Pelajari wireless penetration testing: WiFi security, WPA/WPA2/WPA3 cracking, ro', diff: 'lanjut', time: '16', access: 'Token', date: '29 Juni 2026' },
   { slug: 'zero-trust-implementation', title: 'Zero Trust Architecture Implementation', icon: '🐝', cat: 'Keamanan', desc: 'Pelajari Zero Trust Architecture: microsegmentation, identity verification, leas', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
   { slug: 'zig-language', title: 'Zig Programming Language: Panduan Lengkap - BeebaneLabs', icon: '📖', cat: 'Software Engineering', desc: 'Pelajari Zig Programming Language dari dasar hingga mahir. Panduan lengkap compt', diff: 'menengah', time: '15', access: 'Token', date: '25 Juni 2026' },
-  { slug: 'zigbee-thread-matter', title: 'Zigbee, Thread, dan Matter: Perbandingan Protokol Smart Home', icon: '📖', cat: 'Internet of Things', desc: 'Perbandingan lengkap Zigbee, Thread, dan Matter untuk smart home. Pelajari stack', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' }
+  { slug: 'zigbee-thread-matter', title: 'Zigbee, Thread, dan Matter: Perbandingan Protokol Smart Home', icon: '📖', cat: 'Internet of Things', desc: 'Perbandingan lengkap Zigbee, Thread, dan Matter untuk smart home. Pelajari stack', diff: 'menengah', time: '15', access: 'Token', date: '29 Juni 2026' },
+
+  // === CHEATSHEETS (12 articles, 1 per category) ===
+  { slug: 'cheatsheet-esp32-iot', title: 'Cheatsheet ESP32 & IoT', icon: '📋', cat: 'IoT', desc: 'Referensi cepat pinout, command, dan sensor ESP32 untuk proyek IoT', diff: 'pemula', time: '10', access: 'Gratis', date: '3 Juli 2026' },
+  { slug: 'cheatsheet-python', title: 'Cheatsheet Python', icon: '📋', cat: 'Python', desc: 'Referensi cepat syntax, data structure, dan library Python', diff: 'pemula', time: '10', access: 'Gratis', date: '3 Juli 2026' },
+  { slug: 'cheatsheet-linux-security', title: 'Cheatsheet Linux Security', icon: '📋', cat: 'Cybersecurity', desc: 'Command line, firewall, dan hardening Linux untuk keamanan', diff: 'pemula', time: '10', access: 'Gratis', date: '3 Juli 2026' },
+  { slug: 'cheatsheet-grafana-nodered', title: 'Cheatsheet Grafana & Node-RED', icon: '📋', cat: 'Dashboard', desc: 'PromQL, dashboard, dan flow automation untuk monitoring', diff: 'pemula', time: '10', access: 'Gratis', date: '3 Juli 2026' },
+  { slug: 'cheatsheet-mqtt-http', title: 'Cheatsheet MQTT & HTTP', icon: '📋', cat: 'Protokol', desc: 'Referensi cepat protokol IoT dan web untuk developer', diff: 'pemula', time: '10', access: 'Gratis', date: '3 Juli 2026' },
+  { slug: 'cheatsheet-html-css-js', title: 'Cheatsheet HTML, CSS & JavaScript', icon: '📋', cat: 'Web Development', desc: 'Referensi cepat HTML5, CSS3, dan JavaScript modern', diff: 'pemula', time: '10', access: 'Gratis', date: '3 Juli 2026' },
+  { slug: 'cheatsheet-sql', title: 'Cheatsheet SQL', icon: '📋', cat: 'Database', desc: 'Referensi cepat query, index, dan database design SQL', diff: 'pemula', time: '10', access: 'Gratis', date: '3 Juli 2026' },
+  { slug: 'cheatsheet-python-datascience', title: 'Cheatsheet Python Data Science', icon: '📋', cat: 'AI & Data Science', desc: 'NumPy, Pandas, Matplotlib, dan Scikit-learn untuk data science', diff: 'pemula', time: '10', access: 'Gratis', date: '3 Juli 2026' },
+  { slug: 'cheatsheet-flutter-dart', title: 'Cheatsheet Flutter & Dart', icon: '📋', cat: 'Mobile Development', desc: 'Referensi cepat widget, state management, dan API di Flutter', diff: 'pemula', time: '10', access: 'Gratis', date: '3 Juli 2026' },
+  { slug: 'cheatsheet-docker-k8s', title: 'Cheatsheet Docker & Kubernetes', icon: '📋', cat: 'DevOps & Cloud', desc: 'Command line, YAML, dan best practices Docker & K8s', diff: 'pemula', time: '10', access: 'Gratis', date: '3 Juli 2026' },
+  { slug: 'cheatsheet-it-certification', title: 'Cheatsheet IT Certification', icon: '📋', cat: 'IT Career', desc: 'Roadmap sertifikasi IT, tips belajar, dan study guide', diff: 'pemula', time: '10', access: 'Gratis', date: '3 Juli 2026' },
+  { slug: 'cheatsheet-networking-mikrotik', title: 'Cheatsheet Networking & MikroTik', icon: '📋', cat: 'Networking', desc: 'Command line, subnetting, dan RouterOS untuk jaringan', diff: 'pemula', time: '10', access: 'Gratis', date: '3 Juli 2026' }
 ];
 
 // Populate search articles from ALL_ARTICLES (avoids duplicate data)
