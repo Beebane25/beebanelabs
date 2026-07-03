@@ -47,7 +47,8 @@
     "brand": { "@type": "Organization", "name": "BeebaneLabs" },
     "offers": [
       { "@type": "Offer", "name": "5 Token", "price": "50000", "priceCurrency": "IDR" },
-      { "@type": "Offer", "name": "10 Token", "price": "90000", "priceCurrency": "IDR" }
+      { "@type": "Offer", "name": "10 Token", "price": "90000", "priceCurrency": "IDR" },
+      { "@type": "Offer", "name": "Custom Token (1-50)", "price": "10000", "priceCurrency": "IDR", "description": "Beli token eceran 1-50 dengan diskon volume" }
     ]
   }
   </script>
@@ -151,6 +152,33 @@
           <button class="plan-btn secondary" onclick="startPayment('free')">Mulai Gratis</button>
         </div>
 
+        <!-- CUSTOM TOKEN (1-50) -->
+        <div class="pricing-card featured" style="position:relative;">
+          <div class="plan-icon">🎯</div>
+          <div class="plan-name">CUSTOM TOKEN</div>
+          <div class="plan-price" id="customPrice">Rp 10.000</div>
+          <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:var(--space-md);">Pilih jumlah sesuai kebutuhan</p>
+          <div style="margin-bottom:var(--space-lg);">
+            <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px;">
+              <button onclick="adjustCustomToken(-1)" style="width:36px;height:36px;border-radius:50%;border:1px solid var(--border-standard);background:var(--bg-elevated);color:var(--text-primary);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+              <input type="number" id="customTokenInput" value="10" min="1" max="50" oninput="updateCustomPrice()" style="width:70px;text-align:center;padding:8px;border-radius:var(--radius-md);border:2px solid var(--accent-primary);background:var(--bg-elevated);color:var(--text-primary);font-size:1.3rem;font-weight:700;font-family:var(--font-heading);">
+              <button onclick="adjustCustomToken(1)" style="width:36px;height:36px;border-radius:50%;border:1px solid var(--border-standard);background:var(--bg-elevated);color:var(--text-primary);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+            </div>
+            <input type="range" id="customTokenSlider" min="1" max="50" value="10" oninput="syncSliderToInput()" style="width:100%;accent-color:var(--accent-primary);margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-subtle);">
+              <span>1</span><span>10</span><span>25</span><span>50</span>
+            </div>
+            <div id="customDiscount" style="margin-top:8px;font-size:0.8rem;color:var(--accent-primary);font-weight:600;text-align:center;"></div>
+          </div>
+          <ul class="plan-features">
+            <li>🔓 Buka artikel sesuai jumlah token</li>
+            <li>📖 1 token = 1 artikel</li>
+            <li>⚡ Akses permanen setelah diunlock</li>
+            <li>💰 Diskon otomatis untuk pembelian banyak</li>
+          </ul>
+          <button class="plan-btn primary" onclick="startPayment('custom')">Beli Token</button>
+        </div>
+
         <!-- PAKET 5 TOKEN -->
         <div class="pricing-card" style="position:relative;">
           <div class="plan-icon">💰</div>
@@ -166,7 +194,7 @@
         </div>
 
         <!-- PAKET 10 TOKEN -->
-        <div class="pricing-card featured" style="position:relative;">
+        <div class="pricing-card" style="position:relative;">
           <div class="plan-icon">📦</div>
           <div class="plan-name">PAKET 10 TOKEN</div>
           <div class="plan-price">Rp 90.000</div>
@@ -177,7 +205,7 @@
             <li>⚡ Akses permanen setelah diunlock</li>
             <li>💰 Harga lebih hemat</li>
           </ul>
-          <button class="plan-btn primary" onclick="startPayment('token10')">Beli 10 Token</button>
+          <button class="plan-btn secondary" onclick="startPayment('token10')">Beli 10 Token</button>
         </div>
 
       </div>
@@ -282,21 +310,68 @@
   <script defer src="js/mobile-zoom.js?v=9.2"></script>
   <script>
     // === MIDTRANS PAYMENT INTEGRATION ===
-    const API_BASE = window.location.origin; // Change after Netlify deploy
+    const API_BASE = window.location.origin;
 
+    // === CUSTOM TOKEN CALCULATOR ===
+    function getCustomTokenPrice(count) {
+      if (count < 1) count = 1;
+      if (count > 50) count = 50;
+      // Volume discount tiers
+      let pricePerToken;
+      if (count >= 50) pricePerToken = 8000;       // 20% discount
+      else if (count >= 20) pricePerToken = 8500;   // 15% discount
+      else if (count >= 10) pricePerToken = 9000;   // 10% discount
+      else if (count >= 5) pricePerToken = 9500;    // 5% discount
+      else pricePerToken = 10000;                    // no discount
+      return { pricePerToken, total: count * pricePerToken };
+    }
+
+    function updateCustomPrice() {
+      var input = document.getElementById('customTokenInput');
+      var slider = document.getElementById('customTokenSlider');
+      var count = parseInt(input.value) || 1;
+      if (count < 1) { count = 1; input.value = 1; }
+      if (count > 50) { count = 50; input.value = 50; }
+      slider.value = count;
+      var p = getCustomTokenPrice(count);
+      document.getElementById('customPrice').textContent = 'Rp ' + p.total.toLocaleString('id-ID');
+      // Show discount info
+      var discountEl = document.getElementById('customDiscount');
+      if (p.pricePerToken < 10000) {
+        var pct = Math.round((1 - p.pricePerToken / 10000) * 100);
+        discountEl.textContent = '💰 Hemat ' + pct + '%! (Rp ' + p.pricePerToken.toLocaleString('id-ID') + '/token)';
+      } else {
+        discountEl.textContent = 'Rp ' + p.pricePerToken.toLocaleString('id-ID') + ' per token';
+      }
+    }
+
+    function adjustCustomToken(delta) {
+      var input = document.getElementById('customTokenInput');
+      var val = parseInt(input.value) || 1;
+      val = Math.max(1, Math.min(50, val + delta));
+      input.value = val;
+      updateCustomPrice();
+    }
+
+    function syncSliderToInput() {
+      var slider = document.getElementById('customTokenSlider');
+      document.getElementById('customTokenInput').value = slider.value;
+      updateCustomPrice();
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', updateCustomPrice);
+
+    // === PAYMENT FUNCTION ===
     function startPayment(plan) {
       if (plan === 'free') {
         window.location.href = 'index.html';
         return;
       }
 
-      const prices = { token5: 50000, token10: 90000 };
-      const amount = prices[plan];
-      const planName = plan === 'token10' ? '10 Token (Hemat!)' : '5 Token';
-
       // Check if user is logged in
-      const authData = JSON.parse(localStorage.getItem('beebanelabs_auth') || 'null');
-      const email = authData && authData.user ? authData.user.email : null;
+      var authData = JSON.parse(localStorage.getItem('beebanelabs_auth') || 'null');
+      var email = authData && authData.user ? authData.user.email : null;
 
       if (!email) {
         if (typeof AuthSystem !== 'undefined') {
@@ -308,12 +383,32 @@
         return;
       }
 
-      // FIX: Get the clicked button via onclick context
-      const btns = document.querySelectorAll('.plan-btn');
-      let btn = null;
-      btns.forEach(b => { if (b.textContent.includes('Memproses') || b === document.activeElement) btn = b; });
+      var amount, planName, tokenCount;
+
+      if (plan === 'custom') {
+        tokenCount = parseInt(document.getElementById('customTokenInput').value) || 1;
+        if (tokenCount < 1 || tokenCount > 50) {
+          if (typeof Toast !== 'undefined') Toast.show('Jumlah token harus 1-50.', 'warning');
+          return;
+        }
+        var p = getCustomTokenPrice(tokenCount);
+        amount = p.total;
+        planName = tokenCount + ' Token (Custom)';
+      } else {
+        var prices = { token5: 50000, token10: 90000 };
+        amount = prices[plan];
+        tokenCount = plan === 'token10' ? 10 : 5;
+        planName = tokenCount + ' Token';
+      }
+
+      // Get clicked button for loading state
+      var btns = document.querySelectorAll('.plan-btn');
+      var btn = null;
+      btns.forEach(function(b) {
+        if (b.textContent.includes('Memproses') || b === document.activeElement) btn = b;
+      });
       if (!btn) btn = document.querySelector('.plan-btn.primary');
-      const originalText = btn ? btn.textContent : '';
+      var originalText = btn ? btn.textContent : '';
       if (btn) { btn.textContent = '⏳ Memproses...'; btn.disabled = true; }
 
       fetch(API_BASE + '/api/create-payment', {
@@ -321,9 +416,10 @@
         headers: (typeof CSRF !== 'undefined' && CSRF.getHeaders) ? CSRF.getHeaders() : { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email,
-          plan: plan,
+          plan: plan === 'custom' ? 'custom' + tokenCount : plan,
           item_name: 'BeebaneLabs Token - ' + planName,
-          amount: amount
+          amount: amount,
+          token_count: tokenCount
         })
       })
       .then(function(r) { return r.json(); })
@@ -342,7 +438,7 @@
                 authData.user.plan = plan;
                 localStorage.setItem('beebanelabs_auth', JSON.stringify(authData));
               }
-              if (typeof Toast !== 'undefined') Toast.show('Pembayaran berhasil! Token telah ditambahkan.', 'success');
+              if (typeof Toast !== 'undefined') Toast.show('Pembayaran berhasil! ' + tokenCount + ' token telah ditambahkan.', 'success');
               setTimeout(function() { window.location.reload(); }, 1500);
             },
             onPending: function(result) {
