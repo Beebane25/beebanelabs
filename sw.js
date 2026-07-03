@@ -3,15 +3,15 @@
    network-first for API calls.
 */
 
-const CACHE_NAME = 'beebanelabs-v4';
-const STATIC_CACHE = 'beebanelabs-static-v4';
-const PAGE_CACHE = 'beebanelabs-pages-v4';
+const CACHE_NAME = 'beebanelabs-v5';
+const STATIC_CACHE = 'beebanelabs-static-v5';
+const PAGE_CACHE = 'beebanelabs-pages-v5';
 
 // Static assets to pre-cache on install
 const PRECACHE_URLS = [
   '/offline.html',
   '/offline',
-  '/css/style.css?v=13.5',
+  '/css/style.css?v=13.6',
   '/js/app.js?v=18.0',
   '/js/security.js',
   '/manifest.json',

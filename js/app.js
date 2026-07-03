@@ -1,4 +1,4 @@
-/* v18.0.0 - Full Article Sync + Category Fix */
+/* v18.1.0 - Overflow-x fix + CSS version sync */
 // === EARLY CONTENT GATE (runs before DOM renders) ===
 // Prevents "flash of content" on article pages before paywall check
 (function earlyContentGate() {
@@ -811,7 +811,7 @@ function initServiceWorker() {
 // === CONFIGURATION ===
 const SITE_CONFIG = {
   API_BASE: window.location.origin,
-  APP_VERSION: '18.0',
+  APP_VERSION: '18.1',
   TOKEN_PRICE: 10000,
   INITIAL_TOKENS: 5
 };
@@ -2164,10 +2164,17 @@ function injectArticleExtras() {
 
   articleContent.appendChild(shareDiv);
 
-  // Related articles
+  // Related articles — same category first, then fill with others
   const allArticles = ALL_ARTICLES;
   const currentSlug = window.location.pathname.split('/').pop().replace('.html', '');
-  const related = allArticles.filter(a => a.slug !== currentSlug).sort(() => 0.5 - Math.random()).slice(0, 3);
+  const currentArticle = allArticles.find(a => a.slug === currentSlug);
+  const currentCat = currentArticle ? currentArticle.cat : null;
+  const sameCat = allArticles.filter(a => a.slug !== currentSlug && a.cat === currentCat);
+  const otherCat = allArticles.filter(a => a.slug !== currentSlug && a.cat !== currentCat);
+  // Shuffle both groups
+  for (let i = sameCat.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [sameCat[i], sameCat[j]] = [sameCat[j], sameCat[i]]; }
+  for (let i = otherCat.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [otherCat[i], otherCat[j]] = [otherCat[j], otherCat[i]]; }
+  const related = [...sameCat, ...otherCat].slice(0, 3);
   if (related.length) {
     const relSection = document.createElement('div');
     relSection.style.cssText = 'margin-top:48px;padding-top:32px;border-top:1px solid var(--border-subtle);';
