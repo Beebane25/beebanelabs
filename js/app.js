@@ -1158,11 +1158,11 @@ function initShootingStars() {
     star.style.top = startY + '%';
 
     // Randomize trail length
-    var trailLen = Math.random() * 120 + 100; // 100-220px
+    var trailLen = Math.random() * 50 + 50; // 50-100px
     star.style.width = trailLen + 'px';
 
-    // Randomize speed (1.5-3s — slower)
-    var duration = Math.random() * 1.5 + 1.5;
+    // Randomize speed (2.5-4.5s — much slower)
+    var duration = Math.random() * 2 + 2.5;
     star.style.animationDuration = duration + 's';
 
     // Randomize brightness
