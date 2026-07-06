@@ -1134,6 +1134,70 @@ function updateReadingHistoryBadges() {
   });
 })();
 
+// === SHOOTING STARS (Dark Theme Only) ===
+// Creates real shooting stars with glowing head + fading trail
+// Inspired by Yusuke Nakaya (CodePen XyOaBj)
+(function initShootingStars() {
+  // Only run in dark theme
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (!isDark) return;
+
+  // Create container
+  var container = document.createElement('div');
+  container.className = 'shooting-stars';
+  document.body.appendChild(container);
+
+  // Create a single shooting star element
+  function createStar() {
+    var star = document.createElement('span');
+    star.className = 'shooting-star';
+
+    // Randomize starting position (top-right area)
+    var startX = Math.random() * 60 + 20; // 20-80% from left
+    var startY = Math.random() * 30;       // 0-30% from top
+    star.style.left = startX + '%';
+    star.style.top = startY + '%';
+
+    // Randomize trail length
+    var trailLen = Math.random() * 100 + 80; // 80-180px
+    star.style.width = trailLen + 'px';
+
+    // Randomize speed (0.6-1.5s)
+    var duration = Math.random() * 0.9 + 0.6;
+    star.style.animationDuration = duration + 's';
+
+    // Randomize brightness
+    var brightness = Math.random() * 0.4 + 0.6; // 0.6-1.0
+    star.style.opacity = brightness;
+
+    // Add to container
+    container.appendChild(star);
+
+    // Remove after animation ends
+    star.addEventListener('animationend', function() {
+      star.remove();
+    });
+  }
+
+  // Spawn stars at random intervals
+  function spawnLoop() {
+    // Only spawn in dark theme
+    if (document.documentElement.getAttribute('data-theme') !== 'dark') {
+      setTimeout(spawnLoop, 5000);
+      return;
+    }
+
+    createStar();
+
+    // Random delay between stars (1.5-4.5s)
+    var delay = Math.random() * 3000 + 1500;
+    setTimeout(spawnLoop, delay);
+  }
+
+  // Start after a short delay
+  setTimeout(spawnLoop, 2000);
+})();
+
 // === CONFIGURATION ===
 const SITE_CONFIG = {
   API_BASE: window.location.origin,
