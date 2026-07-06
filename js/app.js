@@ -126,18 +126,90 @@ document.addEventListener('keydown', (e) => {
 
 // Search functionality
 if (searchInput) {
-  searchInput.addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase().trim();
-    if (query.length < 2) {
+  // === Fuzzy Search Enhancement ===
+  // Levenshtein distance for typo tolerance
+  function levenshtein(a, b) {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    const matrix = [];
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        const cost = b.charAt(i - 1) === a.charAt(j - 1) ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        );
+      }
+    }
+    return matrix[b.length][a.length];
+  }
+
+  // Fuzzy match: substring match OR Levenshtein distance ≤ 2 for words ≥ 4 chars
+  function fuzzyMatch(text, query) {
+    const t = text.toLowerCase();
+    const q = query.toLowerCase();
+    if (t.includes(q)) return true;
+    // Try partial word matching: each query word must match at least one text word
+    const queryWords = q.split(/\s+/).filter(Boolean);
+    const textWords = t.split(/\s+/);
+    return queryWords.every(qw =>
+      textWords.some(tw =>
+        tw.startsWith(qw) || tw.includes(qw) ||
+        (qw.length >= 4 && levenshtein(tw, qw) <= 2)
+      )
+    );
+  }
+
+  // Recent searches storage
+  const RECENT_KEY = 'beebanelabs_recent_searches';
+  function getRecentSearches() {
+    try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch { return []; }
+  }
+  function saveRecentSearch(q) {
+    try {
+      const recent = getRecentSearches().filter(s => s !== q);
+      recent.unshift(q);
+      localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0, 10)));
+    } catch {}
+  }
+
+  // Keyboard navigation state
+  let searchFocusIndex = -1;
+
+  function renderSearchSuggestions() {
+    const recent = getRecentSearches().slice(0, 5);
+    if (recent.length === 0) {
       searchResults.innerHTML = '<div class="search-hint">Ketik minimal 2 karakter untuk mencari</div>';
       return;
     }
+    searchResults.innerHTML =
+      '<div class="search-suggestions-header">Pencarian terakhir</div>' +
+      recent.map((s, i) => `
+        <a href="#" class="search-result-item search-suggestion" data-index="${i}">
+          <span class="icon">🕒</span>
+          <div class="text"><h4>${s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h4></div>
+        </a>
+      `).join('') +
+      '<button class="search-clear-recent" onclick="(function(){localStorage.removeItem(\'' + RECENT_KEY + '\');document.getElementById(\'searchResults\').innerHTML=\'<div class=\\\'search-hint\\\'>Ketik minimal 2 karakter untuk mencari</div>\';})()">Hapus riwayat</button>';
+    // Click handler for suggestion items
+    searchResults.querySelectorAll('.search-suggestion').forEach(el => {
+      el.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        searchInput.value = el.querySelector('h4').textContent;
+        searchInput.dispatchEvent(new Event('input'));
+      });
+    });
+  }
 
+  function renderSearchResults(query) {
     const filtered = articles.filter(a =>
-      a.title.toLowerCase().includes(query) ||
-      a.category.toLowerCase().includes(query) ||
-      a.desc.toLowerCase().includes(query)
-    );
+      fuzzyMatch(a.title, query) ||
+      fuzzyMatch(a.category, query) ||
+      fuzzyMatch(a.desc, query)
+    ).slice(0, 20);
 
     if (filtered.length === 0) {
       const safeQuery = query.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -145,8 +217,8 @@ if (searchInput) {
       return;
     }
 
-    searchResults.innerHTML = filtered.map(a => `
-      <a href="${a.url}" class="search-result-item">
+    searchResults.innerHTML = filtered.map((a, i) => `
+      <a href="${a.url}" class="search-result-item" data-index="${i}" onclick="saveRecentSearch('${query.replace(/'/g,"\\'")}')">
         <span class="icon">${a.icon}</span>
         <div class="text">
           <h4>${a.title}</h4>
@@ -154,6 +226,48 @@ if (searchInput) {
         </div>
       </a>
     `).join('');
+    searchFocusIndex = -1;
+  }
+
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim();
+    searchFocusIndex = -1;
+    if (query.length < 2) {
+      renderSearchSuggestions();
+      return;
+    }
+    renderSearchResults(query);
+  });
+
+  // Show suggestions on focus (when empty)
+  searchInput.addEventListener('focus', () => {
+    if (searchInput.value.trim().length < 2) renderSearchSuggestions();
+  });
+
+  // Keyboard navigation for search results
+  searchInput.addEventListener('keydown', (e) => {
+    const items = searchResults.querySelectorAll('.search-result-item');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      searchFocusIndex = Math.min(searchFocusIndex + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle('search-focused', i === searchFocusIndex));
+      items[searchFocusIndex]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      searchFocusIndex = Math.max(searchFocusIndex - 1, 0);
+      items.forEach((el, i) => el.classList.toggle('search-focused', i === searchFocusIndex));
+      items[searchFocusIndex]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter' && searchFocusIndex >= 0) {
+      e.preventDefault();
+      const focused = items[searchFocusIndex];
+      if (focused) {
+        const q = searchInput.value.trim();
+        if (q.length >= 2) saveRecentSearch(q);
+        focused.click();
+      }
+    }
   });
 }
 
@@ -736,6 +850,94 @@ function initReadingTimeEstimate() {
   }, { passive: true });
 }
 
+// === INTERNAL LINKING (article pages) ===
+function initInternalLinks() {
+  if (!window.location.pathname.includes('/articles/')) return;
+  const content = document.querySelector('.article-content');
+  if (!content) return;
+
+  // Get current article slug from URL
+  const slug = window.location.pathname.split('/').pop().replace('.html', '');
+  if (!slug) return;
+
+  // Get current category from meta tag
+  const sectionMeta = document.querySelector('meta[property="article:section"]');
+  const currentCat = sectionMeta ? sectionMeta.content : '';
+
+  // Find related articles: same category first, then others
+  if (typeof ALL_ARTICLES === 'undefined') return;
+  const related = ALL_ARTICLES
+    .filter(a => a.slug !== slug)
+    .sort((a, b) => {
+      const aMatch = a.cat === currentCat ? 0 : 1;
+      const bMatch = b.cat === currentCat ? 0 : 1;
+      return aMatch - bMatch;
+    })
+    .slice(0, 5);
+
+  if (related.length === 0) return;
+
+  // Build keyword->URL map from related article titles
+  const base = getBasePath();
+  const linkedKeywords = new Set();
+  let linksAdded = 0;
+  const maxLinks = 5;
+
+  // Walk text nodes in paragraphs only
+  const textNodes = [];
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, {
+    acceptNode: function(node) {
+      if (!node.parentElement) return NodeFilter.FILTER_REJECT;
+      const tag = node.parentElement.tagName.toLowerCase();
+      if (['a', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) return NodeFilter.FILTER_REJECT;
+      if (node.textContent.trim().length < 20) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  let node;
+  while ((node = walker.nextNode())) textNodes.push(node);
+
+  for (const article of related) {
+    if (linksAdded >= maxLinks) break;
+    // Extract keywords from title (skip short/common words)
+    const words = article.title.split(/\s+/).filter(w => w.length > 3 && !['untuk', 'dengan', 'dari', 'yang', 'adalah', 'panduan', 'lengkap'].includes(w.toLowerCase()));
+    if (words.length === 0) continue;
+
+    const keyword = words[0];
+    const lowerKeyword = keyword.toLowerCase();
+    if (linkedKeywords.has(lowerKeyword)) continue;
+
+    // Find a text node containing the keyword
+    for (const tNode of textNodes) {
+      if (tNode.parentElement && tNode.parentElement.closest('a')) continue;
+      const idx = tNode.textContent.toLowerCase().indexOf(lowerKeyword);
+      if (idx === -1) continue;
+
+      // Split text node and insert link
+      const before = tNode.textContent.substring(0, idx);
+      const match = tNode.textContent.substring(idx, idx + keyword.length);
+      const after = tNode.textContent.substring(idx + keyword.length);
+      const parent = tNode.parentElement;
+
+      const link = document.createElement('a');
+      link.href = base + 'articles/' + article.slug + '.html';
+      link.className = 'internal-link';
+      link.textContent = match;
+      link.title = article.title;
+
+      const frag = document.createDocumentFragment();
+      if (before) frag.appendChild(document.createTextNode(before));
+      frag.appendChild(link);
+      if (after) frag.appendChild(document.createTextNode(after));
+      parent.replaceChild(frag, tNode);
+
+      linkedKeywords.add(lowerKeyword);
+      linksAdded++;
+      break;
+    }
+  }
+}
+
 // Syntax Highlighting with Prism.js (article pages)
 function initSyntaxHighlighting() {
   const articleContent = document.querySelector('.article-content');
@@ -807,6 +1009,113 @@ function initServiceWorker() {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
 }
+
+// === Reading History Badges ===
+// Adds "✓ Dibaca" badge to article cards that have been read
+function updateReadingHistoryBadges() {
+  // Get reading history from localStorage
+  let readSlugs = [];
+  try {
+    const localHistory = JSON.parse(localStorage.getItem('beebanelabs_reading_history') || '[]');
+    readSlugs = localHistory.map(function(h) { return h.slug || h.article_slug || h; });
+  } catch {}
+
+  // Also check PaywallSystem's viewed articles if available
+  if (typeof PaywallSystem !== 'undefined' && PaywallSystem.getUnlockedSlugs) {
+    try {
+      var unlocked = PaywallSystem.getUnlockedSlugs();
+      if (Array.isArray(unlocked)) readSlugs = readSlugs.concat(unlocked);
+    } catch {}
+  }
+
+  // Deduplicate
+  readSlugs = Array.from(new Set(readSlugs.filter(Boolean)));
+
+  // Find all article cards and add badges
+  document.querySelectorAll('.article-card').forEach(function(card) {
+    // Skip if already has badge
+    if (card.querySelector('.read-history-badge')) return;
+
+    var href = card.getAttribute('href') || '';
+    var slug = href.replace(/.*\//, '').replace('.html', '');
+
+    if (readSlugs.indexOf(slug) !== -1) {
+      var badge = document.createElement('div');
+      badge.className = 'read-history-badge';
+      badge.textContent = '✓ Dibaca';
+      // Place badge in the thumbnail area if exists, otherwise top of card
+      var thumb = card.querySelector('.thumbnail');
+      if (thumb) {
+        thumb.appendChild(badge);
+      } else {
+        card.style.position = 'relative';
+        card.appendChild(badge);
+      }
+      card.classList.add('has-read-history');
+    }
+  });
+}
+
+// === PWA Install Prompt ===
+// Shows a subtle install banner once per session
+(function initPWAInstallPrompt() {
+  var deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // Only show once per session
+    if (sessionStorage.getItem('beebanelabs_pwa_install_dismissed')) return;
+
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+
+    // Show banner after a short delay
+    setTimeout(function() {
+      var banner = document.createElement('div');
+      banner.id = 'pwaInstallBanner';
+      banner.className = 'pwa-install-banner';
+      banner.innerHTML =
+        '<div class="pwa-install-content">' +
+          '<span class="pwa-install-icon">📱</span>' +
+          '<span class="pwa-install-text">Install <strong>BeebaneLabs</strong> untuk akses lebih cepat</span>' +
+          '<button class="pwa-install-btn" id="pwaInstallBtn">Install</button>' +
+          '<button class="pwa-install-dismiss" id="pwaInstallDismiss" aria-label="Tutup">&times;</button>' +
+        '</div>';
+      document.body.appendChild(banner);
+
+      // Animate in
+      requestAnimationFrame(function() { banner.classList.add('show'); });
+
+      // Install button click
+      document.getElementById('pwaInstallBtn').addEventListener('click', function() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function(choice) {
+          if (choice.outcome === 'accepted') {
+            banner.remove();
+          }
+          deferredPrompt = null;
+        });
+      });
+
+      // Dismiss button click
+      document.getElementById('pwaInstallDismiss').addEventListener('click', function() {
+        banner.classList.remove('show');
+        setTimeout(function() { banner.remove(); }, 300);
+        sessionStorage.setItem('beebanelabs_pwa_install_dismissed', '1');
+      });
+    }, 3000);
+  });
+
+  // Clean up if app was installed
+  window.addEventListener('appinstalled', function() {
+    var banner = document.getElementById('pwaInstallBanner');
+    if (banner) banner.remove();
+    sessionStorage.setItem('beebanelabs_pwa_install_dismissed', '1');
+  });
+})();
 
 // === CONFIGURATION ===
 const SITE_CONFIG = {
@@ -931,6 +1240,7 @@ const PaywallSystem = {
       // Re-render articles if on homepage
       if (typeof renderGroupedArticles === 'function') {
         renderGroupedArticles('all');
+        updateReadingHistoryBadges();
       }
     } catch(e) {
       console.error('Sync from server failed:', e);
@@ -2490,6 +2800,95 @@ function injectLearningPath() {
   // Learning Path removed per user request
 }
 
+// === Content Freshness Banner ===
+function initContentFreshness() {
+  if (!window.location.pathname.includes('/articles/')) return;
+
+  const meta = document.querySelector('meta[property="article:modified_time"]');
+  if (!meta) return;
+
+  const modifiedDate = new Date(meta.content);
+  if (isNaN(modifiedDate.getTime())) return;
+
+  const now = new Date();
+  const diffMs = now - modifiedDate;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  const formatted = modifiedDate.toLocaleDateString('id-ID', {
+    year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  let text;
+  if (diffDays > 30) {
+    text = '\ud83d\udcc5 Terakhir diperbarui: ' + formatted + ' (' + diffDays + ' hari yang lalu)';
+  } else {
+    text = '\u2728 Artikel ini baru diperbarui pada ' + formatted;
+  }
+
+  const h1 = document.querySelector('.article-content h1, .article-header h1, .article-title');
+  if (!h1) return;
+
+  const banner = document.createElement('div');
+  banner.className = 'content-freshness';
+  banner.textContent = text;
+  h1.parentNode.insertBefore(banner, h1.nextSibling);
+}
+
+// === FAQ Schema JSON-LD ===
+function initFAQSchema() {
+  if (!window.location.pathname.includes('/articles/')) return;
+  if (document.querySelector('script[type="application/ld+json"][data-faq]')) return;
+
+  const faqItems = document.querySelectorAll('details, .faq-item, .accordion-item, [class*="faq"]');
+  if (!faqItems.length) return;
+
+  const entities = [];
+
+  for (const item of faqItems) {
+    let question = '';
+    let answer = '';
+
+    if (item.tagName === 'DETAILS') {
+      const summary = item.querySelector('summary');
+      question = summary ? summary.textContent.trim() : '';
+      const clone = item.cloneNode(true);
+      const s = clone.querySelector('summary');
+      if (s) s.remove();
+      answer = clone.textContent.trim();
+    } else {
+      const qEl = item.querySelector('h3, h4, .faq-question, .accordion-header, .accordion-title, summary');
+      const aEl = item.querySelector('p, .faq-answer, .accordion-content, .accordion-body');
+      question = qEl ? qEl.textContent.trim() : '';
+      answer = aEl ? aEl.textContent.trim() : '';
+    }
+
+    if (question && answer) {
+      entities.push({
+        '@type': 'Question',
+        name: question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: answer
+        }
+      });
+    }
+  }
+
+  if (!entities.length) return;
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: entities
+  };
+
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.setAttribute('data-faq', 'true');
+  script.textContent = JSON.stringify(schema);
+  document.head.appendChild(script);
+}
+
 // === UNIFIED CATEGORY SYSTEM ===
 const ARTICLE_CATEGORIES = {
   'iot': {
@@ -3232,14 +3631,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   initSyntaxHighlighting();
   initReadingProgressBar();
   initReadingTimeEstimate();
+  initInternalLinks();
   initServiceWorker();
   injectLearningPath();
   renderGroupedArticles('all');
-  initArticleFilter();
-  initCategoryFilter();
-  initQuickMenuListeners(); // Attach event listeners for quick menu buttons (replaces inline onclick)
+   updateReadingHistoryBadges();
+   initArticleFilter();
+   initCategoryFilter();
+   initQuickMenuListeners(); // Attach event listeners for quick menu buttons (replaces inline onclick)
+  initContentFreshness();
+  initFAQSchema();
 
-  // AdSense lazy-load (moved from inline script)
+  // AdSense lazy-load
   (function(){
     var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';
     function loadAds(){
@@ -3263,10 +3666,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // After sync completes, re-render to update lock icons
   if (typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn()) {
     await PaywallSystem.syncFromServer();
-    renderGroupedArticles(
-      document.querySelector('.filter-btn.active')?.dataset?.filter || 'all'
-    );
-    updateArticleCardStatus();
+     renderGroupedArticles(
+       document.querySelector('.filter-btn.active')?.dataset?.filter || 'all'
+     );
+     updateArticleCardStatus();
+     updateReadingHistoryBadges();
   }
 });
 
@@ -3332,5 +3736,97 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   // Also report after 10 seconds (for long sessions)
   setTimeout(reportVitals, 10000);
+})();
+
+// === Reading History Badges ===
+// Marks article cards as "Sudah Dibaca" based on reading history
+(function initReadingHistoryBadges() {
+  const STORAGE_KEY = 'beebanelabs_reading_history';
+  
+  function getHistory() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    } catch (e) { return []; }
+  }
+  
+  function markAsRead(slug) {
+    const history = getHistory();
+    if (!history.includes(slug)) {
+      history.push(slug);
+      // Keep only last 200 articles
+      if (history.length > 200) history.splice(0, history.length - 200);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    }
+  }
+  
+  // Mark current article as read (on article pages)
+  if (window.location.pathname.includes('/articles/')) {
+    const slug = window.location.pathname.split('/').pop().replace('.html', '');
+    if (slug) markAsRead(slug);
+  }
+  
+  // Add badges to article cards on homepage/category pages
+  function addBadges() {
+    const history = getHistory();
+    if (!history.length) return;
+    
+    document.querySelectorAll('.article-card').forEach(card => {
+      const href = card.getAttribute('href') || '';
+      const slug = href.split('/').pop().replace('.html', '');
+      if (history.includes(slug) && !card.querySelector('.read-badge')) {
+        const badge = document.createElement('div');
+        badge.className = 'read-badge';
+        badge.textContent = '✓ Dibaca';
+        badge.style.cssText = 'position:absolute;top:8px;right:8px;padding:3px 8px;background:rgba(62,207,142,0.9);color:#0f0f0f;font-size:0.65rem;font-weight:700;border-radius:var(--radius-sm);z-index:2;';
+        card.style.position = 'relative';
+        card.appendChild(badge);
+      }
+    });
+  }
+  
+  // Run after articles are rendered
+  if (document.getElementById('articlesGrid')) {
+    const observer = new MutationObserver(() => { setTimeout(addBadges, 100); });
+    observer.observe(document.getElementById('articlesGrid'), { childList: true });
+    addBadges();
+  }
+})();
+
+// === PWA Install Prompt ===
+(function initPWAInstall() {
+  let deferredPrompt = null;
+  
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Don't show if already dismissed this session
+    if (sessionStorage.getItem('pwa_install_dismissed')) return;
+    
+    // Show install banner
+    const banner = document.createElement('div');
+    banner.id = 'pwaInstallBanner';
+    banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);padding:12px 20px;background:var(--bg-elevated,#1a1a2e);border:1px solid var(--accent-primary,#ffeb00);border-radius:var(--radius-lg,12px);display:flex;align-items:center;gap:12px;z-index:9998;box-shadow:0 8px 32px rgba(0,0,0,0.5);max-width:90vw;';
+    banner.innerHTML = '<span style="font-size:1.2rem;">📱</span><div><div style="font-size:0.85rem;font-weight:600;color:var(--text-primary,#fff);">Install BeebaneLabs</div><div style="font-size:0.75rem;color:var(--text-muted,#999);">Akses lebih cepat, baca offline</div></div><button id="pwaInstallBtn" style="padding:8px 16px;background:var(--accent-primary,#ffeb00);color:#0f0f0f;border:none;border-radius:var(--radius-pill,20px);font-size:0.8rem;font-weight:700;cursor:pointer;">Install</button><button id="pwaDismissBtn" style="background:none;border:none;color:var(--text-muted,#999);cursor:pointer;font-size:1.1rem;padding:4px;">&times;</button>';
+    document.body.appendChild(banner);
+    
+    document.getElementById('pwaInstallBtn').addEventListener('click', async () => {
+      deferredPrompt.prompt();
+      const result = await deferredPrompt.userChoice;
+      if (result.outcome === 'accepted') banner.remove();
+      deferredPrompt = null;
+    });
+    
+    document.getElementById('pwaDismissBtn').addEventListener('click', () => {
+      banner.remove();
+      sessionStorage.setItem('pwa_install_dismissed', '1');
+    });
+  });
+  
+  // Hide banner when app is installed
+  window.addEventListener('appinstalled', () => {
+    const banner = document.getElementById('pwaInstallBanner');
+    if (banner) banner.remove();
+  });
 })();
 
