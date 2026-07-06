@@ -1158,11 +1158,11 @@ function initShootingStars() {
     star.style.top = startY + '%';
 
     // Randomize trail length
-    var trailLen = Math.random() * 100 + 80; // 80-180px
+    var trailLen = Math.random() * 120 + 100; // 100-220px
     star.style.width = trailLen + 'px';
 
-    // Randomize speed (0.6-1.5s)
-    var duration = Math.random() * 0.9 + 0.6;
+    // Randomize speed (1.5-3s — slower)
+    var duration = Math.random() * 1.5 + 1.5;
     star.style.animationDuration = duration + 's';
 
     // Randomize brightness
@@ -1178,7 +1178,7 @@ function initShootingStars() {
     });
   }
 
-  // Spawn stars at random intervals
+  // Spawn multiple stars at once (2-3 per cycle)
   function spawnLoop() {
     // Only spawn in dark theme
     if (document.documentElement.getAttribute('data-theme') !== 'dark') {
@@ -1186,10 +1186,16 @@ function initShootingStars() {
       return;
     }
 
-    createStar();
+    // Spawn 2-3 stars with slight stagger
+    var count = Math.floor(Math.random() * 2) + 2; // 2-3 stars
+    for (var i = 0; i < count; i++) {
+      (function(idx) {
+        setTimeout(function() { createStar(); }, idx * 200); // 200ms stagger
+      })(i);
+    }
 
-    // Random delay between stars (1.5-4.5s)
-    var delay = Math.random() * 3000 + 1500;
+    // Shorter interval between groups (0.8-2s)
+    var delay = Math.random() * 1200 + 800;
     setTimeout(spawnLoop, delay);
   }
 
