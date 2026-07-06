@@ -99,6 +99,7 @@ function constantTimeCompare(a, b) {
 }
 
 async function supabaseQuery(url, key, table, params = '', method = 'GET', data = null) {
+  params = params || '';  // defensive guard against null
   const fetchUrl = `${url}/rest/v1/${table}${params}`;
   const opts = {
     method,

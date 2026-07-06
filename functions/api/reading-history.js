@@ -89,6 +89,7 @@ function cors(status, data, origin = '') {
 }
 
 async function supabaseQuery(url, key, table, params = '', method = 'GET', data = null) {
+  params = params || '';  // defensive guard against null
   const fetchUrl = `${url}/rest/v1/${table}${params}`;
   const opts = { method, headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' } };
   if (data) opts.body = JSON.stringify(data);

@@ -1,4 +1,4 @@
-/* v18.1.0 - Overflow-x fix + CSS version sync */
+/* v19.0.0 - Security fixes + New features (TOC, progress bar, related articles) */
 // === EARLY CONTENT GATE (runs before DOM renders) ===
 // Prevents "flash of content" on article pages before paywall check
 (function earlyContentGate() {
@@ -811,7 +811,7 @@ function initServiceWorker() {
 // === CONFIGURATION ===
 const SITE_CONFIG = {
   API_BASE: window.location.origin,
-  APP_VERSION: '18.1',
+  APP_VERSION: '19.0',
   TOKEN_PRICE: 10000,
   INITIAL_TOKENS: 5
 };
