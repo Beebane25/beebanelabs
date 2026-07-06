@@ -1137,8 +1137,7 @@ function updateReadingHistoryBadges() {
 // === SHOOTING STARS (Dark Theme Only) ===
 // Creates real shooting stars with glowing head + fading trail
 // Inspired by Yusuke Nakaya (CodePen XyOaBj)
-(function initShootingStars() {
-  // Only run in dark theme
+function initShootingStars() {
   var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   if (!isDark) return;
 
@@ -1195,8 +1194,8 @@ function updateReadingHistoryBadges() {
   }
 
   // Start after a short delay
-  setTimeout(spawnLoop, 2000);
-})();
+  setTimeout(spawnLoop, 1000);
+}
 
 // === CONFIGURATION ===
 const SITE_CONFIG = {
@@ -3723,6 +3722,7 @@ document.addEventListener('DOMContentLoaded', async () => {
    initQuickMenuListeners(); // Attach event listeners for quick menu buttons (replaces inline onclick)
   initContentFreshness();
   initFAQSchema();
+  initShootingStars();
 
   // AdSense lazy-load
   (function(){
