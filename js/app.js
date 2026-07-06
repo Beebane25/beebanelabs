@@ -818,8 +818,25 @@ function initReadingProgressBar() {
 function initReadingTimeEstimate() {
   const articleContent = document.querySelector('.article-content');
   if (!articleContent) return;
-  const totalWords = articleContent.textContent.split(/\s+/).filter(w => w.length > 0).length;
-  const totalMinutes = Math.max(1, Math.ceil(totalWords / 200));
+  
+  // Check if article is paywalled (content replaced by lock screen)
+  const isPaywalled = articleContent.querySelector('[style*="text-align:center"]') || 
+                      articleContent.textContent.includes('Artikel Terkunci') ||
+                      articleContent.textContent.includes('Login untuk Membaca');
+  
+  let totalMinutes = 1;
+  if (isPaywalled && typeof ALL_ARTICLES !== 'undefined') {
+    // Get reading time from ALL_ARTICLES data
+    const slug = window.location.pathname.split('/').pop().replace('.html', '');
+    const article = ALL_ARTICLES.find(a => a.slug === slug);
+    if (article && article.time) {
+      totalMinutes = parseInt(article.time) || 1;
+    }
+  } else {
+    // Compute from visible content
+    const totalWords = articleContent.textContent.split(/\s+/).filter(w => w.length > 0).length;
+    totalMinutes = Math.max(1, Math.ceil(totalWords / 200));
+  }
   // Add badge near article title
   const badge = document.createElement('span');
   badge.className = 'reading-time-badge';
