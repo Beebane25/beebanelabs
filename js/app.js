@@ -1,4 +1,4 @@
-/* v19.0.0 - Security fixes + New features (TOC, progress bar, related articles) */
+/* v19.1.0 - Web Vitals tracking + GSC verification meta */
 // === EARLY CONTENT GATE (runs before DOM renders) ===
 // Prevents "flash of content" on article pages before paywall check
 (function earlyContentGate() {
@@ -811,7 +811,7 @@ function initServiceWorker() {
 // === CONFIGURATION ===
 const SITE_CONFIG = {
   API_BASE: window.location.origin,
-  APP_VERSION: '19.0',
+  APP_VERSION: '19.1',
   TOKEN_PRICE: 10000,
   INITIAL_TOKENS: 5
 };
@@ -3269,4 +3269,68 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateArticleCardStatus();
   }
 });
+
+// === Web Vitals Performance Tracking ===
+// Tracks LCP, FID, CLS using PerformanceObserver API
+// Reports to Google Analytics if available
+(function initWebVitals() {
+  if (typeof PerformanceObserver === 'undefined') return;
+
+  const vitals = {};
+
+  // Largest Contentful Paint (LCP)
+  try {
+    const lcpObserver = new PerformanceObserver((entryList) => {
+      const entries = entryList.getEntries();
+      const lastEntry = entries[entries.length - 1];
+      vitals.LCP = Math.round(lastEntry.startTime);
+    });
+    lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+  } catch (e) {}
+
+  // First Input Delay (FID)
+  try {
+    const fidObserver = new PerformanceObserver((entryList) => {
+      const entry = entryList.getEntries()[0];
+      vitals.FID = Math.round(entry.processingStart - entry.startTime);
+    });
+    fidObserver.observe({ type: 'first-input', buffered: true });
+  } catch (e) {}
+
+  // Cumulative Layout Shift (CLS)
+  try {
+    let clsValue = 0;
+    const clsObserver = new PerformanceObserver((entryList) => {
+      for (const entry of entryList.getEntries()) {
+        if (!entry.hadRecentInput) clsValue += entry.value;
+      }
+      vitals.CLS = Math.round(clsValue * 1000) / 1000;
+    });
+    clsObserver.observe({ type: 'layout-shift', buffered: true });
+  } catch (e) {}
+
+  // Report vitals on page hide (navigation or tab close)
+  function reportVitals() {
+    if (!vitals.LCP && !vitals.FID && !vitals.CLS) return;
+
+    // Log to console in dev
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      console.log('[Web Vitals]', JSON.stringify(vitals));
+    }
+
+    // Send to Google Analytics if available
+    if (typeof gtag === 'function') {
+      if (vitals.LCP) gtag('event', 'web_vitals', { event_category: 'Web Vitals', event_label: 'LCP', value: vitals.LCP });
+      if (vitals.FID) gtag('event', 'web_vitals', { event_category: 'Web Vitals', event_label: 'FID', value: vitals.FID });
+      if (vitals.CLS) gtag('event', 'web_vitals', { event_category: 'Web Vitals', event_label: 'CLS', value: Math.round(vitals.CLS * 1000) });
+    }
+  }
+
+  // Report on page hide
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') reportVitals();
+  });
+  // Also report after 10 seconds (for long sessions)
+  setTimeout(reportVitals, 10000);
+})();
 

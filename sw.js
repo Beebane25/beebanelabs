@@ -13,7 +13,7 @@ const PRECACHE_URLS = [
   '/offline.html',
   '/offline',
   '/css/style.css?v=14.0',
-  '/js/app.js?v=19.0',
+  '/js/app.js?v=19.1',
   '/js/security.js?v=1.0',
   '/js/mobile-zoom.js?v=9.2',
   '/manifest.json',
