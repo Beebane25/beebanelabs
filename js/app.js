@@ -1,4 +1,4 @@
-/* v19.1.0 - Web Vitals tracking + GSC verification meta */
+/* v19.2.0 — Internal links, content freshness, FAQ schema, fuzzy search, reading history, PWA */
 // === EARLY CONTENT GATE (runs before DOM renders) ===
 // Prevents "flash of content" on article pages before paywall check
 (function earlyContentGate() {
@@ -1120,7 +1120,7 @@ function updateReadingHistoryBadges() {
 // === CONFIGURATION ===
 const SITE_CONFIG = {
   API_BASE: window.location.origin,
-  APP_VERSION: '19.1',
+  APP_VERSION: '19.2',
   TOKEN_PRICE: 10000,
   INITIAL_TOKENS: 5
 };
@@ -2750,6 +2750,7 @@ function initArticleFilter() {
     btn.classList.add('active');
     renderGroupedArticles(btn.dataset.filter);
     updateArticleCardStatus();
+    updateReadingHistoryBadges();
   });
 }
 
