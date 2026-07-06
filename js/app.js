@@ -1151,9 +1151,9 @@ function initShootingStars() {
     var star = document.createElement('span');
     star.className = 'shooting-star';
 
-    // Randomize starting position (top-right area)
-    var startX = Math.random() * 60 + 20; // 20-80% from left
-    var startY = Math.random() * 30;       // 0-30% from top
+    // Randomize starting position (anywhere across the top)
+    var startX = Math.random() * 120 - 20; // -20% to 100% (can start off-screen left)
+    var startY = Math.random() * 40 - 10;  // -10% to 30% (can start off-screen top)
     star.style.left = startX + '%';
     star.style.top = startY + '%';
 
