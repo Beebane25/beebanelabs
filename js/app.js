@@ -3710,8 +3710,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   addRevealClasses();
   initScrollReveal();
   initParticles();
+  updateDynamicCounts(); // MUST run BEFORE animateCounters so animation uses correct target
   animateCounters();
-  updateDynamicCounts(); // Auto-update hero stat + category counts from ALL_ARTICLES
   initCopyCode();
   initMouseGlow();
   initSectionDividers();
