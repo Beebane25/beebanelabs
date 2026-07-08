@@ -1,0 +1,420 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Dashboard & Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">Azure IoT Hub untuk Device Management</span>
+      </div>
+      <span class="category-tag">Dashboard & Cloud</span>
+      <h1>Azure IoT Hub untuk Device Management</h1>
+      <p class="article-subtitle">Tutorial lengkap Azure IoT Hub. Pelajari device twins, direct methods, file upload, message routing, dan Device Provisioning Service (DPS) dari nol hingga mahir.</p>
+      <div class="article-meta">
+        <span>📅 2026-06-29</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  <article class="article-content" id="main-content">
+    <div class="container">
+<div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#apa-itu-azure-iot">Apa Itu Azure IoT Hub?</a></li>
+      <li><a href="#setup">Setup IoT Hub &amp; Device</a></li>
+      <li><a href="#device-twins">Device Twins</a></li>
+      <li><a href="#direct-methods">Direct Methods</a></li>
+      <li><a href="#file-upload">File Upload dari Device</a></li>
+      <li><a href="#message-routing">Message Routing &amp; Endpoints</a></li>
+      <li><a href="#dps">Device Provisioning Service (DPS)</a></li>
+      <li><a href="#sdk">Azure IoT SDK untuk ESP32</a></li>
+      <li><a href="#quiz">Quiz Pemahaman</a></li>
+    </ol></div>
+<h2 id="apa-itu-azure-iot">1. Apa Itu Azure IoT Hub?</h2>
+<p>Azure IoT Hub adalah layanan cloud managed dari Microsoft Azure yang bertindak sebagai central message hub untuk komunikasi antara aplikasi IoT dan device. IoT Hub mendukung berbagai protokol (MQTT, AMQP, HTTPS) dan menyediakan fitur enterprise-grade untuk manajemen device, keamanan, dan data processing.</p>
+<p>Fitur unik Azure IoT Hub meliputi <strong>Device Twins</strong> (JSON document sinkronisasi state), <strong>Direct Methods</strong> (RPC ke device), <strong>Message Routing</strong> (rule-based data routing ke berbagai Azure service), dan <strong>Device Provisioning Service</strong> (provisi zero-touch).</p>
+
+<div class="info-box tip"><div class="info-box-title">💡 Tips</div>
+<p>IoT Hub tersedia dalam beberapa tier: Free (8.000 msg/hari), S1 (400.000 msg/hari), S2 (6 juta msg/hari), S3 (300 juta msg/hari). Untuk development, Free tier sudah sangat cukup.</p></div>
+
+<h3>Fitur Utama</h3>
+<table class="net-table"><thead><tr><th>Fitur</th><th>Deskripsi</th></tr></thead><tbody>
+<tr><td>Device-to-Cloud (D2C)</td><td>Device mengirim telemetry ke cloud</td></tr>
+<tr><td>Cloud-to-Device (C2D)</td><td>Cloud mengirim message/command ke device</td></tr>
+<tr><td>Device Twins</td><td>JSON document sinkronisasi state (tag, desired, reported)</td></tr>
+<tr><td>Direct Methods</td><td>Invoke fungsi langsung di device (RPC)</td></tr>
+<tr><td>File Upload</td><td>Upload file dari device ke Azure Blob Storage</td></tr>
+<tr><td>Message Routing</td><td>Route message berdasarkan filter ke berbagai endpoint</td></tr>
+<tr><td>DPS</td><td>Zero-touch device provisioning</td></tr>
+<tr><td>IoT Edge</td><td>Runtime untuk workload di edge device</td></tr>
+</tbody></table>
+
+<h3>Azure IoT Hub vs AWS IoT Core</h3>
+<table class="net-table"><thead><tr><th>Aspek</th><th>Azure IoT Hub</th><th>AWS IoT Core</th></tr></thead><tbody>
+<tr><td>State Sync</td><td>Device Twins</td><td>Device Shadow</td></tr>
+<tr><td>RPC</td><td>Direct Methods</td><td>MQTT + Jobs</td></tr>
+<tr><td>File Upload</td><td>Built-in (ke Blob Storage)</td><td>Manual (via S3 presigned URL)</td></tr>
+<tr><td>Provisioning</td><td>DPS (terpisah)</td><td>Fleet Provisioning (built-in)</td></tr>
+<tr><td>Protokol</td><td>MQTT, AMQP, HTTPS</td><td>MQTT, HTTPS</td></tr>
+<tr><td>Pricing Model</td><td>Per message tier</td><td>Per message + per shadow op</td></tr>
+</tbody></table>
+
+<h2 id="setup">2. Setup IoT Hub &amp; Device</h2>
+<h3>Membuat IoT Hub</h3>
+<pre><code class="language-bash"># Menggunakan Azure CLI
+# 1. Login
+az login
+
+# 2. Buat Resource Group
+az group create --name iot-rg --location southeastasia
+
+# 3. Buat IoT Hub
+az iot hub create \
+  --name my-iothub \
+  --resource-group iot-rg \
+  --sku S1 \
+  --partition-count 2
+
+# 4. Register Device
+az iot hub device-identity create \
+  --hub-name my-iothub \
+  --device-id sensor-01 \
+  --auth-method shared_private_key
+
+# 5. Dapatkan Connection String
+az iot hub device-identity connection-string show \
+  --hub-name my-iothub \
+  --device-id sensor-01
+
+# Output: HostName=my-iothub.azure-devices.net;DeviceId=sensor-01;SharedAccessKey=xxx</code></pre>
+
+<h3>Connection String Components</h3>
+<pre><code class="language-plaintext"># Connection String Format:
+# HostName={hub}.azure-devices.net;DeviceId={deviceId};SharedAccessKey={key}
+
+# Komponen:
+# - HostName: endpoint IoT Hub
+# - DeviceId: identifier unik device
+# - SharedAccessKey: symmetric key untuk autentikasi
+# - SharedAccessSignature: SAS token (alternatif)
+
+# Untuk generate SAS token:
+az iot hub generate-sas-token \
+  --hub-name my-iothub \
+  --device-id sensor-01 \
+  --duration 86400</code></pre>
+
+<h2 id="device-twins">3. Device Twins</h2>
+<p>Device Twin adalah JSON document yang menyimpan metadata, konfigurasi, dan state dari device. Sama seperti AWS Device Shadow, twin memiliki bagian <strong>desired</strong>, <strong>reported</strong>, dan <strong>tags</strong>.</p>
+
+<h3>Device Twin Structure</h3>
+<pre><code class="language-json">{
+  "deviceId": "sensor-01",
+  "etag": "AAAAAAAAAAI=",
+  "version": 5,
+  "tags": {
+    "location": "warehouse-A",
+    "floor": "2",
+    "zone": "cold-storage",
+    "customer": "PT. Maju Jaya"
+  },
+  "properties": {
+    "desired": {
+      "reportInterval": 30,
+      "temperatureThreshold": 40,
+      "alertEnabled": true,
+      "$version": 4
+    },
+    "reported": {
+      "reportInterval": 60,
+      "temperatureThreshold": 35,
+      "firmwareVersion": "2.1.0",
+      "batteryLevel": 87,
+      "connectivity": "WiFi",
+      "$version": 3
+    }
+  }
+}</code></pre>
+
+<h3>Mengelola Device Twins</h3>
+<pre><code class="language-bash"># Update desired properties
+az iot hub device-twin update \
+  --hub-name my-iothub \
+  --device-id sensor-01 \
+  --set properties.desired.reportInterval=30
+
+# Query devices berdasarkan twin properties
+az iot hub query \
+  --hub-name my-iothub \
+  --query-command "SELECT * FROM devices WHERE tags.location='warehouse-A'"
+
+# Update tags (hanya dari service side)
+az iot hub device-twin update \
+  --hub-name my-iothub \
+  --device-id sensor-01 \
+  --set tags.status="active" tags.priority="high"</code></pre>
+
+<h2 id="direct-methods">4. Direct Methods</h2>
+<p>Direct Methods memungkinkan service-side code memanggil fungsi langsung di device. Ini seperti RPC — kamu mengirim request dan mendapatkan response.</p>
+
+<pre><code class="language-bash"># Invoke direct method ke device
+az iot hub invoke-device-method \
+  --hub-name my-iothub \
+  --device-id sensor-01 \
+  --method-name "reboot" \
+  --method-payload '{"delay": 5}'
+
+# Method: getDeviceConfig
+az iot hub invoke-device-method \
+  --hub-name my-iothub \
+  --device-id sensor-01 \
+  --method-name "getDeviceConfig" \
+  --method-payload '{"section": "sensor"}'
+
+# Response dari device:
+# {"config": {"interval": 30, "threshold": 40}, "status": 200}
+
+# Method: setFirmwareUpdate
+az iot hub invoke-device-method \
+  --hub-name my-iothub \
+  --device-id sensor-01 \
+  --method-name "firmwareUpdate" \
+  --method-payload '{"url": "https://storage.blob.core.windows.net/firmware/v2.2.0.bin", "version": "2.2.0"}'</code></pre>
+
+<h2 id="file-upload">5. File Upload dari Device</h2>
+<p>IoT Hub mendukung file upload dari device langsung ke Azure Blob Storage. Device meminta SAS URI dari IoT Hub, lalu meng-upload file langsung ke storage.</p>
+
+<pre><code class="language-plaintext"># File Upload Flow:
+# 1. Device meminta upload SAS URI dari IoT Hub
+# 2. IoT Hub mengembalikan SAS URI + correlation ID
+# 3. Device meng-upload file ke Azure Blob Storage menggunakan SAS URI
+# 4. Device mengkonfirmasi upload ke IoT Hub
+# 5. IoT Hub memverifikasi dan trigger notifikasi
+
+# Konfigurasi file upload di IoT Hub:
+# Azure Portal → IoT Hub → File upload
+# - Storage container: pilih/konfigurasi blob storage
+# - SAS TTL: masa berlaku SAS URI (default: 1 jam)
+# - File notification: enable untuk notification saat upload selesai
+# - Default TTL: 1 hari</code></pre>
+
+<h2 id="message-routing">6. Message Routing &amp; Endpoints</h2>
+<p>Message Routing memungkinkan kamu mengarahkan device messages ke berbagai Azure service berdasarkan filter query. Ini mirip dengan AWS Rules Engine.</p>
+
+<h3>Routing Endpoints</h3>
+<table class="net-table"><thead><tr><th>Endpoint</th><th>Kegunaan</th></tr></thead><tbody>
+<tr><td>Event Hub</td><td>Streaming data real-time (seperti Kafka)</td></tr>
+<tr><td>Service Bus Queue/Topic</td><td>Message queue untuk processing</td></tr>
+<tr><td>Blob Storage</td><td>Archive data (JSON/CSV/AVRO)</td></tr>
+<tr><td>Cosmos DB</td><td>NoSQL database untuk telemetry</td></tr>
+<tr><td>Custom Endpoint</td><td>Azure Function, Logic App, Event Grid</td></tr>
+</tbody></table>
+
+<h3>Contoh Route Queries</h3>
+<pre><code class="language-plaintext"># Route 1: Semua telemetry ke Event Hub
+SELECT * FROM devices/messages WHERE true
+→ Endpoint: Event Hub "all-telemetry"
+
+# Route 2: Alert suhu tinggi ke Service Bus
+SELECT * FROM devices/messages
+WHERE $body.temperature > 40
+→ Endpoint: Service Bus Queue "temperature-alerts"
+
+# Route 3: Data dari warehouse-A ke Cosmos DB
+SELECT * FROM devices/messages
+WHERE tags.location = 'warehouse-A'
+→ Endpoint: Cosmos DB "warehouse-data"
+
+# Route 4: Archive semua data ke Blob Storage
+SELECT * FROM devices/messages
+→ Endpoint: Blob Storage "iot-archive" (format: JSON, encoding: UTF-8)
+
+# Route 5: Device lifecycle events
+SELECT * FROM devices/lifecycleEvents
+WHERE type = 'deviceConnected' OR type = 'deviceDisconnected'
+→ Endpoint: Event Hub "lifecycle-events"</code></pre>
+
+<h2 id="dps">7. Device Provisioning Service (DPS)</h2>
+<p>Device Provisioning Service (DPS) adalah layanan terpisah yang memungkinkan zero-touch provisioning. Device bisa dialokasikan ke IoT Hub yang tepat tanpa hardcoding connection string.</p>
+
+<h3>DPS Flow</h3>
+<pre><code class="language-plaintext"># Zero-Touch Provisioning Flow:
+# 1. Manufacture membakar device certificate dan DPS endpoint ke device
+# 2. Device mengirim registration request ke DPS
+# 3. DPS memverifikasi identity (certificate attestation)
+# 4. DPS menentukan IoT Hub target (load balancing / geo-based)
+# 5. DPS register device ke IoT Hub
+# 6. DPS mengembalikan IoT Hub endpoint ke device
+# 7. Device koneksi ke IoT Hub dengan assigned credentials
+
+# DPS supports:
+# - X.509 certificate attestation (paling umum)
+# - TPM (Trusted Platform Module) attestation
+# - Symmetric key attestation (untuk device tanpa TPM/HSM)</code></pre>
+
+<h3>Setup DPS</h3>
+<pre><code class="language-bash"># Buat DPS
+az iot dps create \
+  --name my-dps \
+  --resource-group iot-rg \
+  --location southeastasia
+
+# Hubungkan IoT Hub ke DPS
+az iot dps linked-hub create \
+  --dps-name my-dps \
+  --resource-group iot-rg \
+  --connection-string "HostName=my-iothub.azure-devices.net;..." \
+  --location southeastasia
+
+# Buat Enrollment Group
+az iot dps enrollment-group create \
+  --dps-name my-dps \
+  --resource-group iot-rg \
+  --enrollment-id sensor-group \
+  --certificate-path root-ca.pem
+
+# Dapatkan DPS endpoint
+az iot dps show \
+  --name my-dps \
+  --query "properties.serviceOperationsHostName"</code></pre>
+
+<h2 id="sdk">8. Azure IoT SDK untuk ESP32</h2>
+<pre><code class="language-cpp">// ESP32 + Azure IoT Hub via Azure SDK for C
+// PlatformIO: lib_deps = azure/Azure SDK for C, azure/Azure IoT Hub SDK
+
+#include &lt;WiFiClientSecure.h&gt;
+#include &lt;PubSubClient.h&gt;
+#include &lt;ArduinoJson.h&gt;
+
+const char* CONNECTION_STRING = "HostName=my-iothub.azure-devices.net;DeviceId=sensor-01;SharedAccessKey=xxx";
+
+WiFiClientSecure wifiClient;
+PubSubClient mqttClient(wifiClient);
+
+// Generate SAS token (simplified)
+String generateSASToken(String host, String key, int expirySeconds) {
+  // Implementation: HMAC-SHA256 dari string_to_sign dengan decoded key
+  // String to sign: {host}
+{expiry}
+  // Return: SharedAccessSignature sr={host}&se={expiry}&sig={signature}
+  return "SharedAccessSignature sr=...&se=...&sig=...";
+}
+
+void connectAzure() {
+  String host = "my-iothub.azure-devices.net";
+  String deviceId = "sensor-01";
+  String sasToken = generateSASToken(host, SHARED_ACCESS_KEY, 86400);
+  
+  mqttClient.setServer(host.c_str(), 8883);
+  
+  while (!mqttClient.connected()) {
+    if (mqttClient.connect(deviceId.c_str(), (host + "/" + deviceId).c_str(), sasToken.c_str())) {
+      // Subscribe ke C2D messages
+      mqttClient.subscribe(("devices/" + deviceId + "/messages/devicebound/#").c_str());
+      // Subscribe ke direct methods
+      mqttClient.subscribe("$iothub/methods/POST/#");
+      // Subscribe ke twin changes
+      mqttClient.subscribe("$iothub/twin/PATCH/properties/desired/#");
+    } else {
+      delay(5000);
+    }
+  }
+}
+
+void publishTelemetry(float temp, float humidity) {
+  StaticJsonDocument&lt;200&gt; doc;
+  doc["temperature"] = temp;
+  doc["humidity"] = humidity;
+  char buffer[200];
+  serializeJson(doc, buffer);
+  
+  String topic = "devices/sensor-01/messages/events/";
+  mqttClient.publish(topic.c_str(), buffer);
+}
+
+void loop() {
+  if (!mqttClient.connected()) connectAzure();
+  mqttClient.loop();
+}</code></pre>
+<h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+<p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Azure IoT Hub:</p>
+<div class="quiz-container" id="quiz46">
+  <div class="quiz-question"><h3>Pertanyaan 1: Apa fungsi Device Twins di Azure IoT Hub?</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="0" data-answer="a">a) Mengenkripsi komunikasi</div>
+      <div class="quiz-option" data-question="0" data-answer="b">b) JSON document untuk sinkronisasi state device (desired, reported, tags)</div>
+      <div class="quiz-option" data-question="0" data-answer="c">c) Mengelola firmware update</div>
+      <div class="quiz-option" data-question="0" data-answer="d">d) Menyimpan log device</div>
+    </div>
+  </div>
+  <div class="quiz-question"><h3>Pertanyaan 2: Apa yang dilakukan Direct Methods?</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="1" data-answer="a">a) Mengirim email ke device</div>
+      <div class="quiz-option" data-question="1" data-answer="b">b) Memanggil fungsi langsung di device (RPC) dan mendapatkan response</div>
+      <div class="quiz-option" data-question="1" data-answer="c">c) Meng-upload file ke cloud</div>
+      <div class="quiz-option" data-question="1" data-answer="d">d) Mengelola koneksi WiFi device</div>
+    </div>
+  </div>
+  <div class="quiz-question"><h3>Pertanyaan 3: File Upload di Azure IoT Hub menggunakan...</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="2" data-answer="a">a) MQTT untuk mengirim file langsung</div>
+      <div class="quiz-option" data-question="2" data-answer="b">b) FTP protocol</div>
+      <div class="quiz-option" data-question="2" data-answer="c">c) SAS URI dari IoT Hub, lalu upload langsung ke Azure Blob Storage</div>
+      <div class="quiz-option" data-question="2" data-answer="d">d) HTTP POST ke IoT Hub</div>
+    </div>
+  </div>
+  <div class="quiz-question"><h3>Pertanyaan 4: Apa fungsi Message Routing di IoT Hub?</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="3" data-answer="a">a) Mengelola koneksi device</div>
+      <div class="quiz-option" data-question="3" data-answer="b">b) Mengarahkan device messages ke berbagai Azure service berdasarkan filter query</div>
+      <div class="quiz-option" data-question="3" data-answer="c">c) Menyimpan data telemetry</div>
+      <div class="quiz-option" data-question="3" data-answer="d">d) Mengelola sertifikat device</div>
+    </div>
+  </div>
+  <div class="quiz-question"><h3>Pertanyaan 5: Apa keunggulan Device Provisioning Service (DPS)?</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="4" data-answer="a">a) Zero-touch provisioning — device dialokasikan ke IoT Hub tanpa hardcoding</div>
+      <div class="quiz-option" data-question="4" data-answer="b">b) Menyediakan free tier unlimited</div>
+      <div class="quiz-option" data-question="4" data-answer="c">c) Menggantikan IoT Hub</div>
+      <div class="quiz-option" data-question="4" data-answer="d">d) Hanya untuk device Raspberry Pi</div>
+    </div>
+  </div>
+  <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+  <div class="quiz-result"></div>
+</div>
+
+<div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+<div class="article-nav">
+  <a href="aws-iot-core.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">AWS IoT Core</span></a>
+  <a href="node-red-advanced.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">Node-RED Advanced</span></a>
+</div></div></article>
+  <section class="newsletter-section" id="newsletter"><div class="container"><div class="newsletter-card fade-in">
+    <h2>📬 Dapatkan Tutorial Terbaru</h2>
+    <p>Subscribe untuk mendapatkan tutorial IoT &amp; Cloud terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+    <form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form>
+  </div></div></section>

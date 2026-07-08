@@ -1,0 +1,443 @@
+<div class="search-overlay" id="searchOverlay"><button class="search-close-btn" aria-label="Tutup pencarian">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+  <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Networking</a><span class="separator">/</span><span class="current">Zabbix</span></div><span class="category-tag">Networking</span><h1>Network Monitoring dengan Zabbix</h1><p class="article-subtitle">Tutorial komprehensif Zabbix untuk network monitoring — templates, triggers, items, proxies, auto-discovery, dan alerting</p><div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 15 menit baca</span><span class="difficulty menengah">Menengah</span></div></div></section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+  <article class="article-content" id="main-content"><div class="container">
+
+    <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#pengenalan">Pengenalan Zabbix</a></li>
+      <li><a href="#instalasi">Instalasi Zabbix</a></li>
+      <li><a href="#konsep">Konsep Dasar: Hosts, Items, Triggers</a></li>
+      <li><a href="#templates">Templates</a></li>
+      <li><a href="#triggers">Triggers &amp; Alerting</a></li>
+      <li><a href="#snmp">Monitoring SNMP</a></li>
+      <li><a href="#proxies">Zabbix Proxies</a></li>
+      <li><a href="#auto-discovery">Auto-Discovery</a></li>
+      <li><a href="#dashboard">Dashboard &amp; Visualisasi</a></li>
+      <li><a href="#quiz">Quiz Pemahaman</a></li>
+    </ol></div>
+
+    <h2 id="pengenalan">1. Pengenalan Zabbix</h2>
+    <p><strong>Zabbix</strong> adalah platform monitoring enterprise open-source yang bisa memantau ketersediaan dan performa jaringan, server, aplikasi, dan layanan cloud. Zabbix sangat populer di ISP dan enterprise di Indonesia karena fiturnya yang lengkap dan gratis.</p>
+
+    <div class="arch-diagram">
+      <div class="arch-title">Arsitektur Zabbix</div>
+      <div class="arch-row">
+        <div class="arch-box highlight"><div class="arch-icon">🖥️</div><div class="arch-label">Zabbix Server</div><div class="arch-desc">Koleksi data,<br>proses trigger</div></div>
+        <div class="arch-arrow">↔ SNMP/Agent ↔</div>
+        <div class="arch-box info"><div class="arch-icon">🌐</div><div class="arch-label">Network Devices</div><div class="arch-desc">Router, switch,<br>AP, firewall</div></div>
+        <div class="arch-arrow">→ Alert →</div>
+        <div class="arch-box purple"><div class="arch-icon">📱</div><div class="arch-label">Notifikasi</div><div class="arch-desc">Email, Telegram,<br>Webhook</div></div>
+      </div>
+    </div>
+
+    <h3>1.1 Keunggulan Zabbix</h3>
+    <ul>
+      <li><strong>Gratis &amp; Open Source</strong> — tanpa biaya lisensi</li>
+      <li><strong>Multi-protocol</strong> — SNMP, ICMP, IPMI, JMX, HTTP, SSH, Telnet</li>
+      <li><strong>Scalable</strong> — bisa monitor 100,000+ device per server</li>
+      <li><strong>Flexible alerting</strong> — email, SMS, Telegram, Slack, webhook</li>
+      <li><strong>Auto-discovery</strong> — deteksi device baru otomatis</li>
+      <li><strong>Dashboards</strong> — visualisasi real-time dengan grafik dan peta</li>
+    </ul>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="instalasi">2. Instalasi Zabbix</h2>
+    <h3>2.1 Instalasi di Ubuntu 22.04</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal Linux — Install Zabbix 7.0</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Tambah repository Zabbix
+wget https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_7.0-1ubuntu22.04_all.deb
+sudo dpkg -i zabbix-release_7.0-1ubuntu22.04_all.deb
+sudo apt update
+
+# Install Zabbix server, frontend, agent
+sudo apt install -y zabbix-server-mysql zabbix-frontend-php \
+  zabbix-nginx-conf zabbix-sql-scripts zabbix-agent
+
+# Setup database MySQL
+sudo mysql -u root -p
+# Di MySQL shell:
+# CREATE DATABASE zabbix CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
+# CREATE USER 'zabbix'@'localhost' IDENTIFIED BY 'password123';
+# GRANT ALL PRIVILEGES ON zabbix.* TO 'zabbix'@'localhost';
+# SET GLOBAL log_bin_trust_function_creators = 1;
+# FLUSH PRIVILEGES; EXIT;
+
+# Import schema
+sudo zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | \
+  mysql -uzabbix -p zabbix
+
+# Konfigurasi Zabbix server
+sudo nano /etc/zabbix/zabbix_server.conf
+# DBPassword=password123
+
+# Start services
+sudo systemctl restart zabbix-server zabbix-agent nginx php8.1-fpm
+sudo systemctl enable zabbix-server zabbix-agent nginx php8.1-fpm
+
+# Akses web: http://IP-SERVER/zabbix
+# Default login: Admin / zabbix
+</code></pre>
+    </div>
+
+    <div class="info-box tip"><div class="info-box-title">💡 Ganti Password Default</div>
+    <p>Segera ganti password default "zabbix" setelah instalasi. Zabbix menyimpan data sensitif tentang infrastruktur jaringan Anda — keamanan harus dijaga.</p></div>
+
+    <h2 id="konsep">3. Konsep Dasar: Hosts, Items, Triggers</h2>
+
+    <h3>3.1 Hierarchy Monitoring Zabbix</h3>
+    <table class="spec-table">
+      <thead><tr><th>Komponen</th><th>Fungsi</th><th>Contoh</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Host</strong></td><td>Device yang dipantau</td><td>MikroTik router, switch Cisco</td></tr>
+        <tr><td><strong>Item</strong></td><td>Metric yang dikoleksi</td><td>CPU load, interface traffic, uptime</td></tr>
+        <tr><td><strong>Trigger</strong></td><td>Kondisi alert</td><td>CPU > 90% selama 5 menit</td></tr>
+        <tr><td><strong>Action</strong></td><td>Respon saat trigger fire</td><td>Kirim email, jalankan script</td></tr>
+        <tr><td><strong>Template</strong></td><td>Kumpulan item+trigger</td><td>Template MikroTik SNMP</td></tr>
+        <tr><td><strong>Graph</strong></td><td>Visualisasi data</td><td>Grafik bandwidth 24 jam</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.2 Menambah Host</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Zabbix Web UI — Tambah Host</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Via Zabbix API (alternatif web UI)
+# POST ke http://zabbix-server/api_jsonrpc.php
+
+# Contoh menambah host via API:
+curl -s -X POST http://zabbix-server/api_jsonrpc.php \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "host.create",
+    "params": {
+      "host": "MikroTik-Router01",
+      "groups": [{"groupid": "2"}],
+      "interfaces": [{
+        "type": 2,
+        "main": 1,
+        "useip": 1,
+        "ip": "192.168.1.1",
+        "dns": "",
+        "port": 161,
+        "details": {
+          "version": 2,
+          "community": "public"
+        }
+      }],
+      "templates": [{"templateid": "10047"}]
+    },
+    "auth": "YOUR_AUTH_TOKEN",
+    "id": 1
+  }'
+</code></pre>
+    </div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="templates">4. Templates</h2>
+    <p><strong>Template</strong> adalah kumpulan item, trigger, grafik, dan discovery rules yang bisa diterapkan ke banyak host sekaligus. Template menghemat waktu konfigurasi dan memastikan konsistensi.</p>
+
+    <h3>4.1 Template Populer untuk Networking</h3>
+    <table class="spec-table">
+      <thead><tr><th>Template</th><th>Untuk</th><th>Item yang Dipantau</th></tr></thead>
+      <tbody>
+        <tr><td>Template SNMP Interfaces</td><td>Switch/Router</td><td>Bandwidth, errors, discards</td></tr>
+        <tr><td>Template SNMP Generic</td><td>Semua SNMP device</td><td>Uptime, CPU, memory</td></tr>
+        <tr><td>Template ICMP Ping</td><td>Semua device</td><td>Latency, packet loss</td></tr>
+        <tr><td>Template MikroTik SNMP</td><td>MikroTik RouterOS</td><td>CPU, memory, interface, DHCP</td></tr>
+        <tr><td>Template Cisco SNMP</td><td>Cisco IOS</td><td>Stack, environment, interfaces</td></tr>
+        <tr><td>Template UPS SNMP</td><td>UPS/APC</td><td>Battery, load, temperature</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.2 Membuat Custom Template</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Zabbix Web UI — Custom Template</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# 1. Buat template baru:
+#    Configuration → Templates → Create Template
+#    Name: Template MikroTik Custom
+#    Groups: Templates/Network Devices
+
+# 2. Tambah Items:
+#    - CPU Load:   system.cpu.load[all,avg1]
+#    - Memory:     vm.memory.size[available]
+#    - Uptime:     system.uptime
+#    - Interface:  ifInOctets[ether1] (SNMP OID)
+
+# 3. Tambah Triggers:
+#    - High CPU:   avg(/Template/cpu.load,5m)>5
+#    - Low Memory: last(/Template/mem.available)<100M
+#    - Interface:  change(/Template/ifInOctets[ether1])=0
+
+# 4. Tambah Grafik:
+#    - CPU Utilization (line graph)
+#    - Interface Traffic (stacked graph)
+#    - Memory Usage (pie chart)
+
+# 5. Link template ke host:
+#    Configuration → Hosts → Select Host → Templates → Link
+</code></pre>
+    </div>
+
+    <h2 id="triggers">5. Triggers &amp; Alerting</h2>
+    <h3>5.1 Trigger Expression</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Zabbix — Trigger Expressions</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Trigger: CPU tinggi selama 5 menit
+avg(/host/system.cpu.load,5m) > 5
+
+# Trigger: Interface down
+last(/host/ifOperStatus.1) <> 1
+
+# Trigger: Packet loss > 5%
+avg(/host/icmppingloss,10m) > 5
+
+# Trigger: Latency > 100ms
+avg(/host/icmppingsec,5m) > 0.1
+
+# Trigger: Disk space < 10%
+last(/host/vfs.fs.size[/,pfree]) < 10
+
+# Trigger: Bandwidth > 80% utilization
+last(/host/ifInOctets.1) > 80000000
+
+# Trigger: BGP session down
+last(/host/bgpPeerState.192.168.1.1) <> 6
+# BGP state 6 = Established
+</code></pre>
+    </div>
+
+    <h3>5.2 Konfigurasi Alert</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Zabbix — Alert Configuration</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Konfigurasi Media Type (Email):
+# Administration → Media Types → Email
+# SMTP Server: smtp.gmail.com
+# SMTP Port: 587
+# SMTP Email: alert@yourdomain.com
+# Security: STARTTLS
+# Authentication: Username + Password
+
+# Konfigurasi Media Type (Telegram):
+# Administration → Media Types → Telegram Bot
+# Token: dari @BotFather
+# Parse mode: Markdown
+
+# Buat Action:
+# Configuration → Actions → Trigger Actions → Create
+# Name: "Alert Network Down"
+# Conditions: Trigger severity >= Warning
+# Operations:
+#   - Send message to "Admin" via Email
+#   - Send message to "NOC Team" via Telegram
+#   - Escalate after 15 minutes if not acknowledged
+
+# Recovery Operations:
+#   - Send recovery message to all
+</code></pre>
+    </div>
+
+    <div class="info-box warning"><div class="info-box-title">⚠️ Alert Fatigue</div>
+    <p>Jangan terlalu banyak trigger! Alert yang terlalu sering akan diabaikan oleh tim. Buat trigger yang bermakna — sesuatu yang benar-benar perlu ditindak. Gunakan severity levels dengan bijak: Disaster, High, Average, Warning, Information.</p></div>
+
+    <h2 id="snmp">6. Monitoring SNMP</h2>
+    <p><strong>SNMP (Simple Network Management Protocol)</strong> adalah protokol standar untuk memantau perangkat jaringan. Hampir semua router, switch, dan AP mendukung SNMP.</p>
+
+    <h3>6.1 Konfigurasi SNMP di MikroTik</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — SNMP Setup</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Aktifkan SNMP
+/snmp set enabled=yes
+
+# Tambah community string (ganti "public" dengan string unik!)
+/snmp community set [find name=public] \
+  name=zabbix-monitor \
+  addresses=192.168.1.100/32 \
+  read-access=yes \
+  write-access=no
+
+# Atau buat community baru
+/snmp community add \
+  name=zabbix-monitor \
+  addresses=192.168.1.100/32 \
+  read-access=yes \
+  write-access=no
+
+# Cek SNMP status
+/snmp print
+/snmp community print
+</code></pre>
+    </div>
+
+    <h2 id="proxies">7. Zabbix Proxies</h2>
+    <p><strong>Zabbix Proxy</strong> adalah komponen yang mengumpulkan data monitoring secara lokal dan mengirimkannya ke Zabbix Server. Proxy sangat berguna untuk monitoring di lokasi remote atau jaringan yang terpisah.</p>
+
+    <h3>7.1 Kapan Menggunakan Proxy?</h3>
+    <ul>
+      <li><strong>Remote site</strong> — lokasi cabang yang terhubung via VPN/WAN</li>
+      <li><strong>Firewall restriction</strong> — ketika device tidak bisa langsung komunikasi ke server</li>
+      <li><strong>Scalability</strong> — mendistribusikan beban monitoring ke banyak proxy</li>
+      <li><strong>Offline buffering</strong> — data tetap dikumpulkan meski koneksi ke server putus</li>
+    </ul>
+
+    <div class="code-block"><div class="code-header"><span class="code-lang">Linux — Install Zabbix Proxy</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Install proxy
+sudo apt install -y zabbix-proxy-mysql zabbix-sql-scripts
+
+# Konfigurasi proxy
+sudo nano /etc/zabbix/zabbix_proxy.conf
+# Server=zabbix-server-ip
+# Hostname=proxy-site-a
+# DBPassword=password123
+# ProxyMode=0 (active) atau 1 (passive)
+
+# Import schema
+sudo zcat /usr/share/zabbix-sql-scripts/mysql/proxy.sql.gz | \
+  mysql -uzabbix -p zabbix_proxy
+
+# Start proxy
+sudo systemctl restart zabbix-proxy
+sudo systemctl enable zabbix-proxy
+</code></pre>
+    </div>
+
+    <h2 id="auto-discovery">8. Auto-Discovery</h2>
+    <h3>8.1 Network Discovery</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Zabbix — Auto-Discovery Rules</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Network Discovery:
+# Configuration → Discovery → Create Discovery Rule
+# Name: "Discover LAN Devices"
+# IP Range: 192.168.1.1-254
+# Check: 
+#   - ICMP ping
+#   - SNMPv2 community "zabbix-monitor" port 161
+#   - Zabbix agent port 10050
+# Update interval: 1h
+
+# Auto-Registration (agent auto-register):
+# Configuration → Actions → Autoregistration Actions
+# Condition: Host metadata contains "mikrotik"
+# Operations:
+#   - Add host
+#   - Add to host group "Network Devices"
+#   - Link to template "Template MikroTik SNMP"
+
+# LLD (Low-Level Discovery):
+# Otomatis discover interface, filesystem, CPU, SNMP OID
+# Template → Discovery Rules → Create
+# Type: SNMP OID discovery
+# Key: net.if.discovery
+# SNMP OID: IF-MIB::ifDescr
+</code></pre>
+    </div>
+
+    <h2 id="dashboard">9. Dashboard &amp; Visualisasi</h2>
+    <ul>
+      <li><strong>Dashboard:</strong> Widget-based, drag-and-drop layout dengan grafik real-time</li>
+      <li><strong>Maps:</strong> Topologi jaringan visual dengan status indicator</li>
+      <li><strong>Graphs:</strong> Line, bar, pie charts untuk trend analysis</li>
+      <li><strong>Screens:</strong> Kumpulan grafik dalam satu layar (untuk NOC)</li>
+      <li><strong>SLA Reports:</strong> Laporan ketersediaan per host/service</li>
+    </ul>
+
+    <h2 id="advanced">10. Zabbix API &amp; Automation</h2>
+    <p>Zabbix menyediakan API yang sangat lengkap untuk otomasi — membuat host, mengubah trigger, export data, dan integrasi dengan tool lain.</p>
+
+    <h3>10.1 Autentikasi API</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">CURL — Zabbix API Auth</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Login dan dapatkan auth token
+curl -s -X POST http://zabbix-server/api_jsonrpc.php \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "user.login",
+    "params": {
+      "user": "Admin",
+      "password": "zabbix"
+    },
+    "id": 1
+  }'
+
+# Response: {"jsonrpc":"2.0","result":"AUTH_TOKEN","id":1}
+</code></pre>
+    </div>
+
+    <h3>10.2 Zabbix Maintenance Windows</h3>
+    <ul>
+      <li>Gunakan <strong>maintenance period</strong> untuk suppress alert selama jadwal maintenance</li>
+      <li>Konfigurasi: Configuration → Maintenance → Create Maintenance Period</li>
+      <li>Pilih host group yang akan dimaintenance</li>
+      <li>Set waktu mulai dan durasi</li>
+      <li>Alert otomatis di-suppress selama periode maintenance</li>
+    </ul>
+
+    <div class="info-box tip"><div class="info-box-title">💡 Zabbix Best Practices</div>
+    <p>Gunakan Zabbix proxy untuk setiap lokasi remote. Konfigurasi SNMPv3 untuk keamanan yang lebih baik dari SNMPv2. Buat dashboard khusus NOC (Network Operations Center) dengan widget peta jaringan dan status trigger. Review trigger severity secara berkala untuk menghindari alert fatigue.</p></div>
+
+    <h2 id="quiz">Quiz Pemahaman</h2>
+    <div class="quiz-container" id="quiz10">
+      <h3>🧠 Tes Pemahaman: Zabbix Monitoring</h3>
+      <div class="quiz-question" data-correct="b">
+        <p><strong>1. Apa fungsi utama Zabbix Proxy?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="1" data-answer="a">a) Menggantikan Zabbix Server</div>
+          <div class="quiz-option" data-question="1" data-answer="b">b) Mengumpulkan data monitoring di lokasi remote dan meneruskan ke server</div>
+          <div class="quiz-option" data-question="1" data-answer="c">c) Mengenkripsi data monitoring</div>
+          <div class="quiz-option" data-question="1" data-answer="d">d) Menggantikan SNMP</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="c">
+        <p><strong>2. Apa itu "Trigger" di Zabbix?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="2" data-answer="a">a) Protokol komunikasi</div>
+          <div class="quiz-option" data-question="2" data-answer="b">b) Jenis grafik</div>
+          <div class="quiz-option" data-question="2" data-answer="c">c) Kondisi yang memicu alert ketika threshold terlampaui</div>
+          <div class="quiz-option" data-question="2" data-answer="d">d) Script otomatis</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="a">
+        <p><strong>3. SNMP community string yang aman sebaiknya?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="3" data-answer="a">a) String unik, bukan "public" atau "private"</div>
+          <div class="quiz-option" data-question="3" data-answer="b">b) Selalu "public"</div>
+          <div class="quiz-option" data-question="3" data-answer="c">c) Sama dengan password admin</div>
+          <div class="quiz-option" data-question="3" data-answer="d">d) Tidak perlu diatur</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="d">
+        <p><strong>4. Apa itu Template di Zabbix?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="4" data-answer="a">a) Backup konfigurasi</div>
+          <div class="quiz-option" data-question="4" data-answer="b">b) Installer Zabbix</div>
+          <div class="quiz-option" data-question="4" data-answer="c">c) Script monitoring</div>
+          <div class="quiz-option" data-question="4" data-answer="d">d) Kumpulan item, trigger, dan grafik yang bisa diterapkan ke banyak host</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="b">
+        <p><strong>5. Mengapa alert fatigue harus dihindari?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="5" data-answer="a">a) Menghabiskan bandwidth</div>
+          <div class="quiz-option" data-question="5" data-answer="b">b) Tim akan mengabaikan alert yang penting</div>
+          <div class="quiz-option" data-question="5" data-answer="c">c) Zabbix server overload</div>
+          <div class="quiz-option" data-question="5" data-answer="d">d) Mengurangi disk space</div>
+        </div>
+      </div>
+      <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+      <div class="quiz-result"></div>
+    </div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <div class="article-nav">
+      <a href="wifi-6-deployment.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">Wi-Fi 6/6E</span></a>
+      <a href="ospf-multi-area.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">OSPF Multi-Area</span></a>
+    </div>
+
+  </div></article>
+
+  <section class="newsletter-section" id="newsletter"><div class="container"><div class="newsletter-card fade-in"><h2>📬 Dapatkan Tutorial Terbaru</h2><p>Subscribe untuk tutorial networking terbaru. Gratis, tanpa spam.</p><form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form></div></div></section>

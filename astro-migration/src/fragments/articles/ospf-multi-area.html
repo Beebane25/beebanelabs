@@ -1,0 +1,454 @@
+<div class="search-overlay" id="searchOverlay"><button class="search-close-btn" aria-label="Tutup pencarian">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+  <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Networking</a><span class="separator">/</span><span class="current">OSPF Multi-Area</span></div><span class="category-tag">Networking</span><h1>OSPF Multi-Area Design: Panduan Lengkap</h1><p class="article-subtitle">Tutorial OSPF Multi-Area — stub areas, NSSA, route summarization, virtual links, dan DR/BDR election pada MikroTik RouterOS</p><div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 15 menit baca</span><span class="difficulty lanjut">Lanjut</span></div></div></section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+  <article class="article-content" id="main-content"><div class="container">
+
+    <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#pengenalan">Pengenalan OSPF Multi-Area</a></li>
+      <li><a href="#area-types">Jenis-jenis OSPF Area</a></li>
+      <li><a href="#stub">Stub Area &amp; Totally Stubby</a></li>
+      <li><a href="#nssa">NSSA — Not-So-Stubby Area</a></li>
+      <li><a href="#summarization">Route Summarization</a></li>
+      <li><a href="#virtual-links">Virtual Links</a></li>
+      <li><a href="#dr-bdr">DR/BDR Election</a></li>
+      <li><a href="#mikrotik">Konfigurasi di MikroTik</a></li>
+      <li><a href="#troubleshooting">Troubleshooting OSPF</a></li>
+      <li><a href="#quiz">Quiz Pemahaman</a></li>
+    </ol></div>
+
+    <h2 id="pengenalan">1. Pengenalan OSPF Multi-Area</h2>
+    <p><strong>OSPF (Open Shortest Path First)</strong> adalah protokol routing link-state yang paling populer untuk jaringan enterprise dan ISP. Dalam jaringan besar dengan ratusan router, OSPF <strong>single area</strong> menjadi masalah — LSDB (Link State Database) terlalu besar dan SPF calculation lambat.</p>
+    <p>Solusinya adalah <strong>multi-area OSPF</strong> — membagi jaringan menjadi beberapa area yang lebih kecil, mengurangi ukuran LSDB, mempercepat konvergensi, dan mengurangi overhead CPU/memory.</p>
+
+    <div class="arch-diagram">
+      <div class="arch-title">Topologi OSPF Multi-Area</div>
+      <div class="arch-row">
+        <div class="arch-box highlight"><div class="arch-icon">🏢</div><div class="arch-label">Area 1</div><div class="arch-desc">Kantor Cabang<br>Branch routers</div></div>
+        <div class="arch-arrow">→ ABR →</div>
+        <div class="arch-box info"><div class="arch-icon">🌐</div><div class="arch-label">Area 0 (Backbone)</div><div class="arch-desc">Core routers<br>ABR &amp; ASBR</div></div>
+        <div class="arch-arrow">← ABR ←</div>
+        <div class="arch-box purple"><div class="arch-icon">🏢</div><div class="arch-label">Area 2</div><div class="arch-desc">Data Center<br>Server farm</div></div>
+      </div>
+    </div>
+
+    <h3>1.1 Peran Router dalam OSPF Multi-Area</h3>
+    <table class="spec-table">
+      <thead><tr><th>Jenis Router</th><th>Fungsi</th><th>Contoh</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Internal Router</strong></td><td>Semua interface dalam 1 area</td><td>Branch router</td></tr>
+        <tr><td><strong>ABR</strong> (Area Border Router)</td><td>Router di perbatasan 2+ area</td><td>Hub router</td></tr>
+        <tr><td><strong>ASBR</strong> (AS Boundary Router)</td><td>Meng-announce route dari luar OSPF (redistribute)</td><td>Gateway to BGP/ISP</td></tr>
+        <tr><td><strong>Backbone Router</strong></td><td>Memiliki interface di Area 0</td><td>Core router</td></tr>
+      </tbody>
+    </table>
+
+    <h3>1.2 Aturan OSPF Area</h3>
+    <ul>
+      <li><strong>Semua area harus terhubung ke Area 0</strong> (backbone area) — langsung atau via virtual link</li>
+      <li><strong>Area 0 adalah backbone</strong> — semua inter-area traffic harus melewati Area 0</li>
+      <li><strong>LSA dibatasi per area</strong> — router hanya punya LSDB lengkap untuk area sendiri</li>
+      <li><strong>ABR merangkum</strong> route antar area — mengurangi ukuran LSDB</li>
+    </ul>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="area-types">2. Jenis-jenis OSPF Area</h2>
+    <table class="spec-table">
+      <thead><tr><th>Jenis Area</th><th>LSA yang Diterima</th><th>Default Route?</th><th>External Route?</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Normal</strong></td><td>1, 2, 3, 4, 5</td><td>Tidak</td><td>Ya</td></tr>
+        <tr><td><strong>Stub</strong></td><td>1, 2, 3</td><td>Ya (IA)</td><td>Tidak</td></tr>
+        <tr><td><strong>Totally Stubby</strong></td><td>1, 2</td><td>Ya (IA)</td><td>Tidak</td></tr>
+        <tr><td><strong>NSSA</strong></td><td>1, 2, 3, 7</td><td>Tergantung</td><td>Ya (type 7)</td></tr>
+        <tr><td><strong>Totally NSSA</strong></td><td>1, 2, 7</td><td>Ya (IA)</td><td>Ya (type 7)</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="stub">3. Stub Area &amp; Totally Stubby</h2>
+    <p><strong>Stub area</strong> memblokir LSA Type 5 (external routes) dari area. Router di stub area hanya menerima LSA intra-area (1, 2) dan inter-area (3), plus satu default route dari ABR.</p>
+
+    <h3>3.1 Konfigurasi Stub Area</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Stub Area</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Konfigurasi area sebagai stub
+/routing ospf area set [find area-id=0.0.0.1] type=stub
+
+# Totally Stubby (tidak menerima LSA 3, hanya default)
+/routing ospf area set [find area-id=0.0.0.1] \
+  type=stub \
+  no-summary=yes
+
+# Router di stub area juga harus dikonfigurasi stub
+# Di setiap router internal area 1:
+/routing ospf area set [find area-id=0.0.0.1] type=stub
+</code></pre>
+    </div>
+
+    <h3>3.2 Kapan Menggunakan Stub?</h3>
+    <ul>
+      <li>Area yang <strong>hanya punya satu exit point</strong> (single-homed)</li>
+      <li>Branch office yang <strong>tidak perlu tahu detail routing</strong> area lain</li>
+      <li>Router dengan <strong>CPU/memory terbatas</strong> yang tidak kuat LSDB besar</li>
+      <li><strong>Mengurangi konvergensi time</strong> karena LSDB lebih kecil</li>
+    </ul>
+
+    <h2 id="nssa">4. NSSA — Not-So-Stubby Area</h2>
+    <p><strong>NSSA</strong> adalah area stub yang bisa <strong>meng-announce external route</strong> dari ASBR lokal. External route dikonversi dari LSA Type 7 (NSSA) menjadi LSA Type 5 (normal) oleh ABR.</p>
+
+    <h3>4.1 Konfigurasi NSSA</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — NSSA Setup</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Konfigurasi area sebagai NSSA
+/routing ospf area set [find area-id=0.0.0.2] type=nssa
+
+# Totally NSSA (tidak menerima LSA 3)
+/routing ospf area set [find area-id=0.0.0.2] \
+  type=nssa \
+  no-summary=yes
+
+# Redistribute static routes ke NSSA
+/routing ospf instance set [find] \
+  redistribute-static=as-type-1
+</code></pre>
+    </div>
+
+    <h3>4.2 Stub vs NSSA</h3>
+    <table class="spec-table">
+      <thead><tr><th>Fitur</th><th>Stub</th><th>NSSA</th></tr></thead>
+      <tbody>
+        <tr><td>External route (LSA 5)</td><td>❌ Diblokir</td><td>❌ Diblokir (dari luar)</td></tr>
+        <tr><td>Redistribute local</td><td>❌ Tidak bisa</td><td>✅ Bisa (sebagai LSA 7)</td></tr>
+        <tr><td>Default route dari ABR</td><td>✅ Ya</td><td>✅ Opsional</td></tr>
+        <tr><td>Cocok untuk</td><td>Branch tanpa redistribute</td><td>Branch dengan ISP connection</td></tr>
+      </tbody>
+    </table>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="summarization">5. Route Summarization</h2>
+    <p><strong>Route summarization</strong> (aggregation) menggabungkan beberapa route menjadi satu route yang lebih ringkas. Ini dilakukan di ABR untuk inter-area routes dan di ASBR untuk external routes.</p>
+
+    <h3>5.1 Inter-Area Summarization (di ABR)</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Route Summarization</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Rangkum routes dari Area 1 sebelum di-announce ke Area 0
+/routing ospf area range add \
+  area=0.0.0.1 \
+  prefix=10.1.0.0/16 \
+  advertise=yes
+
+# Rangkum routes dari Area 2
+/routing ospf area range add \
+  area=0.0.0.2 \
+  prefix=10.2.0.0/16 \
+  advertise=yes
+
+# Contoh: tanpa summarization, ABR meng-announce:
+# 10.1.1.0/24, 10.1.2.0/24, 10.1.3.0/24, ... (ratusan routes)
+# Dengan summarization: hanya 10.1.0.0/16 (satu route!)
+
+# External summarization (di ASBR)
+/routing ospf instance set [find] \
+  out-filter=ospf-summarize-external
+
+# Atau via routing filter
+/routing filter add \
+  chain=ospf-summarize-external \
+  prefix=172.16.0.0/16 \
+  rule="accept"
+</code></pre>
+    </div>
+
+    <h3>5.2 Manfaat Summarization</h3>
+    <ul>
+      <li><strong>LSDB lebih kecil</strong> — mengurangi memory dan CPU</li>
+      <li><strong>Konvergensi lebih cepat</strong> — perubahan di satu area tidak mempengaruhi area lain</li>
+      <li><strong>Stabilitas</strong> — link flap di branch tidak propagate ke seluruh jaringan</li>
+      <li><strong>Routing table lebih kecil</strong> — mempercepat forwarding decision</li>
+    </ul>
+
+    <h2 id="virtual-links">6. Virtual Links</h2>
+    <p><strong>Virtual link</strong> digunakan ketika sebuah area tidak bisa terhubung langsung ke Area 0. Virtual link "membawa" Area 0 melalui area lain (transit area).</p>
+
+    <h3>6.1 Konfigurasi Virtual Link</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Virtual Link</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Situasi: Area 3 terhubung ke Area 1, bukan Area 0
+# Solusi: Virtual link dari ABR Area 1 ke router di Area 3
+
+# Di ABR (router yang terhubung ke Area 0 dan Area 1):
+/routing ospf virtual-link add \
+  area-id=0.0.0.1 \
+  neighbor-id=10.0.0.3 \
+  transit-area=0.0.0.1 \
+  hello-interval=10s \
+  retransmit-interval=5s \
+  transmit-delay=1s \
+  dead-interval=40s
+
+# Di router ujung (router di Area 3):
+/routing ospf virtual-link add \
+  area-id=0.0.0.1 \
+  neighbor-id=10.0.0.1 \
+  transit-area=0.0.0.1 \
+  hello-interval=10s \
+  retransmit-interval=5s \
+  transmit-delay=1s \
+  dead-interval=40s
+
+# Verifikasi virtual link
+/routing ospf virtual-link print
+/routing ospf virtual-link monitor [find]
+</code></pre>
+    </div>
+
+    <div class="info-box warning"><div class="info-box-title">⚠️ Virtual Link: Temporary Solution</div>
+    <p>Virtual link seharusnya menjadi solusi sementara. Rancang ulang topologi agar semua area terhubung langsung ke Area 0. Virtual link menambah kompleksitas dan bisa memperlambat konvergensi.</p></div>
+
+    <h2 id="dr-bdr">7. DR/BDR Election</h2>
+    <p>Di jaringan multi-access (Ethernet), OSPF memilih <strong>DR (Designated Router)</strong> dan <strong>BDR (Backup Designated Router)</strong> untuk mengurangi jumlah adjacency dan LSA flooding.</p>
+
+    <h3>7.1 Cara Kerja DR/BDR</h3>
+    <ul>
+      <li><strong>DR</strong> menjadi perwakilan segment — semua router beradjacency dengan DR</li>
+      <li><strong>BDR</strong> siap menggantikan DR jika DR mati</li>
+      <li>Router lain (DROther) hanya beradjacency dengan DR dan BDR</li>
+      <li>Tanpa DR/BDR: n*(n-1)/2 adjacency. Dengan DR/BDR: 2*(n-1) adjacency</li>
+    </ul>
+
+    <h3>7.2 Konfigurasi DR Priority</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — DR Priority</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Set DR priority pada interface
+/routing ospf interface set [find interface=ether1] \
+  priority=200
+
+# Priority tertinggi = jadi DR
+# Priority 0 = tidak pernah jadi DR/BDR
+# Default priority = 1
+
+# Rekomendasi:
+# Core router: priority=200 (jadi DR)
+# Distribution: priority=100 (jadi BDR)
+# Access/branch: priority=1 (DROther)
+</code></pre>
+    </div>
+
+    <h2 id="mikrotik">8. Konfigurasi OSPF Multi-Area di MikroTik</h2>
+    <div class="code-block"><div class="code-header"><span class="code-lang">MikroTik — OSPF Multi-Area Lengkap</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Buat OSPF instance
+/routing ospf instance add \
+  name=ospf1 \
+  router-id=10.0.0.1 \
+  redistribute-connected=as-type-2 \
+  redistribute-static=no
+
+# Buat backbone area (Area 0)
+/routing ospf area add \
+  name=backbone \
+  instance=ospf1 \
+  area-id=0.0.0.0
+
+# Buat Area 1 (stub)
+/routing ospf area add \
+  name=area-branch \
+  instance=ospf1 \
+  area-id=0.0.0.1 \
+  type=stub
+
+# Buat Area 2 (NSSA)
+/routing ospf area add \
+  name=area-dc \
+  instance=ospf1 \
+  area-id=0.0.0.2 \
+  type=nssa
+
+# Tambah interface ke area
+/routing ospf interface-template add \
+  area=backbone \
+  interfaces=ether1 \
+  network-type=broadcast \
+  priority=200
+
+/routing ospf interface-template add \
+  area=area-branch \
+  interfaces=ether2 \
+  network-type=broadcast \
+  priority=100
+
+/routing ospf interface-template add \
+  area=area-dc \
+  interfaces=ether3 \
+  network-type=broadcast \
+  priority=100
+
+# Route summarization
+/routing ospf area range add \
+  area=0.0.0.1 \
+  prefix=10.1.0.0/16 \
+  advertise=yes
+</code></pre>
+    </div>
+
+    <h2 id="troubleshooting">9. Troubleshooting OSPF</h2>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — OSPF Debug</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Cek OSPF neighbors
+/routing ospf neighbor print
+
+# Cek OSPF state detail
+/routing ospf neighbor print detail
+
+# Cek LSDB
+/routing ospf lsa print
+/routing ospf lsa print where area-id=0.0.0.1
+
+# Cek routing table OSPF
+/ip route print where ospf
+
+# Aktifkan debug
+/system logging add topics=ospf action=memory
+/log print where topics~"ospf"
+</code></pre>
+    </div>
+
+    <table class="spec-table">
+      <thead><tr><th>Masalah</th><th>Penyebab</th><th>Solusi</th></tr></thead>
+      <tbody>
+        <tr><td>Neighbor stuck INIT</td><td>Mismatch MTU</td><td>Samakan MTU kedua interface</td></tr>
+        <tr><td>Neighbor stuck 2-WAY</td><td>Normal (DROther)</td><td>Tidak masalah, ini expected</td></tr>
+        <tr><td>Area tidak muncul route</td><td>Area type mismatch</td><td>Pastikan area type sama di semua router</td></tr>
+        <tr><td>Virtual link down</td><td>Transit area bermasalah</td><td>Cek koneksi di transit area</td></tr>
+        <tr><td>Route hilang</td><td>Summarization salah</td><td>Cek area range prefix</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="lsa-types">10. OSPF LSA Types</h2>
+    <p>Memahami LSA types sangat penting untuk troubleshooting dan perencanaan OSPF multi-area.</p>
+
+    <h3>10.1 LSA Type Reference</h3>
+    <table class="spec-table">
+      <thead><tr><th>Type</th><th>Nama</th><th>Dihasilkan Oleh</th><th>Scope</th><th>Deskripsi</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>Router LSA</td><td>Setiap router</td><td>Per area</td><td>Deskripsi link dan cost dari setiap router</td></tr>
+        <tr><td><strong>2</strong></td><td>Network LSA</td><td>DR</td><td>Per area</td><td>Daftar router di multi-access segment</td></tr>
+        <tr><td><strong>3</strong></td><td>Summary LSA</td><td>ABR</td><td>Inter-area</td><td>Ringkasan route dari area lain</td></tr>
+        <tr><td><strong>4</strong></td><td>ASBR Summary</td><td>ABR</td><td>Inter-area</td><td>Route ke ASBR</td></tr>
+        <tr><td><strong>5</strong></td><td>External LSA</td><td>ASBR</td><td>AS-wide</td><td>Route dari luar OSPF (redistribute)</td></tr>
+        <tr><td><strong>7</strong></td><td>NSSA External</td><td>ASBR di NSSA</td><td>Per NSSA</td><td>External route di NSSA (dikonversi ke type 5 oleh ABR)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>10.2 OSPF Timers Optimization</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — OSPF Timers</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Default OSPF timers:
+# Hello interval: 10s (broadcast) / 30s (NBMA)
+# Dead interval: 40s (broadcast) / 120s (NBMA)
+
+# Untuk konvergensi lebih cepat di backbone:
+/routing ospf interface-template set \
+  [find area=backbone] \
+  hello-interval=1s \
+  dead-interval=4s
+
+# Peringatan: timer yang terlalu agresif bisa menyebabkan
+# flapping jika ada packet loss ringan. Gunakan dengan bijak.
+
+# Rekomendasi timer:
+# Backbone (Area 0): hello=1s, dead=4s (jika stabil)
+# Branch area: hello=10s, dead=40s (default, cukup)
+# WAN link: hello=10s, dead=40s (default)
+
+# Passive interface (tidak perlu adjacency)
+/routing ospf interface-template set \
+  [find interface=ether5] \
+  passive=yes
+
+# Berguna untuk interface yang terhubung ke LAN
+# tapi tidak perlu adjacency OSPF (hemat resource)
+</code></pre>
+    </div>
+
+    <div class="info-box warning"><div class="info-box-title">⚠️ OSPF Timer Matching</div>
+    <p>Timers pada kedua ujung link harus sama! Jika hello/dead interval berbeda antara dua router, adjacency tidak akan terbentuk. Selalu koordinasikan timer sebelum mengubahnya.</p></div>
+
+    <h3>10.3 OSPF Cost Reference</h3>
+    <table class="spec-table">
+      <thead><tr><th>Link Type</th><th>Bandwidth</th><th>OSPF Cost (default)</th></tr></thead>
+      <tbody>
+        <tr><td>Ethernet 10 Mbps</td><td>10 Mbps</td><td>10</td></tr>
+        <tr><td>FastEthernet</td><td>100 Mbps</td><td>1</td></tr>
+        <tr><td>GigabitEthernet</td><td>1 Gbps</td><td>1</td></tr>
+        <tr><td>10 GigabitEthernet</td><td>10 Gbps</td><td>1</td></tr>
+        <tr><td>E1/T1 WAN</td><td>2 Mbps</td><td>48</td></tr>
+      </tbody>
+    </table>
+    <p>Formula OSPF cost: <code>Cost = Reference Bandwidth / Interface Bandwidth</code>. Default reference bandwidth = 100 Mbps. Untuk link Gbps+, set reference bandwidth lebih tinggi.</p>
+
+    <h2 id="quiz">Quiz Pemahaman</h2>
+    <div class="quiz-container" id="quiz10">
+      <h3>🧠 Tes Pemahaman: OSPF Multi-Area</h3>
+      <div class="quiz-question" data-correct="c">
+        <p><strong>1. Mengapa OSPF membutuhkan multi-area untuk jaringan besar?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="1" data-answer="a">a) Untuk mengenkripsi routing</div>
+          <div class="quiz-option" data-question="1" data-answer="b">b) Untuk menggantikan BGP</div>
+          <div class="quiz-option" data-question="1" data-answer="c">c) Mengurangi LSDB size dan mempercepat konvergensi</div>
+          <div class="quiz-option" data-question="1" data-answer="d">d) Mengaktifkan fitur VPN</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="a">
+        <p><strong>2. Apa fungsi dari ABR (Area Border Router)?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="2" data-answer="a">a) Menghubungkan 2+ area dan meringkas route</div>
+          <div class="quiz-option" data-question="2" data-answer="b">b) Menjadi DHCP server</div>
+          <div class="quiz-option" data-question="2" data-answer="c">c) Menggantikan DR/BDR</div>
+          <div class="quiz-option" data-question="2" data-answer="d">d) Menghapus OSPF routing</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="b">
+        <p><strong>3. Perbedaan utama stub area dan NSSA?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="3" data-answer="a">a) NSSA lebih lambat dari stub</div>
+          <div class="quiz-option" data-question="3" data-answer="b">b) NSSA bisa redistribute external route lokal, stub tidak bisa</div>
+          <div class="quiz-option" data-question="3" data-answer="c">c) Stub mendukung BGP, NSSA tidak</div>
+          <div class="quiz-option" data-question="3" data-answer="d">d) Tidak ada perbedaan</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="d">
+        <p><strong>4. Apa fungsi virtual link di OSPF?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="4" data-answer="a">a) Mengenkripsi OSPF</div>
+          <div class="quiz-option" data-question="4" data-answer="b">b) Menggantikan Ethernet</div>
+          <div class="quiz-option" data-question="4" data-answer="c">c) Menggantikan DR/BDR</div>
+          <div class="quiz-option" data-question="4" data-answer="d">d) Menghubungkan area yang tidak langsung ke Area 0</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="c">
+        <p><strong>5. DR priority 0 pada interface OSPF berarti?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="5" data-answer="a">a) Router menjadi DR</div>
+          <div class="quiz-option" data-question="5" data-answer="b">b) Router menjadi BDR</div>
+          <div class="quiz-option" data-question="5" data-answer="c">c) Router tidak akan menjadi DR atau BDR</div>
+          <div class="quiz-option" data-question="5" data-answer="d">d) OSPF dinonaktifkan</div>
+        </div>
+      </div>
+      <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+      <div class="quiz-result"></div>
+    </div>
+
+    <div class="info-box tip"><div class="info-box-title">💡 OSPF Design Tips</div>
+    <p>Selalu rancang OSPF multi-area dengan Area 0 di pusat. Jangan terlalu banyak area — umumnya 3-5 area sudah cukup untuk jaringan ISP menengah. Gunakan summarization di ABR untuk mengurangi LSDB size. Passive interface pada LAN ports untuk menghindari adjacency yang tidak perlu. Monitor OSPF neighbor state secara berkala menggunakan Zabbix atau script scheduler.</p></div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <div class="article-nav">
+      <a href="network-monitoring-zabbix.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">Network Monitoring Zabbix</span></a>
+      <a href="qos-mikrotik.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">QoS di MikroTik</span></a>
+    </div>
+
+  </div></article>
+
+  <section class="newsletter-section" id="newsletter"><div class="container"><div class="newsletter-card fade-in"><h2>📬 Dapatkan Tutorial Terbaru</h2><p>Subscribe untuk tutorial networking terbaru. Gratis, tanpa spam.</p><form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form></div></div></section>

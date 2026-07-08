@@ -1,0 +1,1401 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">JSON Processing</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>Python JSON Processing</h1>
+      <p class="article-subtitle">Tutorial lengkap Python JSON processing — json module, serialization, custom encoder/decoder, JSON Schema, dan best practices untuk data exchange modern</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-json">Pengenalan JSON</a></li>
+          <li><a href="#json-module">Modul json Dasar</a></li>
+          <li><a href="#serialization">Serialization (Python → JSON)</a></li>
+          <li><a href="#deserialization">Deserialization (JSON → Python)</a></li>
+          <li><a href="#custom-encoder">Custom JSON Encoder</a></li>
+          <li><a href="#custom-decoder">Custom JSON Decoder</a></li>
+          <li><a href="#json-file">Baca/Tulis JSON File</a></li>
+          <li><a href="#json-api">JSON dengan REST API</a></li>
+          <li><a href="#json-pretty">Pretty Print dan Formatting</a></li>
+          <li><a href="#json-error">Error Handling</a></li>
+          <li><a href="#studi-kasus">Studi Kasus</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan JSON      -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-json">1. Pengenalan JSON</h2>
+
+      <p><strong>JSON</strong> (JavaScript Object Notation) adalah format pertukaran data yang ringan dan mudah dibaca. JSON menjadi standar de facto untuk komunikasi data antara client-server, API, dan konfigurasi aplikasi.</p>
+
+      <h3>JSON vs Python Data Types</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>JSON Type</th>
+            <th>Contoh JSON</th>
+            <th>Python Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Object</td><td><code>{"key": "value"}</code></td><td><code>dict</code></td></tr>
+          <tr><td>Array</td><td><code>[1, 2, 3]</code></td><td><code>list</code></td></tr>
+          <tr><td>String</td><td><code>"hello"</code></td><td><code>str</code></td></tr>
+          <tr><td>Number (int)</td><td><code>42</code></td><td><code>int</code></td></tr>
+          <tr><td>Number (float)</td><td><code>3.14</code></td><td><code>float</code></td></tr>
+          <tr><td>Boolean</td><td><code>true / false</code></td><td><code>True / False</code></td></tr>
+          <tr><td>Null</td><td><code>null</code></td><td><code>None</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Mengapa JSON Penting?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Keunggulan</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Universal</td><td>Didukung oleh hampir semua bahasa pemrograman</td></tr>
+          <tr><td>Human-readable</td><td>Format teks yang mudah dibaca manusia</td></tr>
+          <tr><td>Lightweight</td><td>Lebih ringan dibanding XML</td></tr>
+          <tr><td>API Standard</td><td>Format default untuk REST API dan web services</td></tr>
+          <tr><td>Nested Support</td><td>Bisa mengandung objek bersarang dan array</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: JSON ↔ Python Mapping</div>
+<pre class="mermaid">
+flowchart TD
+    A["🐍 Python Object"]
+    B["📄 JSON String"]
+    C["📁 JSON File"]
+    D["🌐 REST API Response"]
+    E["📦 json.dumps() — Serialize ke string"]
+    F["📦 json.loads() — Deserialize dari string"]
+    G["📦 json.dump() — Tulis ke file"]
+    H["📦 json.load() — Baca dari file"]
+    A -->|"json.dumps()"| B
+    B -->|"json.loads()"| A
+    A -->|"json.dump()"| C
+    C -->|"json.load()"| A
+    D -->|"json.loads()"| A
+    A -->|"json.dumps()"| D
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: json module Dasar    -->
+      <!-- ============================== -->
+      <h2 id="json-module">2. Modul json Dasar</h2>
+
+      <p>Python memiliki modul <code>json</code> built-in yang menyediakan semua fungsi yang dibutuhkan untuk bekerja dengan data JSON.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — json Module Basics</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+
+# ===== json.dumps(): Python → JSON string =====
+data = {
+    "name": "Budi Santoso",
+    "age": 25,
+    "is_student": True,
+    "courses": ["Python", "JavaScript", "SQL"],
+    "address": None
+}
+
+json_string = json.dumps(data)
+print(json_string)
+# {"name": "Budi Santoso", "age": 25, "is_student": true,
+#  "courses": ["Python", "JavaScript", "SQL"], "address": null}
+
+print(type(json_string))  # &lt;class 'str'&gt;
+
+# ===== json.loads(): JSON string → Python =====
+json_text = '{"name": "Sari", "age": 30, "scores": [85, 90, 78]}'
+python_data = json.loads(json_text)
+print(python_data)
+# {'name': 'Sari', 'age': 30, 'scores': [85, 90, 78]}
+
+print(type(python_data))  # &lt;class 'dict'&gt;
+print(python_data["name"])  # Sari
+
+# ===== Konversi tipe data =====
+# dict → JSON string
+d = {"key": "value"}
+s = json.dumps(d)
+
+# list → JSON string
+lst = [1, 2, 3, "hello", True, None]
+s = json.dumps(lst)
+print(s)  # [1, 2, 3, "hello", true, null]
+
+# JSON string → dict
+d = json.loads('{"a": 1, "b": 2}')
+
+# JSON string → list
+lst = json.loads('[1, 2, 3]')
+
+# Nested structures
+nested = json.dumps({
+    "user": {
+        "name": "Budi",
+        "contacts": [
+            {"type": "email", "value": "budi@email.com"},
+            {"type": "phone", "value": "+62812345678"}
+        ]
+    }
+})
+print(json.dumps(json.loads(nested), indent=2))
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Serialization        -->
+      <!-- ============================== -->
+      <h2 id="serialization">3. Serialization (Python → JSON)</h2>
+
+      <p>Serialization adalah proses mengkonversi objek Python ke format JSON string. Ada beberapa parameter yang bisa dikustomisasi.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Serialization Options</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+
+data = {
+    "name": "Budi",
+    "age": 25,
+    "scores": [85, 90, 78],
+    "active": True,
+    "address": None
+}
+
+# ===== indent: Pretty print =====
+print(json.dumps(data, indent=2))
+# {
+#   "name": "Budi",
+#   "age": 25,
+#   "scores": [85, 90, 78],
+#   "active": true,
+#   "address": null
+# }
+
+# Custom indent
+print(json.dumps(data, indent=4))
+
+# ===== separators: Custom delimiters =====
+# Default: (', ', ': ')
+# Compact:
+print(json.dumps(data, separators=(',', ':')))
+# {"name":"Budi","age":25,...}
+
+# ===== sort_keys: Urutkan keys =====
+print(json.dumps(data, indent=2, sort_keys=True))
+# Keys diurutkan secara alfabetis
+
+# ===== ensure_ascii: Non-ASCII characters =====
+data_indo = {"kota": "Jakarta", "provinsi": "DKI Jakarta"}
+# Default (True): escape non-ASCII
+print(json.dumps(data_indo))
+# {"kota": "Jakarta", "provinsi": "DKI Jakarta"}
+
+# False: biarkan karakter asli
+print(json.dumps(data_indo, ensure_ascii=False))
+# {"kota": "Jakarta", "provinsi": "DKI Jakarta"}
+
+# ===== default: Handle non-serializable objects =====
+from datetime import datetime
+from pathlib import Path
+
+data_with_special = {
+    "created": datetime.now(),
+    "path": Path("/home/user"),
+    "set_data": {1, 2, 3},
+}
+
+def custom_serializer(obj):
+    """Handler untuk objek yang tidak bisa di-serialize."""
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    elif isinstance(obj, Path):
+        return str(obj)
+    elif isinstance(obj, set):
+        return list(obj)
+    raise TypeError(f"Type {type(obj)} not serializable")
+
+result = json.dumps(data_with_special, default=custom_serializer, indent=2)
+print(result)
+
+# ===== allow_nan: Handle NaN, Infinity =====
+import math
+
+data_special = {"value": float('nan'), "inf": float('inf')}
+# Default: allow_nan=True → NaN dan Infinity diizinkan
+print(json.dumps(data_special))  # {"value": NaN, "inf": Infinity}
+
+# False: raise ValueError untuk NaN/Infinity
+try:
+    json.dumps(data_special, allow_nan=False)
+except ValueError as e:
+    print(f"Error: {e}")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Deserialization      -->
+      <!-- ============================== -->
+      <h2 id="deserialization">4. Deserialization (JSON → Python)</h2>
+
+      <p>Deserialization adalah proses mengkonversi JSON string kembali ke objek Python.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Deserialization</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+
+# ===== Basic deserialization =====
+json_str = '{"name": "Sari", "age": 30, "hobbies": ["coding", "reading"]}'
+data = json.loads(json_str)
+print(f"Name: {data['name']}")
+print(f"Hobbies: {data['hobbies']}")
+
+# ===== object_hook: Custom object creation =====
+class User:
+    def __init__(self, name, age, email):
+        self.name = name
+        self.age = age
+        self.email = email
+
+    def __repr__(self):
+        return f"User(name='{self.name}', age={self.age})"
+
+def as_user(dct):
+    """Convert dict to User object."""
+    if 'name' in dct and 'age' in dct:
+        return User(dct['name'], dct['age'], dct.get('email', ''))
+    return dct
+
+json_str = '{"name": "Budi", "age": 25, "email": "budi@mail.com"}'
+user = json.loads(json_str, object_hook=as_user)
+print(f"User: {user}")  # User(name='Budi', age=25)
+print(f"Name: {user.name}")  # Budi
+
+# ===== object_pairs_hook: Preserve key order =====
+def ordered_pairs(pairs):
+    """Convert to OrderedDict preserving order."""
+    from collections import OrderedDict
+    return OrderedDict(pairs)
+
+json_str = '{"z": 1, "a": 2, "m": 3}'
+ordered = json.loads(json_str, object_pairs_hook=ordered_pairs)
+print(f"Ordered: {ordered}")  # OrderedDict([('z', 1), ('a', 2), ('m', 3)])
+
+# ===== parse_float dan parse_int =====
+from decimal import Decimal
+
+json_str = '{"price": 19.99, "quantity": 100}'
+
+# Parse float as Decimal (untuk presisi tinggi)
+data = json.loads(json_str, parse_float=Decimal)
+print(f"Price: {data['price']}")       # 19.99 (Decimal)
+print(f"Type: {type(data['price'])}")   # &lt;class 'decimal.Decimal'&gt;
+
+# Parse int as string (untuk bilangan sangat besar)
+json_big = '{"huge_number": 123456789012345678901234567890}'
+data = json.loads(json_big, parse_int=str)
+print(f"Huge: {data['huge_number']}")  # String representation
+
+# ===== Parse multiple JSON objects =====
+json_lines = '{"name": "Budi"}\n{"name": "Sari"}\n{"name": "Andi"}'
+objects = [json.loads(line) for line in json_lines.strip().split('\n')]
+print(f"Found {len(objects)} objects")
+for obj in objects:
+    print(f"  {obj['name']}")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Custom Encoder       -->
+      <!-- ============================== -->
+      <h2 id="custom-encoder">5. Custom JSON Encoder</h2>
+
+      <p>Untuk menangani tipe data yang tidak bisa di-serialize secara default (datetime, Decimal, custom classes), kita membuat custom encoder.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Custom Encoder</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+from datetime import datetime, date, time
+from decimal import Decimal
+from pathlib import Path
+from uuid import UUID
+from dataclasses import dataclass, asdict
+from typing import Any
+from enum import Enum
+
+class Status(Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    PENDING = "pending"
+
+class AdvancedJSONEncoder(json.JSONEncoder):
+    """Custom encoder untuk menangani tipe data Python lanjutan."""
+
+    def default(self, obj: Any) -> Any:
+        # datetime dan date
+        if isinstance(obj, datetime):
+            return {
+                "_type": "datetime",
+                "value": obj.isoformat()
+            }
+        if isinstance(obj, date):
+            return {
+                "_type": "date",
+                "value": obj.isoformat()
+            }
+        if isinstance(obj, time):
+            return {
+                "_type": "time",
+                "value": obj.isoformat()
+            }
+
+        # Decimal
+        if isinstance(obj, Decimal):
+            return float(obj)
+
+        # Path
+        if isinstance(obj, Path):
+            return str(obj)
+
+        # UUID
+        if isinstance(obj, UUID):
+            return str(obj)
+
+        # Set
+        if isinstance(obj, set):
+            return sorted(list(obj))
+
+        # Enum
+        if isinstance(obj, Enum):
+            return obj.value
+
+        # Bytes
+        if isinstance(obj, bytes):
+            return obj.decode('utf-8', errors='replace')
+
+        # Fallback ke default encoder
+        return super().default(obj)
+
+# Menggunakan custom encoder
+data = {
+    "timestamp": datetime.now(),
+    "date": date.today(),
+    "price": Decimal("19.99"),
+    "path": Path("/home/user/file.txt"),
+    "status": Status.ACTIVE,
+    "tags": {"python", "json", "tutorial"},
+}
+
+result = json.dumps(data, cls=AdvancedJSONEncoder, indent=2, ensure_ascii=False)
+print(result)
+
+# Dataclass support
+@dataclass
+class Product:
+    id: int
+    name: str
+    price: float
+    created: datetime
+    tags: list
+
+product = Product(
+    id=1,
+    name="Python Course",
+    price=49.99,
+    created=datetime.now(),
+    tags=["python", "programming"]
+)
+
+# Dataclass → dict → JSON
+product_json = json.dumps(asdict(product), cls=AdvancedJSONEncoder, indent=2)
+print(product_json)
+</code></pre>
+      </div>
+
+      <h3>Alternative Encoder Approaches</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Encoder Alternatives</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+from datetime import datetime
+from decimal import Decimal
+from typing import Any
+
+# ===== Approach 1: default function (tanpa subclass) =====
+def json_default(obj: Any) -> Any:
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    if isinstance(obj, Decimal):
+        return float(obj)
+    if isinstance(obj, set):
+        return list(obj)
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
+data = {"time": datetime.now(), "amount": Decimal("99.99")}
+print(json.dumps(data, default=json_default))
+
+# ===== Approach 2: __json__ protocol =====
+class JSONSerializable:
+    """Mixin yang menambahkan __json__ method."""
+
+    def to_json(self) -> dict:
+        """Override this method to define JSON representation."""
+        raise NotImplementedError
+
+    @classmethod
+    def from_json(cls, data: dict):
+        """Override this method to create from JSON."""
+        raise NotImplementedError
+
+class Employee(JSONSerializable):
+    def __init__(self, name: str, department: str, salary: Decimal):
+        self.name = name
+        self.department = department
+        self.salary = salary
+
+    def to_json(self) -> dict:
+        return {
+            "name": self.name,
+            "department": self.department,
+            "salary": float(self.salary),
+        }
+
+    @classmethod
+    def from_json(cls, data: dict):
+        return cls(
+            name=data["name"],
+            department=data["department"],
+            salary=Decimal(str(data["salary"])),
+        )
+
+def smart_default(obj):
+    if hasattr(obj, 'to_json'):
+        return obj.to_json()
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError(f"Type {type(obj)} not serializable")
+
+emp = Employee("Budi", "Engineering", Decimal("8500000"))
+print(json.dumps(emp, default=smart_default, indent=2))
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Custom Decoder       -->
+      <!-- ============================== -->
+      <h2 id="custom-decoder">6. Custom JSON Decoder</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Custom Decoder</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+from datetime import datetime, date
+from decimal import Decimal
+
+# ===== Custom decoder dengan object_hook =====
+def decode_special_types(dct):
+    """Decode tipe data khusus yang di-encode oleh AdvancedJSONEncoder."""
+    if "_type" in dct:
+        type_name = dct["_type"]
+        value = dct["value"]
+
+        if type_name == "datetime":
+            return datetime.fromisoformat(value)
+        elif type_name == "date":
+            return date.fromisoformat(value)
+
+    return dct
+
+json_data = '{"timestamp": {"_type": "datetime", "value": "2026-06-26T10:30:00"}}'
+result = json.loads(json_data, object_hook=decode_special_types)
+print(f"Type: {type(result['timestamp'])}")  # datetime
+print(f"Value: {result['timestamp']}")
+
+# ===== Full roundtrip: Encode → Decode =====
+# Encode
+original = {
+    "event": "Konferensi Python Indonesia",
+    "date": datetime(2026, 8, 15, 9, 0),
+    "price": Decimal("250000"),
+    "attendees": {"Budi", "Sari", "Andi"},
+}
+
+from pathlib import Path
+import json
+
+class FullEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return {"__datetime__": True, "value": obj.isoformat()}
+        if isinstance(obj, Decimal):
+            return {"__decimal__": True, "value": str(obj)}
+        if isinstance(obj, set):
+            return {"__set__": True, "value": list(obj)}
+        return super().default(obj)
+
+def full_decoder(dct):
+    if "__datetime__" in dct:
+        return datetime.fromisoformat(dct["value"])
+    if "__decimal__" in dct:
+        return Decimal(dct["value"])
+    if "__set__" in dct:
+        return set(dct["value"])
+    return dct
+
+# Encode → Decode
+encoded = json.dumps(original, cls=FullEncoder, ensure_ascii=False)
+decoded = json.loads(encoded, object_hook=full_decoder)
+
+print(f"Event: {decoded['event']}")
+print(f"Date type: {type(decoded['date'])}")        # datetime
+print(f"Price type: {type(decoded['price'])}")      # Decimal
+print(f"Attendees type: {type(decoded['attendees'])}")  # set
+print(f"Perfect roundtrip: {original == decoded}")  # True
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: JSON File            -->
+      <!-- ============================== -->
+      <h2 id="json-file">7. Baca/Tulis JSON File</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — JSON File I/O</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+from pathlib import Path
+
+# ===== json.dump(): Python → File =====
+config = {
+    "app_name": "MyApp",
+    "version": "2.1.0",
+    "database": {
+        "host": "localhost",
+        "port": 5432,
+        "name": "myapp_db"
+    },
+    "features": {
+        "dark_mode": True,
+        "notifications": True,
+        "max_upload_mb": 50
+    }
+}
+
+# Tulis ke file
+with open("config.json", "w", encoding="utf-8") as f:
+    json.dump(config, f, indent=2, ensure_ascii=False)
+
+# Dengan pathlib
+config_path = Path("config.json")
+config_path.write_text(json.dumps(config, indent=2), encoding="utf-8")
+
+# ===== json.load(): File → Python =====
+# Baca dari file
+with open("config.json", "r", encoding="utf-8") as f:
+    loaded_config = json.load(f)
+
+print(f"App: {loaded_config['app_name']}")
+print(f"DB Host: {loaded_config['database']['host']}")
+
+# Dengan pathlib
+config_data = json.loads(config_path.read_text(encoding="utf-8"))
+
+# ===== Read JSON Lines (JSONL) =====
+jsonl_path = Path("data.jsonl")
+
+# Write JSONL
+with open(jsonl_path, "w") as f:
+    for i in range(5):
+        record = {"id": i, "name": f"User-{i}", "score": i * 10}
+        f.write(json.dumps(record) + "\n")
+
+# Read JSONL
+records = []
+with open(jsonl_path, "r") as f:
+    for line in f:
+        line = line.strip()
+        if line:
+            records.append(json.loads(line))
+
+print(f"Loaded {len(records)} records")
+
+# ===== JSONL dengan pathlib =====
+records = [
+    json.loads(line)
+    for line in jsonl_path.read_text().splitlines()
+    if line.strip()
+]
+
+# ===== Append ke JSON file (manual) =====
+# JSON file tidak mendukung append secara native
+# Tapi bisa dilakukan dengan load-modify-save
+
+def append_to_json_array(filepath: str, new_item: dict):
+    """Menambahkan item ke array dalam JSON file."""
+    path = Path(filepath)
+
+    if path.exists():
+        data = json.loads(path.read_text())
+    else:
+        data = []
+
+    data.append(new_item)
+    path.write_text(json.dumps(data, indent=2))
+
+append_to_json_array("users.json", {"name": "Budi", "age": 25})
+append_to_json_array("users.json", {"name": "Sari", "age": 30})
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: JSON with API        -->
+      <!-- ============================== -->
+      <h2 id="json-api">8. JSON dengan REST API</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — JSON API</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+import urllib.request
+import urllib.parse
+from typing import Dict, Any
+
+# ===== GET Request dengan JSON response =====
+def api_get(url: str) -> Dict[str, Any]:
+    """Melakukan GET request dan parse JSON response."""
+    req = urllib.request.Request(url)
+    req.add_header("Accept", "application/json")
+
+    with urllib.request.urlopen(req) as response:
+        data = json.loads(response.read().decode("utf-8"))
+        return data
+
+# Contoh penggunaan
+# users = api_get("https://jsonplaceholder.typicode.com/users")
+# for user in users[:3]:
+#     print(f"  {user['name']} — {user['email']}")
+
+# ===== POST Request dengan JSON body =====
+def api_post(url: str, data: dict) -> Dict[str, Any]:
+    """Melakukan POST request dengan JSON body."""
+    json_data = json.dumps(data).encode("utf-8")
+
+    req = urllib.request.Request(
+        url,
+        data=json_data,
+        method="POST"
+    )
+    req.add_header("Content-Type", "application/json")
+    req.add_header("Accept", "application/json")
+
+    with urllib.request.urlopen(req) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+# Contoh penggunaan
+# new_user = api_post("https://jsonplaceholder.typicode.com/users", {
+#     "name": "Budi Santoso",
+#     "email": "budi@example.com",
+#     "phone": "+62812345678"
+# })
+
+# ===== JSON API Client =====
+class JSONAPIClient:
+    """Simple JSON API client."""
+
+    def __init__(self, base_url: str, headers: dict = None):
+        self.base_url = base_url.rstrip("/")
+        self.headers = headers or {}
+        self.headers.setdefault("Content-Type", "application/json")
+        self.headers.setdefault("Accept", "application/json")
+
+    def _request(self, method: str, endpoint: str, data: dict = None) -> dict:
+        url = f"{self.base_url}/{endpoint.lstrip('/')}"
+
+        body = json.dumps(data).encode("utf-8") if data else None
+        req = urllib.request.Request(url, data=body, method=method)
+
+        for key, value in self.headers.items():
+            req.add_header(key, value)
+
+        try:
+            with urllib.request.urlopen(req) as response:
+                content = response.read().decode("utf-8")
+                if content:
+                    return json.loads(content)
+                return {}
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode("utf-8")
+            raise Exception(f"API Error {e.code}: {error_body}")
+
+    def get(self, endpoint: str) -> dict:
+        return self._request("GET", endpoint)
+
+    def post(self, endpoint: str, data: dict) -> dict:
+        return self._request("POST", endpoint, data)
+
+    def put(self, endpoint: str, data: dict) -> dict:
+        return self._request("PUT", endpoint, data)
+
+    def delete(self, endpoint: str) -> dict:
+        return self._request("DELETE", endpoint)
+
+# Menggunakan client
+# api = JSONAPIClient("https://api.example.com")
+# users = api.get("/users")
+# new_user = api.post("/users", {"name": "Budi"})
+# api.put("/users/1", {"name": "Budi Updated"})
+# api.delete("/users/1")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Pretty Print         -->
+      <!-- ============================== -->
+      <h2 id="json-pretty">9. Pretty Print dan Formatting</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — JSON Formatting</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+
+data = {
+    "users": [
+        {"id": 1, "name": "Budi", "scores": [85, 90, 78]},
+        {"id": 2, "name": "Sari", "scores": [92, 88, 95]},
+    ],
+    "total": 2,
+    "metadata": {"page": 1, "per_page": 10}
+}
+
+# ===== Compact (tanpa spasi) =====
+compact = json.dumps(data, separators=(',', ':'))
+print(f"Compact: {compact[:80]}...")
+print(f"Size: {len(compact)} bytes")
+
+# ===== Standard (default) =====
+standard = json.dumps(data)
+print(f"Standard: {standard[:80]}...")
+print(f"Size: {len(standard)} bytes")
+
+# ===== Pretty (indent 2) =====
+pretty = json.dumps(data, indent=2)
+print(f"Pretty:\n{pretty}")
+
+# ===== Custom formatting =====
+def format_json(data, indent=2, max_inline=60):
+    """Format JSON dengan inline array kecuali jika terlalu panjang."""
+    result = json.dumps(data, indent=indent, ensure_ascii=False)
+    return result
+
+# ===== Colored JSON di terminal =====
+def colorize_json(json_str: str) -> str:
+    """Menambahkan warna ANSI ke JSON string."""
+    import re
+    # Warna untuk tipe data berbeda
+    json_str = re.sub(r'"([^"]+)":', r'\033[34m"\1"\033[0m:', json_str)  # Keys: blue
+    json_str = re.sub(r': "([^"]*)"', r': \033[32m"\1"\033[0m', json_str)  # Strings: green
+    json_str = re.sub(r': (\d+\.?\d*)', r': \033[33m\1\033[0m', json_str)  # Numbers: yellow
+    json_str = re.sub(r': (true|false|null)', r': \033[35m\1\033[0m', json_str)  # Boolean/null: magenta
+    return json_str
+
+print(colorize_json(json.dumps(data, indent=2)))
+
+# ===== JSON diff =====
+def json_diff(obj1, obj2, path=""):
+    """Mencari perbedaan antara dua JSON object."""
+    diffs = []
+
+    if isinstance(obj1, dict) and isinstance(obj2, dict):
+        for key in set(list(obj1.keys()) + list(obj2.keys())):
+            current = f"{path}.{key}" if path else key
+            if key not in obj1:
+                diffs.append(f"  + {current}: {obj2[key]}")
+            elif key not in obj2:
+                diffs.append(f"  - {current}: {obj1[key]}")
+            else:
+                diffs.extend(json_diff(obj1[key], obj2[key], current))
+    elif isinstance(obj1, list) and isinstance(obj2, list):
+        for i in range(max(len(obj1), len(obj2))):
+            current = f"{path}[{i}]"
+            if i >= len(obj1):
+                diffs.append(f"  + {current}: {obj2[i]}")
+            elif i >= len(obj2):
+                diffs.append(f"  - {current}: {obj1[i]}")
+            else:
+                diffs.extend(json_diff(obj1[i], obj2[i], current))
+    elif obj1 != obj2:
+        diffs.append(f"  ~ {path}: {obj1} → {obj2}")
+
+    return diffs
+
+old_data = {"name": "Budi", "age": 25, "city": "Jakarta"}
+new_data = {"name": "Budi", "age": 26, "email": "budi@mail.com"}
+print("\nJSON Diff:")
+for diff in json_diff(old_data, new_data):
+    print(diff)
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Error Handling      -->
+      <!-- ============================== -->
+      <h2 id="json-error">10. Error Handling</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — JSON Error Handling</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+
+# ===== JSONDecodeError =====
+invalid_json_strings = [
+    '{"name": "Budi",}',         # Trailing comma
+    "{'name': 'Budi'}",          # Single quotes
+    '{"name": undefined}',        # undefined bukan JSON
+    '{name: "Budi"}',            # Key tanpa quotes
+    '{"value": 123abc}',         # Invalid number
+    '',                          # Empty string
+    'Just plain text',           # Bukan JSON
+]
+
+for s in invalid_json_strings:
+    try:
+        json.loads(s)
+        print(f"  ✅ Valid: {s[:50]}")
+    except json.JSONDecodeError as e:
+        print(f"  ❌ Error: {str(e)[:60]} | Input: {s[:40]}")
+
+# ===== Safe JSON parsing =====
+def safe_json_loads(text: str, default=None):
+    """Parse JSON dengan aman, mengembalikan default jika gagal."""
+    try:
+        return json.loads(text)
+    except (json.JSONDecodeError, TypeError):
+        return default
+
+# Test
+result = safe_json_loads('{"valid": true}', default={})
+print(f"Valid: {result}")
+
+result = safe_json_loads('invalid json', default={})
+print(f"Invalid: {result}")
+
+# ===== Handle serialization errors =====
+def safe_json_dumps(data, default=None, **kwargs):
+    """Serialize ke JSON dengan aman."""
+    try:
+        return json.dumps(data, **kwargs)
+    except (TypeError, ValueError) as e:
+        if default is not None:
+            return json.dumps(default, **kwargs)
+        raise
+
+# ===== Validate JSON structure =====
+def validate_json_structure(data: dict, schema: dict) -> list:
+    """Validasi sederhana JSON berdasarkan schema dict."""
+    errors = []
+
+    for key, expected_type in schema.items():
+        if key not in data:
+            errors.append(f"Missing key: '{key}'")
+        elif not isinstance(data[key], expected_type):
+            errors.append(
+                f"Wrong type for '{key}': "
+                f"expected {expected_type.__name__}, "
+                f"got {type(data[key]).__name__}"
+            )
+
+    return errors
+
+# Test validation
+schema = {
+    "name": str,
+    "age": int,
+    "email": str,
+    "scores": list,
+}
+
+test_data = {"name": "Budi", "age": "25", "scores": [90, 85]}
+errors = validate_json_structure(test_data, schema)
+if errors:
+    print(f"Validation errors:")
+    for err in errors:
+        print(f"  ❌ {err}")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Studi Kasus         -->
+      <!-- ============================== -->
+      <h2 id="studi-kasus">11. Studi Kasus</h2>
+
+      <h3>Configuration Manager</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Config Manager</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+from pathlib import Path
+from typing import Any, Optional
+from copy import deepcopy
+
+class ConfigManager:
+    """JSON-based configuration manager dengan merge dan env support."""
+
+    def __init__(self, config_path: str, defaults: dict = None):
+        self.config_path = Path(config_path)
+        self.defaults = defaults or {}
+        self.config = deepcopy(self.defaults)
+        self._load()
+
+    def _load(self):
+        """Load config dari file, merge dengan defaults."""
+        if self.config_path.exists():
+            try:
+                file_config = json.loads(self.config_path.read_text())
+                self._deep_merge(self.config, file_config)
+            except json.JSONDecodeError as e:
+                print(f"⚠️ Config parse error: {e}")
+
+    def _deep_merge(self, base: dict, override: dict):
+        """Deep merge dua dictionary."""
+        for key, value in override.items():
+            if key in base and isinstance(base[key], dict) and isinstance(value, dict):
+                self._deep_merge(base[key], value)
+            else:
+                base[key] = value
+
+    def get(self, key_path: str, default: Any = None) -> Any:
+        """Akses nested config dengan dot notation."""
+        keys = key_path.split(".")
+        current = self.config
+        for key in keys:
+            if isinstance(current, dict) and key in current:
+                current = current[key]
+            else:
+                return default
+        return current
+
+    def set(self, key_path: str, value: Any):
+        """Set nested config dengan dot notation."""
+        keys = key_path.split(".")
+        current = self.config
+        for key in keys[:-1]:
+            if key not in current:
+                current[key] = {}
+            current = current[key]
+        current[keys[-1]] = value
+
+    def save(self):
+        """Simpan config ke file."""
+        self.config_path.parent.mkdir(parents=True, exist_ok=True)
+        self.config_path.write_text(
+            json.dumps(self.config, indent=2, ensure_ascii=False),
+            encoding="utf-8"
+        )
+
+    def __repr__(self):
+        return json.dumps(self.config, indent=2, ensure_ascii=False)
+
+# Menggunakan
+defaults = {
+    "app": {
+        "name": "MyApp",
+        "version": "1.0.0",
+        "debug": False,
+    },
+    "database": {
+        "host": "localhost",
+        "port": 5432,
+    },
+    "logging": {
+        "level": "INFO",
+        "file": "app.log",
+    }
+}
+
+config = ConfigManager("app_config.json", defaults)
+print(f"App: {config.get('app.name')}")
+print(f"DB Host: {config.get('database.host')}")
+print(f"Debug: {config.get('app.debug')}")
+
+config.set("app.debug", True)
+config.set("database.host", "db.production.com")
+config.save()
+print(f"Config saved!")
+</code></pre>
+      </div>
+
+      <h3>JSON Data Pipeline</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Data Pipeline</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+from pathlib import Path
+from datetime import datetime
+from typing import List, Dict, Any
+
+class JSONDataPipeline:
+    """Pipeline untuk memproses JSON data."""
+
+    def __init__(self):
+        self.data: List[Dict] = []
+        self.transforms: List[callable] = []
+        self.filters: List[callable] = []
+
+    def load_json(self, filepath: str) -> 'JSONDataPipeline':
+        """Load data dari JSON file."""
+        content = Path(filepath).read_text()
+        loaded = json.loads(content)
+        if isinstance(loaded, list):
+            self.data.extend(loaded)
+        else:
+            self.data.append(loaded)
+        return self
+
+    def load_jsonl(self, filepath: str) -> 'JSONDataPipeline':
+        """Load data dari JSON Lines file."""
+        for line in Path(filepath).read_text().splitlines():
+            if line.strip():
+                self.data.append(json.loads(line))
+        return self
+
+    def filter(self, func: callable) -> 'JSONDataPipeline':
+        """Tambahkan filter function."""
+        self.filters.append(func)
+        return self
+
+    def transform(self, func: callable) -> 'JSONDataPipeline':
+        """Tambahkan transform function."""
+        self.transforms.append(func)
+        return self
+
+    def process(self) -> List[Dict]:
+        """Jalankan pipeline."""
+        result = self.data
+
+        # Apply filters
+        for f in self.filters:
+            result = [item for item in result if f(item)]
+
+        # Apply transforms
+        for t in self.transforms:
+            result = [t(item) for item in result]
+
+        return result
+
+    def save_json(self, data: List[Dict], filepath: str, indent: int = 2):
+        """Simpan hasil ke JSON file."""
+        Path(filepath).write_text(
+            json.dumps(data, indent=indent, ensure_ascii=False),
+            encoding="utf-8"
+        )
+        print(f"  💾 Saved {len(data)} records to {filepath}")
+
+    def save_jsonl(self, data: List[Dict], filepath: str):
+        """Simpan hasil ke JSON Lines file."""
+        lines = [json.dumps(item, ensure_ascii=False) for item in data]
+        Path(filepath).write_text("\n".join(lines) + "\n")
+        print(f"  💾 Saved {len(data)} records to {filepath}")
+
+# Menggunakan pipeline
+# pipeline = JSONDataPipeline()
+# result = (
+#     pipeline
+#     .load_json("users.json")
+#     .filter(lambda u: u.get("age", 0) >= 18)
+#     .filter(lambda u: u.get("active", True))
+#     .transform(lambda u: {**u, "processed_at": datetime.now().isoformat()})
+#     .transform(lambda u: {k: v for k, v in u.items() if k != "password"})
+#     .process()
+# )
+# pipeline.save_json(result, "adult_users.json")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">12. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quizJSON01">
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Fungsi apa yang digunakan untuk mengkonversi JSON string ke Python object?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) <code>json.dumps()</code></div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) <code>json.loads()</code></div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) <code>json.decode()</code></div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) <code>json.parse()</code></div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa perbedaan antara <code>json.dumps()</code> dan <code>json.dump()</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Tidak ada perbedaan</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) <code>dumps()</code> return string, <code>dump()</code> tulis ke file</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) <code>dumps()</code> untuk dict, <code>dump()</code> untuk list</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) <code>dumps()</code> lebih cepat dari <code>dump()</code></div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Tipe data Python apa yang direpresentasikan sebagai <code>null</code> dalam JSON?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) <code>False</code></div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) <code>0</code></div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) <code>None</code></div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) <code>""</code></div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Parameter apa yang digunakan untuk membuat JSON output lebih rapi?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) <code>format=True</code></div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) <code>pretty=True</code></div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) <code>indent=N</code></div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) <code>beautify=True</code></div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Bagaimana cara menangani tipe data yang tidak bisa di-serialize (misal: datetime)?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Gunakan parameter <code>allow_special=True</code></div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Konversi manual ke string sebelum dumps</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Gunakan parameter <code>default=handler_func</code></div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Gunakan <code>json.dumps(obj, safe=False)</code></div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="python-context-managers.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Python Context Managers</span>
+        </a>
+        <a href="python-virtual-environments.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Python Virtual Environments</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

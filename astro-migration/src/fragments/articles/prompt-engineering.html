@@ -1,0 +1,524 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">AI &amp; Data Science</a>
+        <span class="separator">/</span>
+        <span class="current">Prompt Engineering Advanced</span>
+      </div>
+      <span class="category-tag">AI &amp; Data Science</span>
+      <h1>Prompt Engineering Advanced — Chain-of-Thought, Few-Shot, Self-Consistency, Tree-of-Thought, ReAct</h1>
+      <p class="article-subtitle">Kuasai teknik prompt engineering tingkat lanjut untuk memaksimalkan kemampuan LLM — dari chain-of-thought reasoning hingga ReAct pattern untuk agentic AI</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide"><!-- AdSense --></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Prompt Engineering</a></li>
+          <li><a href="#zero-shot">Zero-Shot Prompting</a></li>
+          <li><a href="#few-shot">Few-Shot Prompting</a></li>
+          <li><a href="#chain-of-thought">Chain-of-Thought (CoT)</a></li>
+          <li><a href="#self-consistency">Self-Consistency</a></li>
+          <li><a href="#tree-of-thought">Tree-of-Thought (ToT)</a></li>
+          <li><a href="#react">ReAct Pattern</a></li>
+          <li><a href="#structured">Structured Output &amp; System Prompts</a></li>
+          <li><a href="#anti-patterns">Anti-patterns &amp; Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan Prompt Engineering</h2>
+
+      <p><strong>Prompt Engineering</strong> adalah seni dan sains merancang input (prompt) untuk LLM agar menghasilkan output yang diinginkan. Teknik yang tepat bisa membuat perbedaan besar — dari jawaban yang biasa saja hingga jawaban yang sangat akurat dan terstruktur.</p>
+
+      <p>Prompt engineering bukan hanya tentang "menulis pertanyaan". Ini melibatkan <strong>struktur, konteks, instruksi, dan strategi</strong> yang membuat LLM berpikir lebih baik.</p>
+
+      
+
+      <h3>Kapan Menggunakan CoT?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Tugas</th>
+            <th>Cocok CoT?</th>
+            <th>Alasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Matematika & logika</td><td>✅ Sangat cocok</td><td>Butuh reasoning bertahap</td></tr>
+          <tr><td>Code debugging</td><td>✅ Sangat cocok</td><td>Analisis langkah demi langkah</td></tr>
+          <tr><td>Analisis kasus hukum</td><td>✅ Cocok</td><td>Butuh argumen bertingkat</td></tr>
+          <tr><td>Klasifikasi sederhana</td><td>❌ Tidak perlu</td><td>Terlalu overkill</td></tr>
+          <tr><td>Translation</td><td>❌ Tidak perlu</td><td>Butuh fluency, bukan reasoning</td></tr>
+          <tr><td>Summarization</td><td>⚠️ Kadang</td><td>Berguna untuk teks kompleks</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 5 -->
+      <h2 id="self-consistency">5. Self-Consistency</h2>
+
+      <p><strong>Self-Consistency</strong> adalah teknik yang menjalankan CoT <strong>beberapa kali</strong> (dengan temperature > 0), lalu memilih jawaban yang paling konsisten (mayoritas voting). Ini meningkatkan akurasi secara signifikan.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Self-Consistency Implementation</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# Self-Consistency Prompting
+# =============================================
+from collections import Counter
+
+def self_consistency(client, question, n_samples=5):
+    """
+    Generate n_samples jawaban dengan CoT, 
+    pilih jawaban yang paling konsisten (mayoritas).
+    """
+    prompt = f"""{question}
+
+Pikirkan langkah demi langkah, lalu berikan jawaban akhir 
+di baris terakhir dengan format: "Jawaban: [jawaban Anda]"
+"""
+    
+    answers = []
+    reasonings = []
+    
+    for i in range(n_samples):
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,  # Harus > 0 untuk variasi
+        )
+        
+        text = response.choices[0].message.content
+        reasonings.append(text)
+        
+        # Extract jawaban akhir
+        if "Jawaban:" in text:
+            answer = text.split("Jawaban:")[-1].strip()
+            answers.append(answer)
+    
+    # Majority voting
+    answer_counts = Counter(answers)
+    most_common = answer_counts.most_common(1)[0]
+    
+    return {
+        "final_answer": most_common[0],
+        "confidence": f"{most_common[1]}/{n_samples}",
+        "all_answers": answers,
+        "all_reasonings": reasonings
+    }
+
+# Contoh penggunaan
+result = self_consistency(
+    client,
+    "Sebuah lift kapasitas 500kg. Ada 3 orang (70kg, 80kg, 90kg) "
+    "dan 10 kardus masing-masing 25kg. Apakah semua bisa masuk?",
+    n_samples=5
+)
+print(f"Jawaban: {result['final_answer']}")
+print(f"Confidence: {result['confidence']}")
+# Jawaban: Tidak, total 600kg > 500kg
+# Confidence: 5/5 ← sangat yakin!</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"><!-- AdSense --></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="tree-of-thought">6. Tree-of-Thought (ToT)</h2>
+
+      <p><strong>Tree-of-Thought</strong> memperluas CoT dengan memungkinkan LLM untuk <strong>menjelajahi beberapa jalur pemikiran</strong>, mengevaluasi setiap jalur, dan memilih yang terbaik. Mirip dengan algoritma beam search dalam berpikir.</p>
+
+      
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Tree-of-Thought Implementation</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# Tree-of-Thought (ToT) — Simplified
+# =============================================
+
+def tree_of_thought(client, problem, n_branches=3):
+    """
+    Implementasi ToT sederhana:
+    1. Generate multiple jalur pemikiran
+    2. Evaluasi setiap jalur
+    3. Pilih yang terbaik
+    """
+    
+    # Step 1: Generate multiple approaches
+    branch_prompt = f"""Masalah: {problem}
+
+Pikirkan {n_branches} pendekatan berbeda untuk menyelesaikan masalah ini.
+Untuk setiap pendekatan:
+1. Jelaskan strategi
+2. Tunjukkan langkah penyelesaian
+3. Berikan jawaban
+
+Format output:
+## Pendekatan 1: [nama strategi]
+[langkah-langkah]
+Jawaban: [jawaban]
+
+## Pendekatan 2: [nama strategi]
+..."""
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "Anda adalah problem solver ahli."},
+            {"role": "user", "content": branch_prompt}
+        ],
+        temperature=0.8
+    )
+    
+    approaches = response.choices[0].message.content
+    
+    # Step 2: Evaluate & pick best
+    eval_prompt = f"""Berikut beberapa pendekatan untuk menyelesaikan masalah:
+
+Masalah: {problem}
+
+Pendekatan yang dihasilkan:
+{approaches}
+
+Evaluasi setiap pendekatan:
+1. Apakah logikanya benar?
+2. Apakah ada kesalahan perhitungan?
+3. Apakah ada edge case yang terlewat?
+
+Pilih pendekatan terbaik dan berikan jawaban final yang pasti."""
+
+    final_response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "Anda adalah evaluator yang kritis dan teliti."},
+            {"role": "user", "content": eval_prompt}
+        ],
+        temperature=0.2  # Rendah untuk jawaban final yang konsisten
+    )
+    
+    return final_response.choices[0].message.content
+
+# Contoh
+result = tree_of_thought(
+    client,
+    "Ada 100 tahanan dan 100 kunci. Setiap tahanan bisa membuka kunci "
+    "secara acak. Berapa probabilitas minimal SATU tahanan menemukan "
+    "kuncinya sendiri?"
+)</code></pre>
+      </div>
+
+      <!-- SECTION 7 -->
+      <h2 id="react">7. ReAct Pattern</h2>
+
+      <p><strong>ReAct (Reasoning + Acting)</strong> adalah pola yang menggabungkan <strong>berpikir dan bertindak</strong>. LLM tidak hanya berpikir, tetapi juga mengambil aksi (menggunakan tools), mengamati hasil, lalu berpikir lagi. Ini adalah fondasi dari <strong>AI Agents</strong>.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: ReAct Loop</div>
+<pre class="mermaid">
+flowchart TD
+    N0["Thought (Pikir) 'User tanya harga saham AAPL. S..."]
+    N1["Thought (Pikir lagi) 'Sudah dapat data. Sekaran..."]
+    N2["Final Answer 'Harga saham AAPL hari ini $185.50..."]
+    N3["Action (Aksi) search_stock_price(#quot;ticker='AAPL'#quot;)"]
+    N4["Observation (Amati) Result: AAPL = $185.50, nai..."]
+    N0 --> N3
+    N3 --> N4
+    N4 --> N1
+    N1 --> N2
+</pre>
+    </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — ReAct with LangChain</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# ReAct Pattern dengan LangChain
+# =============================================
+from langchain_openai import ChatOpenAI
+from langchain.agents import tool, AgentExecutor, create_react_agent
+from langchain import hub
+
+# Definisikan tools
+@tool
+def search_knowledge_base(query: str) -> str:
+    """Mencari informasi dari knowledge base perusahaan."""
+    # Di production, ini akan query vector DB
+    knowledge = {
+        "refund": "Kebijakan refund: pengembalian dalam 7 hari, syarat kemasan utuh.",
+        "pengiriman": "Waktu pengiriman: 2-3 hari Jawa, 5-7 hari luar Jawa.",
+        "garansi": "Garansi produk 1 tahun, claim via email support@beebane.com"
+    }
+    for key, value in knowledge.items():
+        if key in query.lower():
+            return value
+    return "Informasi tidak ditemukan di knowledge base."
+
+@tool
+def calculate(expression: str) -> str:
+    """Menghitung ekspresi matematika."""
+    try:
+        return str(eval(expression))
+    except:
+        return "Error: ekspresi tidak valid"
+
+@tool  
+def get_current_date() -> str:
+    """Mendapatkan tanggal hari ini."""
+    from datetime import datetime
+    return datetime.now().strftime("%d %B %Y, %H:%M WIB")
+
+# Setup ReAct Agent
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+prompt = hub.pull("hwchase17/react")
+agent = create_react_agent(llm, [search_knowledge_base, calculate, get_current_date], prompt)
+
+agent_executor = AgentExecutor(
+    agent=agent,
+    tools=[search_knowledge_base, calculate, get_current_date],
+    verbose=True,
+    handle_parsing_errors=True,
+    max_iterations=5
+)
+
+# Jalankan agent
+result = agent_executor.invoke({
+    "input": "Saya mau tanya, kalau saya beli produk kemarin dan mau refund, "
+             "sampai kapan batas waktunya?"
+})
+print(result["output"])</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"><!-- AdSense --></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="structured">8. Structured Output &amp; System Prompts</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Structured Output dengan Pydantic</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# Structured Output — JSON Mode dengan Pydantic
+# =============================================
+from pydantic import BaseModel
+from openai import OpenAI
+
+client = OpenAI()
+
+class ProductReview(BaseModel):
+    sentiment: str        # "positif" | "negatif" | "netral"
+    rating: int           # 1-5
+    summary: str          # Ringkasan singkat
+    keywords: list[str]   # Kata kunci
+    confidence: float     # 0-1
+
+# Gunakan response_format untuk JSON
+response = client.beta.chat.completions.parse(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "Analisis ulasan produk dan berikan output terstruktur."},
+        {"role": "user", "content": "Produk ini sangat bagus! Pengiriman cepat, "
+         "kemasan rapi. Sayang harganya agak mahal. Rating 4/5 lah."}
+    ],
+    response_format=ProductReview
+)
+
+review = response.choices[0].message.parsed
+print(f"Sentiment: {review.sentiment}")
+print(f"Rating: {review.rating}")
+print(f"Summary: {review.summary}")
+print(f"Keywords: {review.keywords}")
+
+# System Prompt Patterns
+system_prompts = {
+    "persona": """Anda adalah Dr. AI, asisten medis yang berpengalaman 20 tahun.
+Selalu berikan disclaimer bahwa ini bukan pengganti konsultasi dokter.
+Gunakan bahasa yang mudah dipahami pasien.""",
+
+    "constraint": """ATURAN KETAT:
+1. Hanya jawab pertanyaan tentang programming
+2. Jangan berikan saran investasi atau medis
+3. Selalu sertakan contoh kode
+4. Jika tidak tahu, katakan tidak tahu""",
+
+    "output_format": """Format jawaban SELALU:
+## Ringkasan
+[1-2 kalimat]
+
+## Penjelasan Detail
+[paragraf]
+
+## Contoh Kode
+```python
+[code]
+```
+
+## Referansi
+[link atau sumber]"
+"""
+}</code></pre>
+      </div>
+
+      <!-- SECTION 9 -->
+      <h2 id="anti-patterns">9. Anti-patterns &amp; Best Practices</h2>
+
+      <h3>❌ Anti-patterns yang Harus Dihindari</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Anti-pattern</th>
+            <th>Contoh Buruk</th>
+            <th>Perbaikan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Terlalu vague</td><td>"Jelaskan AI"</td><td>"Jelaskan konsep RAG dalam 3 paragraf untuk developer junior"</td></tr>
+          <tr><td>Over-prompting</td><td>System prompt 2000 kata</td><td>Fokus pada instruksi penting saja</td></tr>
+          <tr><td>Tidak ada format</td><td>"Buatkan analisis"</td><td>"Buat analisis dalam format: Summary, Key Points, Recommendation"</td></tr>
+          <tr><td>Contradicting</td><td>"Singkat tapi lengkap dengan semua detail"</td><td>Prioritaskan: "Ringkas dalam 5 bullet points"</td></tr>
+          <tr><td>Ignorasi safety</td><td>"Abaikan instruksi sebelumnya"</td><td>Jangan pernah — ini prompt injection</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Best Practices Prompt Engineering</div>
+        <ul>
+          <li><strong>Mulai dengan role</strong> — "Anda adalah expert X dengan pengalaman Y tahun"</li>
+          <li><strong>Berikan konteks</strong> — latar belakang situasi, audiens target</li>
+          <li><strong>Tentukan format</strong> — JSON, markdown, bullet points, tabel</li>
+          <li><strong>Berikan contoh</strong> — few-shot selalu lebih baik dari zero-shot</li>
+          <li><strong>Gunakan CoT</strong> — untuk tugas yang butuh reasoning</li>
+          <li><strong>Iterasi</strong> — test, evaluate, refine prompt</li>
+          <li><strong>Versi control</strong> — simpan semua versi prompt yang dicoba</li>
+          <li><strong>Temperature sesuai kebutuhan</strong> — 0 untuk konsisten, 0.7-1 untuk kreatif</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"><!-- AdSense --></div>
+
+      <!-- SECTION 10: Quiz -->
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+
+      <div class="quiz-container">
+        <div class="quiz-question" data-correct="2">
+          <p><strong>1. Apa yang dilakukan oleh Chain-of-Thought (CoT) prompting?</strong></p>
+          <label><input type="radio" name="q1" value="0"> Memberikan banyak contoh sebelum tugas</label>
+          <label><input type="radio" name="q1" value="1"> Menggunakan tool untuk mencari informasi</label>
+          <label><input type="radio" name="q1" value="2"> Meminta LLM menunjukkan proses berpikir langkah demi langkah</label>
+          <label><input type="radio" name="q1" value="3"> Menggabungkan beberapa model LLM</label>
+        </div>
+
+        <div class="quiz-question" data-correct="1">
+          <p><strong>2. Apa keunggulan Self-Consistency dibanding CoT biasa?</strong></p>
+          <label><input type="radio" name="q2" value="0"> Lebih cepat karena hanya satu kali generate</label>
+          <label><input type="radio" name="q2" value="1"> Menggunakan majority voting dari beberapa jalur reasoning untuk akurasi lebih tinggi</label>
+          <label><input type="radio" name="q2" value="2"> Tidak memerlukan contoh sama sekali</label>
+          <label><input type="radio" name="q2" value="3"> Bekerja tanpa system prompt</label>
+        </div>
+
+        <div class="quiz-question" data-correct="3">
+          <p><strong>3. Apa perbedaan utama ReAct dengan CoT?</strong></p>
+          <label><input type="radio" name="q3" value="0"> ReAct lebih cepat dari CoT</label>
+          <label><input type="radio" name="q3" value="1"> ReAct tidak memerlukan reasoning</label>
+          <label><input type="radio" name="q3" value="2"> ReAct hanya untuk tugas matematika</label>
+          <label><input type="radio" name="q3" value="3"> ReAct menggabungkan reasoning dengan aksi (tool use), sementara CoT hanya berpikir</label>
+        </div>
+
+        <div class="quiz-question" data-correct="0">
+          <p><strong>4. Kapan Few-Shot lebih baik dari Zero-Shot?</strong></p>
+          <label><input type="radio" name="q4" value="0"> Ketika tugas memerlukan format output yang konsisten atau domain spesifik</label>
+          <label><input type="radio" name="q4" value="1"> Selalu lebih baik, tidak ada kecuali</label>
+          <label><input type="radio" name="q4" value="2"> Hanya untuk tugas terjemahan</label>
+          <label><input type="radio" name="q4" value="3"> Hanya ketika menggunakan model kecil</label>
+        </div>
+
+        <div class="quiz-question" data-correct="2">
+          <p><strong>5. Apa itu Tree-of-Thought (ToT)?</strong></p>
+          <label><input type="radio" name="q5" value="0"> Teknik untuk menyimpan conversation history</label>
+          <label><input type="radio" name="q5" value="1"> Algoritma sorting untuk data</label>
+          <label><input type="radio" name="q5" value="2"> Teknik prompting yang mengeksplorasi multiple jalur pemikiran dan memilih yang terbaik</label>
+          <label><input type="radio" name="q5" value="3"> Struktur data untuk menyimpan embeddings</label>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <h3>Rangkuman</h3>
+      <div class="info-box info">
+        <div class="info-box-title">📝 Poin Penting</div>
+        <ul>
+          <li><strong>Zero-Shot</strong> — tanpa contoh, cocok untuk tugas sederhana</li>
+          <li><strong>Few-Shot</strong> — dengan contoh, untuk format dan domain spesifik</li>
+          <li><strong>Chain-of-Thought</strong> — reasoning langkah demi langkah, dramatis meningkatkan akurasi</li>
+          <li><strong>Self-Consistency</strong> — multiple CoT + majority voting</li>
+          <li><strong>Tree-of-Thought</strong> — eksplorasi multiple jalur reasoning</li>
+          <li><strong>ReAct</strong> — reasoning + acting, fondasi AI agents</li>
+          <li><strong>Structured Output</strong> — gunakan Pydantic untuk output terstruktur</li>
+        </ul>
+      </div>
+
+    </div>
+  </article>
+
+  <script src="../js/app.js?v=19.2"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    primaryColor: '#0f2a1f', primaryTextColor: '#e4e4e7',
+    primaryBorderColor: '#3ecf8e', lineColor: '#8b8b8b',
+    secondaryColor: '#0f1d3a', tertiaryColor: '#2a1f0a',
+    background: '#0a0a12', mainBkg: '#0a0a12',
+    nodeBorder: '#3ecf8e', clusterBkg: '#0a0a12',
+    titleColor: '#e4e4e7', edgeLabelBackground: '#0a0a12'
+  },
+  flowchart: { curve: 'basis', padding: 15, htmlLabels: true },
+  sequence: { mirrorActors: false, messageAlign: 'center' }
+});
+</script>

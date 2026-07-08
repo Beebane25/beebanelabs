@@ -1,0 +1,1119 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">IoT</a>
+        <span class="separator">/</span>
+        <span class="current">Sensor Interfacing</span>
+      </div>
+      <span class="category-tag">IoT</span>
+      <h1>🌡️ Sensor Interfacing dengan Microcontroller</h1>
+      <p class="article-subtitle">Panduan lengkap menghubungkan sensor ke microcontroller — ADC, I2C, SPI, UART, kalibrasi sensor, dan contoh kode praktis untuk ESP32 dan Arduino</p>
+      <div class="article-meta">
+        <span>📅 27 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-sensor">Pengenalan Sensor Interfacing</a></li>
+          <li><a href="#jenis-sensor">Jenis-Jenis Sensor</a></li>
+          <li><a href="#adc">ADC (Analog to Digital Converter)</a></li>
+          <li><a href="#i2c">Komunikasi I2C</a></li>
+          <li><a href="#spi">Komunikasi SPI</a></li>
+          <li><a href="#uart">Komunikasi UART/Serial</a></li>
+          <li><a href="#perbandingan">Perbandingan Protokol Komunikasi</a></li>
+          <li><a href="#kalibrasi">Kalibrasi Sensor</a></li>
+          <li><a href="#noise-filtering">Noise Filtering dan Signal Processing</a></li>
+          <li><a href="#proyek-multisensor">Proyek Multi-Sensor</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-sensor">1. Pengenalan Sensor Interfacing</h2>
+
+      <p><strong>Sensor interfacing</strong> adalah proses menghubungkan sensor fisik ke microcontroller sehingga data dari dunia nyata (suhu, cahaya, kelembaban, tekanan, dll) dapat dibaca, diproses, dan dikirim ke sistem IoT. Memahami berbagai metode interfacing adalah keterampilan fundamental bagi setiap praktisi IoT.</p>
+
+      <p>Setiap sensor memiliki karakteristik berbeda: ada yang menghasilkan sinyal analog, ada yang digital; ada yang berkomunikasi via I2C, SPI, atau UART. Pemilihan metode interfacing yang tepat mempengaruhi akurasi, kecepatan, dan kompleksitas sistem Anda.</p>
+
+      <h3>Mengapa Sensor Interfacing Penting?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Akuisisi Data</td><td>Sensor adalah mata dan telinga sistem IoT — tanpa sensor, tidak ada data</td></tr>
+          <tr><td>Akurasi</td><td>Interfacing yang benar memastikan pembacaan sensor akurat dan konsisten</td></tr>
+          <tr><td>Efisiensi</td><td>Pemilihan protokol yang tepat menghemat pin, power, dan bandwidth</td></tr>
+          <tr><td>Skalabilitas</td><td>Protokol seperti I2C dan SPI memungkinkan banyak sensor di satu bus</td></tr>
+          <tr><td>Reliability</td><td>Kalibrasi dan filtering menghasilkan data yang dapat diandalkan</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Bus I2C</div>
+<pre class="mermaid">
+flowchart TD
+    A["🧠 Master ESP32"] -->|"SCL + SDA"| B["📡 Slave 1 Suhu"]
+    A -->|"SCL + SDA"| C["📡 Slave 2 OLED Display"]
+    A -->|"SCL + SDA"| D["📡 Slave 3 RTC Module"]
+    E["🔌 Pull-up Resistor"] -->|"VCC"| A
+    B -->|"Data"| A
+    C -->|"Acknowledge"| A
+    D -->|"Data"| A
+</pre>
+      </div>
+
+      <h3>Scan Alamat I2C</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Arduino — I2C Scanner</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>#include &lt;Wire.h&gt;
+
+// I2C Scanner — cari semua device di bus I2C
+// Berguna untuk menemukan alamat sensor baru
+
+#define SDA_PIN 21    // ESP32 default SDA
+#define SCL_PIN 22    // ESP32 default SCL
+
+void setup() {
+    Serial.begin(115200);
+    Wire.begin(SDA_PIN, SCL_PIN);
+
+    Serial.println("I2C Scanner - Scanning...");
+    Serial.println("     0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F");
+
+    int deviceCount = 0;
+
+    for (byte addr = 1; addr < 127; addr++) {
+        if (addr % 16 == 0) {
+            Serial.printf("\n0x%02X:", addr);
+        }
+
+        Wire.beginTransmission(addr);
+        byte error = Wire.endTransmission();
+
+        if (error == 0) {
+            Serial.printf(" %02X", addr);
+            deviceCount++;
+        } else {
+            Serial.print(" --");
+        }
+    }
+
+    Serial.printf("\n\nDitemukan %d perangkat I2C\n", deviceCount);
+
+    // Tabel alamat umum
+    Serial.println("\nAlamat Umum:");
+    Serial.println("  0x27/0x3F - LCD I2C");
+    Serial.println("  0x3C/0x3D - OLED SSD1306");
+    Serial.println("  0x48      - ADS1115 (ADC)");
+    Serial.println("  0x68      - MPU6050 (IMU)");
+    Serial.println("  0x76/0x77 - BME280/BMP280");
+    Serial.println("  0x23      - BH1750 (Light)");
+    Serial.println("  0x5A      - SGP30 (Gas)");
+}
+
+void loop() {}
+</code></pre>
+      </div>
+
+      <h3>Membaca BME280 via I2C</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Arduino — BME280 I2C</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>#include &lt;Wire.h&gt;
+#include &lt;Adafruit_BME280.h&gt;
+
+// I2C Pins untuk ESP32
+#define SDA_PIN 21
+#define SCL_PIN 22
+
+Adafruit_BME280 bme;  // I2C (default address 0x76)
+
+void setup() {
+    Serial.begin(115200);
+    Wire.begin(SDA_PIN, SCL_PIN);
+
+    // Inisialisasi BME280
+    if (!bme.begin(0x76)) {
+        Serial.println("BME280 tidak ditemukan!");
+        Serial.println("Cek wiring dan alamat I2C (0x76 atau 0x77)");
+        while (1);
+    }
+
+    // Konfigurasi sensor
+    bme.setSampling(
+        Adafruit_BME280::MODE_NORMAL,        // Mode operasi
+        Adafruit_BME280::SAMPLING_X2,        // Temperature oversampling
+        Adafruit_BME280::SAMPLING_X16,       // Pressure oversampling
+        Adafruit_BME280::SAMPLING_X1,        // Humidity oversampling
+        Adafruit_BME280::FILTER_X16,         // IIR Filter
+        Adafruit_BME280::STANDBY_MS_500      // Standby time
+    );
+
+    Serial.println("BME280 siap!");
+}
+
+void loop() {
+    float suhu = bme.readTemperature();        // °C
+    float tekanan = bme.readPressure() / 100.0; // hPa
+    float kelembaban = bme.readHumidity();      // %
+    float altitude = bme.readAltitude(1013.25); // meter (QNH)
+
+    Serial.printf("Suhu      : %.2f °C\n", suhu);
+    Serial.printf("Tekanan   : %.2f hPa\n", tekanan);
+    Serial.printf("Kelembaban: %.2f %%\n", kelembaban);
+    Serial.printf("Altitude  : %.2f m\n", altitude);
+    Serial.println("========================");
+
+    delay(2000);
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: SPI                  -->
+      <!-- ============================== -->
+      <h2 id="spi">5. Komunikasi SPI</h2>
+
+      <p><strong>SPI</strong> (Serial Peripheral Interface) adalah protokol komunikasi serial synchronous yang dikembangkan oleh Motorola. SPI lebih cepat dari I2C dan cocok untuk aplikasi yang membutuhkan throughput tinggi seperti display, ADC berkecepatan tinggi, dan SD card.</p>
+
+      <h3>Karakteristik SPI</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Nilai</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Jumlah Kabel</td><td>4 (MOSI, MISO, SCK, SS/CS) + VCC + GND</td></tr>
+          <tr><td>Kecepatan</td><td>Hingga beberapa MHz (biasanya 1-10 MHz, max ~80 MHz)</td></tr>
+          <tr><td>Topology</td><td>Single master, multi-slave (dengan CS per slave)</td></tr>
+          <tr><td>Duplex</td><td>Full duplex (bisa kirim dan terima bersamaan)</td></tr>
+          <tr><td>Jarak</td><td>Hingga ~30 cm (board-level)</td></tr>
+          <tr><td>Pull-up Resistor</td><td>Tidak diperlukan</td></tr>
+        </tbody>
+      </table>
+
+      <h3>SPI Pin dan Fungsi</h3>
+      
+<pre class="mermaid">
+flowchart TD
+    N0["MASTER ESP32 MOSI MISO ◄ SCK CS1 CS2"]
+    N1["SLAVE 1 MCP3008 (ADC) MOSI MISO SCK CS"]
+    N2[SLAVE 2 SD Card Module MOSI MISO SCK CS]
+    N0 --> N1
+    N1 --> N2
+</pre>
+    </div>
+      </div>
+
+      <h3>MCP3008 — ADC Eksternal via SPI</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Arduino — MCP3008 SPI</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>#include &lt;SPI.h&gt;
+
+// MCP3008: 10-bit ADC, 8 channel, SPI interface
+// Cocok untuk ESP32 yang ADC-nya non-linear
+
+#define CS_PIN 5     // Chip Select (GPIO 5)
+#define SPI_FREQ 1000000  // 1 MHz SPI clock
+
+void setup() {
+    Serial.begin(115200);
+    SPI.begin();        // Default: SCK=18, MISO=19, MOSI=23
+    pinMode(CS_PIN, OUTPUT);
+    digitalWrite(CS_PIN, HIGH);  // Deselect
+
+    Serial.println("MCP3008 ADC via SPI siap!");
+}
+
+int readMCP3008(int channel) {
+    // MCP3008 protocol:
+    // Byte 1: Start bit (1) + Single-ended (1) + Channel (3 bit)
+    // Byte 2: Don't care (8 clock)
+    // Byte 3: Don't care (4 clock) + Data (4 bit MSB)
+    // Byte 4: Data (8 bit LSB) ← tapi kita terima di byte 3 & 4
+
+    byte command = 0b11000000 | (channel << 3);
+
+    SPI.beginTransaction(SPISettings(SPI_FREQ, MSBFIRST, SPI_MODE0));
+    digitalWrite(CS_PIN, LOW);     // Select MCP3008
+
+    SPI.transfer(command);          // Kirim command
+    byte highByte = SPI.transfer(0x00);  // Terima 5 bit
+    byte lowByte = SPI.transfer(0x00);   // Terima 8 bit
+
+    digitalWrite(CS_PIN, HIGH);    // Deselect
+    SPI.endTransaction();
+
+    // Gabungkan 10-bit result
+    int result = ((highByte & 0x1F) << 8) | lowByte;
+    return result;  // 0 - 1023
+}
+
+void loop() {
+    // Baca semua 8 channel
+    for (int ch = 0; ch < 8; ch++) {
+        int raw = readMCP3008(ch);
+        float voltage = (raw / 1023.0) * 3.3;  // Vref = 3.3V
+        Serial.printf("CH%d: %d (%.3fV)  ", ch, raw, voltage);
+    }
+    Serial.println();
+    delay(1000);
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: UART                 -->
+      <!-- ============================== -->
+      <h2 id="uart">6. Komunikasi UART/Serial</h2>
+
+      <p><strong>UART</strong> (Universal Asynchronous Receiver-Transmitter) adalah protokol komunikasi serial asynchronous yang paling banyak digunakan. UART tidak memerlukan clock line — komunikasi disinkronisasi berdasarkan baud rate yang disepakati kedua belah pihak.</p>
+
+      <h3>Karakteristik UART</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Nilai</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Jumlah Kabel</td><td>2 minimum (TX + RX) + GND</td></tr>
+          <tr><td>Baud Rate Umum</td><td>9600, 19200, 38400, 57600, 115200</td></tr>
+          <tr><td>Topology</td><td>Point-to-point (2 device)</td></tr>
+          <tr><td>Duplex</td><td>Full duplex (TX dan RX terpisah)</td></tr>
+          <tr><td>Synchronization</td><td>Asynchronous (tidak perlu clock)</td></tr>
+          <tr><td>Data Frame</td><td>Start bit + Data (5-9 bit) + Parity + Stop bit</td></tr>
+        </tbody>
+      </table>
+
+      <h3>UART Data Frame</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: UART Data Frame</div>
+<pre><code>UART DATA FRAME
+Idle Idle
+HIGH DATA BITS
+S D0 D1 D2 D3 D4 P S
+D5 D6 D7
+S = Start bit (selalu LOW, 1 bit)
+D0-D7 = Data bits (8 bits, LSB first)
+P = Parity bit (opsional: even/odd)
+S = Stop bit (selalu HIGH, 1 atau 2 bit)
+Contoh mengirim karakter &#x27;A&#x27; (0x41 = 01000001):
+IdleStart 1 0 0 0 0 0 1 0 StopIdle
+HIGH LOW HIGHHIGH
+⚠️ TX device → RX device (sambung silang!)
+TX1 ► RX2
+RX1 ◄ TX2</code></pre>
+      </div>
+
+      <h3>GPS Module dengan UART</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Arduino — GPS UART</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>#include &lt;TinyGPS++.h&gt;
+#include &lt;HardwareSerial.h&gt;
+
+// GPS Module NEO-6M via UART
+// Baud rate default GPS: 9600
+
+#define GPS_RX_PIN 16    // ESP32 RX ← GPS TX
+#define GPS_TX_PIN 17    // ESP32 TX → GPS RX (opsional)
+
+TinyGPSPlus gps;
+HardwareSerial SerialGPS(2);  // UART2 pada ESP32
+
+void setup() {
+    Serial.begin(115200);
+    SerialGPS.begin(9600, SERIAL_8N1, GPS_RX_PIN, GPS_TX_PIN);
+
+    Serial.println("GPS Module via UART siap!");
+    Serial.println("Menunggu sinyal GPS...");
+}
+
+void loop() {
+    // Baca data GPS dari UART
+    while (SerialGPS.available() > 0) {
+        char c = SerialGPS.read();
+        gps.encode(c);
+    }
+
+    // Tampilkan data jika ada update
+    if (gps.location.isUpdated()) {
+        double lat = gps.location.lat();
+        double lng = gps.location.lng();
+        double alt = gps.altitude.meters();
+        int sats = gps.satellites.value();
+
+        Serial.printf("Lat: %.6f, Lng: %.6f\n", lat, lng);
+        Serial.printf("Altitude: %.1f m, Satellites: %d\n", alt, sats);
+
+        // Cek kualitas fix
+        if (gps.hdop.isValid()) {
+            Serial.printf("HDOP: %.1f ", gps.hdop.hdop());
+            if (gps.hdop.hdop() < 2) Serial.println("(Excellent)");
+            else if (gps.hdop.hdop() < 5) Serial.println("(Good)");
+            else Serial.println("(Poor)");
+        }
+    }
+
+    // Tampilkan raw NMEA (debug)
+    // while (SerialGPS.available()) {
+    //     Serial.write(SerialGPS.read());
+    // }
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Perbandingan         -->
+      <!-- ============================== -->
+      <h2 id="perbandingan">7. Perbandingan Protokol Komunikasi</h2>
+
+      <p>Memilih protokol komunikasi yang tepat sangat penting untuk kesuksesan proyek IoT Anda. Berikut perbandingan lengkap antara ADC, I2C, SPI, dan UART.</p>
+
+      <h3>Tabel Perbandingan Lengkap</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Analog/ADC</th>
+            <th>I2C</th>
+            <th>SPI</th>
+            <th>UART</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Jumlah Kabel</td><td>1 (+ GND)</td><td>2 (+ VCC + GND)</td><td>4 (+ VCC + GND)</td><td>2 (+ GND)</td></tr>
+          <tr><td>Kecepatan</td><td>Tergantung ADC</td><td>100K-3.4M Hz</td><td>1-80 MHz</td><td>9600-115200+ baud</td></tr>
+          <tr><td>Duplex</td><td>N/A</td><td>Half duplex</td><td>Full duplex</td><td>Full duplex</td></tr>
+          <tr><td>Multi-device</td><td>1 pin/device</td><td>128+ device</td><td>Perlu CS/device</td><td>Point-to-point</td></tr>
+          <tr><td>Jarak</td><td>~1 meter</td><td>~1 meter</td><td>~30 cm</td><td>~15 meter</td></tr>
+          <tr><td>Pin Usage</td><td>1 per sensor</td><td>2 shared</td><td>4+N CS</td><td>2 per connection</td></tr>
+          <tr><td>Kompleksitas</td><td>🟢 Rendah</td><td>🟡 Sedang</td><td>🟡 Sedang</td><td>🟢 Rendah</td></tr>
+          <tr><td>Cocok untuk</td><td>Sensor analog</td><td>Banyak sensor</td><td>High speed</td><td>Module serial</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Kapan Menggunakan Apa?</h3>
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Panduan Pemilihan</div>
+        <ul>
+          <li><strong>Analog/ADC</strong> — Sensor sederhana (suhu LM35, cahaya LDR, pH meter) yang outputnya tegangan analog</li>
+          <li><strong>I2C</strong> — Banyak sensor digital di satu bus (BME280, MPU6050, OLED). Pin-efficient!</li>
+          <li><strong>SPI</strong> — Butuh kecepatan tinggi (SD card, display TFT, ADC presisi, radio LoRa)</li>
+          <li><strong>UART</strong> — Module yang sudah punya serial interface (GPS, Bluetooth, PM2.5 sensor)</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Kalibrasi            -->
+      <!-- ============================== -->
+      <h2 id="kalibrasi">8. Kalibrasi Sensor</h2>
+
+      <p><strong>Kalibrasi</strong> adalah proses menyesuaikan pembacaan sensor dengan nilai referensi yang diketahui untuk memastikan akurasi. Tanpa kalibrasi, data sensor bisa menyimpang jauh dari nilai sebenarnya.</p>
+
+      <h3>Metode Kalibrasi</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Metode</th>
+            <th>Cara Kerja</th>
+            <th>Cocok Untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Offset</strong></td><td>Tambah/kurangi nilai konstan</td><td>Drift yang konsisten</td></tr>
+          <tr><td><strong>Linear</strong></td><td>y = mx + b (slope dan intercept)</td><td>Hubungan linear</td></tr>
+          <tr><td><strong>Polynomial</strong></td><td>y = ax² + bx + c</td><td>Hubungan non-linear</td></tr>
+          <tr><td><strong>Lookup Table</strong></td><td>Tabel mapping input → output</td><td>Kurva kompleks</td></tr>
+          <tr><td><strong>Multi-point</strong></td><td>Kalibrasi di beberapa titik referensi</td><td>Akurasi tinggi</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Kalibrasi pH Meter</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Arduino — pH Sensor Calibration</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Kalibrasi pH meter dengan 2 titik referensi
+// Larutan buffer pH 4.0 dan pH 7.0
+
+class PHSensor {
+private:
+    int _pin;
+    float _acidVoltage;    // Voltage di pH 4.0
+    float _neutralVoltage; // Voltage di pH 7.0
+    float _slope;
+    float _intercept;
+
+public:
+    PHSensor(int pin) {
+        _pin = pin;
+        _acidVoltage = 1.650;    // Default, harus dikalibrasi
+        _neutralVoltage = 1.250;  // Default, harus dikalibrasi
+        _calculateCoefficients();
+    }
+
+    // Kalibrasi dengan 2 titik
+    void calibrateTwoPoint(float ph1, float voltage1,
+                           float ph2, float voltage2) {
+        // ph1 = 7.0 (neutral), voltage1 = voltage saat pH 7.0
+        // ph2 = 4.0 (acid), voltage2 = voltage saat pH 4.0
+        _neutralVoltage = voltage1;
+        _acidVoltage = voltage2;
+        _calculateCoefficients();
+        Serial.printf("Kalibrasi: slope=%.4f, intercept=%.4f\n",
+                      _slope, _intercept);
+    }
+
+    void _calculateCoefficients() {
+        // Linear: pH = slope * voltage + intercept
+        _slope = (7.0 - 4.0) / (_neutralVoltage - _acidVoltage);
+        _intercept = 7.0 - _slope * _neutralVoltage;
+    }
+
+    float readVoltage() {
+        long sum = 0;
+        for (int i = 0; i < 40; i++) {
+            sum += analogRead(_pin);
+            delay(10);
+        }
+        float avg = sum / 40.0;
+        return (avg / 4095.0) * 3.3;
+    }
+
+    float readPH() {
+        float voltage = readVoltage();
+        float ph = _slope * voltage + _intercept;
+        return constrain(ph, 0.0, 14.0);
+    }
+};
+
+// Setup kalibrasi
+PHSensor phSensor(34);
+
+void setup() {
+    Serial.begin(115200);
+    delay(3000);
+
+    // Mode kalibrasi
+    Serial.println("=== KALIBRASI pH METER ===");
+    Serial.println("Celupkan ke larutan pH 7.0, lalu ketik 'ok'");
+    while (!Serial.available()) {}
+    float voltage7 = phSensor.readVoltage();
+    Serial.printf("Voltage pH 7.0: %.4f V\n", voltage7);
+
+    Serial.println("Celupkan ke larutan pH 4.0, lalu ketik 'ok'");
+    while (!Serial.available()) {}
+    float voltage4 = phSensor.readVoltage();
+    Serial.printf("Voltage pH 4.0: %.4f V\n", voltage4);
+
+    phSensor.calibrateTwoPoint(7.0, voltage7, 4.0, voltage4);
+    Serial.println("Kalibrasi selesai!");
+}
+
+void loop() {
+    float ph = phSensor.readPH();
+    Serial.printf("pH: %.2f\n", ph);
+    delay(2000);
+}
+</code></pre>
+      </div>
+
+      <h3>Kalibrasi Sensor Suhu (NTC Thermistor)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Arduino — NTC Thermistor</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// NTC Thermistor dengan Steinhart-Hart equation
+// Lebih akurat dari linearisasi sederhana
+
+#include &lt;math.h&gt;
+
+#define THERMISTOR_PIN 34
+#define R_FIXED 10000.0     // Resistor tetap 10KΩ
+#define R_NTC_25 10000.0    // Resistansi NTC pada 25°C
+#define B_COEFFICIENT 3950  // Beta coefficient dari datasheet
+
+float readNTCTemperature() {
+    // Baca ADC
+    int raw = analogRead(THERMISTOR_PIN);
+
+    // Hitung resistansi NTC
+    // Voltage divider: Vout = Vcc * R_fixed / (R_ntc + R_fixed)
+    float voltage = (raw / 4095.0) * 3.3;
+    float r_ntc = R_FIXED * (3.3 / voltage - 1.0);
+
+    // Steinhart-Hart (simplified with B coefficient)
+    // 1/T = 1/T0 + (1/B) * ln(R/R0)
+    float tempK = 1.0 / (
+        (1.0 / 298.15) +                    // 1/T0 (T0=25°C=298.15K)
+        (1.0 / B_COEFFICIENT) * log(r_ntc / R_NTC_25)
+    );
+
+    float tempC = tempK - 273.15;
+
+    // Atau gunakan persamaan Steinhart-Hart penuh (3 titik kalibrasi):
+    // 1/T = A + B*ln(R) + C*(ln(R))^3
+    // Perlu mengukur resistansi pada 3 suhu berbeda
+
+    return tempC;
+}
+
+void setup() {
+    Serial.begin(115200);
+}
+
+void loop() {
+    float suhu = readNTCTemperature();
+    Serial.printf("Suhu: %.2f °C\n", suhu);
+    delay(1000);
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Noise Filtering      -->
+      <!-- ============================== -->
+      <h2 id="noise-filtering">9. Noise Filtering dan Signal Processing</h2>
+
+      <p>Sinyal dari sensor sering terganggu oleh <strong>noise</strong> (gangguan listrik) dari berbagai sumber seperti motor, switching power supply, dan interferensi RF. Filtering sangat penting untuk mendapatkan data yang bersih dan akurat.</p>
+
+      <h3>Jenis Filter</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Filter</th>
+            <th>Kompleksitas</th>
+            <th>Kelebihan</th>
+            <th>Kekurangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Moving Average</strong></td><td>🟢 Mudah</td><td>Mudah implementasi, halus</td><td>Lambat merespon perubahan cepat</td></tr>
+          <tr><td><strong>Exponential Moving Average</strong></td><td>🟢 Mudah</td><td>Responsif, hemat memory</td><td>Perlu tuning alpha</td></tr>
+          <tr><td><strong>Median Filter</strong></td><td>🟡 Sedang</td><td>Tahan spike/outlier</td><td>Kurang halus</td></tr>
+          <tr><td><strong>Kalman Filter</strong></td><td>🔴 Kompleks</td><td>Optimal untuk noisy data</td><td>Sulit implementasi dan tuning</td></tr>
+          <tr><td><strong>IIR/Butterworth</strong></td><td>🟡 Sedang</td><td>Fleksibel (low/high/band pass)</td><td>Perlu koefisien filter</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Implementasi Filter</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Arduino — Signal Filters</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Implementasi berbagai filter untuk sensor
+
+// 1. Moving Average Filter
+class MovingAverage {
+private:
+    float* _buffer;
+    int _size;
+    int _index;
+    float _sum;
+    bool _filled;
+
+public:
+    MovingAverage(int size) {
+        _size = size;
+        _buffer = new float[size]();
+        _index = 0;
+        _sum = 0;
+        _filled = false;
+    }
+
+    float update(float value) {
+        _sum -= _buffer[_index];
+        _buffer[_index] = value;
+        _sum += value;
+        _index = (_index + 1) % _size;
+        if (_index == 0) _filled = true;
+        return _sum / (_filled ? _size : _index);
+    }
+};
+
+// 2. Exponential Moving Average (EMA)
+class EMAFilter {
+private:
+    float _alpha;
+    float _ema;
+    bool _initialized;
+
+public:
+    EMAFilter(float alpha) {
+        _alpha = constrain(alpha, 0.0, 1.0);
+        _ema = 0;
+        _initialized = false;
+    }
+
+    float update(float value) {
+        if (!_initialized) {
+            _ema = value;
+            _initialized = true;
+        } else {
+            _ema = _alpha * value + (1.0 - _alpha) * _ema;
+        }
+        return _ema;
+    }
+};
+
+// 3. Median Filter
+class MedianFilter {
+private:
+    float* _buffer;
+    int _size;
+    int _index;
+    bool _filled;
+
+public:
+    MedianFilter(int size) {
+        _size = size;
+        _buffer = new float[size]();
+        _index = 0;
+        _filled = false;
+    }
+
+    float update(float value) {
+        _buffer[_index] = value;
+        _index = (_index + 1) % _size;
+        if (_index == 0) _filled = true;
+        int count = _filled ? _size : _index;
+
+        // Copy and sort
+        float sorted[count];
+        for (int i = 0; i < count; i++) sorted[i] = _buffer[i];
+        for (int i = 0; i < count - 1; i++) {
+            for (int j = i + 1; j < count; j++) {
+                if (sorted[i] > sorted[j]) {
+                    float t = sorted[i]; sorted[i] = sorted[j]; sorted[j] = t;
+                }
+            }
+        }
+        return sorted[count / 2];
+    }
+};
+
+// Penggunaan
+MovingAverage filterMA(10);     // 10-sample moving average
+EMAFilter filterEMA(0.1);       // alpha=0.1 (halus)
+MedianFilter filterMed(7);      // 7-sample median
+
+void loop() {
+    float raw = analogRead(34);
+
+    float filtered_ma = filterMA.update(raw);
+    float filtered_ema = filterEMA.update(raw);
+    float filtered_med = filterMed.update(raw);
+
+    Serial.printf("Raw: %.0f | MA: %.1f | EMA: %.1f | Med: %.1f\n",
+                  raw, filtered_ma, filtered_ema, filtered_med);
+    delay(100);
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Proyek Multi-Sensor -->
+      <!-- ============================== -->
+      <h2 id="proyek-multisensor">10. Proyek Multi-Sensor</h2>
+
+      <p>Mari gabungkan semua pengetahuan dalam satu proyek: <strong>Stasiun Monitoring Lingkungan</strong> dengan beberapa sensor yang menggunakan berbagai protokol berbeda.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Arduino — Multi-Sensor Station</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>#include &lt;WiFi.h&gt;
+#include &lt;Wire.h&gt;
+#include &lt;Adafruit_BME280.h&gt;
+#include &lt;BH1750.h&gt;
+#include &lt;DHT.h&gt;
+
+// ========== KONFIGURASI PIN ==========
+// I2C Bus (shared)
+#define SDA_PIN 21
+#define SCL_PIN 22
+
+// Analog Sensors
+#define MQ135_PIN 34    // Gas sensor (ADC)
+#define LM35_PIN 35     // Suhu reference (ADC)
+
+// Digital Sensors
+#define DHT_PIN 4       // DHT22 (One-wire digital)
+
+// ========== SENSOR OBJECTS ==========
+// I2C sensors
+Adafruit_BME280 bme;       // BME280 (0x76) - Suhu, Tekanan, Lembab
+BH1750 lightMeter(0x23);   // BH1750 - Cahaya (lux)
+
+// Digital sensor
+DHT dht(DHT_PIN, DHT22);  // DHT22 - Backup suhu & lembab
+
+// Analog filter
+float filterAnalog(int pin, int samples = 20) {
+    long sum = 0;
+    for (int i = 0; i < samples; i++) {
+        sum += analogRead(pin);
+        delayMicroseconds(200);
+    }
+    return (float)sum / samples;
+}
+
+void setup() {
+    Serial.begin(115200);
+
+    // Init I2C bus
+    Wire.begin(SDA_PIN, SCL_PIN);
+
+    // Init BME280
+    if (!bme.begin(0x76)) {
+        Serial.println("⚠️ BME280 tidak ditemukan!");
+    } else {
+        Serial.println("✅ BME280 OK");
+    }
+
+    // Init BH1750
+    if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
+        Serial.println("✅ BH1750 OK");
+    } else {
+        Serial.println("⚠️ BH1750 tidak ditemukan!");
+    }
+
+    // Init DHT22
+    dht.begin();
+    Serial.println("✅ DHT22 OK");
+
+    // ADC config
+    analogReadResolution(12);
+    analogSetAttenuation(ADC_11db);
+
+    Serial.println("\n=== Stasiun Monitoring Lingkungan ===\n");
+}
+
+void loop() {
+    // ===== BACA I2C SENSORS =====
+    float bme_suhu = bme.readTemperature();
+    float bme_lembab = bme.readHumidity();
+    float bme_tekanan = bme.readPressure() / 100.0;
+    float lux = lightMeter.readLightLevel();
+
+    // ===== BACA DIGITAL SENSOR =====
+    float dht_suhu = dht.readTemperature();
+    float dht_lembab = dht.readHumidity();
+
+    // ===== BACA ANALOG SENSORS =====
+    float mq135_raw = filterAnalog(MQ135_PIN);
+    float mq135_voltage = (mq135_raw / 4095.0) * 3.3;
+    float lm35_raw = filterAnalog(LM35_PIN);
+    float lm35_voltage = (lm35_raw / 4095.0) * 3.3;
+    float lm35_suhu = lm35_voltage / 0.01;
+
+    // ===== KALIBRASI & VALIDASI =====
+    // Cross-check suhu dari 3 sensor
+    float suhu_avg = bme_suhu;
+    int suhu_count = 1;
+
+    if (!isnan(dht_suhu)) {
+        suhu_avg += dht_suhu;
+        suhu_count++;
+    }
+    suhu_avg += lm35_suhu;
+    suhu_count++;
+    suhu_avg /= suhu_count;
+
+    // ===== TAMPILKAN HASIL =====
+    Serial.println("╔══════════════════════════════════════╗");
+    Serial.println("║     STASIUN MONITORING LINGKUNGAN    ║");
+    Serial.println("╠══════════════════════════════════════╣");
+    Serial.printf("║ Suhu     : %.2f °C (rata-rata 3 sensor)\n", suhu_avg);
+    Serial.printf("║  ├ BME280: %.2f °C\n", bme_suhu);
+    Serial.printf("║  ├ DHT22 : %.2f °C\n", dht_suhu);
+    Serial.printf("║  └ LM35  : %.2f °C\n", lm35_suhu);
+    Serial.printf("║ Kelembaban: %.1f %% (BME280)\n", bme_lembab);
+    Serial.printf("║ Tekanan   : %.1f hPa\n", bme_tekanan);
+    Serial.printf("║ Cahaya    : %.1f lux\n", lux);
+    Serial.printf("║ Udara (MQ135): %.3f V\n", mq135_voltage);
+    Serial.println("╚══════════════════════════════════════╝\n");
+
+    delay(5000);
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Best Practices      -->
+      <!-- ============================== -->
+      <h2 id="best-practices">11. Best Practices</h2>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Best Practice</th>
+            <th>Hindari</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Wiring</td><td>Gunakan kabel pendek, twisted pair untuk I2C</td><td>Kabel panjang tanpa shielding</td></tr>
+          <tr><td>Power</td><td>Decoupling capacitor 100nF dekat sensor</td><td>Power langsung dari pin MCU</td></tr>
+          <tr><td>ADC</td><td>Multi-sample averaging, kalibrasi</td><td>Single read tanpa filtering</td></tr>
+          <tr><td>I2C</td><td>Pull-up 4.7KΩ, scan bus saat startup</td><td>Asumsi alamat, skip error handling</td></tr>
+          <tr><td>SPI</td><td>SPI.beginTransaction() setiap transaksi</td><td>SPI tanpa CS management</td></tr>
+          <tr><td>Error Handling</td><td>Cek return value, timeout, retry</td><td>Assume sensor selalu bekerja</td></tr>
+          <tr><td>Kalibrasi</td><td>Kalibrasi berkala, simpan offset di EEPROM</td><td>Pakai default tanpa kalibrasi</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">12. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang sensor interfacing:</p>
+
+      <div class="quiz-container" id="quizSensor01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Berapa banyak kabel minimum yang diperlukan untuk komunikasi I2C (selain power)?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) 1 kabel (SDA saja)</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) 2 kabel (SDA dan SCL)</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) 3 kabel (SDA, SCL, dan CS)</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) 4 kabel (MOSI, MISO, SCK, CS)</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Protokol mana yang mendukung full duplex (kirim dan terima bersamaan)?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) I2C</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) SPI</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) UART</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) B dan C</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Mengapa ESP32 ADC memerlukan kalibrasi khusus?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Karena resolusi hanya 8-bit</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Karena ADC ESP32 bersifat non-linear</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Karena hanya bisa membaca 3.3V</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Karena tidak punya ADC internal</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Filter apa yang paling tahan terhadap spike/noise outlier?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Moving Average</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Exponential Moving Average</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Median Filter</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Semua sama</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa fungsi pull-up resistor pada bus I2C?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Meningkatkan kecepatan komunikasi</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Membuat SDA dan SCL default HIGH saat idle</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Menghubungkan ground ke data line</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Melindungi sensor dari overvoltage</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="mqtt-lengkap.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">MQTT Protocol: Panduan Lengkap</span>
+        </a>
+        <a href="iot-cloud-platform.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">IoT Cloud Platform</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

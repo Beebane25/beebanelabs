@@ -1,0 +1,591 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a><span class="separator">/</span>
+        <a href="../index.html#categories">Mobile Development</a><span class="separator">/</span>
+        <span class="current">Jetpack Compose Advanced</span>
+      </div>
+      <span class="category-tag">Mobile Development</span>
+      <h1>Jetpack Compose Advanced</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Jetpack Compose Advanced — custom layout, animation, side effects, state hoisting, testing, dan View interop</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  <article class="article-content" id="main-content">
+    <div class="container>
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#custom-layout">Custom Layout</a></li>
+          <li><a href="#compose-animation">Animation</a></li>
+          <li><a href="#side-effects">Side Effects</a></li>
+          <li><a href="#state-hoisting">State Hoisting</a></li>
+          <li><a href="#compose-testing">Testing</a></li>
+          <li><a href="#compose-interop">View Interop</a></li>
+          <li><a href="#compose-best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+
+      <h2 id="custom-layout">1. Custom Layout</h2>
+      <p><strong>Jetpack Compose</strong> memungkinkan pembuatan custom layout yang tidak tersedia di Compose standar. Dengan <code>Layout</code> composable, Anda mengontrol penuh measurement dan placement child elements.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — Custom Circular Layout</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+@Composable
+fun CircularLayout(
+    radius: Float,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Layout(content = content, modifier = modifier) { measurables, constraints ->
+        val placeables = measurables.map { measurable ->
+            measurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
+        }
+
+        val radiusPx = radius.toPx()
+        val centerX = constraints.maxWidth / 2
+        val centerY = constraints.maxHeight / 2
+        val angleStep = 360f / placeables.size
+
+        layout(constraints.maxWidth, constraints.maxHeight) {
+            placeables.forEachIndexed { index, placeable ->
+                val angle = Math.toRadians((angleStep * index - 90).toDouble())
+                val x = centerX + radiusPx * cos(angle) - placeable.width / 2
+                val y = centerY + radiusPx * sin(angle) - placeable.height / 2
+                placeable.place(x.toInt(), y.toInt())
+            }
+        }
+    }
+}
+
+// Penggunaan
+@Composable
+fun CircularMenu() {
+    CircularLayout(radius = 120.dp) {
+        repeat(6) { index ->
+            FloatingActionButton(onClick = { /* action */ }) {
+                Icon(Icons.Default.Star, "Item $index")
+            }
+        }
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>1.1 Custom Flow Layout</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — Flow Layout</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+@Composable
+fun FlowRow(
+    modifier: Modifier = Modifier,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    content: @Composable () -> Unit
+) {
+    Layout(content = content, modifier = modifier) { measurables, constraints ->
+        val placeables = measurables.map { it.measure(constraints.copy(minWidth = 0)) }
+        val maxWidth = constraints.maxWidth
+        var xPos = 0
+        var yPos = 0
+        var maxHeight = 0
+
+        layout(maxWidth, constraints.maxHeight) {
+            placeables.forEach { placeable ->
+                if (xPos + placeable.width > maxWidth) {
+                    xPos = 0
+                    yPos += maxHeight
+                    maxHeight = 0
+                }
+                placeable.place(xPos, yPos)
+                xPos += placeable.width
+                maxHeight = maxOf(maxHeight, placeable.height)
+            }
+        }
+    }
+}
+
+// Tag chips
+@Composable
+fun TagCloud(tags: List<String>) {
+    FlowRow(modifier = Modifier.padding(8.dp)) {
+        tags.forEach { tag ->
+            SuggestionChip(
+                onClick = { },
+                label = { Text(tag) },
+                modifier = Modifier.padding(4.dp)
+            )
+        }
+    }
+}
+</code></pre>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="compose-animation">2. Animation</h2>
+      <p>Compose menyediakan API animasi yang powerful: <code>animateXxxAsState</code>, <code>AnimatedVisibility</code>, <code>AnimatedContent</code>, dan <code>updateTransition</code>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — Animations</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+@Composable
+fun AnimationDemo() {
+    var expanded by remember { mutableStateOf(false) }
+    var visible by remember { mutableStateOf(true) }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // AnimatedVisibility
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn() + slideInVertically(),
+            exit = fadeOut() + slideOutVertically()
+        ) {
+            Card(modifier = Modifier.padding(16.dp)) {
+                Text("Hello!", modifier = Modifier.padding(16.dp))
+            }
+        }
+
+        // animateXxxAsState
+        val color by animateColorAsState(
+            targetValue = if (expanded) MaterialTheme.colorScheme.primary
+                          else MaterialTheme.colorScheme.secondary,
+            animationSpec = tween(durationMillis = 500),
+            label = "color"
+        )
+
+        val size by animateDpAsState(
+            targetValue = if (expanded) 200.dp else 100.dp,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            ),
+            label = "size"
+        )
+
+        Box(
+            modifier = Modifier
+                .size(size)
+                .background(color, RoundedCornerShape(16.dp))
+                .clickable { expanded = !expanded }
+        )
+
+        // AnimatedContent
+        AnimatedContent(
+            targetState = expanded,
+            transitionSpec = {
+                fadeIn() + slideInHorizontally { it } togetherWith
+                fadeOut() + slideOutHorizontally { -it }
+            },
+            label = "content"
+        ) { isExpanded ->
+            if (isExpanded) {
+                Text("Konten diperluas!", style = MaterialTheme.typography.headlineMedium)
+            } else {
+                Text("Konten ringkas", style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>2.1 Animation Specs</h3>
+      <table class="spec-table">
+        <thead><tr><th>Spec</th><th>Karakteristik</th><th>Contoh Penggunaan</th></tr></thead>
+        <tbody>
+          <tr><td>spring()</td><td>Fisika realistis, bounce</td><td>Gesture feedback</td></tr>
+          <tr><td>tween()</td><td>Kurva halus dengan durasi</td><td>Color, opacity transition</td></tr>
+          <tr><td>keyframes()</td><td>Kontrol per-frame</td><td>Animasi kompleks multi-step</td></tr>
+          <tr><td>repeatable()</td><td>Animasi berulang</td><td>Loading spinner</td></tr>
+          <tr><td>snaps()</td><td>Langsung tanpa interpolasi</td><td>Tab indicator switch</td></tr>
+        </tbody>
+      </table>
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="side-effects">3. Side Effects</h2>
+      <p>Side effects di Compose dijalankan dengan lifecycle-aware functions: <code>LaunchedEffect</code>, <code>DisposableEffect</code>, <code>SideEffect</code>, dan <code>rememberCoroutineScope</code>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — Side Effects</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+@Composable
+fun SideEffectsDemo(userId: String) {
+    val viewModel: UserViewModel = viewModel()
+
+    // LaunchedEffect — berjalan saat key berubah, auto-cancel
+    LaunchedEffect(userId) {
+        viewModel.loadUser(userId)
+    }
+
+    // DisposableEffect — cleanup saat dispose
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_PAUSE) {
+                // Save state
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    // SideEffect — berjalan setiap recomposition sukses
+    SideEffect {
+        analytics.trackScreen("UserProfile")
+    }
+
+    // rememberCoroutineScope — scope yang tied ke composable
+    val scope = rememberCoroutineScope()
+    Button(onClick = {
+        scope.launch {
+            viewModel.saveUser()
+        }
+    }) {
+        Text("Simpan")
+    }
+
+    // derivedStateOf — compute dari state lain
+    val sortedUsers by remember {
+        derivedStateOf { viewModel.users.sortedBy { it.name } }
+    }
+
+    // snapshotFlow — observe Compose state sebagai Flow
+    LaunchedEffect(Unit) {
+        snapshotFlow { viewModel.searchQuery }
+            .debounce(300)
+            .collect { query ->
+                viewModel.search(query)
+            }
+    }
+}
+</code></pre>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="state-hoisting">4. State Hoisting</h2>
+      <p><strong>State hoisting</strong> adalah pola untuk memindahkan state ke parent composable, sehingga child menjadi stateless dan reusable.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — State Hoisting</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Stateless composable (reusable)
+@Composable
+fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier.fillMaxWidth(),
+        placeholder = { Text("Cari...") },
+        trailingIcon = {
+            IconButton(onClick = onSearch) {
+                Icon(Icons.Default.Search, "Search")
+            }
+        },
+        singleLine = true
+    )
+}
+
+// Stateful composable (parent owns state)
+@Composable
+fun SearchScreen(viewModel: SearchViewModel = viewModel()) {
+    var query by remember { mutableStateOf("") }
+
+    Column {
+        SearchBar(
+            query = query,
+            onQueryChange = { query = it },
+            onSearch = { viewModel.search(query) }
+        )
+
+        LazyColumn {
+            items(viewModel.results) { result ->
+                SearchResultItem(result)
+            }
+        }
+    }
+}
+</code></pre>
+      </div>      <div class="info-box info">
+        <div class="info-box-title">📋 Prinsip State Hoisting</div>
+        <p>State hoisting membuat composable: (1) lebih reusable, (2) lebih mudah di-test, (3) single source of truth. Parameter: <code>value: T</code> dan <code>onValueChange: (T) -> Unit</code>.</p>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="compose-testing">5. Testing</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — Compose Testing</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+@RunWith(AndroidJUnit4::class)
+class SearchBarTest {
+
+    @get:Rule
+    val composeTestRule = createComposeRule()
+
+    @Test
+    fun searchBar_displaysQuery() {
+        composeTestRule.setContent {
+            SearchBar(
+                query = "Hello",
+                onQueryChange = {},
+                onSearch = {}
+            )
+        }
+        composeTestRule
+            .onNodeWithText("Hello")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun searchBar_callsOnQueryChange() {
+        var changedQuery = ""
+        composeTestRule.setContent {
+            SearchBar(
+                query = "",
+                onQueryChange = { changedQuery = it },
+                onSearch = {}
+            )
+        }
+        composeTestRule
+            .onNodeWithText("Cari...")
+            .performTextInput("Test")
+        assertEquals("Test", changedQuery)
+    }
+
+    @Test
+    fun listScroll_showsItems() {
+        val items = (1..50).map { "Item $it" }
+        composeTestRule.setContent {
+            LazyColumn {
+                items(items) { Text(it) }
+            }
+        }
+        composeTestRule.onNodeWithText("Item 1").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Item 1")
+            .performScrollToIndex(49)
+        composeTestRule.onNodeWithText("Item 50").assertIsDisplayed()
+    }
+}
+</code></pre>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="compose-interop">6. Interop dengan View System</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — View Interop</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// AndroidView — gunakan View di Compose
+@Composable
+fun WebViewComposable(url: String) {
+    AndroidView(
+        factory = { context ->
+            WebView(context).apply {
+                webViewClient = WebViewClient()
+                loadUrl(url)
+            }
+        },
+        update = { webView ->
+            webView.loadUrl(url)
+        }
+    )
+}
+
+// ComposeView — gunakan Compose di View
+class ComposeFragment : Fragment() {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setContent {
+                MaterialTheme {
+                    MyComposableScreen()
+                }
+            }
+        }
+    }
+}
+</code></pre>
+      </div>
+
+      <h2 id="compose-best-practices">7. Best Practices</h2>
+      <table class="spec-table">
+        <thead><tr><th>Praktik</th><th>Alasan</th></tr></thead>
+        <tbody>
+          <tr><td>Hindari mutableListOf di composable</td><td>Akan di-reset saat recomposition</td></tr>
+          <tr><td>Gunakan key() di LazyColumn</td><td>Optimasi recomposition</td></tr>
+          <tr><td>Gunakan remember {} untuk expensive compute</td><td>Hindari re-compute setiap recomposition</td></tr>
+          <tr><td>State hoisting</td><td>Reusability dan testability</td></tr>
+          <tr><td>derivedStateOf untuk computed state</td><td>Hindari recomposition berlebihan</td></tr>
+          <tr><td>Stable types untuk parameter</td><td>Compose skip recomposition jika data sama</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="quiz">Quiz Pemahaman</h2>
+      <div class="quiz-container" id="quiz04">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Composable apa untuk membuat custom layout di Compose?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) @Composable</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Layout {}</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Box {}</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Column {}</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Side effect apa yang auto-cancel saat key berubah?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) SideEffect</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) LaunchedEffect</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) DisposableEffect</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) rememberCoroutineScope</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Pola apa yang memindahkan state ke parent?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Dependency Injection</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Observer Pattern</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) State Hoisting</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Builder Pattern</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Animation spec apa yang berbasis fisika?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) tween()</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) snap()</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) spring()</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) keyframes()</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Fungsi apa untuk menghitung state turunan secara efisien?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) remember {}</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) mutableStateOf()</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) derivedStateOf {}</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) snapshotFlow {}</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+      <div class="article-nav">
+        <a href="../index.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">Kembali ke Beranda</span></a>
+        <a href="../kategori.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">Lihat Kategori</span></a>
+      </div>
+    </div>
+  </article>
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

@@ -6,6 +6,9 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://beebanelabs.pages.dev',
   output: 'static',
+  build: {
+    format: 'file',
+  },
   integrations: [
     sitemap(),
   ],

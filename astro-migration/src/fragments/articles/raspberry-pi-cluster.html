@@ -1,0 +1,900 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Raspberry Pi</a>
+        <span class="separator">/</span>
+        <span class="current">Raspberry Pi Cluster Computing</span>
+      </div>
+      <span class="category-tag">🍓 Raspberry Pi</span>
+      <h1>Raspberry Pi Cluster Computing: K3s, Docker Swarm & Hadoop</h1>
+      <p class="article-subtitle">Panduan lengkap membangun cluster Raspberry Pi — dari setup hardware, K3s Kubernetes, Docker Swarm, Hadoop HDFS, MPI parallel computing, hingga high availability dan monitoring</p>
+      <div class="article-meta">
+        <span>📅 27 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-cluster">Pengenalan Cluster Computing</a></li>
+          <li><a href="#hardware">Hardware & Setup Cluster</a></li>
+          <li><a href="#jaringan">Konfigurasi Jaringan Cluster</a></li>
+          <li><a href="#docker-swarm">Docker Swarm Cluster</a></li>
+          <li><a href="#k3s">K3s Kubernetes Cluster</a></li>
+          <li><a href="#hadoop">Hadoop HDFS Cluster</a></li>
+          <li><a href="#mpi">MPI Parallel Computing</a></li>
+          <li><a href="#monitoring">Monitoring Cluster</a></li>
+          <li><a href="#troubleshooting">Troubleshooting</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-cluster">1. Pengenalan Cluster Computing</h2>
+
+      <p><strong>Cluster computing</strong> adalah teknik menggabungkan beberapa komputer (node) menjadi satu unit komputasi yang bekerja sama. Raspberry Pi sangat populer untuk membangun cluster karena harganya yang terjangkau, konsumsi daya rendah, dan komunitas yang besar.</p>
+
+      <p>Membangun cluster Raspberry Pi adalah cara terbaik untuk belajar konsep <strong>distributed computing</strong>, <strong>container orchestration</strong>, dan <strong>parallel processing</strong> tanpa menghabiskan budget besar. Sebuah cluster 4 node Raspberry Pi 4 bisa dijadikan laboratorium K3s/Hadoop/Docker yang fungsional.</p>
+
+      <h3>Mengapa Raspberry Pi untuk Cluster?</h3>
+      <table class="net-table">
+        <thead>
+          <tr><th>Keunggulan</th><th>Penjelasan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Harga Terjangkau</td><td>Raspberry Pi 4 (4GB) sekitar Rp 1.200.000 — cluster 4 node hanya ~Rp 5 juta</td></tr>
+          <tr><td>Konsumsi Daya Rendah</td><td>5-10W per node vs 200-500W untuk server rack</td></tr>
+          <tr><td>Form Factor Kecil</td><td>Ukuran kartu kredit, bisa dipasang di rak kecil atau 3D-printed case</td></tr>
+          <tr><td>ARM64 Support</td><td>Banyak software modern mendukung ARM64 (K3s, Docker, Kubernetes)</td></tr>
+          <tr><td>Educational Value</td><td>Cocok untuk belajar konsep distributed system dari dasar</td></tr>
+          <tr><td>Komunitas Besar</td><td>Ribuan tutorial, forum, dan proyek open source</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Teknologi Cluster yang Dibahas</h3>
+      <table class="net-table">
+        <thead>
+          <tr><th>Teknologi</th><th>Kategori</th><th>Kegunaan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Docker Swarm</td><td>Container Orchestration</td><td>Deploy dan manage container di beberapa node</td></tr>
+          <tr><td>K3s</td><td>Lightweight Kubernetes</td><td>Kubernetes ringan dari Rancher, production-ready</td></tr>
+          <tr><td>Hadoop HDFS</td><td>Distributed Storage</td><td>Penyimpanan data terdistribusi dan MapReduce</td></tr>
+          <tr><td>MPI</td><td>Parallel Computing</td><td>Komputasi paralel untuk kalkulasi ilmiah</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Hardware            -->
+      <!-- ============================== -->
+      <h2 id="hardware">2. Hardware & Setup Cluster</h2>
+
+      <h3>Daftar Komponen</h3>
+      <table class="net-table">
+        <thead>
+          <tr><th>Komponen</th><th>Qty</th><th>Spesifikasi</th><th>Est. Harga</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Raspberry Pi 4 Model B (4GB)</td><td>4</td><td>BCM2711, 4GB RAM, ARM Cortex-A72</td><td>Rp 4.800.000</td></tr>
+          <tr><td>MicroSD Card 64GB (A2)</td><td>4</td><td>Class 10, A2 rating untuk performa</td><td>Rp 600.000</td></tr>
+          <tr><td>Ethernet Switch 5-port GbE</td><td>1</td><td>Gigabit, managed (opsional)</td><td>Rp 250.000</td></tr>
+          <tr><td>Ethernet Cable Cat6</td><td>5</td><td>0.3-0.5m untuk koneksi antar node</td><td>Rp 100.000</td></tr>
+          <tr><td>USB-C Power Supply 5V/3A</td><td>4</td><td>Official RPi PSU atau berkualitas baik</td><td>Rp 600.000</td></tr>
+          <tr><td>Cluster Case / 3D Printed</td><td>1</td><td>Mendukung cooling fan</td><td>Rp 200.000</td></tr>
+          <tr><td>Cooling Fan + Heatsink</td><td>4</td><td>Fan 30mm + heatsink untuk setiap Pi</td><td>Rp 200.000</td></tr>
+        </tbody>
+      </table>
+
+      <p><strong>Total estimasi: ~Rp 6.750.000</strong> (harga bervariasi tergantung supplier)</p>
+
+      <h3>Setup Awal Semua Node</h3>
+<pre><code># ============================================
+# Setup Raspberry Pi OS di semua node
+# Jalankan di setiap Pi (atau gunakan Raspberry Pi Imager)
+# ============================================
+
+# 1. Flash Raspberry Pi OS Lite (64-bit) ke microSD
+#    Gunakan Raspberry Pi Imager:
+#    https://www.raspberrypi.com/software/
+
+# 2. Konfigurasi SSH dan WiFi headless
+#    Setelah flash, mount boot partition dan buat file:
+touch /boot/ssh                      # Enable SSH
+# (opsional) buat wpa_supplicant.conf untuk WiFi
+
+# 3. Boot dan update sistem
+sudo apt update && sudo apt upgrade -y
+
+# 4. Set hostname unik untuk setiap node
+# Node 1 (Master):
+sudo hostnamectl set-hostname pi-master
+# Node 2 (Worker 1):
+sudo hostnamectl set-hostname pi-worker1
+# Node 3 (Worker 2):
+sudo hostnamectl set-hostname pi-worker2
+# Node 4 (Worker 3):
+sudo hostnamectl set-hostname pi-worker3
+
+# 5. Edit /etc/hosts di semua node
+sudo tee -a /etc/hosts &lt;&lt;'EOF'
+192.168.1.100  pi-master
+192.168.1.101  pi-worker1
+192.168.1.102  pi-worker2
+192.168.1.103  pi-worker3
+EOF
+
+# 6. Enable cgroups (untuk Kubernetes)
+# Edit /boot/cmdline.txt, tambahkan:
+# cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory
+
+# 7. Setup SSH key-based auth (dari master)
+ssh-keygen -t ed25519 -C "cluster-key"
+ssh-copy-id pi@pi-worker1
+ssh-copy-id pi@pi-worker2
+ssh-copy-id pi@pi-worker3
+
+# 8. Disable swap (penting untuk K8s)
+sudo dphys-swapfile swapoff
+sudo dphys-swapfile uninstall
+sudo systemctl disable dphys-swapfile
+
+# 9. Reboot semua node
+sudo reboot</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Jaringan            -->
+      <!-- ============================== -->
+      <h2 id="jaringan">3. Konfigurasi Jaringan Cluster</h2>
+
+      <p>Jaringan yang stabil dan cepat adalah fondasi cluster yang baik. Gunakan Gigabit Ethernet (bukan WiFi) untuk koneksi antar node agar latency minimal dan bandwidth konsisten.</p>
+
+      <h3>Skema IP Cluster</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Network Topology</div>
+<pre class="mermaid">
+flowchart TD
+    A["🌐 Router 192.168.1.1"] -->|"Ethernet"| B["🖥️ pi-master 192.168.1.100"]
+    A -->|"Ethernet"| C["🖥️ pi-worker-1 192.168.1.101"]
+    A -->|"Ethernet"| D["🖥️ pi-worker-2 192.168.1.102"]
+    A -->|"Ethernet"| E["🖥️ pi-worker-3 192.168.1.103"]
+    B -->|"SSH / NFS"| C
+    B -->|"SSH / NFS"| D
+    B -->|"SSH / NFS"| E
+</pre>
+      </div>
+
+      <h3>Konfigurasi Static IP</h3>
+<pre><code># ============================================
+# Konfigurasi Static IP (di setiap node)
+# Edit /etc/dhcpcd.conf
+# ============================================
+
+# Di pi-master:
+interface eth0
+static ip_address=192.168.1.100/24
+static routers=192.168.1.1
+static domain_name_servers=8.8.8.8 1.1.1.1
+
+# Di pi-worker1:
+interface eth0
+static ip_address=192.168.1.101/24
+static routers=192.168.1.1
+static domain_name_servers=8.8.8.8 1.1.1.1
+
+# (dan seterusnya untuk worker2 = .102, worker3 = .103)
+
+# Restart networking
+sudo systemctl restart dhcpcd
+
+# Test connectivity antar node
+ping -c 3 pi-worker1
+ping -c 3 pi-worker2
+ping -c 3 pi-worker3
+
+# Test bandwidth antar node (install iperf3)
+sudo apt install iperf3 -y
+
+# Di master (server):
+iperf3 -s
+
+# Di worker (client):
+iperf3 -c pi-master
+# Harapkan ~940 Mbps untuk Gigabit Ethernet</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Docker Swarm        -->
+      <!-- ============================== -->
+      <h2 id="docker-swarm">4. Docker Swarm Cluster</h2>
+
+      <p><strong>Docker Swarm</strong> adalah container orchestration tool bawaan Docker yang paling mudah untuk memulai cluster. Swarm mengubah beberapa mesin Docker menjadi satu virtual Docker host yang terdistribusi.</p>
+
+      <h3>Install Docker di Semua Node</h3>
+<pre><code># ============================================
+# Install Docker di semua Raspberry Pi
+# Jalankan di setiap node
+# ============================================
+
+# Install Docker
+curl -fsSL https://get.docker.com | sh
+
+# Tambahkan user pi ke grup docker
+sudo usermod -aG docker pi
+
+# Aktifkan Docker service
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# Verifikasi
+docker --version
+docker run hello-world
+
+# Install docker-compose (opsional)
+sudo apt install docker-compose -y</code></pre>
+
+      <h3>Inisialisasi Docker Swarm</h3>
+<pre><code># ============================================
+# Inisialisasi Docker Swarm
+# ============================================
+
+# Di MASTER node (pi-master):
+docker swarm init --advertise-addr 192.168.1.100
+
+# Output akan memberikan token join, contoh:
+# docker swarm join --token SWMTKN-1-xxxx 192.168.1.100:2377
+
+# Di WORKER nodes (pi-worker1, pi-worker2, pi-worker3):
+docker swarm join --token SWMTKN-1-xxxx 192.168.1.100:2377
+
+# Verifikasi cluster (di master):
+docker node ls
+# ID            HOSTNAME     STATUS    AVAILABILITY   MANAGER STATUS
+# abc123 *     pi-master    Ready     Active         Leader
+# def456       pi-worker1   Ready     Active
+# ghi789       pi-worker2   Ready     Active
+# jkl012       pi-worker3   Ready     Active</code></pre>
+
+      <h3>Deploy Service di Swarm</h3>
+<pre><code># ============================================
+# Deploy layanan di Docker Swarm
+# ============================================
+
+# 1. Buat overlay network
+docker network create --driver overlay cluster-net
+
+# 2. Deploy NGINX web server dengan 3 replica
+docker service create \
+  --name web-server \
+  --replicas 3 \
+  --network cluster-net \
+  --publish 80:80 \
+  nginx:alpine
+
+# 3. Cek status service
+docker service ls
+docker service ps web-server
+
+# 4. Deploy dengan docker-compose.yml
+cat &lt;&lt;'EOF' > docker-compose.yml
+version: '3.8'
+
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+    networks:
+      - cluster-net
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    volumes:
+      - redis-data:/data
+    networks:
+      - cluster-net
+
+networks:
+  cluster-net:
+    driver: overlay
+
+volumes:
+  redis-data:
+EOF
+
+# Deploy stack
+docker stack deploy -c docker-compose.yml mystack
+
+# Cek status stack
+docker stack ls
+docker stack services mystack
+
+# 5. Scale service
+docker service scale web-server=5
+
+# 6. Rolling update
+docker service update --image nginx:1.25-alpine web-server</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: K3s                 -->
+      <!-- ============================== -->
+      <h2 id="k3s">5. K3s Kubernetes Cluster</h2>
+
+      <p><strong>K3s</strong> adalah distribusi Kubernetes ringan yang dikembangkan oleh Rancher (SUSE). K3s dioptimasi untuk ARM dan IoT, dengan footprint hanya ~100MB. Ini adalah pilihan terbaik untuk menjalankan Kubernetes di Raspberry Pi.</p>
+
+      <h3>Install K3s</h3>
+<pre><code># ============================================
+# Install K3s Kubernetes di Raspberry Pi Cluster
+# ============================================
+
+# PASTIKAN cgroup sudah diaktifkan di /boot/cmdline.txt
+# cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory
+
+# ========= MASTER NODE (pi-master) =========
+# Install K3s server
+curl -sfL https://get.k3s.io | sh -s - server \
+  --advertise-address 192.168.1.100 \
+  --disable servicelb \
+  --disable traefik \
+  --write-kubeconfig-mode 644
+
+# Ambil node token untuk worker
+sudo cat /var/lib/rancher/k3s/server/node-token
+# Contoh output: K1081c8f0bced...::server:abc123
+
+# ========= WORKER NODES =========
+# Di pi-worker1, pi-worker2, pi-worker3:
+curl -sfL https://get.k3s.io | K3S_URL=https://192.168.1.100:6443 \
+  K3S_TOKEN=K1081c8f0bced...::server:abc123 \
+  sh -s - agent
+
+# ========= VERIFIKASI (di master) =========
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+kubectl get nodes
+# NAME          STATUS   ROLES                  AGE   VERSION
+# pi-master     Ready    control-plane,master   5m    v1.28+k3s1
+# pi-worker1    Ready    <none>                 3m    v1.28+k3s1
+# pi-worker2    Ready    <none>                 3m    v1.28+k3s1
+# pi-worker3    Ready    <none>                 3m    v1.28+k3s1
+
+kubectl get pods -A</code></pre>
+
+      <h3>Deploy Aplikasi di K3s</h3>
+<pre><code># ============================================
+# Deploy aplikasi di K3s cluster
+# ============================================
+
+# 1. Install MetalLB (Load Balancer untuk bare-metal)
+# Karena K3s di Pi tidak punya cloud load balancer
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.10/config/manifests/metallb-native.yaml
+
+# Konfigurasi MetalLB IP range
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.168.1.200-192.168.1.250
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default
+  namespace: metallb-system
+EOF
+
+# 2. Install Nginx Ingress Controller
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/baremetal/deploy.yaml
+
+# 3. Deploy contoh aplikasi (nginx + service)
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app-svc
+spec:
+  type: LoadBalancer
+  selector:
+    app: web-app
+  ports:
+  - port: 80
+    targetPort: 80
+EOF
+
+# 4. Cek deployment
+kubectl get deployments
+kubectl get pods -o wide   # Lihat pod tersebar di node mana
+kubectl get svc             # Cek external IP dari MetalLB
+
+# 5. Horizontal Pod Autoscaler
+kubectl autoscale deployment web-app --cpu-percent=50 --min=2 --max=6
+
+# 6. Monitoring resource usage
+kubectl top nodes
+kubectl top pods</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Hadoop              -->
+      <!-- ============================== -->
+      <h2 id="hadoop">6. Hadoop HDFS Cluster</h2>
+
+      <p><strong>Apache Hadoop</strong> adalah framework untuk distributed storage (HDFS) dan processing (MapReduce). Meskipun Raspberry Pi bukan mesin produksi untuk Hadoop, cluster ini sangat baik untuk belajar konsep big data.</p>
+
+      <h3>Install Java dan Hadoop</h3>
+<pre><code># ============================================
+# Install Hadoop di Raspberry Pi Cluster
+# Jalankan di SEMUA node
+# ============================================
+
+# 1. Install Java
+sudo apt install openjdk-11-jdk -y
+
+# Set JAVA_HOME
+echo 'export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64' >> ~/.bashrc
+source ~/.bashrc
+
+# 2. Buat user hadoop
+sudo adduser hadoop
+sudo usermod -aG sudo hadoop
+
+# 3. Setup SSH key untuk user hadoop (di master)
+su - hadoop
+ssh-keygen -t ed25519
+ssh-copy-id hadoop@pi-master
+ssh-copy-id hadoop@pi-worker1
+ssh-copy-id hadoop@pi-worker2
+ssh-copy-id hadoop@pi-worker3
+
+# 4. Download dan install Hadoop (di semua node)
+wget https://dlcdn.apache.org/hadoop/common/hadoop-3.3.6/hadoop-3.3.6-aarch64.tar.gz
+tar -xzf hadoop-3.3.6-aarch64.tar.gz
+sudo mv hadoop-3.3.6 /opt/hadoop
+
+# 5. Konfigurasi environment (tambahkan ke ~/.bashrc)
+cat &lt;&lt;'EOF' >> ~/.bashrc
+export HADOOP_HOME=/opt/hadoop
+export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+EOF
+source ~/.bashrc
+
+# 6. Konfigurasi Hadoop
+cd $HADOOP_CONF_DIR
+
+# core-site.xml
+cat &lt;&lt;'EOF' > core-site.xml
+&lt;configuration&gt;
+  &lt;property&gt;
+    &lt;name>fs.defaultFS&lt;/name&gt;
+    &lt;value&gt;hdfs://pi-master:9000&lt;/value&gt;
+  &lt;/property&gt;
+  &lt;property&gt;
+    &lt;name>hadoop.tmp.dir&lt;/name&gt;
+    &lt;value&gt;/tmp/hadoop-data&lt;/value&gt;
+  &lt;/property&gt;
+&lt;/configuration&gt;
+EOF
+
+# hdfs-site.xml
+cat &lt;&lt;'EOF' > hdfs-site.xml
+&lt;configuration&gt;
+  &lt;property&gt;
+    &lt;name&gt;dfs.replication&lt;/name&gt;
+    &lt;value&gt;3&lt;/value&gt;
+  &lt;/property&gt;
+  &lt;property&gt;
+    &lt;name&gt;dfs.namenode.name.dir&lt;/name&gt;
+    &lt;value&gt;/tmp/hadoop/namenode&lt;/value&gt;
+  &lt;/property&gt;
+  &lt;property&gt;
+    &lt;name&gt;dfs.datanode.data.dir&lt;/name&gt;
+    &lt;value&gt;/tmp/hadoop/datanode&lt;/value&gt;
+  &lt;/property&gt;
+&lt;/configuration&gt;
+EOF
+
+# workers file
+echo -e "pi-worker1\npi-worker2\npi-worker3" > workers
+
+# 7. Format HDFS (hanya di master, sekali saja!)
+hdfs namenode -format
+
+# 8. Start HDFS
+start-dfs.sh
+
+# 9. Verifikasi
+hdfs dfsadmin -report
+# Harus menunjukkan 3 datanodes
+
+# 10. Upload test file
+hdfs dfs -mkdir /user/hadoop
+hdfs dfs -put /etc/hosts /user/hadoop/test.txt
+hdfs dfs -cat /user/hadoop/test.txt</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: MPI                 -->
+      <!-- ============================== -->
+      <h2 id="mpi">7. MPI Parallel Computing</h2>
+
+      <p><strong>MPI (Message Passing Interface)</strong> adalah standar untuk komputasi paralel di cluster. Dengan MPI, kita bisa membagi tugas komputasi ke beberapa node dan menggabungkan hasilnya. Raspberry Pi cluster cocok untuk belajar konsep parallel computing.</p>
+
+      <h3>Install MPI</h3>
+<pre><code># ============================================
+# Install MPI di semua node
+# ============================================
+
+# Install OpenMPI
+sudo apt install openmpi-bin libopenmpi-dev -y
+
+# Buat file host list
+cat &lt;&lt;'EOF' > ~/mpi_hosts
+pi-master slots=1
+pi-worker1 slots=1
+pi-worker2 slots=1
+pi-worker3 slots=1
+EOF
+
+# Test MPI dengan hello world
+cat &lt;&lt;'EOF' > mpi_hello.c
+#include &lt;mpi.h&gt;
+#include &lt;stdio.h&gt;
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    char hostname[256];
+    gethostname(hostname, 256);
+
+    printf("Hello from rank %d of %d on %s\n",
+           rank, size, hostname);
+
+    MPI_Finalize();
+    return 0;
+}
+EOF
+
+mpicc -o mpi_hello mpi_hello.c
+mpirun --hostfile ~/mpi_hosts -np 4 ./mpi_hello
+
+# Contoh: Parallel Pi Calculation
+cat &lt;&lt;'EOF' > mpi_pi.c
+#include &lt;mpi.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    long num_steps = 10000000;
+    double step = 1.0 / (double)num_steps;
+    double local_sum = 0.0;
+
+    // Setiap proses menghitung sebagian
+    for (long i = rank; i &lt; num_steps; i += size) {
+        double x = (i + 0.5) * step;
+        local_sum += 4.0 / (1.0 + x * x);
+    }
+    local_sum *= step;
+
+    // Kumpulkan hasil dari semua proses
+    double pi = 0.0;
+    MPI_Reduce(&local_sum, &pi, 1, MPI_DOUBLE,
+               MPI_SUM, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        printf("Pi = %.15f\n", pi);
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+EOF
+
+mpicc -O2 -o mpi_pi mpi_pi.c
+time mpirun --hostfile ~/mpi_hosts -np 4 ./mpi_pi
+# Bandingkan dengan single node:
+time mpirun -np 1 ./mpi_pi</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Monitoring          -->
+      <!-- ============================== -->
+      <h2 id="monitoring">8. Monitoring Cluster</h2>
+
+      <p>Monitoring sangat penting untuk cluster production. Berikut setup monitoring menggunakan Prometheus dan Grafana yang ringan untuk Raspberry Pi.</p>
+
+<pre><code># ============================================
+# Install Prometheus + Grafana (di master)
+# ============================================
+
+# Gunakan Docker untuk deploy monitoring stack
+cat &lt;&lt;'EOF' > monitoring-stack.yml
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=30d'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  grafana-data:
+EOF
+
+# Prometheus config
+cat &lt;&lt;'EOF' > prometheus.yml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets:
+        - 'pi-master:9100'
+        - 'pi-worker1:9100'
+        - 'pi-worker2:9100'
+        - 'pi-worker3:9100'
+EOF
+
+# Deploy monitoring stack
+docker stack deploy -c monitoring-stack.yml monitoring
+
+# Akses Grafana di http://pi-master:3000
+# Login: admin / admin123
+# Import dashboard ID 1860 (Node Exporter Full)</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Troubleshooting     -->
+      <!-- ============================== -->
+      <h2 id="troubleshooting">9. Troubleshooting</h2>
+
+      <table class="net-table">
+        <thead>
+          <tr><th>Masalah</th><th>Penyebab</th><th>Solusi</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Pi sering restart</td><td>Power supply tidak cukup</td><td>Gunakan PSU 5V/3A berkualitas, hindari USB hub</td></tr>
+          <tr><td>K3s worker tidak join</td><td>Token salah / firewall</td><td>Cek token, buka port 6443 di master</td></tr>
+          <tr><td>K3s pod CrashLoopBackOff</td><td>Memory tidak cukup</td><td>Kurangi replica, cek resource limits, disable swap</td></tr>
+          <tr><td>Docker build lambat</td><td>SD card lambat</td><td>Gunakan SSD via USB 3.0 untuk build</td></tr>
+          <tr><td>Hadoop datanode mati</td><td>Heap space habis</td><td>Set HADOOP_HEAPSIZE=512 di hadoop-env.sh</td></tr>
+          <tr><td>Node tidak bisa ping</td><td>Kabel / switch bermasalah</td><td>Cek kabel, ganti port switch, cek dhcpcd.conf</td></tr>
+          <tr><td>Thermal throttling</td><td>Overheating (>80°C)</td><td>Tambah heatsink + fan, kurangi overclock</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Performa</div>
+        <ul>
+          <li>Gunakan <strong>SSD via USB 3.0</strong> untuk OS dan data (bukan microSD) untuk I/O 10x lebih cepat</li>
+          <li>Overclock ke <strong>1.8-2.0 GHz</strong> dengan pendinginan yang baik</li>
+          <li>Gunakan <strong>64-bit OS</strong> untuk memanfaatkan penuh 4GB RAM</li>
+          <li>Nonaktifkan <strong>Bluetooth dan WiFi</strong> jika tidak digunakan (hemat resource)</li>
+        </ul>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz               -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Raspberry Pi Cluster Computing:</p>
+
+      <div class="quiz-container" id="quizPiCluster01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa keunggulan K3s dibanding Kubernetes standar untuk Raspberry Pi?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) K3s lebih ringan dan dioptimasi untuk ARM, footprint hanya ~100MB</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) K3s hanya bisa menjalankan 1 container</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) K3s tidak mendukung scaling</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) K3s membutuhkan lebih banyak RAM</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Mengapa disarankan menggunakan Ethernet (bukan WiFi) untuk cluster?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Ethernet lebih murah</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Ethernet memberikan latency rendah dan bandwidth konsisten untuk komunikasi antar node</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) WiFi tidak bisa digunakan sama sekali</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Ethernet tidak memerlukan kabel</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi dari Docker Swarm dalam cluster Raspberry Pi?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Mengganti sistem operasi</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Mengorkestrasi container di beberapa node, termasuk scaling dan load balancing</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Menghapus data di semua node</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Mengubah Raspberry Pi menjadi router</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi MPI (Message Passing Interface)?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Mengirim pesan WhatsApp antar node</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Standar untuk komputasi paralel di mana proses saling bertukar data antar node</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Protokol jaringan untuk internet</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Database untuk cluster</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa yang harus dilakukan jika K3s pod mengalami CrashLoopBackOff?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Restart Raspberry Pi</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Periksa resource limits, pastikan memory cukup, dan cek logs dengan kubectl logs</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Hapus seluruh cluster</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Ganti microSD card</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ARTICLE NAVIGATION -->
+      <div class="article-nav">
+        <a href="lora-mesh-network.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">LoRa Mesh Networking</span>
+        </a>
+        <a href="raspberry-pi-home-server.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Raspberry Pi Home Server</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

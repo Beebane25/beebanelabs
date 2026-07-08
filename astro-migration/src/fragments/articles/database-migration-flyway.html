@@ -1,0 +1,736 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Database</a><span class="separator">/</span><span class="current">Flyway</span></div>
+      <span class="category-tag">Database</span>
+      <h1>Database Migration dengan Flyway</h1>
+      <p class="article-subtitle">Tutorial komprehensif Flyway — database migration tool yang mendukung versioned migration, repeatable migration, undo, callbacks, baseline, dan integrasi dengan CI/CD pipeline untuk mengelola skema database secara terstruktur</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Database Migration</a></li>
+          <li><a href="#instalasi">Instalasi Flyway</a></li>
+          <li><a href="#versioned">Versioned Migration</a></li>
+          <li><a href="#repeatable">Repeatable Migration</a></li>
+          <li><a href="#undo">Undo Migration</a></li>
+          <li><a href="#callbacks">Callbacks</a></li>
+          <li><a href="#baseline">Baseline &amp; Repair</a></li>
+          <li><a href="#integrasi">Integrasi CI/CD &amp; Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan Database Migration</h2>
+
+      <p><strong>Database migration</strong> adalah proses mengelola perubahan skema database secara terstruktur, terkontrol, dan terdokumentasi. Tanpa migration tool, perubahan skema sering dilakukan secara manual — berisiko kesalahan, tidak terdokumentasi, dan sulit di-reproduce di environment lain.</p>
+
+      <p><strong>Flyway</strong> adalah database migration tool open-source yang mendukung hampir semua database relasional (PostgreSQL, MySQL, Oracle, SQL Server, SQLite, dll). Flyway menggunakan file SQL (atau Java) yang diurutkan berdasarkan versi untuk mengelola evolusi skema database secara incremental.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Flyway Migration Flow</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">📝</div>
+            <div class="arch-label">Developer</div>
+            <div class="arch-desc">Menulis file<br>migration SQL</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box info">
+            <div class="arch-icon">📂</div>
+            <div class="arch-label">Migration Files</div>
+            <div class="arch-desc">V1__init.sql<br>V2__add_users.sql</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">🚀</div>
+            <div class="arch-label">flyway migrate</div>
+            <div class="arch-desc">Jalankan migration<br>yang pending</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box success">
+            <div class="arch-icon">✅</div>
+            <div class="arch-label">Database Updated</div>
+            <div class="arch-desc">Skema tercatat di<br>flyway_schema_history</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Keunggulan Flyway</h3>
+      <ul>
+        <li><strong>Convention over Configuration:</strong> Cukup buat file SQL dengan naming convention yang benar</li>
+        <li><strong>Version Control:</strong> Migration files disimpan di Git bersama kode aplikasi</li>
+        <li><strong>Reproducible:</strong> Hasil yang sama di development, staging, dan production</li>
+        <li><strong>Multi-DB Support:</strong> PostgreSQL, MySQL, Oracle, SQL Server, MongoDB, dan banyak lagi</li>
+        <li><strong>CI/CD Integration:</strong> Mudah diintegrasikan dengan pipeline deployment</li>
+        <li><strong>Undo Support:</strong> Bisa membatalkan migration (enterprise)</li>
+      </ul>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="instalasi">2. Instalasi Flyway</h2>
+
+      </div>
+<div class="diagram-box">
+
+        <div class="diagram-label">Diagram: my-project/</div>
+<pre class="mermaid">
+flowchart TD
+    N0["my-project/"]
+    N1[sql/]
+    N2["migrations/"]
+    N3["V1__create_users_table.sql"]
+    N4["V2__create_posts_table.sql"]
+    N5["V3__add_email_column_to_users.sql"]
+    N6["V4__create_indexes.sql"]
+    N7["R__create_view_user_posts.sql"]
+    N8["U1__create_users_table_undo.sql"]
+    N9["flyway.conf"]
+    N10["pom.xml (atau build.gradle)"]
+    N11["docker-compose.yml"]
+    N0 --> N1
+    N1 --> N2
+    N1 --> N3
+    N1 --> N4
+    N1 --> N5
+    N1 --> N6
+    N1 --> N7
+    N1 --> N8
+    N0 --> N9
+    N0 --> N10
+    N0 --> N11
+</pre>
+    </div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 3 -->
+      <h2 id="versioned">3. Versioned Migration</h2>
+
+      <p><strong>Versioned migration</strong> adalah jenis migration utama di Flyway. Setiap file dijalankan tepat satu kali dalam urutan versi. Setelah dijalankan, checksum dan metadata dicatat di tabel <code>flyway_schema_history</code>.</p>
+
+      <h3>3.1 Naming Convention</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Bagian</th><th>Wajib</th><th>Contoh</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Prefix</td><td>Ya</td><td><code>V</code></td></tr>
+          <tr><td>Version</td><td>Ya</td><td><code>1</code>, <code>2.1</code>, <code>2026.06.29</code></td></tr>
+          <tr><td>Separator</td><td>Ya</td><td><code>__</code> (dua underscore)</td></tr>
+          <tr><td>Description</td><td>Ya</td><td><code>create_users_table</code></td></tr>
+          <tr><td>Suffix</td><td>Opsional</td><td><code>.sql</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>3.2 Contoh Migration Files</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — V1__create_users_table.sql</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- V1__create_users_table.sql
+-- Migration pertama: membuat tabel users
+
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Index untuk pencarian
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_username ON users(username);
+
+COMMENT ON TABLE users IS 'Tabel utama untuk data pengguna';
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — V2__create_posts_table.sql</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- V2__create_posts_table.sql
+-- Menambah tabel posts dengan foreign key ke users
+
+CREATE TABLE posts (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    content TEXT,
+    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
+    published_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_posts_user_id ON posts(user_id);
+CREATE INDEX idx_posts_status ON posts(status) WHERE status = 'published';
+CREATE INDEX idx_posts_slug ON posts(slug);
+
+COMMENT ON TABLE posts IS 'Artikel dan postingan blog';
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — V3__add_tags_system.sql</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+</div>
+<pre><code>
+-- V3__add_tags_system.sql
+-- Sistem tagging untuk posts
+
+CREATE TABLE tags (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    slug VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE post_tags (
+    post_id BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (post_id, tag_id)
+);
+
+CREATE INDEX idx_post_tags_tag_id ON post_tags(tag_id);
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 DDL Transaction Support</div>
+        <p>PostgreSQL mendukung DDL dalam transaction, sehingga migration yang gagal akan di-rollback secara otomatis. Namun MySQL tidak mendukung DDL transaction — setiap statement di-commit langsung. Gunakan <code>flyway.group=true</code> untuk mem-batch migration dalam satu transaction (khusus DB yang support).</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="repeatable">4. Repeatable Migration</h2>
+
+      <p><strong>Repeatable migration</strong> (prefix <code>R__</code>) dijalankan ulang setiap kali kontennya berubah (checksum berubah). Ini cocok untuk views, stored procedures, functions, dan seed data yang perlu selalu up-to-date.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Repeatable Migrations</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- R__create_view_user_stats.sql
+-- View yang di-update setiap kali file ini berubah
+CREATE OR REPLACE VIEW user_stats AS
+SELECT
+    u.id,
+    u.username,
+    u.email,
+    COUNT(p.id) AS post_count,
+    COUNT(p.id) FILTER (WHERE p.status = 'published') AS published_count,
+    MAX(p.published_at) AS last_published_at
+FROM users u
+LEFT JOIN posts p ON u.id = p.user_id
+GROUP BY u.id, u.username, u.email;
+
+-- R__create_function_update_timestamp.sql
+-- Function untuk auto-update timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- R__create_triggers.sql
+-- Trigger untuk tabel users
+CREATE OR REPLACE TRIGGER trigger_users_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Trigger untuk tabel posts
+CREATE OR REPLACE TRIGGER trigger_posts_updated_at
+    BEFORE UPDATE ON posts
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- R__seed_default_tags.sql
+-- Data default yang selalu di-sync
+INSERT INTO tags (name, slug) VALUES
+    ('Pemrograman', 'pemrograman'),
+    ('Database', 'database'),
+    ('DevOps', 'devops'),
+    ('Tutorial', 'tutorial')
+ON CONFLICT (slug) DO NOTHING;
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Urutan Eksekusi Repeatable</div>
+        <p>Repeatable migrations dijalankan setelah semua versioned migrations selesai. Urutan eksekusi repeatable ditentukan oleh checksum — yang berubah duluan dieksekusi duluan. Gunakan deskripsi yang berurutan (misal: <code>R__01_view.sql</code>, <code>R__02_function.sql</code>) untuk mengontrol urutan.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 5 -->
+      <h2 id="undo">5. Undo Migration</h2>
+
+      <p><strong>Undo migration</strong> (prefix <code>U</code>) memungkinkan Anda membatalkan migration yang sudah dijalankan. Fitur ini memerlukan Flyway Teams/Enterprise.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Undo Migration</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- U1__create_users_table_undo.sql
+-- Membatalkan V1: menghapus tabel users
+DROP TRIGGER IF EXISTS trigger_users_updated_at ON users;
+DROP TABLE IF EXISTS post_tags;
+DROP TABLE IF EXISTS tags;
+DROP TABLE IF EXISTS posts;
+DROP TABLE IF EXISTS users;
+
+-- U2__create_posts_table_undo.sql
+-- Membatalkan V2: menghapus tabel posts
+DROP TABLE IF EXISTS post_tags;
+DROP TABLE IF EXISTS posts;
+
+-- Perintah CLI untuk undo:
+-- flyway undo
+-- (Hanya tersedia di Flyway Teams/Enterprise)
+</code></pre>
+      </div>
+
+      <h3>5.1 Alternatif Undo tanpa Flyway Enterprise</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Manual Undo dengan Migration Terpisah</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- V5__revert_tags_system.sql
+-- "Undo" manual: buat migration baru yang membatalkan perubahan
+
+-- Drop yang dibuat di V3
+DROP TABLE IF EXISTS post_tags;
+DROP TABLE IF EXISTS tags;
+
+-- ATAU: gunakan CREATE TABLE IF NOT EXISTS dan
+-- ALTER TABLE untuk approach yang lebih aman
+
+-- Jika butuh data lama:
+-- 1. Buat backup table
+CREATE TABLE tags_backup AS SELECT * FROM tags;
+
+-- 2. Drop tabel lama
+DROP TABLE post_tags;
+DROP TABLE tags;
+
+-- 3. Buat ulang dengan skema yang benar
+CREATE TABLE tags (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    slug VARCHAR(50) NOT NULL UNIQUE,
+    category VARCHAR(30) DEFAULT 'general'  -- kolom baru
+);
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="callbacks">6. Callbacks</h2>
+
+      <p><strong>Callbacks</strong> memungkinkan Anda menjalankan kode SQL atau Java sebelum/sesudah event migration tertentu. Ini berguna untuk logging, notifikasi, atau validasi tambahan.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Callback Files</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- beforeMigrate.sql
+-- Dijalankan sebelum seluruh migration batch
+-- Berguna untuk backup atau pre-check
+
+-- Cek koneksi database
+SELECT 1;
+
+-- Log migration start
+DO $$
+BEGIN
+    RAISE NOTICE 'Starting Flyway migration at %', now();
+END $$;
+
+-- afterMigrate.sql
+-- Dijalankan setelah semua migration selesai
+
+-- Analisis tabel yang diubah
+ANALYZE users;
+ANALYZE posts;
+
+-- Log completion
+DO $$
+BEGIN
+    RAISE NOTICE 'Flyway migration completed at %', now();
+END $$;
+
+-- beforeEachMigrate.sql
+-- Dijalankan sebelum SETIAP migration file
+DO $$
+BEGIN
+    RAISE NOTICE 'About to execute migration...';
+END $$;
+
+-- afterEachMigrate.sql
+-- Dijalankan setelah SETIAP migration file
+DO $$
+BEGIN
+    RAISE NOTICE 'Migration executed successfully.';
+END $$;
+
+-- afterVersioned.sql
+-- afterRepeatable.sql
+-- beforeClean.sql, afterClean.sql
+-- beforeBaseline.sql, afterBaseline.sql
+-- beforeValidate.sql, afterValidate.sql
+-- beforeUndo.sql, afterEachUndo.sql
+-- beforeRepair.sql, afterRepair.sql
+</code></pre>
+      </div>
+
+      <h3>6.1 Callback dalam Java (Spring Boot)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Java — Custom Callback Spring Boot</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import org.flywaydb.core.api.callback.Callback;
+import org.flywaydb.core.api.callback.Event;
+import org.flywaydb.core.api.callback.Context;
+import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Component
+public class MigrationCallback implements Callback {
+
+    private static final Logger log = LoggerFactory.getLogger(MigrationCallback.class);
+
+    @Override
+    public boolean supports(Event event, Context context) {
+        return event == Event.AFTER_EACH_MIGRATE ||
+               event == Event.AFTER_MIGRATE;
+    }
+
+    @Override
+    public boolean canHandleInTransaction(Event event, Context context) {
+        return true;
+    }
+
+    @Override
+    public void handle(Event event, Context context) {
+        if (event == Event.AFTER_EACH_MIGRATE) {
+            log.info("Migration executed: {} - {}",
+                context.getMigrationInfo().getVersion(),
+                context.getMigrationInfo().getDescription());
+        }
+        if (event == Event.AFTER_MIGRATE) {
+            log.info("All migrations completed successfully");
+            // Kirim notifikasi Slack, email, dll.
+        }
+    }
+}
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 7 -->
+      <h2 id="baseline">7. Baseline &amp; Repair</h2>
+
+      <h3>7.1 Baseline</h3>
+      <p><strong>Baseline</strong> digunakan saat Anda ingin menggunakan Flyway pada database yang sudah ada. Flyway akan menandai versi tertentu sebagai baseline dan hanya menjalankan migration yang lebih baru.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Baseline &amp; Repair Commands</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Baseline: tandai database existing sebagai versi 1
+flyway baseline -baselineVersion=1
+
+# Atau auto-baseline dengan mengatur di config:
+# flyway.baselineOnMigrate=true
+
+# Info: lihat status semua migration
+flyway info
+# Output:
+# +-----------+---------+-------------+------+---------------------+---------+----------+
+# | Category  | Version | Description | Type | Installed On        | State   | Undoable |
+# +-----------+---------+-------------+------+---------------------+---------+----------+
+# | SQL       | 1       | create users| SQL  | 2026-06-29 10:00:00 | Success | No       |
+# | SQL       | 2       | create posts| SQL  | 2026-06-29 10:00:01 | Success | No       |
+# | SQL       | 3       | add tags    | SQL  |                     | Pending | No       |
+# | Repeatable|         | view stats  | SQL  | 2026-06-29 10:00:02 | Success | No       |
+# +-----------+---------+-------------+------+---------------------+---------+----------+
+
+# Validate: cek apakah migration files sudah berubah
+flyway validate
+
+# Repair: perbaiki metadata yang rusak
+flyway repair
+# - Hapus migration yang gagal dari history
+# - Perbaiki checksum yang tidak cocok
+# - Re-align migration yang pending
+
+# Clean: HAPUS SEMUA objek di database (HANYA untuk development!)
+flyway clean
+
+# Migrate: jalankan semua migration yang pending
+flyway migrate
+
+# Migrate ke versi spesifik
+flyway migrate -target=2
+</code></pre>
+      </div>
+
+      <h3>7.2 Spring Boot Integration</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — application.yml Spring Boot</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# application.yml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/myapp_db
+    username: postgres
+    password: ${DB_PASSWORD}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true       # SELALU true di production
+    out-of-order: false
+    table: flyway_schema_history
+    placeholders:
+      environment: ${SPRING_PROFILES_ACTIVE:development}
+
+# Profile-specific
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  flyway:
+    clean-disabled: true
+    out-of-order: false
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="integrasi">8. Integrasi CI/CD &amp; Best Practices</h2>
+
+      <h3>8.1 CI/CD Pipeline</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — GitHub Actions Flyway Pipeline</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# .github/workflows/db-migrate.yml
+name: Database Migration
+on:
+  push:
+    paths:
+      - 'sql/migrations/**'
+      - 'db/migration/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start PostgreSQL
+        run: docker run -d --name pg-test \
+          -e POSTGRES_PASSWORD=test \
+          -e POSTGRES_DB=testdb \
+          -p 5432:5432 postgres:16
+
+      - name: Wait for PostgreSQL
+        run: sleep 5
+
+      - name: Flyway Migrate
+        uses: flyway/flyway-action@v1
+        with:
+          url: jdbc:postgresql://localhost:5432/testdb
+          user: postgres
+          password: test
+          locations: filesystem:./db/migration
+          command: migrate
+
+      - name: Flyway Info
+        uses: flyway/flyway-action@v1
+        with:
+          url: jdbc:postgresql://localhost:5432/testdb
+          user: postgres
+          password: test
+          command: info
+
+  deploy-staging:
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Migrate Staging Database
+        uses: flyway/flyway-action@v1
+        with:
+          url: ${{ secrets.STAGING_DB_URL }}
+          user: ${{ secrets.STAGING_DB_USER }}
+          password: ${{ secrets.STAGING_DB_PASS }}
+          locations: filesystem:./db/migration
+          command: migrate
+</code></pre>
+      </div>
+
+      <h3>8.2 Best Practices</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Praktik</th><th>Penjelasan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Satu perubahan per file</td><td>Setiap migration file berisi satu perubahan logis</td></tr>
+          <tr><td>Idempotent when possible</td><td>Gunakan <code>IF NOT EXISTS</code>, <code>IF EXISTS</code> untuk safety</td></tr>
+          <tr><td>Jangan edit file yang sudah di-deploy</td><td>Jika sudah di production, buat migration baru untuk perbaikan</td></tr>
+          <tr><td>Review migration files</td><td>Treat migration files sebagai kode — lakukan code review</td></tr>
+          <tr><td>Test migrations</td><td>Jalankan migration di test database sebelum deploy ke production</td></tr>
+          <tr><td>Backup sebelum migrate</td><td>Selalu backup database sebelum menjalankan migration di production</td></tr>
+          <tr><td>Gunakan transaksi</td><td>Wrap migration dalam transaksi untuk atomicity (PostgreSQL)</td></tr>
+          <tr><td>cleanDisabled=true</td><td>SELALU disable <code>flyway clean</code> di production</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 9 -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quiz6">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa prefix untuk versioned migration di Flyway?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) M__</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) V__</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) V (dengan satu underscore)</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) V (tanpa underscore)</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Kapan repeatable migration dijalankan ulang?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Setiap kali aplikasi restart</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Setiap kali checksum file berubah</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Setiap hari secara otomatis</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Tidak pernah dijalankan ulang</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi dari <code>flyway baseline</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Menghapus semua migration files</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Menandai database existing agar Flyway mulai dari versi tertentu</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Mengembalikan database ke versi awal</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Membuat backup database</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari <code>flyway repair</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Menghapus database dan membuat ulang</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Memperbaiki checksum dan menghapus migration yang gagal dari history</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Menginstall ulang Flyway</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Mengupgrade versi database</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa <code>flyway.clean()</code> harus disabled di production?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Karena terlalu lambat</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Karena menghapus SEMUA objek di database dan menyebabkan kehilangan data</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Karena tidak kompatibel dengan PostgreSQL</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Karena memerlukan lisensi enterprise</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="vector-database-qdrant.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Qdrant Vector Database</span>
+        </a>
+        <a href="sql-query-optimization-2.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">SQL Query Optimization Advanced</span>
+        </a>
+      </div>
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial Database terbaru langsung di inbox kamu.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

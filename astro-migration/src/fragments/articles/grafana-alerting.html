@@ -1,0 +1,965 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Tools</a>
+        <span class="separator">/</span>
+        <span class="current">Grafana Alerting</span>
+      </div>
+      <span class="category-tag">Tools</span>
+      <h1>Grafana Alerting: Monitoring & Notifikasi Otomatis</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Tutorial komprehensif membangun sistem monitoring dan notifikasi otomatis menggunakan Grafana Alerting — dari alert rules, contact points, integrasi Telegram & email, hingga best practices produksi</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 22 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-alerting">Pengenalan Grafana Alerting</a></li>
+          <li><a href="#arsitektur-alerting">Arsitektur & Komponen Alerting</a></li>
+          <li><a href="#alert-rules">Membuat Alert Rules</a></li>
+          <li><a href="#contact-points">Contact Points: Telegram & Email</a></li>
+          <li><a href="#notification-policies">Notification Policies</a></li>
+          <li><a href="#silence-mute">Silence & Mute Timings</a></li>
+          <li><a href="#alert-dashboard">Dashboard Khusus Alerting</a></li>
+          <li><a href="#best-practices">Best Practices Grafana Alerting</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan Alerting -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-alerting">1. Pengenalan Grafana Alerting</h2>
+
+      <p>Dalam dunia monitoring, memiliki dashboard yang indah saja tidak cukup. Kamu membutuhkan sistem yang secara otomatis memberitahu kamu ketika sesuatu yang tidak normal terjadi — apakah itu server yang down, CPU yang overload, suhu yang terlalu tinggi, atau jaringan yang mendadak lambat. Di sinilah <strong>Grafana Alerting</strong> berperan penting.</p>
+
+      <p>Grafana Alerting adalah sistem notifikasi terintegrasi yang memungkinkan kamu mendefinisikan <strong>kondisi kapan alert harus dikirim</strong>, <strong>ke mana alert dikirim</strong>, dan <strong>bagaimana alert dikelompokkan</strong>. Sistem ini hadir secara native di Grafana 8+ dan sepenuhnya menggantikan sistem alerting lama yang lebih terbatas.</p>
+
+      <h3>Mengapa Alerting Penting?</h3>
+      <p>Bayangkan skenario berikut: kamu memiliki dashboard monitoring suhu server room. Kamu melihat dashboard hanya di jam kerja. Tapi malam hari, suhu naik drastis karena AC mati. Tanpa alerting, kamu baru tahu keesokan harinya ketika server sudah mati karena overheat.</p>
+
+      <p>Dengan Grafana Alerting, sistem akan otomatis:</p>
+      <ul>
+        <li><strong>Memantau 24/7</strong> — alert berjalan terus meskipun tidak ada yang melihat dashboard</li>
+        <li><strong>Memberi notifikasi instan</strong> — via Telegram, email, Slack, webhook, atau integrasi lainnya</li>
+        <li><strong>Menyesuaikan prioritas</strong> — alert kritis ke tim on-call, alert info ke channel umum</li>
+        <li><strong>Mengelola noise</strong> — fitur silence dan mute untuk menghindari alert berlebihan</li>
+      </ul>
+
+      <h3>Fitur Baru Grafana Alerting (Unified Alerting)</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Unified Alerting (8+)</th>
+            <th>Legacy Alerting</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Multi-condition Alert</td><td>✅ Didukung penuh</td><td>❌ Terbatas</td></tr>
+          <tr><td>Multiple Contact Points</td><td>✅ Banyak sekaligus</td><td>⚠️ Satu per alert</td></tr>
+          <tr><td>Notification Policies</td><td>✅ Routing berdasarkan label</td><td>❌ Tidak ada</td></tr>
+          <tr><td>Silence & Mute Timing</td><td>✅ Lengkap</td><td>⚠️ Silence saja</td></tr>
+          <tr><td>State & Health History</td><td>✅ Detail per rule</td><td>⚠️ Terbatas</td></tr>
+          <tr><td>Provisioning as Code</td><td>✅ File YAML/JSON</td><td>⚠️ Terbatas</td></tr>
+          <tr><td>Data Source Kompatibel</td><td>Semua + expression query</td><td>Hanya Grafana-managed</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Pastikan Unified Alerting Aktif</div>
+        <p>Di Grafana 8+, Unified Alerting aktif secara default. Jika kamu masih menggunakan Grafana lama, buka <code>grafana.ini</code> dan pastikan <code>[unified_alerting] enabled = true</code> lalu restart Grafana. Menu <strong>Alert & IRM</strong> akan muncul di sidebar kiri.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Arsitektur Alerting -->
+      <!-- ============================== -->
+      <h2 id="arsitektur-alerting">2. Arsitektur & Komponen Alerting</h2>
+
+      <p>Sebelum mulai membuat alert, penting untuk memahami bagaimana komponen-komponen Grafana Alerting saling terhubung. Sistem ini terdiri dari beberapa komponen utama yang bekerja sama dalam satu pipeline.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Pipeline Grafana Alerting</div>
+<div class="diagram-box">
+        
+<pre class="mermaid">
+flowchart TD
+    N0["Data Source (Prometheus, InfluxDB, MySQL, dll) ..."]
+    N1["Mute Timings (scheduled)"]
+    N2["Silence (temporary)"]
+    N0 --> N2
+    N2 --> N1
+</pre>
+    </div>
+      </div>
+
+      <h3>Komponen Utama</h3>
+      <ul>
+        <li><strong>Alert Rules</strong> — Mendefinisikan kondisi kapan alert harus aktif. Misalnya: "CPU > 90% selama 5 menit"</li>
+        <li><strong>Contact Points</strong> — Destinasi notifikasi: Telegram bot, email, Slack, webhook, PagerDuty, dll.</li>
+        <li><strong>Notification Policies</strong> — Routing alert berdasarkan label ke contact point yang tepat, plus pengaturan grouping dan timing</li>
+        <li><strong>Silence</strong> — Menonaktifkan alert sementara (misalnya saat maintenance server)</li>
+        <li><strong>Mute Timings</strong> — Menjadwalkan waktu kapan alert tidak dikirim (misalnya jam 12 malam - 6 pagi untuk alert non-kritis)</li>
+      </ul>
+
+      <p>Alur kerjanya sederhana: <strong>Alert Rule</strong> mengevaluasi data dari data source → jika kondisi terpenuhi, alert dikirim ke <strong>Notification Policy</strong> → policy merutekan ke <strong>Contact Point</strong> yang sesuai → notifikasi sampai ke tim yang tepat.</p>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Alert Rules         -->
+      <!-- ============================== -->
+      <h2 id="alert-rules">3. Membuat Alert Rules</h2>
+
+      <p>Alert Rule adalah jantung dari sistem alerting. Setiap rule mendefinisikan: dari mana data diambil, kondisi apa yang diuji, seberapa sering dievaluasi, dan label apa yang dilekatkan pada alert.</p>
+
+      <h3>Langkah-langkah Membuat Alert Rule</h3>
+      <ol>
+        <li>Buka Grafana → sidebar kiri → <strong>Alert & IRM</strong> → <strong>Alert rules</strong></li>
+        <li>Klik tombol <strong>"+ New alert rule"</strong></li>
+        <li>Isi tiga bagian utama: <strong>Query</strong>, <strong>Conditions</strong>, dan <strong>Labels</strong></li>
+      </ol>
+
+      <h3>Contoh: Alert CPU Usage Server</h3>
+      <p>Misalnya kamu ingin membuat alert ketika CPU usage server melebihi 90% selama 5 menit:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">PromQL — Query CPU Usage</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)')">Salin</button></div>
+<pre class="mermaid">
+flowchart TD
+    N0["# CPU Usage % (dari Prometheus data source)"]
+    N1["100 - (avg by(instance) (irate(node_cpu_seconds..."]
+
+    N0 --> N1
+
+    style N0 fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+</pre>
+      </div>
+
+      <p>Pengaturan di halaman Alert Rule:</p>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Pengaturan</th>
+            <th>Nilai</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Rule name</td><td><code>High CPU Usage</code></td><td>Nama yang deskriptif untuk alert ini</td></tr>
+          <tr><td>Data source</td><td><code>Prometheus</code></td><td>Sumber data metrik</td></tr>
+          <tr><td>Evaluate every</td><td><code>1m</code></td><td>Seberapa sering rule dievaluasi</td></tr>
+          <tr><td>Evaluate for</td><td><code>5m</code></td><td>Berapa lama kondisi harus terpenuhi sebelum alert aktif</td></tr>
+          <tr><td>Threshold condition</td><td><code>IS ABOVE 90</code></td><td>Alert aktif jika nilai > 90%</td></tr>
+          <tr><td>Labels</td><td><code>severity: critical</code></td><td>Label untuk routing di notification policy</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Jenis-jenis Alert Condition</h3>
+      <p>Grafana mendukung berbagai jenis kondisi evaluasi:</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Jenis Alert Conditions</div>
+<pre class="mermaid">
+flowchart TD
+    A["📊 Jenis Alert Conditions"] --> B["📈 Threshold\nNilai di atas/bawah batas"]
+    A --> C["📉 Math\nOperasi matematika antar query"]
+    A --> D["🔄 Reduce\nAggregasi: avg, min, max, sum"]
+    A --> E["📋 Classic Condition\nQuery lama (legacy)"]
+    B --> F["Contoh: CPU > 90%\nselama 5 menit"]
+    C --> G["Contoh: Query_A + Query_B > 100"]
+    D --> H["Contoh: avg(5m) dari metric suhu > 32"]
+    E --> I["Contoh: last() dari InfluxDB query"]
+</pre>
+      </div>
+
+      <h3>Contoh Alert Rule dengan Flux (InfluxDB)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Flux — Alert Suhu Kritis</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('from(bucket: \"iot-data\")\\n  |> range(start: -5m)\\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\\n  |> filter(fn: (r) => r._field == \"suhu\")\\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)\\n  |> last()')\">Salin</button>
+        </div>
+<pre><code>from(bucket: "iot-data")
+  |> range(start: -5m)
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
+  |> last()</code></pre>
+      </div>
+
+      <p>Pengaturan untuk alert suhu IoT:</p>
+      <ul>
+        <li><strong>Evaluate every:</strong> 1 menit</li>
+        <li><strong>Evaluate for:</strong> 3 menit (menghindari spike sesaat)</li>
+        <li><strong>Threshold Warning:</strong> suhu &gt; 32°C → label <code>severity: warning</code></li>
+        <li><strong>Threshold Critical:</strong> suhu &gt; 35°C → label <code>severity: critical</code></li>
+      </ul>
+
+      <h3>Menggunakan Math Expression</h3>
+      <p>Grafana memungkinkan membuat multiple query dalam satu rule dan mengkombinasikannya dengan expression:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Konfigurasi — Multi-Query Alert Rule</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Query A: CPU Usage (datasource: Prometheus)\\n100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\\\"idle\\\"}[5m])) * 100)\\n\\n# Query B: Memory Usage (datasource: Prometheus)\\n(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100\\n\\n# Expression C: Math\\n$A > 90 OR $B > 85')\">Salin</button>
+        </div>
+<pre><code># Query A: CPU Usage (datasource: Prometheus)
+100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+# Query B: Memory Usage (datasource: Prometheus)
+(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+
+# Expression C: Math — Alert aktif jika CPU > 90% ATAU Memory > 85%
+$A > 90 OR $B > 85</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Hati-hati dengan Evaluate For = 0</div>
+        <p>Jika <strong>Evaluate for</strong> diisi <code>0s</code> (nol detik), alert akan langsung aktif saat kondisi terpenuhi. Ini rentan terhadap <strong>false alarm</strong> akibat spike data sesaat. Untuk produksi, selalu gunakan minimal <strong>2-5 menit</strong> agar kondisi benar-benar stabil sebelum alert dikirim.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Contact Points      -->
+      <!-- ============================== -->
+      <h2 id="contact-points">4. Contact Points: Telegram & Email</h2>
+
+      <p>Contact Points adalah <strong>tujuan akhir</strong> dari notifikasi alert. Grafana mendukung banyak jenis contact point: Telegram, Email, Slack, Discord, PagerDuty, webhook, dan banyak lagi. Di bagian ini, kita akan fokus pada dua yang paling populer: <strong>Telegram</strong> dan <strong>Email</strong>.</p>
+
+      <h3>4.1 Integrasi Telegram</h3>
+      <p>Telegram adalah salah satu platform terbaik untuk menerima alert karena cepat, gratis, dan mendukung bot API yang kuat.</p>
+
+      <h4>Langkah 1: Membuat Telegram Bot</h4>
+      <ol>
+        <li>Buka Telegram, cari <strong>@BotFather</strong></li>
+        <li>Kirim perintah <code>/newbot</code></li>
+        <li>Berikan nama bot, misalnya: <code>Grafana Monitor Bot</code></li>
+        <li>Berikan username bot, misalnya: <code>grafana_monitor_bot</code></li>
+        <li>BotFather akan mengirim <strong>API Token</strong>, simpan token ini. Format: <code>123456789:ABCdefGhIjKlMnOpQrStUvWxYz</code></li>
+      </ol>
+
+      <h4>Langkah 2: Mendapatkan Chat ID</h4>
+      <p>Chat ID dibutuhkan agar bot tahu ke mana mengirim pesan. Ada beberapa cara:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Mendapatkan Chat ID Telegram</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Cara 1: Kirim pesan dulu ke bot, lalu akses URL ini:\\ncurl \"https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates\"\\n\\n# Cara 2: Kirim ke grup/grup ID:\\n# 1. Tambahkan bot ke grup Telegram\\n# 2. Kirim pesan di grup\\n# 3. Jalankan curl di atas\\n# Chat ID grup biasanya negatif, contoh: -1001234567890')\">Salin</button>
+        </div>
+<pre><code># Cara 1: Kirim pesan dulu ke bot (klik Start), lalu akses URL ini:
+curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates"
+
+# Response akan berisi chat_id, contoh:
+# "chat": { "id": 123456789, "first_name": "Nama", "type": "private" }
+
+# Cara 2: Untuk grup Telegram:
+# 1. Tambahkan bot ke grup Telegram
+# 2. Kirim pesan apapun di grup
+# 3. Jalankan curl yang sama
+# Chat ID grup biasanya negatif: -1001234567890</code></pre>
+      </div>
+
+      <h4>Langkah 3: Konfigurasi Contact Point di Grafana</h4>
+      <ol>
+        <li>Buka Grafana → <strong>Alert & IRM</strong> → <strong>Contact points</strong></li>
+        <li>Klik <strong>"+ Add contact point"</strong></li>
+        <li>Berikan nama, misalnya: <code>Telegram Tim Ops</code></li>
+        <li>Pilih integration: <strong>Telegram</strong></li>
+        <li>Isi pengaturan berikut:</li>
+      </ol>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Nilai</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Telegram Bot Token</td><td><code>123456789:ABC...</code></td><td>Token dari BotFather</td></tr>
+          <tr><td>Chat ID</td><td><code>123456789</code></td><td>ID chat/grup tujuan</td></tr>
+          <tr><td>Message Template</td><td>(opsional)</td><td>Custom template pesan</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Custom Message Template Telegram</h4>
+      <p>Grafana mendukung template Go untuk mengkustomisasi isi pesan alert:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go Template — Custom Telegram Message</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('{{ define \\\"custom.telegram.message\\\" }}\\n{{ if .Alerts.Firing }}\\n🔥 *ALERT FIRING*\\n{{ range .Alerts.Firing }}\\n━━━━━━━━━━━━━━━━\\n📌 *Rule:* {{ .Labels.alertname }}\\n⚠️ *Severity:* {{ .Labels.severity }}\\n📝 *Summary:* {{ .Annotations.summary }}\\n💡 *Description:* {{ .Annotations.description }}\\n⏰ *Time:* {{ .StartsAt.Format \\\"02-01-2006 15:04:05\\\" }}\\n{{ end }}\\n{{ end }}\\n{{ if .Alerts.Resolved }}\\n✅ *ALERT RESOLVED*\\n{{ range .Alerts.Resolved }}\\n━━━━━━━━━━━━━━━━\\n📌 *Rule:* {{ .Labels.alertname }}\\n⏰ *Resolved At:* {{ .EndsAt.Format \\\"02-01-2006 15:04:05\\\" }}\\n{{ end }}\\n{{ end }}\\n{{ end }}')\">Salin</button>
+        </div>
+<pre><code>{{ define "custom.telegram.message" }}
+{{ if .Alerts.Firing }}
+🔥 *ALERT FIRING*
+{{ range .Alerts.Firing }}
+━━━━━━━━━━━━━━━━
+📌 *Rule:* {{ .Labels.alertname }}
+⚠️ *Severity:* {{ .Labels.severity }}
+📝 *Summary:* {{ .Annotations.summary }}
+💡 *Description:* {{ .Annotations.description }}
+⏰ *Time:* {{ .StartsAt.Format "02-01-2006 15:04:05" }}
+{{ end }}
+{{ end }}
+{{ if .Alerts.Resolved }}
+✅ *ALERT RESOLVED*
+{{ range .Alerts.Resolved }}
+━━━━━━━━━━━━━━━━
+📌 *Rule:* {{ .Labels.alertname }}
+⏰ *Resolved At:* {{ .EndsAt.Format "02-01-2006 15:04:05" }}
+{{ end }}
+{{ end }}
+{{ end }}</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips: Test Contact Point</div>
+        <p>Setelah menyimpan contact point, klik tombol <strong>"Test"</strong> untuk mengirim pesan percobaan. Pastikan bot sudah di-Start (untuk chat pribadi) atau sudah ditambahkan ke grup (untuk grup). Jika test berhasil, pesan akan muncul di Telegram dalam hitungan detik.</p>
+      </div>
+
+      <h3>4.2 Integrasi Email (SMTP)</h3>
+      <p>Email adalah channel notifikasi klasik yang cocok untuk laporan dan alert formal. Untuk mengaktifkan email, kamu perlu mengkonfigurasi SMTP di Grafana.</p>
+
+      <h4>Konfigurasi SMTP di grafana.ini</h4>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">grafana.ini — Konfigurasi SMTP Email</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('[smtp]\\nenabled = true\\nhost = smtp.gmail.com:587\\nuser = monitoring@example.com\\npassword = app_password_kamu\\nfrom_address = monitoring@example.com\\nfrom_name = Grafana Alerting\\nstarttls_policy = MandatoryStartTLS\\nskip_verify = false\\n\\n[emails]\\nwelcome_email_on_sign_up = false\\ntemplates_pattern = emails/*.html')\">Salin</button>
+        </div>
+<pre><code>[smtp]
+enabled = true
+host = smtp.gmail.com:587
+user = monitoring@example.com
+password = app_password_kamu
+from_address = monitoring@example.com
+from_name = Grafana Alerting
+starttls_policy = MandatoryStartTLS
+skip_verify = false
+
+[emails]
+welcome_email_on_sign_up = false
+templates_pattern = emails/*.html</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Gunakan App Password untuk Gmail</div>
+        <p>Jangan gunakan password Gmail biasa! Buat <strong>App Password</strong> di Google Account → Security → 2-Step Verification → App Passwords. Pilih "Mail" dan generate password baru. Gunakan password tersebut di konfigurasi SMTP Grafana. Untuk produksi, gunakan layanan transactional email seperti SendGrid, Mailgun, atau Amazon SES.</p>
+      </div>
+
+      <h4>Menambahkan Email Contact Point</h4>
+      <ol>
+        <li>Buka <strong>Alert & IRM</strong> → <strong>Contact points</strong> → <strong>+ Add contact point</strong></li>
+        <li>Pilih integration: <strong>Email</strong></li>
+        <li>Isi <strong>Addresses</strong> dengan satu atau lebih email (pisahkan dengan koma untuk multiple penerima)</li>
+        <li>Opsional: centang <strong>Single email</strong> jika ingin semua alert dikirim dalam satu email</li>
+      </ol>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Contact Point</th>
+            <th>Kelebihan</th>
+            <th>Kekurangan</th>
+            <th>Cocok Untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>📱 Telegram</td><td>Cepat, gratis, support bot API, group chat</td><td>Perlu setup bot, rentan spam jika chat ID bocor</td><td>Tim operasional, alert real-time</td></tr>
+          <tr><td>📧 Email</td><td>Formal, mudah dibaca, arsip otomatis</td><td>Lambat, bisa masuk spam, perlu SMTP server</td><td>Laporan harian, alert manajemen</td></tr>
+          <tr><td>💬 Slack</td><td>Collaboration, threads, rich formatting</td><td>Butuh workspace Slack</td><td>Tim DevOps, pengguna Slack aktif</td></tr>
+          <tr><td>🔗 Webhook</td><td>Fleksibel, bisa integrasi ke sistem apapun</td><td>Perlu endpoint sendiri, perlu handling response</td><td>Integrasi custom, ticketing system</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Notification Policies -->
+      <!-- ============================== -->
+      <h2 id="notification-policies">5. Notification Policies</h2>
+
+      <p>Notification Policies menentukan <strong>bagaimana alert dirutekan</strong> ke contact point yang tepat berdasarkan label. Ini adalah fitur paling powerful dari Grafana Alerting yang memungkinkan kamu membangun sistem notifikasi bertingkat.</p>
+
+      <h3>Konsep Dasar</h3>
+      <p>Notification Policy bekerja seperti routing tree. Setiap alert yang masuk akan dicocokkan dengan policy berdasarkan <strong>matchers</strong> (label). Jika cocok, alert dikirim ke contact point yang ditentukan. Jika tidak cocok dengan policy manapun, alert dikirim ke <strong>default policy</strong>.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Notification Policy Routing Tree</div>
+<pre class="mermaid">
+flowchart TD
+    A["📌 Default Policy (Root)"] --> B{"Cocok dengan\nmatchers?"}
+    B -->|"severity=critical\n+ team=infra"| C["🚨 On-Call Team\n→ PagerDuty"]
+    B -->|"severity=warning\n+ service=api"| D["📧 DevOps\n→ Slack Channel"]
+    B -->|"team=backend\n+ env=prod"| E["💬 Backend Team\n→ Email + Slack"]
+    B -->|"Tidak cocok"| F["📬 Default Contact\n→ Email Admin"]
+    C --> G["📱 Notifikasi dikirim\kke responder"]
+    D --> G
+    E --> G
+    F --> G
+</pre>
+      </div>
+
+      <h3>Parameter Penting dalam Notification Policy</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Fungsi</th>
+            <th>Contoh Nilai</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Matchers</strong></td><td>Label yang harus cocok untuk routing</td><td><code>severity=critical</code>, <code>team=devops</code></td></tr>
+          <tr><td><strong>Contact point</strong></td><td>Ke mana alert dikirim</td><td>Telegram On-Call, Email Manager</td></tr>
+          <tr><td><strong>Group by</strong></td><td>Label untuk mengelompokkan alert</td><td><code>alertname</code>, <code>severity</code></td></tr>
+          <tr><td><strong>Group wait</strong></td><td>Waktu tunggu sebelum mengirim grup pertama</td><td>30 detik</td></tr>
+          <tr><td><strong>Group interval</strong></td><td>Waktu tunggu antar grup</td><td>5 menit</td></tr>
+          <tr><td><strong>Repeat interval</strong></td><td>Seberapa sering alert diulang jika belum resolved</td><td>4 jam</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Contoh Konfigurasi Notification Policy</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Provisioning Notification Policy (opsional)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('apiVersion: 1\\npolicies:\\n  - orgId: 1\\n    receiver: telegram-umum\\n    group_by: [alertname]\\n    group_wait: 30s\\n    group_interval: 5m\\n    repeat_interval: 4h\\n    routes:\\n      - receiver: telegram-oncall\\n        matchers:\\n          - severity = critical\\n        group_wait: 0s\\n        repeat_interval: 1h\\n        continue: true\\n      - receiver: email-ops\\n        matchers:\\n          - severity = warning\\n        group_wait: 1m\\n        repeat_interval: 4h\\n      - receiver: slack-infra\\n        matchers:\\n          - team = infrastructure\\n        group_wait: 10s\\n        repeat_interval: 2h')\">Salin</button>
+        </div>
+<pre><code>apiVersion: 1
+policies:
+  - orgId: 1
+    receiver: telegram-umum
+    group_by: [alertname]
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
+    routes:
+      - receiver: telegram-oncall
+        matchers:
+          - severity = critical
+        group_wait: 0s
+        repeat_interval: 1h
+        continue: true
+      - receiver: email-ops
+        matchers:
+          - severity = warning
+        group_wait: 1m
+        repeat_interval: 4h
+      - receiver: slack-infra
+        matchers:
+          - team = infrastructure
+        group_wait: 10s
+        repeat_interval: 2h</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips: Group by Labels</div>
+        <p>Pengaturan <strong>Group by</strong> sangat penting. Jika kamu set <code>group_by: [alertname]</code>, semua alert dengan nama yang sama akan digabung dalam satu pesan notifikasi. Ini mengurangi noise. Jika kamu ingin alert per instance, tambahkan label <code>instance</code> ke group_by: <code>[alertname, instance]</code>.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Silence & Mute      -->
+      <!-- ============================== -->
+      <h2 id="silence-mute">6. Silence & Mute Timings</h2>
+
+      <p>Dalam operasional nyata, ada kalanya kamu perlu <strong>menonaktifkan alert sementara</strong>. Misalnya saat maintenance server, deployment aplikasi, atau jam istirahat untuk alert non-kritis. Grafana menyediakan dua fitur untuk ini: <strong>Silence</strong> dan <strong>Mute Timings</strong>.</p>
+
+      <h3>6.1 Silence</h3>
+      <p>Silence menonaktifkan alert secara <strong>temporer</strong> berdasarkan label matchers. Alert yang match akan tetap dievaluasi, tetapi <strong>notifikasi tidak dikirim</strong>.</p>
+
+      <h4>Membuat Silence</h4>
+      <ol>
+        <li>Buka <strong>Alert & IRM</strong> → <strong>Alert rules</strong></li>
+        <li>Klik ikon <strong>🔇 Silence</strong> pada alert rule yang ingin di-silence, atau</li>
+        <li>Buka <strong>Alert & IRM</strong> → <strong>Silences</strong> → <strong>+ New silence</strong></li>
+        <li>Isi matcher, durasi, dan alasan</li>
+      </ol>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Pengaturan</th>
+            <th>Keterangan</th>
+            <th>Contoh</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Matchers</td><td>Label untuk menentukan alert mana yang di-silence</td><td><code>alertname=HighCPU</code></td></tr>
+          <tr><td>Start time</td><td>Kapan silence mulai berlaku</td><td>25 Jun 2026 22:00</td></tr>
+          <tr><td>End time</td><td>Kapan silence berakhir</td><td>26 Jun 2026 06:00</td></tr>
+          <tr><td>Duration</td><td>Berapa lama silence berlaku</td><td>8 jam</td></tr>
+          <tr><td>Comment</td><td>Alasan silence (untuk audit)</td><td>"Scheduled maintenance server DB-01"</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Jangan Lupa Matikan Silence</div>
+        <p>Silence akan otomatis berakhir sesuai waktu yang ditentukan. Namun, pastikan kamu selalu memberikan <strong>comment yang jelas</strong> mengapa silence dibuat. Ini penting untuk audit trail — tim lain mungkin bingung mengapa alert tidak muncul padahal ada masalah nyata.</p>
+      </div>
+
+      <h3>6.2 Mute Timings</h3>
+      <p>Berbeda dengan Silence yang bersifat satu kali, <strong>Mute Timings</strong> adalah jadwal berulang untuk menonaktifkan notifikasi. Misalnya: "Alert non-kritis tidak dikirim setiap hari Jumat 17:00 - Senin 08:00" atau "Alert info tidak dikirim jam 12 malam - 6 pagi".</p>
+
+      <h4>Membuat Mute Timing</h4>
+      <ol>
+        <li>Buka <strong>Alert & IRM</strong> → <strong>Notification policies</strong></li>
+        <li>Tab <strong>Mute timings</strong> → <strong>+ Add mute timing</strong></li>
+        <li>Berikan nama dan atur jadwal</li>
+        <li>Terapkan ke notification policy yang diinginkan</li>
+      </ol>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Konfigurasi — Mute Timing Weekend & Malam Hari</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Mute Timing 1: Jam Istirahat Malam\\nName: malam-hari\\nTime intervals:\\n  - Start: 00:00\\n    End: 06:00\\n    Days: Senin, Selasa, Rabu, Kamis, Jumat\\n\\n# Mute Timing 2: Weekend (Sabtu-Minggu)\\nName: weekend\\nTime intervals:\\n  - Days: Saturday, Sunday\\n    (seharian penuh)\\n\\n# Terapkan ke Policy: severity=info\\n→ Mute timings: malam-hari, weekend')\">Salin</button>
+        </div>
+<pre><code># Mute Timing 1: Jam Istirahat Malam
+Name: malam-hari
+Time intervals:
+  - Start: 00:00
+    End: 06:00
+    Days: Monday, Tuesday, Wednesday, Thursday, Friday
+
+# Mute Timing 2: Weekend (Sabtu-Minggu)
+Name: weekend
+Time intervals:
+  - Days: Saturday, Sunday
+    (seharian penuh)
+
+# Terapkan ke Notification Policy untuk severity=info:
+→ Mute timings: malam-hari, weekend</code></pre>
+      </div>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Silence</th>
+            <th>Mute Timing</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Sifat</td><td>Sekali pakai (one-time)</td><td>Berulang (recurring)</td></tr>
+          <tr><td>Durasi</td><td>Tentukan start & end</td><td>Jadwal harian/mingguan</td></tr>
+          <tr><td>Use Case</td><td>Maintenance, deployment</td><td>Jam istirahat, weekend</td></tr>
+          <tr><td>Dihubungkan ke</td><td>Alert rule langsung</td><td>Notification policy</td></tr>
+          <tr><td>Evaluasi alert tetap jalan?</td><td>Ya, hanya notifikasi yang diblokir</td><td>Ya, hanya notifikasi yang diblokir</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Alert Dashboard     -->
+      <!-- ============================== -->
+      <h2 id="alert-dashboard">7. Dashboard Khusus Alerting</h2>
+
+      <p>Grafana menyediakan halaman khusus untuk memantau status semua alert dalam satu tampilan. Kamu juga bisa membuat dashboard custom yang menampilkan data terkait alert.</p>
+
+      <h3>Halaman Alert Rules</h3>
+      <p>Buka <strong>Alert & IRM</strong> → <strong>Alert rules</strong> untuk melihat semua alert rules beserta statusnya:</p>
+      <ul>
+        <li><strong>🟢 Normal</strong> — Kondisi alert tidak terpenuhi, semuanya baik-baik saja</li>
+        <li><strong>🟡 Pending</strong> — Kondisi terpenuhi tapi belum melewati "Evaluate for" duration</li>
+        <li><strong>🔴 Firing</strong> — Alert aktif dan notifikasi sudah/sedang dikirim</li>
+        <li><strong>⚪ No Data</strong> — Data source tidak mengembalikan data</li>
+        <li><strong>🔴 Error</strong> — Ada error pada evaluasi rule</li>
+      </ul>
+
+      <h3>Membuat Dashboard Monitoring Alert</h3>
+      <p>Kamu bisa membuat dashboard Grafana yang menampilkan informasi terkait alerting menggunakan data source <strong>Grafana</strong> (built-in). Berikut beberapa panel yang berguna:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">PromQL — Panel Dashboard Alert Monitoring</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Panel 1: Jumlah Alert Firing Saat Ini\\nALERTS{alertstate=\\\"firing\\\"}\\n\\n# Panel 2: Alert History (semua alert dalam 24 jam terakhir)\\nALERTS_FOR_STATE\\n\\n# Panel 3: Alert per Severity\\ncount by (severity) (ALERTS{alertstate=\\\"firing\\\"})\\n\\n# Panel 4: Alert yang Sudah Resolved (dalam 1 jam terakhir)\\ncount(ALERTS{alertstate=\\\"resolved\\\"}) OR vector(0)')\">Salin</button>
+        </div>
+<pre><code># Panel 1: Jumlah Alert Firing Saat Ini
+ALERTS{alertstate="firing"}
+
+# Panel 2: Alert History (semua alert dalam 24 jam terakhir)
+ALERTS_FOR_STATE
+
+# Panel 3: Alert per Severity
+count by (severity) (ALERTS{alertstate="firing"})
+
+# Panel 4: Alert yang Sudah Resolved (dalam 1 jam terakhir)
+count(ALERTS{alertstate="resolved"}) OR vector(0)</code></pre>
+      </div>
+
+      <h3>Panel Rekomendasi untuk Alert Dashboard</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Panel</th>
+            <th>Tipe</th>
+            <th>Data</th>
+            <th>Tujuan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Jumlah Alert Firing</td><td>Stat</td><td><code>count(ALERTS{alertstate="firing"})</code></td><td>Overview total alert aktif</td></tr>
+          <tr><td>Alert per Severity</td><td>Pie Chart</td><td><code>count by (severity) (ALERTS)</code></td><td>Distribusi severity</td></tr>
+          <tr><td>Alert Timeline</td><td>Time Series</td><td><code>ALERTS_FOR_STATE</code></td><td>Kapan alert mulai dan berakhir</td></tr>
+          <tr><td>Top 5 Alert Rules</td><td>Table</td><td><code>topk(5, count by (alertname) (ALERTS))</code></td><td>Alert paling sering firing</td></tr>
+          <tr><td>Alert Notification Log</td><td>Table</td><td>Data dari Grafana audit log</td><td>Riwayat notifikasi terkirim</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips: Dashboard Annotations untuk Alert</div>
+        <p>Aktifkan <strong>annotations</strong> di dashboard untuk menampilkan garis vertikal pada grafik setiap kali alert firing atau resolved. Ini membantu mengkorelasikan perubahan metrik dengan kejadian alert. Buka Dashboard → Settings → Annotations → Add annotation query → pilih <strong>Grafana alerts</strong>.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Best Practices      -->
+      <!-- ============================== -->
+      <h2 id="best-practices">8. Best Practices Grafana Alerting</h2>
+
+      <p>Setelah memahami semua komponen Grafana Alerting, berikut best practices yang wajib diterapkan untuk membangun sistem alerting yang efektif dan tidak mengganggu tim.</p>
+
+      <h3>8.1 Hindari Alert Fatigue</h3>
+      <p><strong>Alert fatigue</strong> adalah kondisi ketika tim sudah terlalu banyak menerima alert sehingga mulai mengabaikan semuanya — termasuk alert yang benar-benar penting. Ini adalah masalah #1 dalam sistem monitoring.</p>
+
+      <ul>
+        <li><strong>Hanya alert yang butuh aksi manusia</strong> — Jika tidak ada yang perlu dilakukan, jangan buat alert. Gunakan dashboard untuk informasi pasif.</li>
+        <li><strong>Gunakan severity yang jelas:</strong>
+          <ul>
+            <li><code>critical</code> — Layanan down, data hilang, keamanan terancam → Tim on-call WAJIB merespons</li>
+            <li><code>warning</code> — Mendekati batas kritis, perlu perhatian segera</li>
+            <li><code>info</code> — Informasi, tidak perlu respons langsung</li>
+          </ul>
+        </li>
+        <li><strong>Kurangi duplicate alert</strong> — Gunakan label dan grouping untuk mengelompokkan alert serupa</li>
+      </ul>
+
+      <h3>8.2 Tentukan Threshold yang Tepat</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Konfigurasi — Contoh Threshold yang Tepat</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# ❌ BURUK: Terlalu sensitif\\nCPU > 50% selama 0 detik\\n→ Akan firing terus-menerus!\\n\\n# ❌ BURUK: Terlalu tinggi\\nCPU > 99% selama 30 menit\\n→ Terlambat, server sudah crash\\n\\n# ✅ BAIK: Sweet spot\\nCPU > 90% selama 5 menit\\n→ Cukup waktu untuk konfirmasi, tidak terlambat')\">Salin</button>
+        </div>
+<pre><code># ❌ BURUK: Terlalu sensitif
+CPU > 50% selama 0 detik
+→ Akan firing terus-menerus!
+
+# ❌ BURUK: Terlalu tinggi
+CPU > 99% selama 30 menit
+→ Terlambat, server sudah crash
+
+# ✅ BAIK: Sweet spot
+CPU > 90% selama 5 menit
+→ Cukup waktu untuk konfirmasi, tidak terlambat</code></pre>
+      </div>
+
+      <h3>8.3 Gunakan Evaluate For dengan Bijak</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Severity</th>
+            <th>Evaluate For</th>
+            <th>Alasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Critical (server down)</td><td>0 - 1 menit</td><td>Harus cepat, layanan sudah terganggu</td></tr>
+          <tr><td>Critical (resource)</td><td>3 - 5 menit</td><td>Konfirmasi bahwa ini bukan spike sesaat</td></tr>
+          <tr><td>Warning</td><td>5 - 10 menit</td><td>Memberi waktu sistem pulih sendiri</td></tr>
+          <tr><td>Info</td><td>10 - 30 menit</td><td>Benar-benar memastikan tren, bukan fluktuasi</td></tr>
+        </tbody>
+      </table>
+
+      <h3>8.4 Dokumentasi dan Runbook</h3>
+      <p>Setiap alert rule sebaiknya dilengkapi dengan <strong>runbook URL</strong> di bagian annotations. Runbook adalah dokumen yang menjelaskan langkah-langkah yang harus dilakukan ketika alert muncul:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Annotations — Runbook URL</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Annotations pada Alert Rule:\\nsummary: \\\"CPU usage above 90% on {{ $labels.instance }}\\\"\\ndescription: \\\"CPU usage is {{ $value }}% on {{ $labels.instance }} for the last 5 minutes\\\"\\nrunbook_url: \\\"https://wiki.example.com/runbooks/high-cpu\\\"')\">Salin</button>
+        </div>
+<pre><code># Annotations pada Alert Rule:
+summary: "CPU usage above 90% on {{ $labels.instance }}"
+description: "CPU usage is {{ $value }}% on {{ $labels.instance }} for the last 5 minutes"
+runbook_url: "https://wiki.example.com/runbooks/high-cpu"</code></pre>
+      </div>
+
+      <h3>8.5 Provisioning as Code</h3>
+      <p>Untuk produksi, simpan semua konfigurasi alerting dalam <strong>file YAML/JSON</strong> di repository Git. Ini memungkinkan version control, review, dan rollback:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Provisioning Alert Rule</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('apiVersion: 1\\ngroups:\\n  - orgId: 1\\n    name: server-monitoring\\n    folder: infrastructure\\n    interval: 1m\\n    rules:\\n      - uid: high-cpu-rule\\n        title: High CPU Usage\\n        condition: C\\n        data:\\n          - refId: A\\n            datasourceUid: prometheus\\n            model:\\n              expr: \\\"100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\\\\\\\"idle\\\\\\\"}[5m])) * 100)\\\"\\n        noDataState: NoData\\n        execErrState: Error\\n        for: 5m\\n        annotations:\\n          summary: \\\"CPU above 90%\\\"\\n          runbook_url: \\\"https://wiki.example.com/runbooks/high-cpu\\\"\\n        labels:\\n          severity: critical\\n          team: infrastructure')\">Salin</button>
+        </div>
+<pre><code>apiVersion: 1
+groups:
+  - orgId: 1
+    name: server-monitoring
+    folder: infrastructure
+    interval: 1m
+    rules:
+      - uid: high-cpu-rule
+        title: High CPU Usage
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            model:
+              expr: "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)"
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "CPU above 90%"
+          runbook_url: "https://wiki.example.com/runbooks/high-cpu"
+        labels:
+          severity: critical
+          team: infrastructure</code></pre>
+      </div>
+
+      <h3>8.6 Checklist Best Practices</h3>
+      <div class="info-box tip">
+        <div class="info-box-title">✅ Checklist Grafana Alerting Produksi</div>
+        <ul>
+          <li>✅ Semua alert rule punya label <code>severity</code> dan <code>team</code></li>
+          <li>✅ Setiap severity punya notification policy berbeda</li>
+          <li>✅ Critical alert ke Telegram/Slack (real-time), Warning ke email</li>
+          <li>✅ Evaluate for minimal 2 menit untuk non-critical</li>
+          <li>✅ Semua alert rule punya <code>summary</code> dan <code>description</code> annotations</li>
+          <li>✅ Runbook URL tersedia untuk alert yang butuh aksi manual</li>
+          <li>✅ Mute timing untuk jam istirahat (alert non-kritis)</li>
+          <li>✅ Konfigurasi disimpan di Git (provisioning as code)</li>
+          <li>✅ Review dan test alert secara berkala</li>
+          <li>✅ Dashboard monitoring alert tersedia</li>
+          <li>✅ Retrospektif setelah insiden: apakah alertnya tepat?</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Grafana Alerting:</p>
+
+      <div class="quiz-container" id="quiz20">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa fungsi utama "Evaluate for" pada Alert Rule di Grafana?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Menentukan seberapa sering rule dievaluasi</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Menentukan berapa lama kondisi harus terpenuhi sebelum alert aktif</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Menentukan durasi silence otomatis</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Menentukan waktu pengiriman ulang notifikasi</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Untuk mengintegrasikan Telegram dengan Grafana Alerting, informasi apa saja yang dibutuhkan?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Hanya Bot Token</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Bot Token dan Chat ID</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Username dan Password akun Telegram</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Email dan API Key Telegram</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa perbedaan utama antara Silence dan Mute Timing di Grafana?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Silence untuk alert critical, Mute Timing untuk alert info</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Silence menonaktifkan evaluasi alert, Mute Timing hanya menonaktifkan notifikasi</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Silence bersifat sekali pakai, Mute Timing bersifat berulang (recurring)</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Tidak ada perbedaan, keduanya sama</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Dalam Notification Policy, apa fungsi parameter "Group by"?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Mengelompokkan data dari beberapa data source</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Mengelompokkan alert berdasarkan label menjadi satu notifikasi</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Menentukan urutan prioritas contact point</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Menggabungkan beberapa alert rule menjadi satu</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Best practice severity "critical" untuk Evaluate for yang direkomendasikan adalah...</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) 0 detik agar langsung terkirim tanpa delay</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) 30 menit agar benar-benar yakin</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) 3-5 menit untuk mengkonfirmasi kondisi (untuk resource), 0-1 menit untuk layanan down</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Tidak perlu Evaluate for, cukup set threshold</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="grafana-influxdb.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Grafana + InfluxDB</span>
+        </a>
+        <a href="mikrotik-queue.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">MikroTik Queue Management</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

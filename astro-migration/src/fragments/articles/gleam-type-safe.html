@@ -1,0 +1,859 @@
+</header>
+
+    <main class="article-container">
+        <article>
+            <div class="article-header">
+                <div class="article-meta">
+                    <span class="category-badge">Tools</span>
+                    <span class="difficulty-badge">Menengah</span>
+                    <span>📅 29 Juni 2026</span>
+                    <span>⏱️ 14 menit baca</span> <span class="difficulty pemula">Pemula</span>
+                    <span>👁️ 1,234 views</span>
+                </div>
+                <h1>Gleam: Type-Safe BEAM Language untuk Erlang &amp; Elixir Ecosystem</h1>
+                <p style="font-size: 1.1em; color: #555;">Gleam adalah bahasa pemrograman fungsional yang berjalan di BEAM VM dengan type system yang kuat dan Hindley-Milner type inference. Gleam bisa compile ke BEAM bytecode dan JavaScript, menjembatani type safety dengan ekosistem Erlang/Elixir yang sudah matang.</p>
+            </div>
+
+            <div class="toc">
+                <h3>📋 Daftar Isi</h3>
+                <ul>
+                    <li><a href="#pengenalan">1. Mengapa Gleam?</a></li>
+                    <li><a href="#instalasi">2. Instalasi</a></li>
+                    <li><a href="#dasar">3. Dasar-Dasar Gleam</a></li>
+                    <li><a href="#types">4. Type System</a></li>
+                    <li><a href="#pattern-matching">5. Pattern Matching</a></li>
+                    <li><a href="#modules">6. Modules dan Imports</a></li>
+                    <li><a href="#otp">7. OTP dan Concurrency</a></li>
+                    <li><a href="#javascript">8. JavaScript Target</a></li>
+                    <li><a href="#ffi">9. FFI (Erlang dan JavaScript)</a></li>
+                    <li><a href="#quiz">10. Kuis</a></li>
+                </ul>
+            </div>
+
+            <section id="pengenalan">
+                <h2>1. Mengapa Gleam?</h2>
+                <p>Gleam diciptakan oleh Louis Pilfold pada 2016. Bahasa ini dirancang untuk mengisi gap antara type safety dan ekosistem BEAM yang sudah terbukti. Dengan Gleam, Anda mendapatkan type system Hindley-Milner yang sound, tanpa runtime type errors, dan kompatibilitas penuh dengan library Erlang dan Elixir.</p>
+
+                <ul>
+                    <li><strong>Type-safe</strong> — Hindley-Milner inference, tidak ada runtime type errors</li>
+                    <li><strong>BEAM VM</strong> — Fault tolerance, concurrency, dan hot code reloading</li>
+                    <li><strong>Dual target</strong> — Compile ke BEAM dan JavaScript</li>
+                    <li><strong>Erlang/Elixir interop</strong> — Gunakan semua library yang sudah ada</li>
+                    <li><strong>No null, no exceptions</strong> — Result type untuk error handling</li>
+                    <li><strong>Sintaks yang simpel</strong> — Sangat mudah dipelajari</li>
+                </ul>
+
+                <div class="info-box">
+                    <strong>💡 Gleam vs Elixir</strong>
+                    <p>Gleam dan Elixir berjalan di BEAM VM yang sama, tetapi Gleam memiliki static type system sementara Elixir dynamic. Gleam bisa memanggil Elixir dan Erlang code, dan sebaliknya. Pilih Gleam jika Anda menginginkan type safety yang lebih kuat.</p>
+                </div>
+            </section>
+
+            <section id="instalasi">
+                <h2>2. Instalasi</h2>
+
+                <div class="code-label">Bash</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      </div>
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: # macOS</div>
+<pre class="mermaid">
+flowchart TD
+    N0["No. macOS"]
+    N1["/#quot;gleam.toml#quot;/"]
+    N2["src/"]
+    N3["/#quot;my_project.gleam#quot;/"]
+    N4["test/"]
+    N5["/#quot;my_project_test.gleam#quot;/"]
+    N6["/#quot;README.md#quot;/"]
+
+    N0 --> N1
+    N1 --> N2
+    N2 --> N3
+    N3 --> N4
+    N4 --> N5
+    N5 --> N6
+
+    style N0 fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+</pre>
+    </div>
+                </div>
+            </section>
+
+            <section id="dasar">
+                <h2>3. Dasar-Dasar Gleam</h2>
+
+                <div class="code-label">src/basics.gleam</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+import gleam/io
+import gleam/int
+import gleam/string
+import gleam/float
+
+// Constants
+const pi = 3.14159
+
+pub fn main() {
+  // Variables (immutable, always)
+  let nama = "BeebaneLabs"
+  let umur = 25
+  let tinggi = 1.75
+  let aktif = True
+
+  // Type annotations (opsional)
+  let x: Int = 42
+  let s: String = "hello"
+  let f: Float = 3.14
+  let b: Bool = True
+
+  // String operations
+  io.println("Halo, " <> nama <> "!")
+  io.println(string.length(nama) |> int.to_string)
+
+  // String functions
+  string.uppercase("hello")       // "HELLO"
+  string.lowercase("WORLD")       // "world"
+  string.contains("hello", "ell") // True
+  string.split("a,b,c", ",")     // ["a", "b", "c"]
+  string.replace("hello world", "world", "Gleam") // "hello Gleam"
+  string.reverse("hello")         // "olleh"
+  string.trim("  hello  ")        // "hello"
+
+  // Int operations
+  int.to_string(42)
+  int.parse("42")       // Ok(42)
+  int.absolute_value(-5) // 5
+  int.max(10, 20)       // 20
+  int.min(10, 20)       // 10
+
+  // Float operations
+  float.to_string(3.14)
+  float.parse("3.14")   // Ok(3.14)
+  float.ceiling(3.2)    // 4.0
+  float.floor(3.8)      // 3.0
+  float.round(3.5)      // 4.0
+
+  // Lists
+  let angka = [1, 2, 3, 4, 5]
+  let lebih = list.prepend(angka, 0)  // [0, 1, 2, 3, 4, 5]
+  let gabung = list.append(angka, [6, 7]) // [1, 2, 3, 4, 5, 6, 7]
+
+  list.length(angka)      // 5
+  list.reverse(angka)     // [5, 4, 3, 2, 1]
+  list.contains(angka, 3) // True
+  list.first(angka)       // Ok(1)
+  list.last(angka)        // Ok(5)
+  list.rest(angka)        // Ok([2, 3, 4, 5])
+
+  // Pipe operator
+  "  Hello World  "
+  |> string.trim
+  |> string.lowercase
+  |> string.replace(" ", "_")
+  |> io.println
+
+  // If expression (bukan statement!)
+  let grade = if umur >= 17 { "Dewasa" } else { "Anak" }
+  io.println(grade)
+}
+</code></pre>
+                </div>
+
+                <h3>Functions</h3>
+                <div class="code-label">src/functions.gleam</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+import gleam/int
+import gleam/list
+import gleam/io
+import gleam/string
+
+// Basic function
+pub fn tambah(a: Int, b: Int) -> Int {
+  a + b
+}
+
+// Recursive function
+pub fn factorial(n: Int) -> Int {
+  case n {
+    0 -> 1
+    1 -> 1
+    _ -> n * factorial(n - 1)
+  }
+}
+
+// Higher-order functions
+pub fn apply_twice(f: fn(a) -> a, x: a) -> a {
+  f(f(x))
+}
+
+// Lambda / anonymous functions
+pub fn demo() {
+  let kuadrat = fn(x: Int) -> Int { x * x }
+  let hasil = kuadrat(5)
+  io.debug(hasil) // 25
+
+  // Lambda dengan pipe
+  [1, 2, 3, 4, 5]
+  |> list.map(fn(x) { x * 2 })
+  |> list.filter(fn(x) { x > 4 })
+  |> io.debug // [6, 8, 10]
+}
+
+// Labeled arguments
+pub fn buat_user(nama nama: String, umur umur: Int) -> String {
+  nama <> " (umur: " <> int.to_string(umur) <> ")"
+}
+
+// Usage: buat_user(nama: "Andi", umur: 25)
+
+// Multiple return values via tuples
+pub fn min_max(arr: List(Int)) -> #(Int, Int) {
+  let assert Ok(min) = list.first(arr)
+  let assert Ok(max) = list.last(arr)
+  #(min, max)
+}
+
+// List operations
+pub fn hitung_total(arr: List(Int)) -> Int {
+  list.fold(arr, 0, fn(acc, x) { acc + x })
+}
+
+pub fn kuadrat_semua(arr: List(Int)) -> List(Int) {
+  list.map(arr, fn(x) { x * x })
+}
+
+pub fn filter_genap(arr: List(Int)) -> List(Int) {
+  list.filter(arr, fn(x) { x % 2 == 0 })
+}
+
+// Using list comprehensions via pipeline
+pub fn proses_data() {
+  let data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+  data
+  |> list.filter(fn(x) { x % 2 == 0 })
+  |> list.map(fn(x) { x * x })
+  |> list.fold(0, fn(acc, x) { acc + x })
+  // 4 + 16 + 36 + 64 + 100 = 220
+}
+
+// Closures
+pub fn buat_counter() -> fn() -> Int {
+  // Gleam tidak punya mutable state, jadi gunakan
+  // process state untuk counter mutable
+  let count = 0
+  fn() { count }
+}
+
+pub fn curry_example() {
+  let add = fn(a: Int) { fn(b: Int) { a + b } }
+  let add_5 = add(5)
+  add_5(3) // 8
+}
+</code></pre>
+                </div>
+            </section>
+
+            <section id="types">
+                <h2>4. Type System</h2>
+                <p>Type system Gleam adalah Hindley-Milner, yang berarti compiler bisa menurunkan tipe secara otomatis tanpa anotasi. Gleam juga mendukung custom types (algebraic data types) yang sangat powerful.</p>
+
+                <div class="code-label">src/types.gleam</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+import gleam/option.{type Option, None, Some}
+import gleam/result
+
+// Custom types (algebraic data types)
+pub type Warna {
+  Merah
+  Hijau
+  Biru
+  Kuning
+}
+
+// Custom type dengan data
+pub type Bentuk {
+  Lingkaran(radius: Float)
+  Persegi(sisi: Float)
+  PersegiPanjang(panjang: Float, lebar: Float)
+  Segitiga(alas: Float, tinggi: Float)
+}
+
+pub fn luas(b: Bentuk) -> Float {
+  case b {
+    Lingkaran(r) -> 3.14159 *. r *. r
+    Persegi(s) -> s *. s
+    PersegiPanjang(p, l) -> p *. l
+    Segitiga(a, t) -> 0.5 *. a *. t
+  }
+}
+
+// Generic types
+pub type Box(a) {
+  Box(value: a)
+}
+
+pub type Pair(a, b) {
+  Pair(first: a, second: b)
+}
+
+// Recursive types
+pub type LinkedList(a) {
+  Nil
+  Cons(head: a, tail: LinkedList(a))
+}
+
+pub fn list_length(lst: LinkedList(a)) -> Int {
+  case lst {
+    Nil -> 0
+    Cons(_, tail) -> 1 + list_length(tail)
+  }
+}
+
+// Option type (built-in)
+pub fn find_user(id: Int) -> Option(String) {
+  case id {
+    1 -> Some("Andi")
+    2 -> Some("Budi")
+    _ -> None
+  }
+}
+
+// Result type (built-in)
+pub type MyError {
+  NotFound
+  InvalidInput(String)
+  PermissionDenied
+}
+
+pub fn parse_age(input: String) -> Result(Int, MyError) {
+  case int.parse(input) {
+    Ok(age) if age >= 0 && age <= 150 -> Ok(age)
+    Ok(_) -> Error(InvalidInput("Umur harus 0-150"))
+    Error(_) -> Error(InvalidInput("Bukan angka"))
+  }
+}
+
+// Using Result
+pub fn proses() {
+  let result = parse_age("25")
+  case result {
+    Ok(age) -> io.println("Umur: " <> int.to_string(age))
+    Error(msg) -> io.debug(msg)
+  }
+}
+
+// Type alias
+pub type UserId =
+  Int
+
+pub type Email =
+  String
+
+pub type User {
+  User(id: UserId, name: String, email: Email)
+}
+
+// Opaque types (hanya bisa dibuat oleh module yang mendefinisikan)
+// pub opaque type Secret {
+//   Secret(value: String)
+// }
+
+// Type with phantom parameter for type safety
+pub type Meter {
+  Meter
+}
+
+pub type Kilometer {
+  Kilometer
+}
+
+pub type Distance(unit) {
+  Distance(value: Float)
+}
+
+pub fn meters(n: Float) -> Distance(Meter) {
+  Distance(value: n)
+}
+
+pub fn kilometers(n: Float) -> Distance(Kilometer) {
+  Distance(value: n)
+}
+</code></pre>
+                </div>
+            </section>
+
+            <section id="pattern-matching">
+                <h2>5. Pattern Matching</h2>
+
+                <div class="code-label">src/patterns.gleam</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+import gleam/io
+import gleam/list
+import gleam/string
+
+// Basic pattern matching
+pub fn describe(n: Int) -> String {
+  case n {
+    0 -> "nol"
+    1 -> "satu"
+    2 -> "dua"
+    x if x > 0 -> "positif"
+    _ -> "negatif"
+  }
+}
+
+// Matching on tuples
+pub fn classify_point(p: #(Int, Int)) -> String {
+  case p {
+    #(0, 0) -> "origin"
+    #(x, 0) -> "pada sumbu x: " <> int.to_string(x)
+    #(0, y) -> "pada sumbu y: " <> int.to_string(y)
+    #(x, y) if x > 0 && y > 0 -> "kuadran I"
+    #(x, y) if x < 0 && y > 0 -> "kuadran II"
+    #(x, y) if x < 0 && y < 0 -> "kuadran III"
+    _ -> "kuadran IV"
+  }
+}
+
+// Matching on custom types
+pub type HttpResponse {
+  Ok(data: String)
+  NotFound
+  ServerError(code: Int, message: String)
+  Redirect(url: String)
+}
+
+pub fn handle_response(resp: HttpResponse) -> String {
+  case resp {
+    Ok(data) -> "Berhasil: " <> data
+    NotFound -> "404: Tidak ditemukan"
+    ServerError(code, msg) ->
+      "Error " <> int.to_string(code) <> ": " <> msg
+    Redirect(url) -> "Redirect ke: " <> url
+  }
+}
+
+// Let assertions
+pub fn assert_ok() {
+  let assert Ok(value) = int.parse("42")
+  io.debug(value) // 42
+  // Jika parsing gagal, program crash!
+}
+
+// Nested pattern matching
+pub type Shape {
+  Simple(kind: String)
+  Composite(shapes: List(Shape))
+}
+
+pub fn count_shapes(shape: Shape) -> Int {
+  case shape {
+    Simple(_) -> 1
+    Composite(shapes) ->
+      list.fold(shapes, 0, fn(acc, s) { acc + count_shapes(s) })
+  }
+}
+
+// Pattern matching dengan guards
+pub fn classify_grade(score: Int) -> String {
+  case score {
+    s if s >= 90 -> "A"
+    s if s >= 80 -> "B"
+    s if s >= 70 -> "C"
+    s if s >= 60 -> "D"
+    _ -> "F"
+  }
+}
+
+// Matching list patterns
+pub fn describe_list(lst: List(Int)) -> String {
+  case lst {
+    [] -> "kosong"
+    [x] -> "satu elemen: " <> int.to_string(x)
+    [x, y] -> "dua elemen: " <> int.to_string(x) <> ", " <> int.to_string(y)
+    [first, ..] -> "banyak elemen, mulai dari " <> int.to_string(first)
+  }
+}
+</code></pre>
+                </div>
+            </section>
+
+            <section id="modules">
+                <h2>6. Modules dan Imports</h2>
+
+                <div class="code-label">src/my_module.gleam</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+// src/my_module.gleam
+// Module-level constants (tidak bisa diakses dari luar)
+const default_timeout = 30
+
+// Public functions (bisa diakses dari luar)
+pub fn greet(nama: String) -> String {
+  "Halo, " <> nama <> "!"
+}
+
+pub fn add(a: Int, b: Int) -> Int {
+  a + b
+}
+
+// Private functions (tidak bisa diakses dari luar)
+fn helper(x: Int) -> Int {
+  x * 2
+}
+
+// Public type
+pub type Config {
+  Config(host: String, port: Int, debug: Bool)
+}
+
+pub fn default_config() -> Config {
+  Config(host: "localhost", port: 8080, debug: False)
+}
+
+// src/app.gleam
+// Importing modules
+import gleam/io
+import gleam/list
+import gleam/string
+import gleam/int
+import gleam/option.{type Option, None, Some}
+import gleam/result
+import gleam/dynamic.{type Dynamic}
+import gleam/http.{Get, Post}
+import gleam/http/request
+import gleam/json
+import my_module.{type Config, Config}
+
+pub fn main() {
+  // Using imported functions
+  io.println(my_module.greet("World"))
+
+  let config = my_module.default_config()
+  io.println("Host: " <> config.host)
+
+  // JSON encoding
+  let json_string =
+    json.object([
+      #("name", json.string("Andi")),
+      #("age", json.int(25)),
+      #("active", json.bool(True)),
+    ])
+    |> json.to_string
+
+  io.println(json_string)
+}
+</code></pre>
+                </div>
+            </section>
+
+            <section id="otp">
+                <h2>7. OTP dan Concurrency</h2>
+                <p>Karena Gleam berjalan di BEAM, Anda mendapatkan semua keunggulan OTP: lightweight processes, supervision trees, GenServer, dan fault tolerance.</p>
+
+                <div class="code-label">src/otp_example.gleam</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+import gleam/erlang/process.{type Subject, type Pid}
+import gleam/io
+import gleam/otp/actor
+import gleam/otp/supervisor
+
+// Actor (GenServer-like)
+type CounterMessage {
+  Increment
+  Decrement
+  Get(reply: Subject(Int))
+}
+
+fn counter_handler(
+  message: CounterMessage,
+  count: Int,
+) -> actor.Next(CounterMessage, Int) {
+  case message {
+    Increment -> actor.continue(count + 1)
+    Decrement -> actor.continue(count - 1)
+    Get(reply) -> {
+      process.send(reply, count)
+      actor.continue(count)
+    }
+  }
+}
+
+pub fn main() {
+  // Start actor
+  let assert Ok(counter) =
+    actor.start(0, counter_handler)
+
+  // Send messages
+  process.send(counter, Increment)
+  process.send(counter, Increment)
+  process.send(counter, Decrement)
+
+  // Get current value
+  let value = process.call(counter, Get, 1000)
+  io.println("Counter: " <> int.to_string(value)) // 2
+
+  // Spawn process
+  let pid = process.spawn(fn() {
+    io.println("Hello from spawned process!")
+  })
+
+  // Send to specific process
+  process.send(pid, "Message")
+
+  // Process.sleep
+  process.sleep(1000)
+
+  // Selective receive
+  let subject = process.new_subject()
+  process.send(subject, "Hello")
+  let assert Ok(msg) = process.receive(subject, 1000)
+  io.println(msg)
+}
+
+// Timer
+fn periodic_task() {
+  process.send_every(5000, fn() {
+    io.println("Tick!")
+  })
+}
+</code></pre>
+                </div>
+            </section>
+
+            <section id="javascript">
+                <h2>8. JavaScript Target</h2>
+                <p>Gleam bisa compile ke JavaScript, memungkinkan Anda menggunakan Gleam untuk frontend development.</p>
+
+                <div class="code-label">Bash</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Build untuk JavaScript
+gleam build --target javascript
+
+# Dengan Lustre (web framework)
+gleam add lustre
+
+# Build dengan esbuild
+gleam add gleam_esbuild
+gleam run -m gleam_esbuild
+
+# Output: build/dev/javascript/
+</code></pre>
+                </div>
+
+                <div class="code-label">src/frontend.gleam</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+import lustre
+import lustre/element.{type Element}
+import lustre/element/html
+import lustre/event
+
+// Model
+type Model {
+  Model(count: Int, text: String)
+}
+
+// Messages
+type Msg {
+  Increment
+  Decrement
+  UpdateText(String)
+}
+
+// Init
+fn init(_flags) -> Model {
+  Model(count: 0, text: "")
+}
+
+// Update
+fn update(model: Model, msg: Msg) -> Model {
+  case msg {
+    Increment -> Model(..model, count: model.count + 1)
+    Decrement -> Model(..model, count: model.count - 1)
+    UpdateText(t) -> Model(..model, text: t)
+  }
+}
+
+// View
+fn view(model: Model) -> Element(Msg) {
+  html.div([], [
+    html.h1([], [element.text("Gleam Counter")]),
+    html.button([event.on_click(Decrement)], [element.text("-")]),
+    html.span([], [element.text(int.to_string(model.count))]),
+    html.button([event.on_click(Increment)], [element.text("+")]),
+    html.input([
+      event.on_input(UpdateText),
+      attribute.value(model.text),
+    ]),
+    html.p([], [element.text("Input: " <> model.text)]),
+  ])
+}
+
+// Main
+pub fn main() {
+  let app = lustre.simple(init, update, view)
+  let assert Ok(_) = lustre.start(app, "#app", Nil)
+  Nil
+}
+</code></pre>
+                </div>
+            </section>
+
+            <section id="ffi">
+                <h2>9. FFI (Erlang dan JavaScript)</h2>
+
+                <div class="code-label">src/ffi_gleam.gleam</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+// Erlang FFI - external functions
+@external(erlang, "io_lib", "format")
+pub fn erlang_format(template: String, args: List(Dynamic)) -> String
+
+@external(erlang, "calendar", "local_time")
+pub fn current_time() -> #(List(Int), List(Int))
+
+@external(erlang, "crypto", "strong_rand_bytes")
+pub fn random_bytes(n: Int) -> BitArray
+
+@external(erlang, "os", "cmd")
+pub fn shell_command(cmd: String) -> String
+
+@external(erlang, "file", "read_file")
+pub fn read_file(path: String) -> Result(BitArray, Dynamic)
+
+@external(erlang, "timer", "sleep")
+pub fn sleep(ms: Int) -> Nil
+
+// JavaScript FFI
+@external(javascript, "Date", "now")
+pub fn timestamp() -> Float
+
+@external(javascript, "Math", "random")
+pub fn random() -> Float
+
+@external(javascript, "console", "log")
+pub fn console_log(value: a) -> Nil
+
+@external(javascript, "fetch", "")
+pub fn fetch(url: String) -> Dynamic
+
+// Erlang module untuk Gleam wrapper
+// src/erlang_helpers.erl
+// -module(erlang_helpers).
+// -export([get_env/1, timestamp/0]).
+//
+// get_env(Key) ->
+//     case os:getenv(Key) of
+//         false -> {error, nil};
+//         Value -> {ok, Value}
+//     end.
+//
+// timestamp() ->
+//     erlang:system_time(millisecond).
+
+// Di Gleam:
+@external(erlang, "erlang_helpers", "get_env")
+pub fn get_env(key: String) -> Result(String, Nil)
+
+@external(erlang, "erlang_helpers", "timestamp")
+pub fn system_timestamp() -> Int
+
+// Menggunakan Elixir library
+// Bisa langsung memanggil Elixir module
+@external(erlang, "Elixir.JSON", "encode!")
+pub fn json_encode(term: Dynamic) -> String
+
+pub fn demo() {
+  io.println(shell_command("echo Hello from Gleam FFI!"))
+  io.println("Random bytes: " <> bit_array.base16_encode(random_bytes(16)))
+  io.debug(current_time())
+}
+</code></pre>
+                </div>
+            </section>
+
+            <section id="quiz">
+                <div class="quiz-section">
+                    <h2>🧠 Kuis: Gleam</h2>
+
+                    <div class="quiz-question">
+                        <h4>1. Mengapa Gleam disebut "type-safe BEAM language"?</h4>
+                        <ul class="quiz-options" data-correct="1">
+                            <li onclick="checkAnswer(this, true)">Karena memiliki static type system Hindley-Milner yang sound</li>
+                            <li onclick="checkAnswer(this, false)">Karena semua tipe harus ditulis manual</li>
+                            <li onclick="checkAnswer(this, false)">Karena tidak mendukung custom types</li>
+                            <li onclick="checkAnswer(this, false)">Karena BEAM VM memiliki type checking</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>2. Apa keunggulan dual target (BEAM + JavaScript) di Gleam?</h4>
+                        <ul class="quiz-options" data-correct="2">
+                            <li onclick="checkAnswer(this, false)">Hanya untuk testing</li>
+                            <li onclick="checkAnswer(this, true)">Bisa digunakan untuk backend dan frontend dengan type-safe yang sama</li>
+                            <li onclick="checkAnswer(this, false)">Untuk compile lebih cepat</li>
+                            <li onclick="checkAnswer(this, false)">Untuk kompatibilitas dengan Python</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>3. Bagaimana error handling di Gleam?</h4>
+                        <ul class="quiz-options" data-correct="3">
+                            <li onclick="checkAnswer(this, false)">Menggunakan try-catch exceptions</li>
+                            <li onclick="checkAnswer(this, false)">Menggunakan null checking</li>
+                            <li onclick="checkAnswer(this, true)">Menggunakan Result dan Option types</li>
+                            <li onclick="checkAnswer(this, false)">Tidak ada error handling</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>4. Apa itu actor di Gleam OTP?</h4>
+                        <ul class="quiz-options" data-correct="1">
+                            <li onclick="checkAnswer(this, true)">Process BEAM yang menerima pesan dan mengelola state</li>
+                            <li onclick="checkAnswer(this, false)">Thread OS yang berat</li>
+                            <li onclick="checkAnswer(this, false)">Database connection pool</li>
+                            <li onclick="checkAnswer(this, false)">HTTP client</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>5. Bagaimana cara memanggil Erlang library dari Gleam?</h4>
+                        <ul class="quiz-options" data-correct="2">
+                            <li onclick="checkAnswer(this, false)">Tidak bisa, Gleam terpisah dari Erlang</li>
+                            <li onclick="checkAnswer(this, true)">Menggunakan @external annotation untuk Erlang FFI</li>
+                            <li onclick="checkAnswer(this, false)">Menggunakan NIF bindings</li>
+                            <li onclick="checkAnswer(this, false)">Menggunakan gRPC</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <div style="margin-top: 40px; padding: 20px; background: #f0f0f0; border-radius: 10px;">
+                <h3>📚 Sumber Belajar Lanjutan</h3>
+                <ul>
+                    <li><a href="https://gleam.run/documentation/" target="_blank">Gleam Documentation</a></li>
+                    <li><a href="https://hexdocs.pm/gleam_stdlib/" target="_blank">Gleam Standard Library</a></li>
+                    <li><a href="https://github.com/gleam-lang/gleam" target="_blank">Gleam GitHub</a></li>
+                    <li><a href="https://discord.gg/Fm8Pwmy" target="_blank">Gleam Discord</a></li>
+                </ul>
+            </div>
+        </article>
+    </main>

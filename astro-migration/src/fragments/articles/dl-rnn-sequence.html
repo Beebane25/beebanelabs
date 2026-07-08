@@ -1,0 +1,821 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Deep Learning</a>
+        <span class="separator">/</span>
+        <span class="current">RNN: Recurrent Neural Networks</span>
+      </div>
+      <span class="category-tag">Deep Learning</span>
+      <h1>RNN: Recurrent Neural Networks — Sequence Modeling &amp; LSTM</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Panduan lengkap Recurrent Neural Networks — arsitektur RNN, vanishing gradient problem, LSTM, GRU, bidirectional RNN, dan implementasi PyTorch untuk NLP dan time series</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 22 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Sequence Data &amp; RNN</a></li>
+          <li><a href="#arsitektur-rnn">Arsitektur RNN Detail</a></li>
+          <li><a href="#backprop-time">Backpropagation Through Time (BPTT)</a></li>
+          <li><a href="#vanishing-gradient">Vanishing &amp; Exploding Gradient Problem</a></li>
+          <li><a href="#lstm">LSTM: Long Short-Term Memory</a></li>
+          <li><a href="#gru">GRU: Gated Recurrent Unit</a></li>
+          <li><a href="#implementasi-lstm">Implementasi LSTM dengan PyTorch</a></li>
+          <li><a href="#bidirectional">Bidirectional &amp; Stacked RNN</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Sequence Data &amp; RNN</h2>
+
+      <p>Banyak data di dunia nyata bersifat <strong>sekuensial</strong> — urutan elemen memiliki makna. <strong>Recurrent Neural Network (RNN)</strong> adalah arsitektur neural network yang dirancang khusus untuk memproses data sekuensial dengan memiliki "memori" dari langkah sebelumnya.</p>
+
+      <h3>Apa Itu Sequence Data?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Jenis Data</th>
+            <th>Contoh</th>
+            <th>Tugas ML</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Teks / Natural Language</td><td>Kalimat, artikel, chat</td><td>Terjemahan, sentiment analysis, text generation</td></tr>
+          <tr><td>Time Series</td><td>Harga saham, cuaca, sensor</td><td>Prediksi masa depan, deteksi anomali</td></tr>
+          <tr><td>Audio / Speech</td><td>Rekaman suara, musik</td><td>Speech recognition, music generation</td></tr>
+          <tr><td>Video</td><td>Klip video berurutan frame</td><td>Action recognition, video captioning</td></tr>
+          <tr><td>Biological Sequences</td><td>DNA, protein</td><td>Gene prediction, protein structure</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Mengapa Tidak MLP Biasa?</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: MLP vs RNN untuk Data Sekuensial</div>
+<pre class="mermaid">
+flowchart TD
+    subgraph mlp["MLP (Feedforward)"]
+        direction TB
+        M1["Input"] --> M2["Hidden"] --> M3["Output"]
+    end
+    
+    subgraph rnn["RNN (Recurrent)"]
+        direction TB
+        R1["Input"] --> R2["Hidden"]
+        R2 --> R3["Output"]
+        R2 -.->|"Loop"| R2
+    end
+
+    style mlp fill:#0f1d3a,stroke:#60a5fa,stroke-width:2px
+    style rnn fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+</pre>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Arsitektur RNN      -->
+      <!-- ============================== -->
+      <h2 id="arsitektur-rnn">2. Arsitektur RNN Detail</h2>
+
+      <p>RNN memiliki koneksi <strong>loop/berulang</strong> yang memungkinkan informasi dari timestep sebelumnya mengalir ke timestep berikutnya. Ini membuat RNN memiliki semacam "memori" jangka pendek.</p>
+
+      <h3>Unrolling RNN</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: RNN Unrolled (Diuraikan)</div>
+<pre class="mermaid">
+flowchart TD
+    X1["x₁"] --> H1["h₁"]
+    H1 --> Y1["y₁"]
+    X2["x₂"] --> H2["h₂"]
+    H1 -->|"weight W"| H2
+    H2 --> Y2["y₂"]
+    X3["x₃"] --> H3["h₃"]
+    H2 -->|"weight W"| H3
+    H3 --> Y3["y₃"]
+
+    style H1 fill:#0f2a1f,stroke:#3ecf8e,stroke-width:1.5px
+    style H2 fill:#0f2a1f,stroke:#3ecf8e,stroke-width:1.5px
+    style H3 fill:#0f2a1f,stroke:#3ecf8e,stroke-width:1.5px
+    style Y1 fill:#2a1f0a,stroke:#f59e0b
+    style Y2 fill:#2a1f0a,stroke:#f59e0b
+    style Y3 fill:#2a1f0a,stroke:#f59e0b
+</pre>
+
+      <h3>Mode Operasi RNN</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Berbagai Mode RNN</div>
+<pre class="mermaid">
+flowchart TB
+    subgraph one["One to One"]
+        O1["1"] --> O2["1"]
+    end
+    subgraph many["One to Many"]
+        M1["1"] --> M2["*"]
+    end
+    subgraph manyone["Many to One"]
+        MO1["*"] --> MO2["1"]
+    end
+    subgraph manymany["Many to Many"]
+        MM1["*"] --> MM2["*"]
+    end
+
+    style one fill:#0f2a1f,stroke:#3ecf8e
+    style many fill:#0f1d3a,stroke:#60a5fa
+    style manyone fill:#2a1f0a,stroke:#f59e0b
+    style manymany fill:#1a0f2e,stroke:#a78bfa
+</pre>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: BPTT                -->
+      <!-- ============================== -->
+      <h2 id="backprop-time">3. Backpropagation Through Time (BPTT)</h2>
+
+      <p>RNN dilatih menggunakan <strong>Backpropagation Through Time (BPTT)</strong> — versi backpropagation yang "menguraikan" RNN sepanjang waktu dan menghitung gradien dari semua timestep sekaligus.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: BPTT</div>
+<pre><code>
+  Forward Pass (atas ke bawah)     Backward Pass (gradient mengalir mundur)
+  
+  t=1: x₁ → h₁ → y₁ → L₁        t=3: ∂L₃/∂h₃ → ∂L₃/∂W
+         ↓                        t=2: ∂L₂/∂h₂ + ∂h₃/∂h₂·∂L₃/∂h₃
+  t=2: x₂ → h₂ → y₂ → L₂        t=1: ∂L₁/∂h₁ + ∂h₂/∂h₁·∂L₂/∂h₁
+         ↓                        
+  t=3: x₃ → h₃ → y₃ → L₃        Total gradient = Σ ∂Lₜ/∂W
+         
+  Total Loss L = L₁ + L₂ + L₃    Gradient mengalir mundur melalui
+                                   semua timestep dan diakumulasikan
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Vanishing Gradient  -->
+      <!-- ============================== -->
+      <h2 id="vanishing-gradient">4. Vanishing &amp; Exploding Gradient Problem</h2>
+
+      <p>Masalah terbesar RNN vanilla adalah <strong>vanishing gradient</strong> — saat backpropagation melalui banyak timestep, gradien bisa mengecil mendekati nol (vanishing) atau membesar tak terkendali (exploding).</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Vanishing vs Exploding Gradient</div>
+<pre class="mermaid">
+flowchart TD
+    X["Input xₜ"] --> Forget["🚪 Forget Gate\n(fₜ)"]
+    X --> Input["📥 Input Gate\n(iₜ)"]
+    X --> Candidate["📝 Candidate\n(C̃ₜ)"]
+    
+    Prev["Cₜ₋₁"] --> Forget
+    Forget -->|"fₜ × Cₜ₋₁"| CellState["Cell State Cₜ"]
+    Input -->|"iₜ × C̃ₜ"| CellState
+    Candidate --> CellState
+    
+    CellState --> Output["📤 Output Gate\n(oₜ)"]
+    Output --> H["hₜ (Hidden State)"]
+
+    style Forget fill:#2a0f0f,stroke:#ef4444,stroke-width:1.5px
+    style Input fill:#0f2a1f,stroke:#3ecf8e,stroke-width:1.5px
+    style Candidate fill:#2a1f0a,stroke:#f59e0b,stroke-width:1.5px
+    style CellState fill:#0f1d3a,stroke:#60a5fa,stroke-width:2px
+    style Output fill:#1a0f2e,stroke:#a78bfa,stroke-width:1.5px
+</pre>
+
+      <h3>Solusi untuk Gradient Problem</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Solusi</th>
+            <th>Masalah</th>
+            <th>Mekanisme</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Gradient Clipping</td><td>Exploding gradient</td><td>Clip gradien jika melebihi threshold: <code>g = g * threshold/‖g‖</code></td></tr>
+          <tr><td>LSTM / GRU</td><td>Vanishing gradient</td><td>Gating mechanism untuk kontrol aliran informasi</td></tr>
+          <tr><td>Residual Connections</td><td>Vanishing gradient</td><td>Skip connections seperti di ResNet</td></tr>
+          <tr><td>Proper Initialization</td><td>Keduanya</td><td>Orthogonal initialization, Xavier/He init</td></tr>
+          <tr><td>Layer Normalization</td><td>Keduanya</td><td>Stabilisasi training</td></tr>
+        </tbody>
+      </table>
+
+      </div>
+<pre class="mermaid">
+flowchart TB
+    subgraph lstm["LSTM Cell"]
+        direction TB
+        L1["Forget Gate"] --> L2["Input Gate"]
+        L2 --> L3["Cell State"]
+        L3 --> L4["Output Gate"]
+    end
+    
+    subgraph gru["GRU Cell"]
+        direction TB
+        G1["Reset Gate"] --> G2["Update Gate"]
+        G2 --> G3["Hidden State"]
+    end
+    
+    Diff["📊 LSTM: 4 gates, separate cell+hidden\nGRU: 2 gates, merged cell+hidden\nGRU: fewer parameters, faster training"]
+
+    style lstm fill:#0f1d3a,stroke:#60a5fa,stroke-width:2px
+    style gru fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+    style Diff fill:#0a0a12,stroke:#27272a
+</pre>
+
+      <h3>Penjelasan Tiap Gate</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Gate</th>
+            <th>Formula</th>
+            <th>Fungsi</th>
+            <th>Analogi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Forget Gate</strong> (f)</td><td>σ(Wf·[h,x] + bf)</td><td>Menentukan informasi mana yang DILUPAKAN dari cell state</td><td>Menghapus memori lama yang tidak relevan</td></tr>
+          <tr><td><strong>Input Gate</strong> (i)</td><td>σ(Wi·[h,x] + bi)</td><td>Menentukan informasi baru mana yang DISIMPAN</td><td>Menulis memori baru yang penting</td></tr>
+          <tr><td><strong>Cell Candidate</strong> (C̃)</td><td>tanh(Wc·[h,x] + bc)</td><td>Membuat kandidat nilai baru untuk cell state</td><td>Membuat catatan baru</td></tr>
+          <tr><td><strong>Output Gate</strong> (o)</td><td>σ(Wo·[h,x] + bo)</td><td>Menentukan bagian cell state yang menjadi output</td><td>Memilih mana yang akan "diucapkan"</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Mengapa LSTM Mengatasi Vanishing Gradient?</div>
+        <p>Cell state C(t) mengalir sepanjang waktu melalui operasi <strong>penjumlahan</strong> (bukan perkalian). Gradien dapat mengalir melalui jalur ini tanpa mengalami perkalian berulang yang menyebabkan vanishing. Forget gate mengontrol seberapa banyak informasi lama yang dipertahankan, sehingga LSTM bisa "mengingat" informasi jangka panjang.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: GRU                 -->
+      <!-- ============================== -->
+      <h2 id="gru">6. GRU: Gated Recurrent Unit</h2>
+
+      <p><strong>GRU</strong> (Cho et al., 2014) adalah penyederhanaan LSTM yang menggabungkan forget gate dan input gate menjadi satu <strong>update gate</strong>, dan menghilangkan cell state terpisah. GRU lebih ringan dan seringkali memiliki performa setara LSTM.</p>
+
+      <h3>GRU vs LSTM</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: LSTM vs GRU</div>
+<pre class="mermaid">
+flowchart TB
+    subgraph lstm["LSTM"]
+        direction TB
+        L1["Forget Gate (f)"] --> L2["Input Gate (i)"]
+        L2 --> L3["Output Gate (o)"]
+        L3 --> L4["Cell State (C)"]
+    end
+    
+    subgraph gru["GRU"]
+        direction TB
+        G1["Reset Gate (r)"]
+        G2["Update Gate (z)"]
+        G1 & G2 --> G3["Hidden State (h)"]
+    end
+    
+    Compare["LSTM: 4 gates, separate C and h\nGRU: 2 gates, merged C and h\nGRU has fewer parameters, trains faster"]
+
+    style lstm fill:#0f1d3a,stroke:#60a5fa,stroke-width:2px
+    style gru fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+    style Compare fill:#0a0a12,stroke:#27272a
+</pre>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>LSTM</th>
+            <th>GRU</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Gates</td><td>3 (forget, input, output)</td><td>2 (update, reset)</td></tr>
+          <tr><td>Cell State</td><td>Ya (terpisah dari hidden state)</td><td>Tidak</td></tr>
+          <tr><td>Parameter</td><td>Lebih banyak (~4x)</td><td>Lebih sedikit (~3x)</td></tr>
+          <tr><td>Kecepatan Training</td><td>Lebih lambat</td><td>Lebih cepat</td></tr>
+          <tr><td>Memori Jangka Panjang</td><td>Lebih baik untuk sekuens sangat panjang</td><td>Cukup baik, tapi kadang kurang</td></tr>
+          <tr><td>Kapan Pakai?</td><td>Data kompleks, sekuens panjang</td><td>Data terbatas, perlu cepat</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Implementasi PyTorch -->
+      <!-- ============================== -->
+      <h2 id="implementasi-lstm">7. Implementasi LSTM dengan PyTorch</h2>
+
+      <h3>Contoh 1: LSTM untuk Klasifikasi Sentimen</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — LSTM Text Classification dengan PyTorch</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+from torch.utils.data import DataLoader, TensorDataset
+
+# === DEFINISI MODEL LSTM ===
+class LSTMClassifier(nn.Module):
+    def __init__(self, vocab_size, embed_dim, hidden_dim,
+                 output_dim, n_layers, dropout):
+        super().__init__()
+        
+        # Layers
+        self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+        self.lstm = nn.LSTM(
+            input_size=embed_dim,
+            hidden_size=hidden_dim,
+            num_layers=n_layers,
+            batch_first=True,       # Input shape: (batch, seq_len, features)
+            dropout=dropout if n_layers > 1 else 0,
+            bidirectional=False
+        )
+        self.dropout = nn.Dropout(dropout)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+    
+    def forward(self, text, text_lengths):
+        # text shape: (batch_size, seq_len)
+        
+        # 1. Embedding
+        embedded = self.dropout(self.embedding(text))
+        # embedded: (batch_size, seq_len, embed_dim)
+        
+        # 2. Pack padded sequences (untuk efisiensi)
+        packed = nn.utils.rnn.pack_padded_sequence(
+            embedded, text_lengths.cpu(),
+            batch_first=True, enforce_sorted=False
+        )
+        
+        # 3. LSTM forward pass
+        packed_output, (hidden, cell) = self.lstm(packed)
+        # hidden: (n_layers * n_directions, batch, hidden_dim)
+        
+        # 4. Ambil hidden state dari layer terakhir
+        # hidden[-1] untuk unidirectional
+        hidden = self.dropout(hidden[-1])
+        # hidden: (batch_size, hidden_dim)
+        
+        # 5. Fully connected layer
+        output = self.fc(hidden)
+        # output: (batch_size, output_dim)
+        
+        return output
+
+# === HYPERPARAMETERS ===
+VOCAB_SIZE = 10000
+EMBED_DIM = 128
+HIDDEN_DIM = 256
+OUTPUT_DIM = 2  # Binary classification (positif/negatif)
+N_LAYERS = 2
+DROPOUT = 0.5
+LEARNING_RATE = 0.001
+BATCH_SIZE = 64
+EPOCHS = 10
+
+# === INISIALISASI MODEL ===
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = LSTMClassifier(
+    VOCAB_SIZE, EMBED_DIM, HIDDEN_DIM, OUTPUT_DIM, N_LAYERS, DROPOUT
+).to(device)
+
+print(f"Model Architecture:\n{model}")
+print(f"\nTotal Parameters: {sum(p.numel() for p in model.parameters()):,}")
+
+# === TRAINING LOOP ===
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
+def train_epoch(model, dataloader, criterion, optimizer, device):
+    model.train()
+    total_loss = 0
+    correct = 0
+    total = 0
+    
+    for batch_text, batch_lengths, batch_labels in dataloader:
+        batch_text = batch_text.to(device)
+        batch_labels = batch_labels.to(device)
+        
+        # Forward
+        predictions = model(batch_text, batch_lengths)
+        loss = criterion(predictions, batch_labels)
+        
+        # Backward
+        optimizer.zero_grad()
+        loss.backward()
+        
+        # Gradient clipping (mencegah exploding gradient)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
+        
+        optimizer.step()
+        
+        # Metrics
+        total_loss += loss.item()
+        predicted = predictions.argmax(dim=1)
+        correct += (predicted == batch_labels).sum().item()
+        total += batch_labels.size(0)
+    
+    return total_loss / len(dataloader), correct / total
+
+# Simulated training (ganti dengan data loader asli)
+print("\nTraining LSTM Text Classifier...")
+for epoch in range(EPOCHS):
+    # Simulated metrics
+    train_loss = 0.65 * (0.9 ** epoch) + np.random.normal(0, 0.01)
+    train_acc = 0.60 + 0.04 * epoch + np.random.normal(0, 0.01)
+    print(f"Epoch {epoch+1:2d}/{EPOCHS} | Loss: {train_loss:.4f} | Acc: {train_acc:.4f}")
+</code></pre>
+      </div>
+
+      <h3>Contoh 2: LSTM untuk Time Series Forecasting</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — LSTM Time Series Prediction</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import torch
+import torch.nn as nn
+import numpy as np
+import matplotlib.pyplot as plt
+
+# === GENERATE TIME SERIES DATA ===
+np.random.seed(42)
+t = np.linspace(0, 100, 1000)
+series = np.sin(0.1 * t) + 0.5 * np.sin(0.05 * t) + np.random.normal(0, 0.1, len(t))
+
+# Normalize
+mean, std = series.mean(), series.std()
+series_norm = (series - mean) / std
+
+# Create sequences
+def create_sequences(data, seq_length):
+    xs, ys = [], []
+    for i in range(len(data) - seq_length):
+        xs.append(data[i:i+seq_length])
+        ys.append(data[i+seq_length])
+    return np.array(xs), np.array(ys)
+
+SEQ_LENGTH = 50
+X, y = create_sequences(series_norm, SEQ_LENGTH)
+
+# Split train/test
+split = int(0.8 * len(X))
+X_train, X_test = X[:split], X[split:]
+y_train, y_test = y[:split], y[split:]
+
+# Convert to tensors
+X_train_t = torch.FloatTensor(X_train).unsqueeze(-1)  # (batch, seq, 1)
+y_train_t = torch.FloatTensor(y_train)
+X_test_t = torch.FloatTensor(X_test).unsqueeze(-1)
+y_test_t = torch.FloatTensor(y_test)
+
+# === LSTM MODEL ===
+class LSTMForecaster(nn.Module):
+    def __init__(self, input_size=1, hidden_size=64, num_layers=2):
+        super().__init__()
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers,
+                           batch_first=True, dropout=0.2)
+        self.fc = nn.Linear(hidden_size, 1)
+    
+    def forward(self, x):
+        lstm_out, _ = self.lstm(x)
+        output = self.fc(lstm_out[:, -1, :])  # Ambil timestep terakhir
+        return output.squeeze()
+
+model = LSTMForecaster()
+criterion = nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+# Training
+print("Training LSTM Forecaster...")
+losses = []
+for epoch in range(50):
+    model.train()
+    optimizer.zero_grad()
+    pred = model(X_train_t)
+    loss = criterion(pred, y_train_t)
+    loss.backward()
+    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    optimizer.step()
+    losses.append(loss.item())
+    
+    if (epoch + 1) % 10 == 0:
+        model.eval()
+        with torch.no_grad():
+            test_pred = model(X_test_t)
+            test_loss = criterion(test_pred, y_test_t)
+        print(f"Epoch {epoch+1}: Train Loss={loss.item():.4f}, Test Loss={test_loss.item():.4f}")
+
+# Visualisasi
+model.eval()
+with torch.no_grad():
+    predictions = model(X_test_t).numpy()
+
+y_test_actual = y_test * std + mean
+predictions_actual = predictions * std + mean
+
+plt.figure(figsize=(14, 5))
+plt.plot(y_test_actual[:200], label='Actual', alpha=0.8)
+plt.plot(predictions_actual[:200], label='Predicted', alpha=0.8)
+plt.title('LSTM Time Series Forecasting')
+plt.xlabel('Time Step')
+plt.ylabel('Value')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Bidirectional       -->
+      <!-- ============================== -->
+      <h2 id="bidirectional">8. Bidirectional &amp; Stacked RNN</h2>
+
+      <h3>Bidirectional RNN</h3>
+      <p><strong>Bidirectional RNN</strong> menjalankan dua RNN secara bersamaan — satu dari kiri ke kanan (forward) dan satu dari kanan ke kiri (backward). Output keduanya digabungkan, sehingga model bisa memanfaatkan konteks dari kedua arah.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Bidirectional RNN</div>
+<pre><code>
+  Unidirectional RNN              Bidirectional RNN
+  
+  x₁ → x₂ → x₃ → x₄            x₁ → x₂ → x₃ → x₄
+  ↓     ↓     ↓     ↓             ↓     ↓     ↓     ↓
+  h₁→  h₂→  h₃→  h₄→            h₁→   h₂→  h₃→  h₄→   (forward)
+                                  h₁←   h₂←  h₃←  h₄←   (backward)
+                                  ↓     ↓     ↓     ↓
+                                  [h₁→;h₁←] [h₂→;h₂←]... (concat)
+                                      ↓
+                                    Output
+  
+  Hanya melihat MASA LALPU        Melihat MASA LALU + MASA DEPAN
+  → cocok untuk prediksi           → cocok untuk NLP (NER, POS tagging)
+    time series                      di mana konteks dua arah penting
+</code></pre>
+      </div>
+
+      <h3>Stacked (Deep) RNN</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Bidirectional Stacked LSTM</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import torch
+import torch.nn as nn
+
+class BiLSTMTagger(nn.Module):
+    """Bidirectional LSTM untuk Named Entity Recognition (NER)"""
+    
+    def __init__(self, vocab_size, embed_dim, hidden_dim,
+                 output_dim, n_layers, dropout):
+        super().__init__()
+        
+        self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+        
+        self.lstm = nn.LSTM(
+            input_size=embed_dim,
+            hidden_size=hidden_dim,
+            num_layers=n_layers,
+            batch_first=True,
+            bidirectional=True,    # Bidirectional!
+            dropout=dropout if n_layers > 1 else 0
+        )
+        
+        # Hidden dim × 2 karena bidirectional
+        self.fc = nn.Linear(hidden_dim * 2, output_dim)
+        self.dropout = nn.Dropout(dropout)
+    
+    def forward(self, text, text_lengths):
+        embedded = self.dropout(self.embedding(text))
+        
+        packed = nn.utils.rnn.pack_padded_sequence(
+            embedded, text_lengths.cpu(),
+            batch_first=True, enforce_sorted=False
+        )
+        
+        packed_output, (hidden, cell) = self.lstm(packed)
+        output, _ = nn.utils.rnn.pad_packed_sequence(
+            packed_output, batch_first=True
+        )
+        
+        # Apply FC to setiap timestep (untuk sequence labeling)
+        predictions = self.fc(self.dropout(output))
+        # predictions: (batch, seq_len, output_dim)
+        
+        return predictions
+
+# === INISIALISASI ===
+model = BiLSTMTagger(
+    vocab_size=5000,
+    embed_dim=128,
+    hidden_dim=256,
+    output_dim=9,      # 9 NER tags (B-PER, I-PER, B-LOC, etc.)
+    n_layers=2,
+    dropout=0.3
+)
+
+print(f"Model:\n{model}")
+print(f"\nTotal Parameters: {sum(p.numel() for p in model.parameters()):,}")
+print(f"Hidden dimension: 256 × 2 (bidirectional) = 512")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" data-quiz-id="rnn-quiz-1">
+        <h3>🧠 Quiz: RNN, LSTM &amp; Sequence Modeling</h3>
+        
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1. Mengapa RNN cocok untuk data sekuensial?</strong></p>
+          <label><input type="radio" name="q1" value="a"> Karena RNN memiliki lebih banyak parameter</label>
+          <label><input type="radio" name="q1" value="b"> Karena RNN memiliki hidden state yang mengalir dari satu timestep ke timestep berikutnya</label>
+          <label><input type="radio" name="q1" value="c"> Karena RNN menggunakan konvolusi</label>
+          <label><input type="radio" name="q1" value="d"> Karena RNN tidak memerlukan training</label>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2. Apa itu vanishing gradient problem pada RNN?</strong></p>
+          <label><input type="radio" name="q2" value="a"> Gradient menjadi sangat besar sehingga training divergen</label>
+          <label><input type="radio" name="q2" value="b"> Model kehilangan kemampuan untuk memproses data baru</label>
+          <label><input type="radio" name="q2" value="c"> Gradient mengecil mendekati nol saat backpropagation melalui banyak timestep, sehingga model tidak bisa belajar jangka panjang</label>
+          <label><input type="radio" name="q2" value="d"> Model menjadi terlalu kompleks</label>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Apa fungsi forget gate dalam LSTM?</strong></p>
+          <label><input type="radio" name="q3" value="a"> Menentukan informasi mana yang dilupakan dari cell state</label>
+          <label><input type="radio" name="q3" value="b"> Menentukan output akhir model</label>
+          <label><input type="radio" name="q3" value="c"> Menghitung loss function</label>
+          <label><input type="radio" name="q3" value="d"> Menginisialisasi hidden state</label>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4. Apa perbedaan utama GRU dengan LSTM?</strong></p>
+          <label><input type="radio" name="q4" value="a"> GRU tidak memiliki gate sama sekali</label>
+          <label><input type="radio" name="q4" value="b"> GRU menggunakan CNN sebagai gantinya</label>
+          <label><input type="radio" name="q4" value="c"> GRU hanya bisa untuk klasifikasi</label>
+          <label><input type="radio" name="q4" value="d"> GRU memiliki 2 gate (vs 3 di LSTM) dan tidak memiliki cell state terpisah</label>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>5. Keunggulan Bidirectional RNN dibanding Unidirectional?</strong></p>
+          <label><input type="radio" name="q5" value="a"> Lebih cepat dalam training</label>
+          <label><input type="radio" name="q5" value="b"> Bisa memanfaatkan konteks dari kedua arah (masa lalu dan masa depan)</label>
+          <label><input type="radio" name="q5" value="c"> Menggunakan lebih sedikit memori</label>
+          <label><input type="radio" name="q5" value="d"> Tidak memerlukan embedding</label>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">🎯 Ringkasan Artikel</div>
+        <ul>
+          <li><strong>RNN</strong> memiliki "memori" melalui hidden state yang mengalir antar timestep</li>
+          <li><strong>Vanishing gradient</strong> adalah masalah utama RNN — gradient mengecil saat backpropagation melalui banyak timestep</li>
+          <li><strong>LSTM</strong> mengatasi masalah ini dengan cell state dan 3 gates (forget, input, output)</li>
+          <li><strong>GRU</strong> adalah alternatif LSTM yang lebih ringan dengan 2 gates (update, reset)</li>
+          <li><strong>Bidirectional RNN</strong> memanfaatkan konteks dua arah untuk NLP</li>
+          <li><strong>Gradient clipping</strong> digunakan untuk mencegah exploding gradient</li>
+          <li>Saat ini, <strong>Transformer</strong> (BERT, GPT) banyak menggantikan RNN, tapi RNN tetap relevan untuk time series dan edge devices</li>
+        </ul>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== RELATED ARTICLES ========== -->
+  <section class="related-articles">
+    <div class="container">
+      <h2>Artikel Terkait</h2>
+      <div class="article-grid">
+        <a href="dl-transfer-learning.html" class="article-card">
+          <span class="category-tag">Deep Learning</span>
+          <h3>Transfer Learning</h3>
+          <p>Pre-trained models, fine-tuning, feature extraction.</p>
+          <span class="article-date">📅 26 Juni 2026</span>
+        </a>
+        <a href="machine-learning-dasar.html" class="article-card">
+          <span class="category-tag">AI & Data Science</span>
+          <h3>Machine Learning Dasar</h3>
+          <p>Pengenalan konsep dasar ML.</p>
+          <span class="article-date">📅 25 Juni 2026</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

@@ -1,0 +1,977 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Data Science</a>
+        <span class="separator">/</span>
+        <span class="current">Plotly</span>
+      </div>
+      <span class="category-tag">Data Science</span>
+      <h1>Plotly: Membuat Visualisasi Interaktif yang Memukau</h1>
+      <p class="article-subtitle">Tutorial lengkap Plotly — scatter, bar, line, heatmap, 3D plots, geographic maps, animations, dan Dashboards</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 22 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="ad-slot ad-slot-wide"></div>
+  </div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Plotly</a></li>
+          <li><a href="#scatter-line">Scatter &amp; Line Charts</a></li>
+          <li><a href="#bar-histogram">Bar Charts &amp; Histograms</a></li>
+          <li><a href="#heatmap">Heatmaps &amp; Contour</a></li>
+          <li><a href="#3d-plots">3D Plots</a></li>
+          <li><a href="#maps">Geographic Maps</a></li>
+          <li><a href="#subplots">Subplots &amp; Layout</a></li>
+          <li><a href="#animations">Animations</a></li>
+          <li><a href="#candlestick">Financial Charts</a></li>
+          <li><a href="#dash">Dashboards dengan Dash</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan Plotly</h2>
+
+      <p><strong>Plotly</strong> adalah library visualisasi interaktif untuk Python yang menghasilkan grafik berkualitas tinggi yang bisa di-zoom, di-hover, di-pan, dan di-export. Berbeda dari Matplotlib yang menghasilkan gambar statis, Plotly membuat chart interaktif yang bisa dijelajahi oleh pembaca.</p>
+
+      <p>Plotly memiliki tiga level API: <strong>Plotly Express</strong> (sintaksis sederhana, cepat), <strong>Graph Objects</strong> (kontrol penuh), dan <strong>Dash</strong> (full dashboard framework). Untuk sebagian besar kasus, mulai dengan Plotly Express lalu pindah ke Graph Objects jika perlu kustomisasi detail.</p>
+
+      <h3>Plotly vs Matplotlib</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Plotly</th>
+            <th>Matplotlib</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Interaktif</td><td>✅ Zoom, hover, pan, click</td><td>❌ Statik (gambar)</td></tr>
+          <tr><td>Output</td><td>HTML, Web, Notebook</td><td>PNG, PDF, SVG</td></tr>
+          <tr><td>Kecepatan coding</td><td>🟢 Cepat (Plotly Express)</td><td>🟡 Sedang</td></tr>
+          <tr><td>Kustomisasi</td><td>🟡 Baik</td><td>🟢 Sangat lengkap</td></tr>
+          <tr><td>3D</td><td>✅ Built-in interaktif</td><td>⚠️ Terbatas</td></tr>
+          <tr><td>Maps</td><td>✅ Choropleth, scattergeo</td><td>⚠️ Perlu basemap</td></tr>
+          <tr><td>Cocok untuk</td><td>Presentasi, web, EDA</td><td>Publikasi, paper</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code class="language-python"># Instalasi
+pip install plotly pandas kaleido
+
+# Import
+import plotly.express as px        # API sederhana (80% kasus)
+import plotly.graph_objects as go  # API lengkap
+from plotly.subplots import make_subplots
+import pandas as pd
+import numpy as np</code></pre>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Plotly Express vs Graph Objects</div>
+        <p><strong>Plotly Express (px)</strong>: Satu baris kode untuk chart. Contoh: <code>px.scatter(df, x='age', y='salary')</code>.<br>
+        <strong>Graph Objects (go)</strong>: Kontrol detail setiap elemen. Contoh: <code>go.Figure(data=[go.Scatter(...)])</code>.<br>
+        Keduanya menghasilkan objek <code>Figure</code> yang sama — kamu bisa mulai dengan px lalu modify dengan go.</p>
+      </div>
+
+      <!-- SECTION 2 -->
+      <h2 id="scatter-line">2. Scatter &amp; Line Charts</h2>
+
+      <h3>Scatter Plot</h3>
+      <pre><code class="language-python">import plotly.express as px
+import pandas as pd
+import numpy as np
+
+# Load dataset built-in
+df = px.data.gapminder()
+print(df.head())
+
+# Scatter plot sederhana
+fig = px.scatter(df.query("year == 2007"),
+    x="gdpPercap",
+    y="lifeExp",
+    size="pop",
+    color="continent",
+    hover_name="country",
+    log_x=True,
+    size_max=60,
+    title="GDP per Capita vs Life Expectancy (2007)",
+    labels={
+        "gdpPercap": "GDP per Capita (USD)",
+        "lifeExp": "Life Expectancy (tahun)",
+        "continent": "Benua",
+        "pop": "Populasi"
+    }
+)
+fig.update_layout(
+    template="plotly_dark",
+    font=dict(size=14),
+    width=900,
+    height=600
+)
+fig.show()
+
+# Export ke HTML (interaktif!)
+fig.write_html("scatter_gapminder.html")
+
+# Export ke PNG (perlu kaleido)
+fig.write_image("scatter_gapminder.png", scale=2)</code></pre>
+
+      <h3>Line Chart</h3>
+      <pre><code class="language-python">import plotly.express as px
+import pandas as pd
+import numpy as np
+
+# Buat data time series
+dates = pd.date_range("2024-01-01", periods=365, freq="D")
+np.random.seed(42)
+
+df = pd.DataFrame({
+    "Tanggal": np.tile(dates, 3),
+    "Harga": np.concatenate([
+        100 + np.cumsum(np.random.randn(365) * 2),
+        80 + np.cumsum(np.random.randn(365) * 1.5),
+        120 + np.cumsum(np.random.randn(365) * 3),
+    ]),
+    "Saham": np.repeat(["BBCA", "BBRI", "TLKM"], 365)
+})
+
+# Line chart dengan multiple series
+fig = px.line(df,
+    x="Tanggal",
+    y="Harga",
+    color="Saham",
+    title="Pergerakan Harga Saham 2024",
+    labels={"Harga": "Harga (Rp)", "Saham": "Kode Saham"}
+)
+
+# Kustomisasi hover
+fig.update_traces(
+    hovertemplate="<b>%{fullData.name}</b><br>Tanggal: %{x}<br>Harga: Rp %{y:,.0f}<extra></extra>"
+)
+
+fig.update_layout(
+    template="plotly_dark",
+    hovermode="x unified",
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+)
+fig.show()</code></pre>
+
+      <h3>Area Chart</h3>
+      <pre><code class="language-python">import plotly.express as px
+
+df = px.data.gapminder()
+
+# Line + area chart untuk Indonesia
+df_id = df[df["country"] == "Indonesia"]
+
+fig = px.area(df_id,
+    x="year",
+    y="pop",
+    title="Populasi Indonesia (1952-2007)",
+    labels={"pop": "Populasi", "year": "Tahun"},
+    markers=True
+)
+fig.update_traces(
+    fillcolor="rgba(0, 200, 100, 0.3)",
+    line=dict(color="green", width=3)
+)
+fig.update_layout(template="plotly_dark")
+fig.show()</code></pre>
+
+      <!-- SECTION 3 -->
+      <h2 id="bar-histogram">3. Bar Charts &amp; Histograms</h2>
+
+      <pre><code class="language-python">import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
+import numpy as np
+
+# ===== Bar Chart =====
+df = px.data.tips()
+
+# Agregasi
+daily_avg = df.groupby("day")["total_bill"].mean().reset_index()
+daily_avg.columns = ["Hari", "Rata_rata"]
+
+# Bar chart
+fig = px.bar(daily_avg,
+    x="Hari",
+    y="Rata_rata",
+    color="Hari",
+    title="Rata-rata Total Bill per Hari",
+    labels={"Rata_rata": "Rata-rata Bill ($)"},
+    text_auto=".2f"
+)
+fig.update_layout(template="plotly_dark", showlegend=False)
+fig.show()
+
+# ===== Grouped Bar Chart =====
+tips_by_day_sex = df.groupby(["day", "sex"])["total_bill"].mean().reset_index()
+
+fig = px.bar(tips_by_day_sex,
+    x="day",
+    y="total_bill",
+    color="sex",
+    barmode="group",
+    title="Rata-rata Bill per Hari & Gender",
+    labels={"total_bill": "Rata-rata Bill ($)", "sex": "Gender", "day": "Hari"},
+    text_auto=".1f"
+)
+fig.update_layout(template="plotly_dark")
+fig.show()
+
+# ===== Stacked Bar =====
+fig = px.bar(tips_by_day_sex,
+    x="day",
+    y="total_bill",
+    color="sex",
+    barmode="stack",
+    title="Stacked: Total Bill per Hari & Gender"
+)
+fig.update_layout(template="plotly_dark")
+fig.show()
+
+# ===== Horizontal Bar =====
+df_sorted = daily_avg.sort_values("Rata_rata")
+fig = px.bar(df_sorted,
+    x="Rata_rata",
+    y="Hari",
+    orientation="h",
+    title="Rata-rata Bill (Horizontal)",
+    text_auto=".2f",
+    color="Rata_rata",
+    color_continuous_scale="Viridis"
+)
+fig.update_layout(template="plotly_dark")
+fig.show()</code></pre>
+
+      <h3>Histogram &amp; Distribution</h3>
+      <pre><code class="language-python">import plotly.express as px
+import numpy as np
+import pandas as pd
+
+# Data
+np.random.seed(42)
+df = pd.DataFrame({
+    "Nilai": np.concatenate([
+        np.random.normal(70, 10, 500),  # Kelas A
+        np.random.normal(60, 15, 500),  # Kelas B
+    ]),
+    "Kelas": np.repeat(["Kelas A", "Kelas B"], 500)
+})
+
+# Histogram
+fig = px.histogram(df,
+    x="Nilai",
+    color="Kelas",
+    barmode="overlay",
+    opacity=0.7,
+    nbins=30,
+    title="Distribusi Nilai Siswa",
+    marginal="box",  # Box plot di atas
+    labels={"Nilai": "Nilai Ujian"}
+)
+fig.update_layout(template="plotly_dark")
+fig.show()
+
+# Pie Chart
+fig = px.pie(df,
+    names="Kelas",
+    title="Proporsi Kelas",
+    hole=0.4,  # Donut chart
+    color_discrete_sequence=["#00CC96", "#EF553B"]
+)
+fig.update_traces(textinfo="percent+label")
+fig.update_layout(template="plotly_dark")
+fig.show()</code></pre>
+
+      <!-- SECTION 4 -->
+      <h2 id="heatmap">4. Heatmaps &amp; Contour</h2>
+
+      <pre><code class="language-python">import plotly.express as px
+import plotly.graph_objects as go
+import numpy as np
+import pandas as pd
+
+# ===== Correlation Heatmap =====
+df = px.data.iris()
+corr = df.select_dtypes(include=[np.number]).corr()
+
+fig = px.imshow(corr,
+    text_auto=".2f",
+    color_continuous_scale="RdBu_r",
+    title="Correlation Heatmap - Iris Dataset",
+    aspect="auto"
+)
+fig.update_layout(template="plotly_dark", width=700, height=600)
+fig.show()
+
+# ===== Heatmap dengan data grid =====
+# Data suhu per jam
+np.random.seed(42)
+jam = [f"{h:02d}:00" for h in range(24)]
+hari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
+
+# Suhu lebih tinggi siang hari, lebih rendah malam
+suhu = np.array([
+    25 + 10 * np.sin(np.pi * (h - 6) / 12) + np.random.randn() * 2
+    for h in range(24)
+    for _ in range(7)
+]).reshape(24, 7)
+
+fig = go.Figure(data=go.Heatmap(
+    z=suhu,
+    x=hari,
+    y=jam,
+    colorscale="Hot",
+    colorbar=dict(title="°C"),
+    hovertemplate="Hari: %{x}<br>Jam: %{y}<br>Suhu: %{z:.1f}°C<extra></extra>"
+))
+fig.update_layout(
+    title="Pola Suhu Harian (°C)",
+    yaxis=dict(autorange="reversed"),
+    template="plotly_dark",
+    width=700,
+    height=700
+)
+fig.show()
+
+# ===== Contour Plot =====
+x = np.linspace(-3, 3, 100)
+y = np.linspace(-3, 3, 100)
+X, Y = np.meshgrid(x, y)
+Z = np.sin(X) * np.cos(Y) * np.exp(-(X**2 + Y**2) / 10)
+
+fig = go.Figure(data=go.Contour(
+    z=Z,
+    x=x,
+    y=y,
+    colorscale="Viridis",
+    contours=dict(showlabels=True, labelfont=dict(size=12)),
+    colorbar=dict(title="Z")
+))
+fig.update_layout(
+    title="Contour Plot: sin(x)·cos(y)·exp(-(x²+y²)/10)",
+    template="plotly_dark"
+)
+fig.show()</code></pre>
+
+      <!-- SECTION 5 -->
+      <h2 id="3d-plots">5. 3D Plots</h2>
+
+      <pre><code class="language-python">import plotly.express as px
+import plotly.graph_objects as go
+import numpy as np
+import pandas as pd
+
+# ===== 3D Scatter =====
+df = px.data.iris()
+fig = px.scatter_3d(df,
+    x="sepal_length",
+    y="sepal_width",
+    z="petal_width",
+    color="species",
+    size="petal_length",
+    title="Iris Dataset - 3D Scatter",
+    labels={
+        "sepal_length": "Sepal Length",
+        "sepal_width": "Sepal Width",
+        "petal_width": "Petal Width"
+    },
+    opacity=0.8
+)
+fig.update_layout(template="plotly_dark", width=900, height=700)
+fig.show()
+
+# ===== 3D Surface =====
+x = np.linspace(-5, 5, 50)
+y = np.linspace(-5, 5, 50)
+X, Y = np.meshgrid(x, y)
+Z = np.sin(np.sqrt(X**2 + Y**2))
+
+fig = go.Figure(data=[go.Surface(
+    z=Z,
+    x=X,
+    y=Y,
+    colorscale="Plasma",
+    contours_z=dict(show=True, usecolormap=True, highlightcolor="limegreen")
+)])
+fig.update_layout(
+    title="3D Surface: sin(√(x²+y²))",
+    scene=dict(
+        xaxis_title="X",
+        yaxis_title="Y",
+        zaxis_title="Z",
+        camera=dict(eye=dict(x=1.5, y=1.5, z=1.2))
+    ),
+    template="plotly_dark",
+    width=900,
+    height=700
+)
+fig.show()
+
+# ===== 3D Line =====
+t = np.linspace(0, 10, 500)
+x = np.sin(t)
+y = np.cos(t)
+z = t
+
+fig = go.Figure(data=[go.Scatter3d(
+    x=x, y=y, z=z,
+    mode='lines',
+    line=dict(color=t, colorscale='Rainbow', width=5),
+    name='Spiral'
+)])
+fig.update_layout(
+    title="3D Spiral",
+    scene=dict(xaxis_title="X", yaxis_title="Y", zaxis_title="Z"),
+    template="plotly_dark"
+)
+fig.show()</code></pre>
+
+      <!-- SECTION 6 -->
+      <h2 id="maps">6. Geographic Maps</h2>
+
+      <pre><code class="language-python">import plotly.express as px
+import pandas as pd
+import numpy as np
+
+# ===== Choropleth Map (Peta Indonesia) =====
+# Data provinsi Indonesia (contoh)
+data_indonesia = pd.DataFrame({
+    "provinsi": ["DKI Jakarta", "Jawa Barat", "Jawa Tengah", "Jawa Timur",
+                  "Sumatera Utara", "Sulawesi Selatan", "Bali", "Kalimantan Timur"],
+    "kode": ["ID-JK", "ID-JB", "ID-JT", "ID-JI",
+             "ID-SU", "ID-SN", "ID-BA", "ID-KT"],
+    "penduduk_juta": [10.6, 49.9, 36.5, 40.7, 14.8, 9.1, 4.3, 3.8],
+    "pdrb_triliun": [2840, 1200, 650, 900, 520, 350, 240, 450],
+})
+
+fig = px.choropleth(data_indonesia,
+    geojson="https://raw.githubusercontent.com/superpikar/indonesia-geojson/master/indonesia-provinces.geojson",
+    featureidkey="properties.kode",
+    locations="kode",
+    color="penduduk_juta",
+    hover_name="provinsi",
+    hover_data={"penduduk_juta": ":.1f", "pdrb_triliun": ":.0f"},
+    color_continuous_scale="YlOrRd",
+    title="Populasi Provinsi Indonesia (juta jiwa)",
+    labels={"penduduk_juta": "Populasi (jt)"}
+)
+fig.update_geos(fitbounds="locations", visible=False)
+fig.update_layout(template="plotly_dark", width=900, height=600)
+fig.show()
+
+# ===== Scatter Geo (World) =====
+df = px.data.gapminder().query("year == 2007")
+
+fig = px.scatter_geo(df,
+    locations="iso_alpha",
+    size="pop",
+    color="continent",
+    hover_name="country",
+    projection="natural earth",
+    title="Populasi Dunia 2007",
+    size_max=50
+)
+fig.update_layout(template="plotly_dark")
+fig.show()
+
+# ===== Scatter Mapbox (OpenStreetMap) =====
+# Lokasi kota-kota Indonesia
+kota = pd.DataFrame({
+    "kota": ["Jakarta", "Surabaya", "Bandung", "Medan", "Makassar", "Semarang", "Denpasar"],
+    "lat": [-6.2088, -7.2575, -6.9175, 3.5952, -5.1477, -6.9666, -8.6500],
+    "lon": [106.8456, 112.7521, 107.6191, 98.6722, 119.4221, 110.4196, 115.2167],
+    "populasi_jt": [10.6, 2.9, 2.5, 2.4, 1.5, 1.7, 0.9],
+    "tipe": ["Ibukota", "Kota Besar", "Kota Besar", "Kota Besar", "Kota Besar", "Kota Besar", "Kota Wisata"],
+})
+
+fig = px.scatter_mapbox(kota,
+    lat="lat",
+    lon="lon",
+    size="populasi_jt",
+    color="tipe",
+    hover_name="kota",
+    hover_data={"populasi_juta": True},
+    zoom=4,
+    mapbox_style="carto-darkmatter",
+    title="Kota-kota Besar Indonesia"
+)
+fig.update_layout(template="plotly_dark", width=900, height=600)
+fig.show()</code></pre>
+
+      <!-- SECTION 7 -->
+      <h2 id="subplots">7. Subplots &amp; Layout</h2>
+
+      <pre><code class="language-python">import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import numpy as np
+import pandas as pd
+
+# Membuat subplot grid
+fig = make_subplots(
+    rows=2, cols=2,
+    subplot_titles=("Scatter Plot", "Line Chart", "Bar Chart", "Histogram"),
+    specs=[
+        [{"type": "scatter"}, {"type": "scatter"}],
+        [{"type": "bar"}, {"type": "histogram"}]
+    ],
+    vertical_spacing=0.12,
+    horizontal_spacing=0.1
+)
+
+# Plot 1: Scatter
+np.random.seed(42)
+fig.add_trace(
+    go.Scatter(x=np.random.randn(100), y=np.random.randn(100),
+               mode='markers', marker=dict(color='cyan', size=8), name='Scatter'),
+    row=1, col=1
+)
+
+# Plot 2: Line
+x = np.linspace(0, 10, 100)
+fig.add_trace(
+    go.Scatter(x=x, y=np.sin(x), mode='lines', name='sin(x)',
+               line=dict(color='yellow', width=2)),
+    row=1, col=2
+)
+fig.add_trace(
+    go.Scatter(x=x, y=np.cos(x), mode='lines', name='cos(x)',
+               line=dict(color='magenta', width=2)),
+    row=1, col=2
+)
+
+# Plot 3: Bar
+hari = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"]
+values = [23, 45, 56, 78, 32, 65, 43]
+fig.add_trace(
+    go.Bar(x=hari, y=values, marker_color='lightgreen', name='Sales'),
+    row=2, col=1
+)
+
+# Plot 4: Histogram
+fig.add_trace(
+    go.Histogram(x=np.random.normal(50, 15, 1000), nbinsx=30,
+                 marker_color='coral', name='Distribution'),
+    row=2, col=2
+)
+
+fig.update_layout(
+    title_text="Dashboard Multi-Chart",
+    template="plotly_dark",
+    height=800,
+    width=1100,
+    showlegend=False
+)
+fig.show()</code></pre>
+
+      <h3>Kustomisasi Layout Lanjutan</h3>
+      <pre><code class="language-python">import plotly.graph_objects as go
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(
+    x=[1, 2, 3, 4, 5],
+    y=[10, 20, 25, 30, 45],
+    mode='lines+markers+text',
+    text=['A', 'B', 'C', 'D', 'E'],
+    textposition='top center',
+    name='Penjualan',
+    line=dict(color='#00CC96', width=3, dash='solid'),
+    marker=dict(size=12, symbol='diamond',
+                line=dict(width=2, color='white'))
+))
+
+# Annotations & shapes
+fig.add_annotation(
+    x=3, y=25,
+    text="Titik balik!",
+    showarrow=True,
+    arrowhead=2,
+    arrowcolor="red",
+    font=dict(size=14, color="red"),
+    ax=40, ay=-40
+)
+
+# Shape: shaded region
+fig.add_shape(
+    type="rect",
+    x0=2, x1=4, y0=0, y1=50,
+    fillcolor="rgba(255,255,0,0.1)",
+    line=dict(color="yellow", dash="dash"),
+)
+
+# Range slider & selector
+fig.update_xaxes(
+    rangeslider=dict(visible=True),
+    rangeselector=dict(
+        buttons=list([
+            dict(count=1, label="1m", step="month", stepmode="backward"),
+            dict(count=6, label="6m", step="month", stepmode="backward"),
+            dict(step="all", label="All")
+        ])
+    )
+)
+
+fig.update_layout(
+    title="Kustomisasi Layout Lengkap",
+    xaxis=dict(title="Bulan", showgrid=True, gridcolor="rgba(255,255,255,0.1)"),
+    yaxis=dict(title="Penjualan (jt)", showgrid=True, gridcolor="rgba(255,255,255,0.1)"),
+    template="plotly_dark",
+    legend=dict(x=0, y=1, bgcolor="rgba(0,0,0,0.5)"),
+    plot_bgcolor="rgba(0,0,0,0)",
+    paper_bgcolor="rgba(30,30,30,1)",
+    font=dict(family="Arial", size=14, color="white"),
+    margin=dict(l=60, r=40, t=80, b=60)
+)
+fig.show()</code></pre>
+
+      <!-- SECTION 8 -->
+      <h2 id="animations">8. Animations</h2>
+
+      <pre><code class="language-python">import plotly.express as px
+
+# ===== Animated Scatter =====
+df = px.data.gapminder()
+
+fig = px.scatter(df,
+    x="gdpPercap",
+    y="lifeExp",
+    size="pop",
+    color="continent",
+    hover_name="country",
+    log_x=True,
+    size_max=55,
+    animation_frame="year",        # Animasi berdasarkan tahun
+    animation_group="country",     # Track per country
+    range_x=[100, 100000],
+    range_y=[25, 90],
+    title="Gapminder: GDP vs Life Expectancy Over Time",
+    labels={"gdpPercap": "GDP per Capita", "lifeExp": "Life Expectancy"}
+)
+fig.update_layout(template="plotly_dark", width=900, height=600)
+fig.show()
+
+# ===== Animated Bar Chart Race =====
+df_top10 = df.groupby(["year", "country"])["pop"].sum().reset_index()
+df_top10 = df_top10.sort_values(["year", "pop"], ascending=[True, False])
+df_top10 = df_top10.groupby("year").head(10)
+
+fig = px.bar(df_top10,
+    x="pop",
+    y="country",
+    orientation="h",
+    color="country",
+    animation_frame="year",
+    range_x=[0, df_top10["pop"].max() * 1.1],
+    title="Top 10 Negara Berdasarkan Populasi",
+    labels={"pop": "Populasi", "country": "Negara"}
+)
+fig.update_layout(template="plotly_dark", width=900, height=600,
+                  showlegend=False, yaxis=dict(autorange="reversed"))
+fig.show()</code></pre>
+
+      <!-- SECTION 9 -->
+      <h2 id="candlestick">9. Financial Charts</h2>
+
+      <pre><code class="language-python">import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import pandas as pd
+import numpy as np
+
+# Simulasi data OHLCV
+np.random.seed(42)
+dates = pd.date_range("2024-01-01", periods=120, freq="B")
+
+harga = 5000 + np.cumsum(np.random.randn(120) * 50)
+data_saham = pd.DataFrame({
+    "Date": dates,
+    "Open": harga + np.random.randn(120) * 20,
+    "High": harga + abs(np.random.randn(120) * 40),
+    "Low": harga - abs(np.random.randn(120) * 40),
+    "Close": harga,
+    "Volume": np.random.randint(1000000, 10000000, 120),
+})
+
+# Hitung moving averages
+data_saham["MA20"] = data_saham["Close"].rolling(20).mean()
+data_saham["MA50"] = data_saham["Close"].rolling(50).mean()
+
+# Candlestick chart dengan volume
+fig = make_subplots(
+    rows=2, cols=1,
+    shared_xaxes=True,
+    vertical_spacing=0.03,
+    row_heights=[0.7, 0.3],
+    subplot_titles=("Harga BBCA", "Volume")
+)
+
+# Candlestick
+fig.add_trace(go.Candlestick(
+    x=data_saham["Date"],
+    open=data_saham["Open"],
+    high=data_saham["High"],
+    low=data_saham["Low"],
+    close=data_saham["Close"],
+    increasing_line_color="lime",
+    decreasing_line_color="red",
+    name="OHLC"
+), row=1, col=1)
+
+# Moving Averages
+fig.add_trace(go.Scatter(
+    x=data_saham["Date"], y=data_saham["MA20"],
+    line=dict(color="cyan", width=1), name="MA20"
+), row=1, col=1)
+fig.add_trace(go.Scatter(
+    x=data_saham["Date"], y=data_saham["MA50"],
+    line=dict(color="orange", width=1), name="MA50"
+), row=1, col=1)
+
+# Volume bars
+colors = ["lime" if c >= o else "red"
+          for c, o in zip(data_saham["Close"], data_saham["Open"])]
+fig.add_trace(go.Bar(
+    x=data_saham["Date"], y=data_saham["Volume"],
+    marker_color=colors, name="Volume", opacity=0.5
+), row=2, col=1)
+
+fig.update_layout(
+    title="Candlestick Chart + Volume + MA",
+    template="plotly_dark",
+    xaxis_rangeslider_visible=False,
+    height=800,
+    width=1100
+)
+fig.show()</code></pre>
+
+      <!-- SECTION 10 -->
+      <h2 id="dash">10. Dashboards dengan Dash</h2>
+
+      <p><strong>Dash</strong> adalah framework untuk membuat dashboard web interaktif menggunakan Python. Tidak perlu JavaScript — cukup Python dan Plotly!</p>
+
+      <pre><code class="language-python"># Install: pip install dash
+# Simpan sebagai app.py, jalankan: python app.py
+
+import dash
+from dash import dcc, html, Input, Output
+import plotly.express as px
+import pandas as pd
+
+# Load data
+df = px.data.gapminder()
+
+# Buat app
+app = dash.Dash(__name__)
+
+app.layout = html.Div([
+    # Header
+    html.H1("🌍 Gapminder Dashboard",
+            style={"textAlign": "center", "color": "white", "padding": "20px"}),
+
+    # Dropdown untuk memilih tahun
+    html.Div([
+        html.Label("Pilih Tahun:", style={"color": "white", "fontSize": "18px"}),
+        dcc.Slider(
+            id="year-slider",
+            min=df["year"].min(),
+            max=df["year"].max(),
+            step=None,
+            marks={str(year): str(year) for year in df["year"].unique()},
+            value=df["year"].max()
+        )
+    ], style={"padding": "20px", "margin": "0 auto", "maxWidth": "800px"}),
+
+    # Dropdown untuk benua
+    html.Div([
+        html.Label("Filter Benua:", style={"color": "white"}),
+        dcc.Dropdown(
+            id="continent-filter",
+            options=[{"label": c, "value": c} for c in df["continent"].unique()],
+            value=None,
+            multi=True,
+            placeholder="Semua benua..."
+        )
+    ], style={"padding": "10px 40px"}),
+
+    # Charts
+    html.Div([
+        dcc.Graph(id="scatter-plot", style={"width": "50%", "display": "inline-block"}),
+        dcc.Graph(id="bar-plot", style={"width": "50%", "display": "inline-block"}),
+    ]),
+
+    dcc.Graph(id="line-plot"),
+
+], style={"backgroundColor": "#111", "minHeight": "100vh"})
+
+# Callback: interaktif
+@app.callback(
+    [Output("scatter-plot", "figure"),
+     Output("bar-plot", "figure"),
+     Output("line-plot", "figure")],
+    [Input("year-slider", "value"),
+     Input("continent-filter", "value")]
+)
+def update_charts(year, continents):
+    # Filter data
+    dff = df[df["year"] == year]
+    if continents:
+        dff = dff[dff["continent"].isin(continents)]
+
+    # Scatter
+    scatter = px.scatter(dff, x="gdpPercap", y="lifeExp",
+        size="pop", color="continent", hover_name="country",
+        log_x=True, size_max=55,
+        title=f"GDP vs Life Expectancy ({year})",
+        template="plotly_dark")
+
+    # Bar
+    bar_data = dff.groupby("continent")["pop"].sum().reset_index()
+    bar = px.bar(bar_data, x="continent", y="pop",
+        color="continent", title=f"Populasi per Benua ({year})",
+        template="plotly_dark")
+
+    # Line (Indonesia)
+    indo = df[df["country"] == "Indonesia"]
+    line = px.line(indo, x="year", y="gdpPercap",
+        title="GDP per Capita Indonesia Over Time",
+        markers=True, template="plotly_dark")
+    line.add_vline(x=year, line_dash="dash", line_color="yellow")
+
+    return scatter, bar, line
+
+if __name__ == "__main__":
+    app.run_server(debug=True, port=8050)
+    # Buka browser: http://localhost:8050</code></pre>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Dash: Full Stack Dashboard</div>
+        <p>Dash mengubah Python + Plotly menjadi web app interaktif. Dengan callbacks, setiap interaksi user (klik, drag, dropdown) langsung memperbarui grafik. Deploy ke <a href="https://dash.plotly.com/dash-enterprise">Dash Enterprise</a>, Heroku, atau Railway untuk production.</p>
+      </div>
+
+      <h3>Tips Export &amp; Integrasi</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Metode</th>
+            <th>Perintah</th>
+            <th>Cocok untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>HTML interaktif</td><td><code>fig.write_html("chart.html")</code></td><td>Share ke orang lain</td></tr>
+          <tr><td>Static image</td><td><code>fig.write_image("chart.png", scale=2)</code></td><td>Presentasi, paper</td></tr>
+          <tr><td>Notebook</td><td><code>fig.show()</code></td><td>Jupyter/Colab</td></tr>
+          <tr><td>Dash app</td><td><code>app.run_server()</code></td><td>Web dashboard</td></tr>
+          <tr><td>Orca</td><td><code>fig.show("svg")</code></td><td>SVG output</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 11 -->
+      <h2 id="quiz">11. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quizPlotly">
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1.</strong> Apa keunggulan utama Plotly dibanding Matplotlib?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q1" value="a"> Lebih cepat</label>
+            <label><input type="radio" name="q1" value="b"> Chart interaktif (zoom, hover, pan)</label>
+            <label><input type="radio" name="q1" value="c"> Menggunakan lebih sedikit memori</label>
+            <label><input type="radio" name="q1" value="d"> Hanya bisa di Jupyter</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2.</strong> API mana yang paling cepat untuk membuat chart di Plotly?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q2" value="a"> plotly.graph_objects</label>
+            <label><input type="radio" name="q2" value="b"> plotly.figure_factory</label>
+            <label><input type="radio" name="q2" value="c"> plotly.express</label>
+            <label><input type="radio" name="q2" value="d"> plotly.io</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3.</strong> Parameter apa yang membuat animasi di Plotly Express?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q3" value="a"> animation_frame</label>
+            <label><input type="radio" name="q3" value="b"> animate=True</label>
+            <label><input type="radio" name="q3" value="c"> transition="slide"</label>
+            <label><input type="radio" name="q3" value="d"> frame="year"</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4.</strong> Untuk membuat peta interaktif dengan peta jalan, fungsi apa yang digunakan?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q4" value="a"> px.choropleth()</label>
+            <label><input type="radio" name="q4" value="b"> px.scatter_geo()</label>
+            <label><input type="radio" name="q4" value="c"> px.density_mapbox()</label>
+            <label><input type="radio" name="q4" value="d"> px.scatter_mapbox()</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>5.</strong> Apa fungsi dari <code>make_subplots()</code>?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q5" value="a"> Membuat animasi antar plot</label>
+            <label><input type="radio" name="q5" value="b"> Menggabungkan dua dataset</label>
+            <label><input type="radio" name="q5" value="c"> Membuat grid beberapa chart dalam satu figure</label>
+            <label><input type="radio" name="q5" value="d"> Meng-export plot ke file</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="article-nav">
+        <a href="python-scikit-learn.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Scikit-learn: ML Library</span>
+        </a>
+        <a href="python-asyncio-basics.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Python asyncio: Async Programming</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

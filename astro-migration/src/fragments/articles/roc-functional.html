@@ -1,0 +1,711 @@
+</header>
+
+    <main class="article-container">
+        <article>
+            <div class="article-header">
+                <div class="article-meta">
+                    <span class="category-badge">Tools</span>
+                    <span class="difficulty-badge">Lanjut</span>
+                    <span>📅 29 Juni 2026</span>
+                    <span>⏱️ 14 menit baca</span> <span class="difficulty pemula">Pemula</span>
+                    <span>👁️ 1,123 views</span>
+                </div>
+                <h1>Roc: Functional Programming with Abilities, Platforms, dan Effect System</h1>
+                <p style="font-size: 1.1em; color: #555;">Roc adalah bahasa pemrograman fungsional yang dirancang untuk menjadi fast, friendly, dan functional. Dengan arsitektur unik berbasis platforms dan abilities, Roc memisahkan pure logic dari side effects dengan sangat elegan.</p>
+            </div>
+
+            <div class="toc">
+                <h3>📋 Daftar Isi</h3>
+                <ul>
+                    <li><a href="#pengenalan">1. Mengapa Roc?</a></li>
+                    <li><a href="#instalasi">2. Instalasi</a></li>
+                    <li><a href="#dasar">3. Dasar-Dasar Roc</a></li>
+                    <li><a href="#platforms">4. Platforms dan Hosted Apps</a></li>
+                    <li><a href="#abilities">5. Abilities (Interface/Typeclass)</a></li>
+                    <li><a href="#tasks">6. Tasks dan Effect System</a></li>
+                    <li><a href="#data">7. Data Structures</a></li>
+                    <li><a href="#error-handling">8. Error Handling</a></li>
+                    <li><a href="#quiz">9. Kuis</a></li>
+                </ul>
+            </div>
+
+            <section id="pengenalan">
+                <h2>1. Mengapa Roc?</h2>
+                <p>Roc dibuat oleh Richard Feldman, maintainer dari elm-css dan salah satu kontributor utama Elm. Roc lahir dari pengalaman membangun bahasa fungsional yang lebih practical dan tidak terlalu opinionated dibanding Elm, tetapi tetap mempertahankan principes fungsional yang kuat.</p>
+
+                <ul>
+                    <li><strong>Platform Architecture</strong> — Pisahkan business logic dari platform</li>
+                    <li><strong>Abilities</strong> — Interface/typeclass yang fleksibel</li>
+                    <li><strong>Effect System</strong> — Side effects yang terstruktur</li>
+                    <li><strong>Fast</strong> — LLVM backend, native compilation</li>
+                    <li><strong>Friendly</strong> — Error messages yang sangat baik</li>
+                    <li><strong>Functional</strong> — Pure functions, immutable data, no null</li>
+                </ul>
+
+                <div class="info-box">
+                    <strong>💡 Platform Architecture</strong>
+                    <p>Di Roc, "platform" adalah layer yang menangani semua side effects (file I/O, network, UI, dll). Aplikasi Anda hanya berisi pure functions yang diberikan ke platform. Ini artinya Anda bisa menukar platform tanpa mengubah business logic — dari CLI ke web ke mobile.</p>
+                </div>
+            </section>
+
+            <section id="instalasi">
+                <h2>2. Instalasi</h2>
+
+                <div class="code-label">Bash</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Download dari roc-lang.org
+# https://github.com/roc-lang/roc/releases
+
+# Linux (nightly)
+curl -OL https://github.com/roc-lang/roc/releases/download/nightly/roc_linux_x86_64.tar.gz
+tar -xzf roc_linux_x86_64.tar.gz
+export PATH=$PATH:$(pwd)/roc_nightly
+
+# macOS
+curl -OL https://github.com/roc-lang/roc/releases/download/nightly/roc_macos_apple_silicon.tar.gz
+tar -xzf roc_macos_apple_silicon.tar.gz
+export PATH=$PATH:$(pwd)/roc_nightly
+
+# Verifikasi
+roc version
+
+# Buat proyek baru
+mkdir hello_roc && cd hello_roc
+cat > main.roc << 'EOF'
+app [main] {
+    pf: platform "https://github.com/roc-lang/basic-cli/releases/download/...",
+}
+
+import pf.Stdout
+import pf.Task exposing [Task]
+
+main : Task {} *
+main =
+    Stdout.line "Hello, World!"
+EOF
+
+# Jalankan
+roc main.roc
+
+# Build executable
+roc build main.roc
+
+# REPL
+roc repl
+</code></pre>
+                </div>
+            </section>
+
+            <section id="dasar">
+                <h2>3. Dasar-Dasar Roc</h2>
+
+                <h3>Values dan Types</h3>
+                <div class="code-label">basics.roc</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Roc menggunakan definisi tanpa keyword
+nama = "BeebaneLabs"
+umur = 25
+tinggi = 1.75
+aktif = True
+
+# Type annotations (opsional, tapi direkomendasikan)
+x : I64
+x = 42
+
+y : F64
+y = 3.14
+
+s : Str
+s = "hello"
+
+b : Bool
+b = True
+
+# Numeric types: I8, I16, I32, I64, I128
+#                U8, U16, U32, U64, U128
+#                F32, F64, Dec (decimal, untuk keuangan)
+#                Nat (platform-native integer)
+
+# String
+greeting = "Halo, \(nama)!"
+# String interpolation dengan \(expression)
+calc = "Hasil: \(x + 10)"
+
+# Numbers
+tambah = 1 + 2
+kurang = 10 - 3
+kali = 4 * 5
+bagi = 15 / 3
+sisa = 17 % 5
+
+# Boolean logic
+a = True
+b = False
+c = a && b  # AND
+d = a || b  # OR
+e = !a      # NOT
+
+# Comparison
+sama = 1 == 1        # True
+beda = 1 != 2        # True
+lebih_besar = 5 > 3  # True
+kurang_dari = 2 < 5  # True
+</code></pre>
+                </div>
+
+                <h3>Functions</h3>
+                <div class="code-label">functions.roc</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Functions adalah first-class citizens di Roc
+
+# Basic function (no keyword, just name and =
+tambah = \a, b -> a + b
+
+# With type annotation
+kali : I64, I64 -> I64
+kali = \a, b -> a * b
+
+# Multi-line function
+proses_angka = \n ->
+    doubled = n * 2
+    tripled = n * 3
+    doubled + tripled
+
+# Pattern matching di function
+classify = \n ->
+    when n is
+        0 -> "nol"
+        1 -> "satu"
+        2 -> "dua"
+        _ -> "lainnya"
+
+# Recursive functions
+factorial = \n ->
+    if n <= 1 then
+        1
+    else
+        n * factorial (n - 1)
+
+# Lambda (anonymous functions)
+kuadrat = \x -> x * x
+
+# Partial application
+add = \a, b -> a + b
+add_5 = add 5
+hasil = add_5 3  # 8
+
+# Pipelines (|)
+result =
+    "  Hello World  "
+    |> Str.trim
+    |> Str.toUtf8
+    |> List.len
+
+# Higher-order functions
+apply_twice = \f, x -> f (f x)
+dikali_dua_kali = apply_twice (\n -> n * 2) 3  # 12
+
+# Currying
+curried_add = \a -> \b -> a + b
+add_10 = curried_add 10
+hasil_curry = add_10 5  # 15
+
+# Record destructuring
+User = { name : Str, age : I64, email : Str }
+
+greet = \{ name, age } ->
+    "Halo, \(name)! Umur: \(Num.toStr age)"
+
+user = { name: "Andi", age: 25, email: "andi@email.com" }
+greeting = greet user
+</code></pre>
+                </div>
+
+                <h3>Control Flow</h3>
+                <div class="code-label">control_flow.roc</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# If-then-else (expression, bukan statement)
+nilai = 85
+grade =
+    if nilai >= 90 then
+        "A"
+    else if nilai >= 80 then
+        "B"
+    else if nilai >= 70 then
+        "C"
+    else
+        "D"
+
+# When expression (pattern matching)
+warna = "merah"
+kode =
+    when warna is
+        "merah" -> "#FF0000"
+        "hijau" -> "#00FF00"
+        "biru" -> "#0000FF"
+        _ -> "#000000"
+
+# When dengan destructuring
+describe_list = \lst ->
+    when lst is
+        [] -> "kosong"
+        [x] -> "satu elemen: \(Num.toStr x)"
+        [x, y] -> "dua elemen: \(Num.toStr x), \(Num.toStr y)"
+        [first, ..] -> "banyak elemen, mulai dari \(Num.toStr first)"
+
+# When dengan Tag (custom types)
+Shape = [Circle F64, Rectangle F64 F64, Triangle F64 F64]
+
+luas = \shape ->
+    when shape is
+        Circle r -> 3.14159 * r * r
+        Rectangle w h -> w * h
+        Triangle b h -> 0.5 * b * h
+
+# Multiple pattern matching
+day_type = \day ->
+    when day is
+        "Senin" | "Selasa" | "Rabu" | "Kamis" | "Jumat" -> "Hari kerja"
+        "Sabtu" | "Minggu" -> "Akhir pekan"
+        _ -> "Tidak valid"
+</code></pre>
+                </div>
+            </section>
+
+            <section id="platforms">
+                <h2>4. Platforms dan Hosted Apps</h2>
+                <p>Arsitektur Roc yang paling unik adalah konsep "platforms" dan "hosted apps". Ini memisahkan pure business logic dari side effects.</p>
+
+                <div class="code-label">main.roc</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# App declaration - menentukan platform yang digunakan
+app [main] {
+    pf: platform "https://github.com/roc-lang/basic-cli/releases/download/...",
+}
+
+import pf.Stdout
+import pf.Stderr
+import pf.File
+import pf.Env
+import pf.Task exposing [Task]
+import pf.Process
+
+# Main function
+main : Task {} *
+main =
+    Stdout.line "Halo dari Roc!"
+    |> Task.await \_ -> Stdout.line "Apa nama Anda?"
+
+# Task chaining
+main_dengan_nama : Task {} *
+main_dengan_nama =
+    _ <- Task.await (Stdout.line "Membaca environment...")
+    name <- Task.await (Env.decode "USER")
+    _ <- Task.await (Stdout.line "Hello, \(name)!")
+    Process.exit 0
+
+# File operations
+baca_file : Task {} [FileReadErr [NotFound]*]*
+baca_file =
+    contents <- Task.await (File.readUtf8 "data.txt")
+    Stdout.line "Isi file: \(contents)"
+
+# Write file
+tulis_file : Task {} [FileWriteErr]*
+tulis_file =
+    File.writeUtf8 "output.txt" "Hello from Roc!"
+    |> Task.await (\_ -> Stdout.line "File ditulis")
+
+# Environment variables
+baca_env : Task {} *
+baca_env =
+    home <- Task.await (Env.decode "HOME")
+    path <- Task.await (Env.decode "PATH")
+    _ <- Task.await (Stdout.line "HOME: \(home)")
+    Stdout.line "PATH tersedia"
+
+# HTTP request (dengan platform yang tepat)
+# http_get : Task {} *
+# http_get =
+#     response <- Task.await (Http.get "https://api.example.com/data")
+#     Stdout.line response.body
+</code></pre>
+                </div>
+            </section>
+
+            <section id="abilities">
+                <h2>5. Abilities (Interface/Typeclass)</h2>
+                <p>Abilities di Roc adalah konsep yang mirip dengan interface di Go atau typeclass di Haskell. Mereka mendefinisikan capability yang bisa di-implement oleh tipe apapun.</p>
+
+                <div class="code-label">abilities.roc</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Abilities adalah Roc's version of interfaces
+
+# Eq ability (built-in) - equality comparison
+# Struct dan tag types mendukung Eq secara otomatis
+
+# Hash ability (built-in) - untuk digunakan sebagai map keys
+
+# Custom ability
+Formatable has
+    format : a -> Str
+
+# Implementasi Formatable untuk berbagai tipe
+User := { name : Str, age : U64 } has [Formatable]
+
+format = \@User { name, age } ->
+    "User(\(name), \(Num.toStr age))"
+
+Product := { title : Str, price : F64 } has [Formatable]
+
+format = \@Product { title, price } ->
+    "\(title): Rp \(Num.toFmt price)"
+
+# Menggunakan ability
+print_formatted : a -> Str | a has Formatable
+print_formatted = \value ->
+    "Formatted: \(format value)"
+
+# Encoding ability (built-in)
+# Serialize types ke berbagai format
+# Hasil auto-generated
+
+# Decoding ability (built-in)
+# Deserialize dari berbagai format
+
+# Structural types (record polymorphism)
+# Roc mendukung structural typing secara natural
+get_name = \record -> record.name
+
+# Ini bekerja untuk semua record yang punya field 'name'
+user = { name: "Andi", age: 25 }
+product = { name: "Laptop", price: 15000000.0 }
+
+result1 = get_name user     # "Andi"
+result2 = get_name product  # "Laptop"
+</code></pre>
+                </div>
+            </section>
+
+            <section id="tasks">
+                <h2>6. Tasks dan Effect System</h2>
+                <p>Task di Roc adalah tipe yang merepresentasikan side effects yang mungkin gagal. Semua side effects (file I/O, HTTP, printing, dll) harus melalui Task.</p>
+
+                <div class="code-label">tasks.roc</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+import pf.Task exposing [Task]
+import pf.Stdout
+import pf.Stderr
+
+# Task type: Task ok_err ok_err
+# Artinya: Task yang menghasilkan ok_err, atau error ok_err
+
+# Basic Task
+hello : Task {} *
+hello = Stdout.line "Hello!"
+
+# Task chaining dengan await
+greet : Task {} *
+greet =
+    _ <- Task.await (Stdout.line "Siapa nama Anda?")
+    # (Dalam basic-cli, input dari stdin memerlukan platform khusus)
+    Stdout.line "Halo!"
+
+# Error handling dalam Task
+safe_divide : I64, I64 -> Task I64 [DivByZero]*
+safe_divide = \a, b ->
+    if b == 0 then
+        Task.fail DivByZero
+    else
+        Task.ok (a / b)
+
+# Menggabungkan Tasks
+proses : Task {} *
+proses =
+    result <- Task.await (safe_divide 10 2)
+    Stdout.line "Hasil: \(Num.toStr result)"
+
+# Error recovery
+proses_aman : Task {} *
+proses_aman =
+    result <- Task.attempt (safe_divide 10 0)
+    when result is
+        Ok val ->
+            Stdout.line "Hasil: \(Num.toStr val)"
+        Err DivByZero ->
+            Stdout.line "Error: Tidak bisa bagi nol!"
+
+# Parallel tasks (tergantung platform)
+# task_a : Task I64 *
+# task_b : Task Str *
+# combined <- Task.await (Task.par [task_a, task_b])
+
+# Transform Task result
+transform_task : Task {} *
+transform_task =
+    safe_divide 10 2
+    |> Task.map (\val -> val * 10)
+    |> Task.await (\result ->
+        Stdout.line "Dikalikan 10: \(Num.toStr result)")
+</code></pre>
+                </div>
+            </section>
+
+            <section id="data">
+                <h2>7. Data Structures</h2>
+
+                <div class="code-label">data.roc</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Lists (immutable, linked)
+angka = [1, 2, 3, 4, 5]
+kosong = []
+
+# List operations
+panjang = List.len angka          # 5
+pertama = List.first angka        # Ok 1
+terakhir = List.last angka        # Ok 5
+rest = List.rest angka            # Ok [2, 3, 4, 5]
+
+# Append / prepend
+dengan_nol = List.prepend angka 0
+dengan_enam = List.append angka 6
+
+# Map, filter, reduce
+doubled = List.map angka (\x -> x * 2)
+genap = List.filter angka (\x -> x % 2 == 0)
+total = List.walk angka 0 (\acc, x -> acc + x)
+
+# Sort
+sorted = List.sort angka (\a, b -> Num.compare a b)
+
+# Take / drop
+ambil_3 = List.takeFirst angka 3    # [1, 2, 3]
+buang_2 = List.dropFirst angka 2    # [3, 4, 5]
+
+# Flatten
+nested = [[1, 2], [3, 4], [5, 6]]
+flat = List.join nested              # [1, 2, 3, 4, 5, 6]
+
+# Records (like structs)
+User = {
+    name : Str,
+    age : U64,
+    email : Str,
+    active : Bool,
+}
+
+user = {
+    name: "Andi",
+    age: 25,
+    email: "andi@email.com",
+    active: True,
+}
+
+# Access
+nama_user = user.name
+umur_user = user.age
+
+# Update record (immutable)
+user_baru = { user & age: 26, active: False }
+
+# Nested records
+Address = { city : Str, country : Str }
+UserWithAddress = { name : Str, address : Address }
+
+user_lengkap = {
+    name: "Andi",
+    address: { city: "Jakarta", country: "Indonesia" },
+}
+
+# Dict (hash map)
+import pf.Dict
+
+prices : Dict.Dict Str F64
+prices =
+    Dict.empty
+    |> Dict.insert "apel" 5000.0
+    |> Dict.insert "jeruk" 3000.0
+    |> Dict.insert "mangga" 8000.0
+
+harga_apel = Dict.get prices "apel"
+# Ok 5000.0
+
+# Set
+import pf.Set
+
+colors : Set.Set Str
+colors =
+    Set.empty
+    |> Set.insert "merah"
+    |> Set.insert "hijau"
+    |> Set.insert "biru"
+
+is_red = Set.contains colors "merah"  # True
+
+# Tags (custom types / algebraic data types)
+Maybe a = [Some a, None]
+Result ok err = [Ok ok, Err err]
+
+# Custom tags
+Shape = [Circle F64, Rectangle F64 F64, Point]
+Message = [Login Str Str, Logout, Ping]
+
+# Tag with record payload
+Event =
+    Click { x : I64, y : I64 }
+    KeyPress { key : Str, modifiers : List Str }
+    Scroll { delta : F64 }
+</code></pre>
+                </div>
+            </section>
+
+            <section id="error-handling">
+                <h2>8. Error Handling</h2>
+
+                <div class="code-label">errors.roc</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Roc menggunakan Result type untuk error handling
+# Result ok err = [Ok ok, Err err]
+
+# Pattern matching pada Result
+parse_age : Str -> Result I64 [InvalidAge, NotANumber]
+parse_age = \input ->
+    when Str.toI64 input is
+        Ok num ->
+            if num >= 0 && num <= 150 then
+                Ok num
+            else
+                Err InvalidAge
+        Err _ ->
+            Err NotANumber
+
+# Chaining Results
+validate_email : Str -> Result Str [InvalidEmail]
+validate_email = \email ->
+    if Str.contains email "@" then
+        Ok email
+    else
+        Err InvalidEmail
+
+# Using Result
+proses : Str -> Str
+proses = \input ->
+    when parse_age input is
+        Ok age -> "Umur valid: \(Num.toStr age)"
+        Err InvalidAge -> "Umur tidak valid"
+        Err NotANumber -> "Bukan angka"
+
+# Error recovery dengan Result.map
+recovered =
+    parse_age "abc"
+    |> Result.mapErr (\_ -> "Gagal parsing")
+    |> Result.withDefault 0
+
+# Tag union untuk exhaustive error handling
+ReadError = [NotFound, PermissionDenied, ParseError Str]
+
+read_config : Str -> Result Config ReadError
+read_config = \path ->
+    # ... implementation
+    Err NotFound
+
+# Handling semua error cases
+handle_error = \result ->
+    when result is
+        Ok config -> "Config OK"
+        Err NotFound -> "File tidak ditemukan"
+        Err PermissionDenied -> "Akses ditolak"
+        Err (ParseError msg) -> "Parse error: \(msg)"
+
+# Roc's philosophy: errors are values, not exceptions
+# Tidak ada try/catch, tidak ada panic, tidak ada nil/null
+# Semua error harus di-handle secara eksplisit
+</code></pre>
+                </div>
+            </section>
+
+            <section id="quiz">
+                <div class="quiz-section">
+                    <h2>🧠 Kuis: Roc Functional Programming</h2>
+
+                    <div class="quiz-question">
+                        <h4>1. Apa konsep unik utama dari Roc?</h4>
+                        <ul class="quiz-options" data-correct="2">
+                            <li onclick="checkAnswer(this, false)">Object-oriented programming yang lebih baik</li>
+                            <li onclick="checkAnswer(this, true)">Platform architecture yang memisahkan pure logic dari side effects</li>
+                            <li onclick="checkAnswer(this, false)">Machine learning built-in</li>
+                            <li onclick="checkAnswer(this, false)">Distributed computing</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>2. Apa itu Abilities di Roc?</h4>
+                        <ul class="quiz-options" data-correct="1">
+                            <li onclick="checkAnswer(this, true)">Interface/typeclass yang mendefinisikan capability tipe</li>
+                            <li onclick="checkAnswer(this, false)">Built-in AI capabilities</li>
+                            <li onclick="checkAnswer(this, false)">Concurrency primitives</li>
+                            <li onclick="checkAnswer(this, false)">Database abstraction layer</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>3. Mengapa Roc menggunakan Task untuk side effects?</h4>
+                        <ul class="quiz-options" data-correct="3">
+                            <li onclick="checkAnswer(this, false)">Karena Roc tidak mendukung I/O</li>
+                            <li onclick="checkAnswer(this, false)">Untuk keamanan memory</li>
+                            <li onclick="checkAnswer(this, true)">Untuk menjaga pure functions tetap pure dan side effects terstruktur</li>
+                            <li onclick="checkAnswer(this, false)">Karena Task lebih cepat dari direct I/O</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>4. Apa yang dimaksud dengan "platform" di Roc?</h4>
+                        <ul class="quiz-options" data-correct="2">
+                            <li onclick="checkAnswer(this, false)">Operating system target</li>
+                            <li onclick="checkAnswer(this, true)">Layer yang menangani side effects, memisahkan dari business logic</li>
+                            <li onclick="checkAnswer(this, false)">Database driver</li>
+                            <li onclick="checkAnswer(this, false)">Build tool</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>5. Bagaimana Roc menangani error?</h4>
+                        <ul class="quiz-options" data-correct="4">
+                            <li onclick="checkAnswer(this, false)">Dengan exceptions dan try/catch</li>
+                            <li onclick="checkAnswer(this, false)">Dengan null/nil checking</li>
+                            <li onclick="checkAnswer(this, false)">Dengan error codes</li>
+                            <li onclick="checkAnswer(this, true)">Dengan Result type yang harus di-handle secara eksplisit</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <div style="margin-top: 40px; padding: 20px; background: #f0f0f0; border-radius: 10px;">
+                <h3>📚 Sumber Belajar Lanjutan</h3>
+                <ul>
+                    <li><a href="https://www.roc-lang.org/" target="_blank">Roc Language Website</a></li>
+                    <li><a href="https://www.roc-lang.org/tutorial" target="_blank">Roc Tutorial</a></li>
+                    <li><a href="https://github.com/roc-lang/roc" target="_blank">Roc GitHub</a></li>
+                    <li><a href="https://roc.zulipchat.com/" target="_blank">Roc Zulip Chat</a></li>
+                </ul>
+            </div>
+        </article>
+    </main>

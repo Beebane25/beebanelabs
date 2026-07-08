@@ -1,0 +1,545 @@
+<div class="search-overlay" id="searchOverlay"><button class="search-close-btn" aria-label="Tutup pencarian">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+  <section class="article-hero"><div class="container">
+    <div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Dashboard & Cloud</a><span class="separator">/</span><span class="current">Home Assistant Advanced Configuration</span></div>
+    <span class="category-tag">Dashboard & Cloud</span>
+    <h1>Home Assistant Advanced Configuration</h1>
+    <p class="article-subtitle">Tutorial lanjutan Home Assistant untuk smart home. Pelajari automations, templates, MQTT integration, custom components, dan HACS untuk rumah pintar yang cerdas.</p>
+    <div class="article-meta"><span>📅 2026-06-29</span><span>📖 16 menit baca</span><span class="difficulty lanjut">Lanjut</span></div>
+  </div></section>
+  <div class="container"><div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  <article class="article-content" id="main-content"><div class="container">
+<div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#apa-itu-ha">Home Assistant: Refresher &amp; Advanced Overview</a></li>
+      <li><a href="#automations">Automations &amp; Trigger-Condition-Action</a></li>
+      <li><a href="#templates">Templates &amp; Jinja2</a></li>
+      <li><a href="#mqtt">MQTT Integration untuk IoT Devices</a></li>
+      <li><a href="#custom-components">Custom Components &amp; Integration</a></li>
+      <li><a href="#hacs">HACS (Home Assistant Community Store)</a></li>
+      <li><a href="#dashboards">Lovelace Dashboard Advanced</a></li>
+      <li><a href="#tips">Tips &amp; Best Practices</a></li>
+      <li><a href="#quiz">Quiz Pemahaman</a></li>
+    </ol></div>
+<h2 id="apa-itu-ha">1. Home Assistant: Refresher &amp; Advanced Overview</h2>
+<p>Home Assistant (HA) adalah platform smart home open-source yang berjalan di Python. HA mengintegrasikan ratusan device dari berbagai brand dan protokol ke satu dashboard dan automation system. Tutorial ini fokus pada fitur advanced yang memungkinkan kamu membangun automasi kompleks dan mengintegrasikan device custom.</p>
+
+<p>Di level advanced, Home Assistant sangat powerful berkat kombinasi <strong>YAML configuration</strong>, <strong>Jinja2 templates</strong>, <strong>MQTT integration</strong>, dan <strong>Python custom components</strong>. Kamu bisa mengintegrasikan hampir semua perangkat IoT — bahkan yang belum didukung secara native.</p>
+
+<div class="info-box tip"><div class="info-box-title">💡 Tips</div>
+<p>Home Assistant berkembang sangat cepat. Sejak versi 2023.x, sebagian besar konfigurasi bisa dilakukan via UI (tidak perlu edit YAML lagi). Namun, untuk fitur advanced seperti templates dan custom components, YAML tetap diperlukan.</p></div>
+
+<h3>Home Assistant Architecture</h3>
+<pre><code class="language-plaintext"># Komponen utama Home Assistant:
+# - Core: Python application (hass) yang menjalankan integrations &amp; automations
+# - Frontend: Web UI (Lovelace) dan mobile app
+# - Integrations: Modul untuk menghubungkan device/service (1000+ integrations)
+# - Entities: Representasi device (sensor, switch, light, dll)
+# - Automations: Trigger → Condition → Action
+# - Services: Aksi yang bisa dipanggil (turn_on, send_notification, dll)
+
+# Entity States:
+# - sensor.temperature_1 = "25.6" (attributes: unit_of_measurement, device_class)
+# - light.living_room = "on" (attributes: brightness, color_temp, rgb_color)
+# - switch.kitchen_fan = "off"
+# - binary_sensor.door = "on" / "off"
+# - device_tracker.phone = "home" / "not_home"</code></pre>
+
+<h3>Konfigurasi File Structure</h3>
+<pre><code class="language-plaintext"># Struktur folder Home Assistant (/config):
+# configuration.yaml     — konfigurasi utama
+# automations.yaml       — automations (bisa via UI)
+# scripts.yaml           — scripts
+# scenes.yaml            — scenes
+# secrets.yaml           — sensitive data (API keys, passwords)
+# customize.yaml         — entity customization
+# packages/              — split config by feature
+# custom_components/     — custom integrations (dari HACS)
+# themes/                — custom themes
+# www/                   — static files (images, JS, CSS)
+# dashboards/            — custom Lovelace dashboards (YAML mode)</code></pre>
+
+<h2 id="automations">2. Automations &amp; Trigger-Condition-Action</h2>
+<p>Automations adalah fitur paling penting di Home Assistant. Setiap automation memiliki tiga komponen: <strong>Trigger</strong> (kapan?), <strong>Condition</strong> (syarat?), dan <strong>Action</strong> (apa yang dilakukan?).</p>
+
+<h3>Contoh Automations Kompleks</h3>
+<pre><code class="language-yaml"># Automation 1: Lampu otomatis dengan motion sensor dan lux sensor
+- alias: "Lampu Otomatis Ruang Tamu"
+  description: "Nyalakan lampu saat gelap dan ada gerakan"
+  trigger:
+    # Trigger 1: Motion sensor mendeteksi gerakan
+    - platform: state
+      entity_id: binary_sensor.motion_living_room
+      to: "on"
+    # Trigger 2: Lux sensor berubah di bawah threshold
+    - platform: numeric_state
+      entity_id: sensor.lux_living_room
+      below: 50
+  condition:
+    # Hanya jika gelap
+    - condition: numeric_state
+      entity_id: sensor.lux_living_room
+      below: 50
+    # Dan belum larut malam (sebelum jam 23:00)
+    - condition: time
+      before: "23:00:00"
+    # Dan lampu belum menyala
+    - condition: state
+      entity_id: light.living_room
+      state: "off"
+  action:
+    # Nyalakan lampu dengan brightness berdasarkan waktu
+    - service: light.turn_on
+      target:
+        entity_id: light.living_room
+      data:
+        brightness: >
+          {% if now().hour < 20 %}
+            200
+          {% elif now().hour < 22 %}
+            150
+          {% else %}
+            80
+          {% endif %}
+        color_temp_kelvin: >
+          {% if now().hour < 20 %}
+            4000
+          {% else %}
+            2700
+          {% endif %}
+    # Tunggu 5 menit tanpa gerakan
+    - wait_for_trigger:
+        - platform: state
+          entity_id: binary_sensor.motion_living_room
+          to: "off"
+          for: "00:05:00"
+    # Matikan lampu
+    - service: light.turn_off
+      target:
+        entity_id: light.living_room
+
+# Automation 2: Notifikasi suhu tinggi
+- alias: "Alert Suhu Tinggi"
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.temperature_server_room
+      above: 35
+      for: "00:05:00"
+  condition:
+    - condition: state
+      entity_id: input_boolean.alert_enabled
+      state: "on"
+  action:
+    - service: notify.mobile_app
+      data:
+        title: "⚠️ Suhu Server Room Tinggi!"
+        message: >
+          Suhu saat ini: {{ states('sensor.temperature_server_room') }}°C
+          Kelembaban: {{ states('sensor.humidity_server_room') }}%
+        data:
+          push:
+            sound: "alarm.caf"
+          actions:
+            - action: "TURN_ON_AC"
+              title: "Nyalakan AC"
+            - action: "SNOOZE_ALERT"
+              title: "Snooze 1 Jam"
+    # Tunggu response dari notification
+    - wait_for_trigger:
+        - platform: event
+          event_type: mobile_app_notification_action
+          event_data:
+            action: "TURN_ON_AC"
+      timeout: "00:10:00"
+    - condition: template
+      value_template: "{{ wait.trigger is not none }}"
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.server_room_ac
+      data:
+        temperature: 22
+        hvac_mode: "cool"</code></pre>
+
+<h2 id="templates">3. Templates &amp; Jinja2</h2>
+<p>Template memungkinkan kamu membuat logika dinamis menggunakan bahasa template Jinja2. Ini sangat powerful untuk sensor template, automation conditions, dan dashboard card.</p>
+
+<pre><code class="language-yaml"># Template Sensor — buat virtual sensor dari data lain
+template:
+  - sensor:
+      # Rata-rata suhu seluruh rumah
+      - name: "Suhu Rata-rata Rumah"
+        unit_of_measurement: "°C"
+        state: >
+          {% set sensors = [
+            states('sensor.temperature_living_room'),
+            states('sensor.temperature_bedroom'),
+            states('sensor.temperature_kitchen')
+          ] %}
+          {% set valid = sensors | select('is_number') | list %}
+          {{ (valid | map('float') | sum / valid | count) | round(1) }}
+        attributes:
+          rooms: >
+            {{ states.sensor
+               | selectattr('attributes.device_class', 'eq', 'temperature')
+               | map(attribute='entity_id')
+               | list }}
+
+      # Status perangkat online
+      - name: "Jumlah Device Online"
+        state: >
+          {% set devices = states.sensor 
+             | selectattr('state', 'ne', 'unavailable')
+             | selectattr('state', 'ne', 'unknown')
+             | list %}
+          {{ devices | count }}
+        attributes:
+          offline_devices: >
+            {% set offline = states.sensor 
+               | selectattr('state', 'eq', 'unavailable')
+               | map(attribute='name')
+               | list %}
+            {{ offline | join(', ') }}
+
+  - binary_sensor:
+      # Deteksi kebocoran air
+      - name: "Water Leak Detected"
+        state: >
+          {{ states('sensor.moisture_bathroom') | float > 60
+             or states('sensor.moisture_kitchen') | float > 60 }}
+        device_class: moisture
+
+  - sensor:
+      # Waktu tempuh ke kantor
+      - name: "ETA Kantor"
+        state: >
+          {% set duration = state_attr('sensor.google_maps_commute', 'duration') %}
+          {% if duration %}
+            {{ (now() + timedelta(minutes=duration)).strftime('%H:%M') }}
+          {% else %}
+            unavailable
+          {% endif %}
+        attributes:
+          duration_minutes: >
+            {{ state_attr('sensor.google_maps_commute', 'duration') }}</code></pre>
+
+<h2 id="mqtt">4. MQTT Integration untuk IoT Devices</h2>
+<p>MQTT adalah cara terbaik menghubungkan device IoT custom ke Home Assistant. HA memiliki MQTT integration yang sangat lengkap — kamu bisa mendefinisikan sensor, switch, light, dan bahkan camera melalui MQTT discovery atau manual config.</p>
+
+<h3>MQTT Discovery</h3>
+<pre><code class="language-python"># ESP32: Kirim MQTT discovery config ke Home Assistant
+import json
+
+# Discovery config untuk temperature sensor
+discovery_topic = "homeassistant/sensor/sensor-01-temp/config"
+discovery_payload = {
+    "name": "Suhu Ruang Server",
+    "unique_id": "sensor_01_temperature",
+    "state_topic": "home/sensor-01/state",
+    "unit_of_measurement": "°C",
+    "device_class": "temperature",
+    "value_template": "{{ value_json.temperature }}",
+    "device": {
+        "identifiers": ["sensor-01"],
+        "name": "Sensor Ruang Server",
+        "manufacturer": "BeebaneLabs",
+        "model": "ESP32-S3 Sensor",
+        "sw_version": "2.1.0"
+    },
+    "availability_topic": "home/sensor-01/availability",
+    "payload_available": "online",
+    "payload_not_available": "offline"
+}
+
+mqtt_client.publish(discovery_topic, json.dumps(discovery_payload), retain=True)
+
+# Discovery config untuk humidity sensor (device yang sama)
+discovery_topic = "homeassistant/sensor/sensor-01-hum/config"
+discovery_payload = {
+    "name": "Kelembaban Ruang Server",
+    "unique_id": "sensor_01_humidity",
+    "state_topic": "home/sensor-01/state",
+    "unit_of_measurement": "%",
+    "device_class": "humidity",
+    "value_template": "{{ value_json.humidity }}",
+    "device": {"identifiers": ["sensor-01"]}
+}
+mqtt_client.publish(discovery_topic, json.dumps(discovery_payload), retain=True)
+
+# State update (setiap 30 detik)
+state_topic = "home/sensor-01/state"
+state_payload = {"temperature": 25.6, "humidity": 65, "battery": 87}
+mqtt_client.publish(state_topic, json.dumps(state_payload))</code></pre>
+
+<h3>MQTT Manual Configuration</h3>
+<pre><code class="language-yaml"># configuration.yaml — manual MQTT sensor
+mqtt:
+  sensor:
+    - name: "IoT Gateway Temperature"
+      state_topic: "sensors/gateway/telemetry"
+      unit_of_measurement: "°C"
+      value_template: "{{ value_json.temperature }}"
+      json_attributes_topic: "sensors/gateway/telemetry"
+      json_attributes_template: >
+        {{ {'humidity': value_json.humidity, 'battery': value_json.battery} | tojson }}
+      availability_topic: "sensors/gateway/status"
+      payload_available: "online"
+      payload_not_available: "offline"
+
+    - name: "IoT Device Count"
+      state_topic: "gateway/stats/connected_devices"
+      unit_of_measurement: "devices"
+
+  switch:
+    - name: "IoT Relay 1"
+      command_topic: "sensors/relay-01/set"
+      state_topic: "sensors/relay-01/state"
+      payload_on: '{"state": "ON"}'
+      payload_off: '{"state": "OFF"}'
+      state_on: '{"state": "ON"}'
+      state_off: '{"state": "OFF"}'
+      optimistic: false
+
+  binary_sensor:
+    - name: "IoT Motion Sensor"
+      state_topic: "sensors/motion-01/state"
+      payload_on: "DETECTED"
+      payload_off: "CLEAR"
+      device_class: motion</code></pre>
+
+<h2 id="custom-components">5. Custom Components &amp; Integration</h2>
+<p>Untuk integrasi yang belum tersedia di Home Assistant, kamu bisa membuat custom component. Custom component adalah Python module yang berjalan di dalam HA core.</p>
+
+<pre><code class="language-python"># custom_components/my_iot_sensor/__init__.py
+"""Custom IoT Sensor Integration for Home Assistant."""
+import logging
+from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.typing import ConfigType
+
+DOMAIN = "my_iot_sensor"
+_LOGGER = logging.getLogger(__name__)
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up the component from configuration.yaml."""
+    return True
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up from a config entry (UI-based)."""
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
+    )
+    return True
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    return await hass.config_entries.async_unload_platforms(entry, ["sensor"])</code></pre>
+
+<pre><code class="language-python"># custom_components/my_iot_sensor/sensor.py
+"""Sensor platform for my_iot_sensor."""
+import logging
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
+
+_LOGGER = logging.getLogger(__name__)
+
+async def async_setup_entry(hass, config_entry, async_add_entities):
+    """Set up sensor platform."""
+    sensors = [
+        IoTSensor("Server Room Temperature", "°C", "temperature"),
+        IoTSensor("Server Room Humidity", "%", "humidity"),
+    ]
+    async_add_entities(sensors, True)
+
+class IoTSensor(SensorEntity):
+    def __init__(self, name, unit, sensor_type):
+        self._attr_name = name
+        self._attr_native_unit_of_measurement = unit
+        self._sensor_type = sensor_type
+        self._state = None
+
+    @property
+    def native_value(self):
+        return self._state
+
+    async def async_update(self):
+        """Fetch new state data for the sensor."""
+        # Implementasi: baca dari API, MQTT, database, dll
+        # self._state = await fetch_data(self._sensor_type)
+        pass</code></pre>
+
+<h2 id="hacs">6. HACS (Home Assistant Community Store)</h2>
+<p>HACS adalah package manager untuk Home Assistant. Dengan HACS, kamu bisa menginstall custom integrations, themes, dan dashboard cards dari komunitas dengan mudah.</p>
+
+<h3>Instalasi HACS</h3>
+<pre><code class="language-bash"># Metode 1: Install via SSH/terminal
+# Akses HA terminal (add-on Terminal &amp; SSH)
+cd /config
+wget -O - https://get.hacs.xyz | bash -
+# Restart Home Assistant
+
+# Metode 2: Install via Docker
+# Tambahkan volume: - /config/custom_components/hacs:/config/custom_components/hacs
+# Download release dari https://github.com/hacs/integration/releases
+
+# Setelah install:
+# 1. Buka HA → Settings → Devices &amp; Services → Add Integration
+# 2. Cari "HACS" → Install
+# 3. Autentikasi dengan GitHub account
+# 4. HACS muncul di sidebar</code></pre>
+
+<h3>Popular HACS Integrations</h3>
+<table class="net-table"><thead><tr><th>Integration</th><th>Kegunaan</th></tr></thead><tbody>
+<tr><td>Browser Mod</td><td>Control browser sebagai media player, popup dialog</td></tr>
+<tr><td>Card Mod</td><td>Custom CSS untuk Lovelace cards</td></tr>
+<tr><td>Mushroom Cards</td><td>Modern card design untuk dashboard</td></tr>
+<tr><td>Mini Media Player</td><td>Compact media player card</td></tr>
+<tr><td>Auto Entities</td><td>Dinamis entity list berdasarkan filter</td></tr>
+<tr><td>ApexCharts Card</td><td>Advanced charting untuk dashboard</td></tr>
+<tr><td>Scheduler Component</td><td>Visual scheduler untuk automations</td></tr>
+<tr><td>Battery Notes</td><td>Track battery replacement dates</td></tr>
+<tr><td>Spook</td><td>Swiss army knife — helper entities, integration health</td></tr>
+</tbody></table>
+
+<h2 id="dashboards">7. Lovelace Dashboard Advanced</h2>
+<pre><code class="language-yaml"># Custom dashboard YAML mode (di /config/dashboards/)
+views:
+  - title: "Smart Home Overview"
+    path: overview
+    cards:
+      # Status card dengan conditional visibility
+      - type: conditional
+        conditions:
+          - entity: sensor.temperature_server_room
+            above: 35
+        card:
+          type: markdown
+          content: "⚠️ **PERINGATAN:** Suhu server room {{ states('sensor.temperature_server_room') }}°C!"
+
+      # Grid layout
+      - type: grid
+        columns: 2
+        cards:
+          - type: sensor
+            entity: sensor.temperature_living_room
+            graph: line
+            name: "Suhu Ruang Tamu"
+          - type: sensor
+            entity: sensor.humidity_living_room
+            graph: line
+            name: "Kelembaban"
+
+      # Gauge card
+      - type: gauge
+        entity: sensor.temperature_server_room
+        min: 15
+        max: 50
+        segments:
+          - from: 0
+            color: "#2196F3"
+          - from: 25
+            color: "#4CAF50"
+          - from: 35
+            color: "#FF9800"
+          - from: 40
+            color: "#F44336"
+        needle: true
+
+      # Entities card dengan custom badges
+      - type: entities
+        title: "Device Status"
+        show_header_toggle: false
+        entities:
+          - entity: sensor.device_online_count
+            name: "Device Online"
+            icon: mdi:devices
+          - entity: binary_sensor.internet_connection
+            name: "Internet"
+          - entity: sensor.last_motion
+            name: "Gerakan Terakhir"
+          - type: divider
+          - entity: switch.living_room_lamp
+            name: "Lampu Ruang Tamu"
+          - entity: switch.kitchen_fan
+            name: "Kipas Dapur"</code></pre>
+
+<h2 id="tips">8. Tips &amp; Best Practices</h2>
+
+<table class="net-table"><thead><tr><th>Best Practice</th><th>Deskripsi</th></tr></thead><tbody>
+<tr><td>Gunakan Packages</td><td>Split configuration.yaml ke folder packages/ per fitur</td></tr>
+<tr><td>Secrets</td><td>Simpan API keys dan password di secrets.yaml</td></tr>
+<tr><td>Automation via UI</td><td>Gunakan UI editor untuk automations sederhana, YAML untuk kompleks</td></tr>
+<tr><td>Backup Otomatis</td><td>Konfigurasi Google Drive Backup add-on</td></tr>
+<tr><td>Pisahkan MQTT</td><td>Gunakan broker MQTT terpisah (EMQX/Mosquitto) dari HA internal broker</td></tr>
+<tr><td>Monitor Resources</td><td>Pantau CPU/RAM usage, terutama untuk Raspberry Pi</td></tr>
+<tr><td>Entity Naming</td><td>Gunakan friendly_name yang deskriptif, bukan nama teknis</td></tr>
+<tr><td>Database</td><td>Pertimbangkan MariaDB/PostgreSQL untuk recorder (lebih cepat dari SQLite)</td></tr>
+</tbody></table>
+<h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+<p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Home Assistant Advanced:</p>
+<div class="quiz-container" id="quiz50">
+  <div class="quiz-question"><h3>Pertanyaan 1: Tiga komponen utama dari automation di Home Assistant adalah...</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="0" data-answer="a">a) Input, Process, Output</div>
+      <div class="quiz-option" data-question="0" data-answer="b">b) Trigger, Condition, Action</div>
+      <div class="quiz-option" data-question="0" data-answer="c">c) Start, Execute, Stop</div>
+      <div class="quiz-option" data-question="0" data-answer="d">d) Event, Handler, Response</div>
+    </div>
+  </div>
+  <div class="quiz-question"><h3>Pertanyaan 2: Template sensor di Home Assistant menggunakan bahasa template apa?</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="1" data-answer="a">a) Mustache</div>
+      <div class="quiz-option" data-question="1" data-answer="b">b) Jinja2</div>
+      <div class="quiz-option" data-question="1" data-answer="c">c) ERB (Embedded Ruby)</div>
+      <div class="quiz-option" data-question="1" data-answer="d">d) Handlebars</div>
+    </div>
+  </div>
+  <div class="quiz-question"><h3>Pertanyaan 3: Apa fungsi MQTT Discovery di Home Assistant?</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="2" data-answer="a">a) Mencari broker MQTT di jaringan</div>
+      <div class="quiz-option" data-question="2" data-answer="b">b) Device mendaftarkan diri secara otomatis ke HA melalui MQTT config topic</div>
+      <div class="quiz-option" data-question="2" data-answer="c">c) Menghapus device MQTT yang tidak aktif</div>
+      <div class="quiz-option" data-question="2" data-answer="d">d) Mengenkripsi komunikasi MQTT</div>
+    </div>
+  </div>
+  <div class="quiz-question"><h3>Pertanyaan 4: HACS (Home Assistant Community Store) memungkinkan kamu untuk...</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="3" data-answer="a">a) Menginstall firmware ke device</div>
+      <div class="quiz-option" data-question="3" data-answer="b">b) Menginstall custom integrations, themes, dan dashboard cards dari komunitas</div>
+      <div class="quiz-option" data-question="3" data-answer="c">c) Mengelola database Home Assistant</div>
+      <div class="quiz-option" data-question="3" data-answer="d">d) Mengganti operating system</div>
+    </div>
+  </div>
+  <div class="quiz-question"><h3>Pertanyaan 5: Untuk membuat virtual sensor yang menghitung rata-rata dari beberapa sensor, kamu perlu menggunakan...</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="4" data-answer="a">a) Automation</div>
+      <div class="quiz-option" data-question="4" data-answer="b">b) Script</div>
+      <div class="quiz-option" data-question="4" data-answer="c">c) Template sensor dengan Jinja2</div>
+      <div class="quiz-option" data-question="4" data-answer="d">d) Scene</div>
+    </div>
+  </div>
+  <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+  <div class="quiz-result"></div>
+</div>
+
+<div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+<div class="article-nav">
+  <a href="emqx-broker.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">EMQX MQTT Broker</span></a>
+  <a href="influxdb-telegraf.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">InfluxDB &amp; Telegraf</span></a>
+</div></div></article>
+  <section class="newsletter-section" id="newsletter"><div class="container"><div class="newsletter-card fade-in">
+    <h2>📬 Dapatkan Tutorial Terbaru</h2><p>Subscribe untuk mendapatkan tutorial IoT &amp; Cloud terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+    <form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form>
+  </div></div></section>

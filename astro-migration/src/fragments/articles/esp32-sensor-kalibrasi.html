@@ -1,0 +1,1007 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">ESP32</a>
+        <span class="separator">/</span>
+        <span class="current">Kalibrasi Sensor</span>
+      </div>
+      <span class="category-tag">ESP32 & ESP8266</span>
+      <h1>Kalibrasi Sensor pada ESP32: Akurasi Data IoT</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Pelajari teknik kalibrasi sensor yang tepat untuk mendapatkan data akurat pada proyek IoT dengan ESP32</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 12 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#why-calibration">Mengapa Kalibrasi Penting?</a></li>
+          <li><a href="#adc-calibration">Kalibrasi ADC ESP32</a></li>
+          <li><a href="#offset-gain">Sensor Offset & Gain</a></li>
+          <li><a href="#temp-compensation">Kompensasi Suhu</a></li>
+          <li><a href="#humidity-calibration">Kalibrasi Sensor Kelembaban</a></li>
+          <li><a href="#pressure-calibration">Kalibrasi Sensor Tekanan</a></li>
+          <li><a href="#multi-point">Multi-Point Calibration</a></li>
+          <li><a href="#data-filtering">Data Filtering: Moving Average</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Why Calibration?    -->
+      <!-- ============================== -->
+      <h2 id="why-calibration">1. Mengapa Kalibrasi Penting?</h2>
+
+      <p>Dalam dunia IoT, akurasi data sensor sangat kritis. Bayangkan sebuah sistem monitoring suhu di gudang obat farmaksi — kesalahan 2°C bisa menyebabkan seluruh batch obat rusak senilai ratusan juta rupiah. Tanpa kalibrasi yang tepat, data dari sensor bisa menyimpang cukup jauh dari nilai sebenarnya.</p>
+
+      <p>Semua sensor memiliki <strong>toleransi error</strong> bawaan dari pabrik. Sensor DHT22 misalnya, memiliki akurasi ±0.5°C dan ±2% RH. Namun di kondisi lingkungan tertentu, error bisa lebih besar dari spekifikasi. Kalibrasi adalah proses mengidentifikasi dan mengoreksi error ini.</p>
+
+      <h3>Sumber Error pada Sensor</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Jenis Error</th>
+            <th>Penyebab</th>
+            <th>Dampak</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Offset Error</strong></td><td>Pergeseran konstan dari nilai sebenarnya</td><td>Reading selalu lebih tinggi/rendah</td></tr>
+          <tr><td><strong>Gain Error</strong></td><td>Kesalahan slope pada rentang pengukuran</td><td>Error membesar di ujung range</td></tr>
+          <tr><td><strong>Non-linearity</strong></td><td>Respon sensor tidak linier</td><td>Error bervariasi di setiap titik</td></tr>
+          <tr><td><strong>Drift</strong></td><td>Perubahan karakteristik seiring waktu</td><td>Akurasi menurun setelah berbulan-bulan</td></tr>
+          <tr><td><strong>Noise</strong></td><td>Interferensi elektrik, EMI</td><td>Fluktuasi acak pada pembacaan</td></tr>
+          <tr><td><strong>Temperature Effect</strong></td><td>Suhu lingkungan mempengaruhi pembacaan</td><td>Error berubah sesuai suhu operasi</td></tr>
+        </tbody>
+      </table>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Pipeline Kalibrasi Sensor</div>
+        <div class="arch-row">
+          <div class="arch-box warn">
+            <div class="arch-icon">📡</div>
+            <div class="arch-label">Sensor Raw</div>
+            <div class="arch-desc">ADC / Digital</div>
+          </div>
+          <div class="arch-arrow right">→</div>
+          <div class="arch-box info">
+            <div class="arch-icon">🔧</div>
+            <div class="arch-label">ADC Calibration</div>
+            <div class="arch-desc">Linearisasi ADC</div>
+          </div>
+          <div class="arch-arrow right">→</div>
+          <div class="arch-box highlight">
+            <div class="arch-icon">📐</div>
+            <div class="arch-label">Offset + Gain</div>
+            <div class="arch-desc">Koreksi dasar</div>
+          </div>
+          <div class="arch-arrow right">→</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">🌡️</div>
+            <div class="arch-label">Temp Comp</div>
+            <div class="arch-desc">Kompensasi suhu</div>
+          </div>
+          <div class="arch-arrow right">→</div>
+          <div class="arch-box danger">
+            <div class="arch-icon">📊</div>
+            <div class="arch-label">Filtering</div>
+            <div class="arch-desc">Noise reduction</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: ADC Calibration     -->
+      <!-- ============================== -->
+      <h2 id="adc-calibration">2. Kalibrasi ADC ESP32</h2>
+
+      <p>ESP32 memiliki ADC (Analog-to-Digital Converter) 12-bit yang terkenal <strong>non-linier</strong>. Kurva respon ADC ESP32 bukan garis lurus sempurna, melainkan memiliki "tekukan" di bagian bawah dan atas rentang. Ini masalah serius jika Anda mengandalkan ADC untuk pengukuran presisi.</p>
+
+      <h3>Permasalahan ADC ESP32</h3>
+
+      <ul>
+        <li><strong>Non-linearity:</strong> ADC ESP32 memiliki error hingga ±6% di beberapa titik</li>
+        <li><strong>Noise:</strong> Terutama saat WiFi aktif, noise bisa mencapai ±100 LSB</li>
+        <li><strong>Attenuation default:</strong> Range 0-3.3V dengan attenuation 11dB, tapi rentang efektif hanya 0-3.1V</li>
+        <li><strong>ADC2 tidak kompatibel WiFi:</strong> Pin ADC2 (GPIO 4, 2, 15, dll) tidak bisa dipakai saat WiFi aktif</li>
+      </ul>
+
+      <h3>ESP-IDF ADC Calibration</h3>
+
+      <p>ESP-IDF menyediakan 3 karakter ADC calibration:</p>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Character</th>
+            <th>Deskripsi</th>
+            <th>Akurasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Raw</strong></td><td>Tanpa kalibrasi (nilai ADC mentah)</td><td>Rendah</td></tr>
+          <tr><td><strong>Calibrated (Line Fitting)</strong></td><td>Kalibrasi menggunakan eFuse</td><td>Sedang</td></tr>
+          <tr><td><strong>Calibrated (Curve Fitting)</strong></td><td>Kalibrasi kurva dari eFuse</td><td>Tinggi</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — ADC dengan Line Fitting Calibration</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// ADC Calibration pada ESP32
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include "esp_adc_cal.h"
+
+#define ADC_PIN       34   // Gunakan pin ADC1
+#define ADC_ATTEN     ADC_ATTEN_DB_11  // Attenuation 11dB
+#define ADC_WIDTH     ADC_WIDTH_BIT_12 // 12-bit
+
+static esp_adc_cal_characteristics_t adc_chars;
+
+void setupADC() {
+  // Konfigurasi ADC
+  adc1_config_width(ADC_WIDTH);
+  adc1_config_channel_atten(ADC_CHANNEL_6, ADC_ATTEN);
+
+  // Kalibrasi menggunakan line fitting
+  esp_adc_cal_characterize(
+    ADC_UNIT_1,
+    ADC_ATTEN,
+    ADC_WIDTH,
+    1100,       // VRef default (mV)
+    &adc_chars
+  );
+
+  Serial.println("ADC calibrated!");
+}
+
+// Membaca ADC dengan kalibrasi
+uint32_t readCalibratedADC() {
+  uint32_t adc_reading = 0;
+
+  // Oversampling untuk mengurangi noise (ambil 64 sample)
+  for (int i = 0; i < 64; i++) {
+    adc_reading += adc1_get_raw(ADC_CHANNEL_6);
+  }
+  adc_reading /= 64;
+
+  // Konversi ke tegangan (mV) menggunakan kalibrasi
+  uint32_t voltage = esp_adc_cal_raw_to_voltage(
+    adc_reading, &adc_chars
+  );
+
+  return voltage;
+}
+
+void loop() {
+  uint32_t voltage_mv = readCalibratedADC();
+  Serial.printf("ADC Raw → Voltage: %d mV\n", voltage_mv);
+  delay(1000);
+}
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Akurasi ADC</div>
+        <p>Selalu gunakan <strong>oversampling</strong> (ambil rata-rata dari banyak sample) untuk mengurangi noise ADC. Minimal 16 sample, idealnya 64 sample. Ini sangat membantu terutama saat WiFi aktif karena switching power supply ESP32 menambah noise ke ADC.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Offset & Gain       -->
+      <!-- ============================== -->
+      <h2 id="offset-gain">3. Sensor Offset & Gain</h2>
+
+      <p>Metode kalibrasi paling dasar adalah <strong>two-point calibration</strong> menggunakan offset dan gain. Ini mengasumsikan sensor memiliki respon linear dan mengoreksi dengan persamaan garis:</p>
+
+      <div class="info-box info">
+        <div class="info-box-title">📐 Rumus Kalibrasi</div>
+        <p><code>nilai_kalibrasi = (nilai_mentah - offset) × gain</code></p>
+        <p>Atau dalam bentuk persamaan garis: <code>y = m × x + b</code></p>
+        <p>Di mana <code>m</code> = gain (slope), <code>b</code> = -offset, <code>x</code> = nilai mentah, <code>y</code> = nilai kalibrasi.</p>
+      </div>
+
+      <h3>Proses Two-Point Calibration</h3>
+
+      <ol>
+        <li>Siapkan <strong>referensi standar</strong> (termometer akurat, multimeter kalibrasi, timbangan standar)</li>
+        <li>Ukur pada <strong>titik rendah</strong> (low point) — catat nilai sensor dan nilai referensi</li>
+        <li>Ukur pada <strong>titik tinggi</strong> (high point) — catat nilai sensor dan nilai referensi</li>
+        <li>Hitung <strong>offset</strong> dan <strong>gain</strong> dari kedua titik</li>
+      </ol>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Two-Point Calibration</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Two-Point Calibration untuk Sensor
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+struct CalibrationPoint {
+  float measured;    // Nilai dari sensor
+  float reference;   // Nilai dari alat referensi
+};
+
+// Hasil kalibrasi
+struct CalibrationData {
+  float offset;      // Koreksi offset
+  float gain;        // Koreksi gain (slope)
+};
+
+// Hitung offset dan gain dari dua titik kalibrasi
+CalibrationData calculateCalibration(
+    CalibrationPoint low,
+    CalibrationPoint high
+) {
+  CalibrationData cal;
+
+  // Gain = perubahan referensi / perubahan sensor
+  cal.gain = (high.reference - low.reference) /
+             (high.measured - low.measured);
+
+  // Offset = referensi - (gain × sensor)
+  cal.offset = low.reference - (cal.gain * low.measured);
+
+  return cal;
+}
+
+// Terapkan kalibrasi pada pembacaan mentah
+float applyCalibration(float raw, CalibrationData cal) {
+  return (raw * cal.gain) + cal.offset;
+}
+
+// === Contoh Penggunaan ===
+
+// Kalibrasi sensor DHT22 suhu
+CalibrationData tempCal;
+
+void setupTemperatureCalibration() {
+  // Titik 1: Es batu cair (0°C sebenarnya)
+  CalibrationPoint low;
+  low.measured = 1.2;    // Sensor membaca 1.2°C
+  low.reference = 0.0;   // Sebenarnya 0°C
+
+  // Titik 2: Air mendidih (100°C sebenarnya, sesuaikan altitude)
+  CalibrationPoint high;
+  high.measured = 98.5;   // Sensor membaca 98.5°C
+  high.reference = 100.0; // Sebenarnya 100°C
+
+  tempCal = calculateCalibration(low, high);
+
+  Serial.printf("Offset: %.2f, Gain: %.4f\n",
+                tempCal.offset, tempCal.gain);
+}
+
+void loop() {
+  float rawTemp = dht.readTemperature();
+  float calTemp = applyCalibration(rawTemp, tempCal);
+
+  Serial.printf("Raw: %.1f°C → Calibrated: %.1f°C\n",
+                rawTemp, calTemp);
+  delay(2000);
+}
+</code></pre>
+      </div>
+
+      
+<div class="diagram-box">
+        
+<pre><code>/&quot;Nilai&quot;/
+/&quot;Referensi&quot;/
+100
+/&quot;Kalibrasi (sesuai)&quot;/
+50
+/&quot;Raw sensor (melenceng)&quot;/
+/&quot;╱         Offset = nilai di titik 0&quot;/
+/&quot;Nilai Sensor&quot;/
+/&quot;0    25    50    75   100&quot;/
+/&quot;Offset = selisih di titik rendah&quot;/
+/&quot;Gain   = kemiringan garis (slope correction)&quot;/</code></pre>
+    </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Temperature Comp    -->
+      <!-- ============================== -->
+      <h2 id="temp-compensation">4. Kompensasi Suhu</h2>
+
+      <p>Banyak sensor (terutama sensor tekanan, kelembaban, dan gas) memiliki pembacaan yang terpengaruh oleh suhu lingkungan. <strong>Temperature compensation</strong> adalah teknik mengoreksi pembacaan sensor berdasarkan suhu aktual di lokasi pengukuran.</p>
+
+      <h3>Mengapa Perlu Kompensasi Suhu?</h3>
+
+      <ul>
+        <li>Resistansi sensor berubah seiring suhu (koefisien temperatur)</li>
+        <li>Karakteristik ADC bergeser pada suhu berbeda</li>
+        <li>Elemen sensor (seperti strain gauge) memiliki thermal drift</li>
+        <li>IC sensor sudah memiliki kompensasi internal, tapi kadang kurang akurat</li>
+      </ul>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Temperature Compensation</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Temperature Compensation untuk Sensor Tekanan
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+struct TempCompensation {
+  float refTemp;        // Suhu referensi saat kalibrasi (°C)
+  float tempCoeff;      // Koefisien temperatur (% per °C)
+  float nominalValue;   // Nilai nominal sensor
+};
+
+// Hitung nilai terkompensasi
+float applyTempCompensation(
+    float rawValue,
+    float currentTemp,
+    TempCompensation comp
+) {
+  // Rumus: corrected = raw / (1 + coeff * (T - Tref))
+  float tempDiff = currentTemp - comp.refTemp;
+  float correctionFactor = 1.0 + (comp.tempCoeff / 100.0) * tempDiff;
+  return rawValue / correctionFactor;
+}
+
+// Contoh: Kompensasi sensor tekanan BMP280
+void setup() {
+  Serial.begin(115200);
+
+  // Data dari datasheet BMP280
+  TempCompensation pressureComp;
+  pressureComp.refTemp = 25.0;      // Suhu referensi 25°C
+  pressureComp.tempCoeff = -0.02;   // -0.02% per °C
+  pressureComp.nominalValue = 1013.25;
+
+  // Baca sensor
+  float rawPressure = readPressureSensor();
+  float currentTemp = readTemperature();
+
+  // Terapkan kompensasi
+  float compensatedPressure = applyTempCompensation(
+    rawPressure, currentTemp, pressureComp
+  );
+
+  Serial.printf("Raw: %.2f hPa\n", rawPressure);
+  Serial.printf("Compensated: %.2f hPa (pada %.1f°C)\n",
+                compensatedPressure, currentTemp);
+}
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Koefisien temperatur (<code>tempCoeff</code>) harus diperoleh dari <strong>datasheet sensor</strong> atau <strong>eksperimen kalibrasi</strong> pada beberapa suhu berbeda. Jangan pernah menebak nilai ini karena kesalahan bisa berakumulasi signifikan pada suhu ekstrem.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Humidity Calib      -->
+      <!-- ============================== -->
+      <h2 id="humidity-calibration">5. Kalibrasi Sensor Kelembaban</h2>
+
+      <p>Sensor kelembaban (seperti DHT11, DHT22, SHT31) memerlukan perhatian khusus karena kelembaban relatif (RH) sangat dipengaruhi oleh suhu. Selain itu, sensor kelembaban cenderung mengalami drift seiring waktu akibat kontaminasi dari polutan udara.</p>
+
+      <h3>Metode Kalibrasi Kelembaban</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Humidity Sensor Calibration</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Kalibrasi Sensor Kelembaban
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+// Salt Solution Method — Kalibrasi menggunakan larutan garam
+// NaCl saturated → 75.3% RH pada 25°C
+// LiCl saturated → 11.3% RH pada 25°C
+// MgCl2 saturated → 32.8% RH pada 25°C
+
+struct HumidityCalibration {
+  float offset;      // Offset correction
+  float gain;        // Gain correction
+  float tempCoeff;   // Temperature coefficient
+  float refTemp;     // Reference temperature
+};
+
+HumidityCalibration humCal;
+
+// Setup kalibrasi menggunakan metode garam
+void setupHumidityCalibration() {
+  // Kalibrasi 2-titik dengan saturated salt solutions
+
+  // Titik 1: NaCl (75.3% RH pada 25°C)
+  CalibrationPoint low;
+  low.measured = 78.2;    // Sensor membaca 78.2%
+  low.reference = 75.3;   // NaCl reference
+
+  // Titik 2: LiCl (11.3% RH pada 25°C)
+  CalibrationPoint high;
+  high.measured = 14.5;    // Sensor membaca 14.5%
+  high.reference = 11.3;   // LiCl reference
+
+  // Hitung offset dan gain
+  humCal.gain = (high.reference - low.reference) /
+                (high.measured - low.measured);
+  humCal.offset = low.reference - (humCal.gain * low.measured);
+  humCal.tempCoeff = -0.15;  // -0.15% RH per °C (typical)
+  humCal.refTemp = 25.0;
+
+  Serial.printf("Humidity Cal - Offset: %.2f, Gain: %.4f\n",
+                humCal.offset, humCal.gain);
+}
+
+// Baca dan kalibrasi kelembaban
+float readCalibratedHumidity(float rawHum, float currentTemp) {
+  // Step 1: Terapkan offset dan gain
+  float corrected = (rawHum * humCal.gain) + humCal.offset;
+
+  // Step 2: Terapkan kompensasi suhu
+  float tempDiff = currentTemp - humCal.refTemp;
+  corrected -= humCal.tempCoeff * tempDiff;
+
+  // Step 3: Clamp ke range valid 0-100%
+  if (corrected < 0.0) corrected = 0.0;
+  if (corrected > 100.0) corrected = 100.0;
+
+  return corrected;
+}
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Kalibrasi Kelembaban</div>
+        <p>Untuk kalibrasi kelembaban di rumah, metode paling praktis adalah <strong>saturated salt solution</strong>. Masukkan garam dapur (NaCl) ke dalam wadah kedap udara bersama sensor. Setelah 24 jam, RH di dalam wadah akan stabil di ~75.3% pada 25°C. Bandingkan dengan hygrometer referensi.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Pressure Calib      -->
+      <!-- ============================== -->
+      <h2 id="pressure-calibration">6. Kalibrasi Sensor Tekanan</h2>
+
+      <p>Sensor tekanan (BMP280, BME280, MS5611) digunakan dalam proyek IoT untuk weather monitoring dan altitude estimation. Kalibrasi sensor tekanan melibatkan koreksi offset dan kompensasi suhu, karena sensor tekanan sangat sensitif terhadap suhu.</p>
+
+      <h3>Kalibrasi Altitude dengan Tekanan Referensi</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Pressure & Altitude Calibration</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Kalibrasi Sensor Tekanan (BMP280/BME280)
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include &lt;Wire.h&gt;
+#include &lt;Adafruit_BMP280.h&gt;
+
+Adafruit_BMP280 bmp;
+
+struct PressureCalibration {
+  float pressureOffset;      // Offset tekanan (hPa)
+  float altitudeOffset;      // Offset altitude (meter)
+  float seaLevelPressure;    // Tekanan permukaan laut (hPa)
+};
+
+PressureCalibration presCal;
+
+void setupPressureCalibration() {
+  // Kalibrasi offset tekanan
+  // Bandingkan dengan stasiun cuaca terdekat
+  // atau data BMKG (Badan Meteorologi)
+
+  float sensorReading = bmp.readPressure() / 100.0; // hPa
+  float referencePressure = 1013.25; // dari BMKG/web
+
+  presCal.pressureOffset = referencePressure - sensorReading;
+  presCal.seaLevelPressure = 1013.25;
+  presCal.altitudeOffset = 0.0;
+
+  Serial.printf("Pressure offset: %.2f hPa\n",
+                presCal.pressureOffset);
+}
+
+// Baca tekanan terkalibrasi
+float readCalibratedPressure() {
+  float rawPressure = bmp.readPressure() / 100.0;
+  return rawPressure + presCal.pressureOffset;
+}
+
+// Hitung altitude dari tekanan
+float calculateAltitude(float calibratedPressure) {
+  // Rumus barometric formula
+  float altitude = 44330.0 * (
+    1.0 - pow(calibratedPressure / presCal.seaLevelPressure, 0.1903)
+  );
+  return altitude + presCal.altitudeOffset;
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  if (!bmp.begin(0x76)) {
+    Serial.println("BMP280 tidak ditemukan!");
+    while(1);
+  }
+
+  setupPressureCalibration();
+}
+
+void loop() {
+  float pressure = readCalibratedPressure();
+  float altitude = calculateAltitude(pressure);
+  float temperature = bmp.readTemperature();
+
+  Serial.printf("Tekanan: %.2f hPa\n", pressure);
+  Serial.printf("Altitude: %.1f m\n", altitude);
+  Serial.printf("Suhu: %.1f°C\n", temperature);
+
+  delay(2000);
+}
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Multi-Point         -->
+      <!-- ============================== -->
+      <h2 id="multi-point">7. Multi-Point Calibration</h2>
+
+      <p>Untuk sensor yang memiliki non-linearitas signifikan, <strong>two-point calibration</strong> tidak cukup. Kita perlu <strong>multi-point calibration</strong> yang menggunakan banyak titik referensi dan interpolasi untuk mengoreksi non-linearitas.</p>
+
+      <h3>Linear Interpolation</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Multi-Point Calibration</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Multi-Point Calibration dengan Linear Interpolation
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#define NUM_CAL_POINTS 5
+
+struct CalPoint {
+  float measured;
+  float reference;
+};
+
+// Titik kalibrasi (diurutkan dari kecil ke besar)
+CalPoint calPoints[NUM_CAL_POINTS] = {
+  {50.0,  45.0},    // Titik 1
+  {500.0, 480.0},   // Titik 2
+  {1000.0, 985.0},  // Titik 3
+  {2000.0, 1970.0}, // Titik 4
+  {3500.0, 3450.0}  // Titik 5
+};
+
+// Linear interpolation antar dua titik
+float interpolate(float x, float x0, float y0,
+                  float x1, float y1) {
+  return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
+}
+
+// Multi-point calibration
+float multiPointCalibrate(float raw) {
+  // Jika di bawah titik pertama → extrapolasi dari 2 titik pertama
+  if (raw <= calPoints[0].measured) {
+    return interpolate(raw,
+      calPoints[0].measured, calPoints[0].reference,
+      calPoints[1].measured, calPoints[1].reference);
+  }
+
+  // Jika di atas titik terakhir → extrapolasi dari 2 titik terakhir
+  if (raw >= calPoints[NUM_CAL_POINTS - 1].measured) {
+    return interpolate(raw,
+      calPoints[NUM_CAL_POINTS - 2].measured,
+      calPoints[NUM_CAL_POINTS - 2].reference,
+      calPoints[NUM_CAL_POINTS - 1].measured,
+      calPoints[NUM_CAL_POINTS - 1].reference);
+  }
+
+  // Cari interval yang tepat dan interpolasi
+  for (int i = 0; i < NUM_CAL_POINTS - 1; i++) {
+    if (raw >= calPoints[i].measured &&
+        raw <= calPoints[i + 1].measured) {
+      return interpolate(raw,
+        calPoints[i].measured, calPoints[i].reference,
+        calPoints[i + 1].measured, calPoints[i + 1].reference);
+    }
+  }
+
+  return raw; // Fallback
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  // Test kalibrasi
+  float testValues[] = {100, 250, 750, 1500, 2500, 4000};
+
+  for (int i = 0; i < 6; i++) {
+    float raw = testValues[i];
+    float cal = multiPointCalibrate(raw);
+    Serial.printf("Raw: %.0f → Calibrated: %.1f\n", raw, cal);
+  }
+}
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Kapan Gunakan Multi-Point?</div>
+        <p>Gunakan multi-point calibration untuk sensor dengan non-linearitas tinggi seperti sensor gas (MQ-series), sensor cahaya (LDR), dan sensor pH. Untuk sensor yang sudah linear (seperti termokopel), two-point calibration biasanya sudah cukup.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Data Filtering      -->
+      <!-- ============================== -->
+      <h2 id="data-filtering">8. Data Filtering: Moving Average</h2>
+
+      <p>Setelah kalibrasi, langkah terakhir untuk mendapatkan data yang akurat adalah <strong>filtering</strong> untuk menghilangkan noise. Teknik paling umum dan efektif untuk ESP32 adalah <strong>Moving Average Filter</strong>.</p>
+
+      <h3>Jenis Filter untuk Data Sensor</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Jenis Filter</th>
+            <th>Kompleksitas</th>
+            <th>Kelebihan</th>
+            <th>Kekurangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Simple Moving Average</strong></td><td>Rendah</td><td>Mudah diimplementasi</td><td>Membutuhkan buffer besar</td></tr>
+          <tr><td><strong>Exponential Moving Average</strong></td><td>Rendah</td><td>Hemat memory</td><td>Perlu tuning alpha</td></tr>
+          <tr><td><strong>Median Filter</strong></td><td>Sedang</td><td>Tahan terhadap spike</td><td>Lebih lambat</td></tr>
+          <tr><td><strong>Kalman Filter</strong></td><td>Tinggi</td><td>Sangat akurat</td><td>Komputasi berat</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Implementasi Moving Average</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Moving Average Filter</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Moving Average Filter untuk Data Sensor
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+class MovingAverage {
+  private:
+    float* buffer;
+    int bufferSize;
+    int index;
+    float sum;
+    bool filled;
+
+  public:
+    MovingAverage(int size) {
+      bufferSize = size;
+      buffer = new float[size];
+      index = 0;
+      sum = 0;
+      filled = false;
+
+      // Inisialisasi buffer dengan 0
+      for (int i = 0; i < size; i++) {
+        buffer[i] = 0;
+      }
+    }
+
+    ~MovingAverage() {
+      delete[] buffer;
+    }
+
+    float addValue(float value) {
+      // Kurangi nilai lama dari sum
+      sum -= buffer[index];
+
+      // Tambah nilai baru
+      buffer[index] = value;
+      sum += value;
+
+      // Geser index
+      index = (index + 1) % bufferSize;
+      if (index == 0) filled = true;
+
+      // Hitung rata-rata
+      int count = filled ? bufferSize : index;
+      return sum / count;
+    }
+
+    float getAverage() {
+      int count = filled ? bufferSize : index;
+      if (count == 0) return 0;
+      return sum / count;
+    }
+};
+
+// === Exponential Moving Average (EMA) ===
+class ExponentialMA {
+  private:
+    float alpha;
+    float ema;
+    bool initialized;
+
+  public:
+    ExponentialMA(float smoothingFactor) {
+      alpha = smoothingFactor; // 0.01 - 0.5
+      ema = 0;
+      initialized = false;
+    }
+
+    float addValue(float value) {
+      if (!initialized) {
+        ema = value;
+        initialized = true;
+      } else {
+        ema = alpha * value + (1.0 - alpha) * ema;
+      }
+      return ema;
+    }
+};
+
+// === Contoh Penggunaan ===
+MovingAverage tempFilter(10);     // 10-sample moving average
+ExponentialMA humidFilter(0.1);   // EMA alpha=0.1
+
+void loop() {
+  // Baca sensor mentah
+  float rawTemp = dht.readTemperature();
+  float rawHumid = dht.readHumidity();
+
+  // Terapkan filter
+  float filteredTemp = tempFilter.addValue(rawTemp);
+  float filteredHumid = humidFilter.addValue(rawHumid);
+
+  // Terapkan kalibrasi
+  float calTemp = applyCalibration(filteredTemp, tempCal);
+  float calHumid = readCalibratedHumidity(filteredHumid, calTemp);
+
+  Serial.printf("Raw: %.1f°C → Filtered: %.1f°C → Cal: %.1f°C\n",
+                rawTemp, filteredTemp, calTemp);
+  Serial.printf("Raw: %.1f%% → Filtered: %.1f%% → Cal: %.1f%%\n",
+                rawHumid, filteredHumid, calHumid);
+
+  delay(2000);
+}
+</code></pre>
+      </div>
+
+      <div class="compare-grid cols-2">
+        <div class="compare-card" style="--card-color: #00e5ff">
+          <div class="cc-icon">📊</div>
+          <div class="cc-title">Simple Moving Average</div>
+          <div class="cc-subtitle">Window-based</div>
+          <ul class="cc-features">
+            <li><span class="check">✅</span> Mudah dipahami</li>
+            <li><span class="check">✅</span> Semua sample bobot sama</li>
+            <li><span class="cross">❌</span> Perlu buffer besar (RAM)</li>
+            <li><span class="cross">❌</span> Lag lebih besar</li>
+          </ul>
+        </div>
+        <div class="compare-card" style="--card-color: #ffeb00">
+          <div class="cc-icon">📈</div>
+          <div class="cc-title">Exponential Moving Average</div>
+          <div class="cc-subtitle">Recursive</div>
+          <ul class="cc-features">
+            <li><span class="check">✅</span> Hemat memory (1 variable)</li>
+            <li><span class="check">✅</span> Respons lebih cepat</li>
+            <li><span class="check">✅</span> Data terbaru bobot lebih besar</li>
+            <li><span class="cross">❌</span> Perlu tuning alpha</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Filter</div>
+        <p>Untuk sensor suhu (perubahan lambat), gunakan <strong>window 10-20 sample</strong>. Untuk sensor cahaya atau accelerometer (perubahan cepat), gunakan <strong>window 3-5 sample</strong> atau EMA dengan alpha 0.3-0.5. Terlalu banyak filtering menyebabkan lag yang tidak responsif.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial kalibrasi sensor di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu:</p>
+
+      <div class="quiz-container" id="quiz04">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa yang dimaksud dengan "offset error" pada sensor?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Error yang berubah-ubah sesuai waktu</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Pergeseran konstan dari nilai sebenarnya</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Error yang hanya terjadi di suhu tinggi</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Fluktuasi acak pada pembacaan</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Mengapa ADC ESP32 memerlukan kalibrasi khusus?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Karena resolusi hanya 8-bit</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Karena ADC ESP32 non-linier</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Karena ADC tidak mendukung WiFi</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Karena ADC hanya bisa membaca 0-1V</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Berapa nilai RH (Relative Humidity) yang dihasilkan oleh larutan garam NaCl jenuh pada 25°C?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) 50.0%</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) 11.3%</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) 75.3%</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) 32.8%</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Kelebihan utama Exponential Moving Average dibanding Simple Moving Average adalah...</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Lebih akurat dalam semua kondisi</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Tidak membutuhkan buffer sama sekali</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Hemat memory dan respons lebih cepat</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Dapat memprediksi nilai masa depan</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Untuk sensor dengan non-linearitas tinggi, metode kalibrasi apa yang paling tepat?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Single-point calibration</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Two-point offset/gain</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Multi-point calibration dengan interpolasi</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Tanpa kalibrasi, cukup filter</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="esp32-freertos.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">FreeRTOS pada ESP32</span>
+        </a>
+        <a href="../index.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Kembali ke Beranda</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

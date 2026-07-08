@@ -1,0 +1,1412 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Web Development</a>
+        <span class="separator">/</span>
+        <span class="current">PostCSS</span>
+      </div>
+      <span class="category-tag">Web Development</span>
+      <h1>PostCSS: CSS Transformation</h1>
+      <p class="article-subtitle">Tutorial lengkap PostCSS dari nol — plugin system, autoprefixer, nesting, custom selectors, custom properties, dan workflow modern CSS dengan contoh kode praktis</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty pemula">Pemula</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-postcss">Pengenalan PostCSS</a></li>
+          <li><a href="#instalasi">Instalasi dan Setup</a></li>
+          <li><a href="#cara-kerja">Cara Kerja PostCSS</a></li>
+          <li><a href="#autoprefixer">Autoprefixer</a></li>
+          <li><a href="#nesting">CSS Nesting</a></li>
+          <li><a href="#custom-selectors">Custom Selectors &amp; Properties</a></li>
+          <li><a href="#postcss-preset-env">postcss-preset-env</a></li>
+          <li><a href="#plugins-populer">Plugin Populer</a></li>
+          <li><a href="#vite-integration">Integrasi dengan Vite &amp; Framework</a></li>
+          <li><a href="#membuat-plugin">Membuat Custom Plugin</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan PostCSS  -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-postcss">1. Pengenalan PostCSS</h2>
+
+      <p><strong>PostCSS</strong> adalah tool untuk mentransformasi CSS menggunakan JavaScript. PostCSS bukanlah preprocessor seperti Sass atau Less — ia adalah platform yang memungkinkan Anda membangun pipeline transformasi CSS melalui <strong>plugin</strong>. Setiap plugin menangani satu transformasi spesifik, dan Anda bisa menggabungkan ratusan plugin sesuai kebutuhan.</p>
+
+      <p>PostCSS saat ini digunakan oleh perusahaan besar seperti <strong>Google</strong>, <strong>Facebook</strong>, <strong>Wikipedia</strong>, dan <strong>GitHub</strong>. Bahkan Tailwind CSS dan Autoprefixer dibangun di atas PostCSS!</p>
+
+      <h3>PostCSS vs CSS Preprocessor</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>PostCSS</th>
+            <th>Sass/SCSS</th>
+            <th>Less</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Pendekatan</td><td>Plugin-based (modular)</td><td>All-in-one (monolithic)</td><td>All-in-one (monolithic)</td></tr>
+          <tr><td>Fitur</td><td>Terinstall sesuai kebutuhan</td><td>Semua fitur bawaan</td><td>Semua fitur bawaan</td></tr>
+          <tr><td>Nesting</td><td>✅ (via plugin)</td><td>✅ Built-in</td><td>✅ Built-in</td></tr>
+          <tr><td>Variables</td><td>✅ CSS Custom Properties</td><td>✅ $variables</td><td>✅ @variables</td></tr>
+          <tr><td>Future CSS</td><td>✅ (via postcss-preset-env)</td><td>❌ Manual</td><td>❌ Manual</td></tr>
+          <tr><td>Ukuran output</td><td>🟢 Minimal (sesuai plugin)</td><td>🟡 Standar</td><td>🟡 Standar</td></tr>
+          <tr><td>Ekosistem</td><td>2000+ plugins</td><td>Terbatas</td><td>Terbatas</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Mengapa PostCSS Penting?</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: PostCSS Plugin Pipeline</div>
+<pre class="mermaid">
+flowchart TD
+    Input["📄 CSS Input"] --> PostCSS["⚙️ PostCSS\n(Processor)"]
+    PostCSS --> P1["🔧 Autoprefixer\n(vendor prefixes)"]
+    PostCSS --> P2["📦 cssnano\n(minify)"]
+    PostCSS --> P3["🎨 Preset Env\n(modern CSS)"]
+    P1 & P2 & P3 --> Output["📄 Output CSS"]
+
+    style Input fill:#2a0f1e,stroke:#f472b6
+    style PostCSS fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+    style P1 fill:#0f2a1f,stroke:#3ecf8e
+    style P2 fill:#0f1d3a,stroke:#60a5fa
+    style P3 fill:#1a0f2e,stroke:#a78bfa
+    style Output fill:#2a0f1e,stroke:#f472b6
+</pre>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Instalasi           -->
+      <!-- ============================== -->
+      <h2 id="instalasi">2. Instalasi dan Setup</h2>
+
+      <h3>Instalasi PostCSS</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Instal PostCSS dan CLI
+npm install postcss postcss-cli --save-dev
+
+# Instal beberapa plugin populer
+npm install autoprefixer postcss-nesting postcss-preset-env --save-dev
+
+# Atau dengan pnpm
+pnpm add -D postcss postcss-cli autoprefixer postcss-nesting
+
+# Verifikasi instalasi
+npx postcss --version
+# Output: 8.x.x
+</code></pre>
+      </div>
+
+      <h3>Konfigurasi PostCSS</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">postcss.config.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// postcss.config.js — konfigurasi utama PostCSS
+// File ini otomatis terdeteksi oleh Vite, Webpack, dan bundler lainnya
+
+export default {
+  plugins: {
+    // postcss-preset-env: include banyak plugin modern CSS sekaligus
+    'postcss-preset-env': {
+      stage: 3,                    // Hanya fitur stage 3+ (stabil)
+      features: {
+        'nesting-rules': true,     // CSS Nesting
+        'custom-properties': true, // CSS Variables
+        'custom-selectors': true,  // Custom selectors
+        'color-mix': true,         // color-mix() function
+      },
+      autoprefixer: {
+        grid: true                 // Autoprefix untuk CSS Grid
+      },
+      browsers: [
+        '> 1%',
+        'last 2 versions',
+        'not dead',
+        'not ie 11'
+      ]
+    },
+
+    // Atau gunakan plugin individual:
+    // 'postcss-nesting': {},
+    // autoprefixer: {},
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>Konfigurasi Alternatif (CJS)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">postcss.config.cjs</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// postcss.config.cjs — untuk project yang menggunakan CommonJS
+module.exports = {
+  plugins: [
+    require('autoprefixer'),
+    require('postcss-nesting'),
+    require('postcss-preset-env')({
+      stage: 3,
+      browsers: ['> 1%', 'last 2 versions']
+    })
+  ]
+}
+</code></pre>
+      </div>
+
+      <h3>CLI Usage</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Compile satu file
+npx postcss input.css -o output.css
+
+# Compile dengan plugin spesifik
+npx postcss input.css -o output.css --use autoprefixer
+
+# Watch mode — compile otomatis saat file berubah
+npx postcss input.css -o output.css --watch
+
+# Minify output
+npx postcss input.css -o output.css --no-map --minify
+
+# Compile dengan config file
+npx postcss src/**/*.css --dir dist/ --config postcss.config.js
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Jika Anda menggunakan <strong>Vite</strong>, <strong>Next.js</strong>, atau <strong>Nuxt</strong>, PostCSS sudah terintegrasi secara otomatis. Cukup buat file <code>postcss.config.js</code> di root proyek dan plugin akan langsung aktif — tidak perlu konfigurasi bundler tambahan!</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Cara Kerja          -->
+      <!-- ============================== -->
+      <h2 id="cara-kerja">3. Cara Kerja PostCSS</h2>
+
+      <p>PostCSS bekerja dalam tiga tahap: <strong>parsing</strong> (CSS → AST), <strong>transformasi</strong> (AST dimanipulasi oleh plugins), dan <strong>generation</strong> (AST → CSS output).</p>
+
+      <h3>AST (Abstract Syntax Tree)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Memanipulasi AST</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// PostCSS mengubah CSS menjadi AST yang bisa dimanipulasi
+import postcss from 'postcss';
+
+const css = `
+.card {
+  color: red;
+  font-size: 16px;
+}
+
+.card:hover {
+  color: blue;
+}
+`;
+
+// Parse CSS ke AST
+const root = postcss.parse(css);
+
+// Iterasi semua aturan
+root.walkRules((rule) => {
+  console.log('Selector:', rule.selector);
+  // Output:
+  // Selector: .card
+  // Selector: .card:hover
+
+  // Iterasi semua declaration dalam rule
+  rule.walkDecls((decl) => {
+    console.log(`  ${decl.prop}: ${decl.value}`);
+    // Output:
+    //   color: red
+    //   font-size: 16px
+  });
+});
+
+// Menambahkan declaration baru
+root.walkRules('.card', (rule) => {
+  rule.append({ prop: 'padding', value: '1rem' });
+  rule.append({ prop: 'border-radius', value: '8px' });
+});
+
+// Generate CSS dari AST
+const result = root.toString();
+console.log(result);
+// .card {
+//   color: red;
+//   font-size: 16px;
+//   padding: 1rem;
+//   border-radius: 8px;
+// }
+</code></pre>
+      </div>
+
+      <h3>Node Types dalam PostCSS AST</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Node Type</th>
+            <th>Contoh CSS</th>
+            <th>Deskripsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Root</code></td><td>Seluruh file CSS</td><td>Root node dari AST</td></tr>
+          <tr><td><code>AtRule</code></td><td><code>@media ...</code></td><td>At-rule (media query, import, dll.)</td></tr>
+          <tr><td><code>Rule</code></td><td><code>.card { }</code></td><td>Selector + blok deklarasi</td></tr>
+          <tr><td><code>Declaration</code></td><td><code>color: red</code></td><td>Property + value</td></tr>
+          <tr><td><code>Comment</code></td><td><code>/* comment */</code></td><td>Komentar CSS</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Autoprefixer        -->
+      <!-- ============================== -->
+      <h2 id="autoprefixer">4. Autoprefixer</h2>
+
+      <p><strong>Autoprefixer</strong> adalah plugin PostCSS yang paling populer. Ia secara otomatis menambahkan vendor prefix (<code>-webkit-</code>, <code>-moz-</code>, <code>-ms-</code>) berdasarkan data dari <strong>Can I Use</strong> dan target browser yang Anda tentukan.</p>
+
+      <h3>Cara Kerja Autoprefixer</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CSS — Sebelum Autoprefixer</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>/* Input CSS (yang Anda tulis) */
+.container {
+  display: flex;
+  gap: 1rem;
+}
+
+.card {
+  transform: rotate(45deg);
+  transition: all 0.3s ease;
+}
+
+.gradient {
+  background: linear-gradient(to right, #ff0000, #0000ff);
+}
+
+.placeholder::placeholder {
+  color: #999;
+}
+
+.scrollbar {
+  scrollbar-width: thin;
+}
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CSS — Setelah Autoprefixer</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>/* Output CSS (setelah Autoprefixer memproses) */
+.container {
+  display: flex;
+  gap: 1rem;
+}
+
+.card {
+  -webkit-transform: rotate(45deg);
+          transform: rotate(45deg);
+  -webkit-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.gradient {
+  background: -webkit-linear-gradient(left, #ff0000, #0000ff);
+  background: linear-gradient(to right, #ff0000, #0000ff);
+}
+
+.placeholder::-webkit-input-placeholder {
+  color: #999;
+}
+.placeholder::placeholder {
+  color: #999;
+}
+
+.scrollbar {
+  scrollbar-width: thin;
+}
+/* Prefix hanya ditambahkan jika target browser membutuhkannya */
+</code></pre>
+      </div>
+
+      <h3>Konfigurasi Autoprefixer</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">postcss.config.js — Autoprefixer Config</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>export default {
+  plugins: {
+    autoprefixer: {
+      // Method 1: Browserslist (paling umum)
+      overrideBrowserslist: [
+        '> 1%',           // Browser dengan market share > 1%
+        'last 2 versions', // 2 versi terakhir setiap browser
+        'not dead',        // Tidak termasuk browser yang sudah discontinued
+        'not ie 11'        // Tidak termasuk IE 11
+      ],
+
+      // Method 2: Gunakan .browserslistrc file
+      // (tidak perlu overrideBrowserslist di sini)
+
+      // Grid autoplacement untuk IE
+      grid: 'autoplace',
+
+      // Jangan hapus prefix yang sudah ada
+      remove: true
+    }
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>Browserslist Configuration</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.browserslistrc</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># .browserslistrc — konfigurasi target browser
+# Digunakan oleh Autoprefixer, Babel, ESLint, dll.
+
+# Production (default)
+> 1%
+last 2 versions
+not dead
+not op_mini all
+
+# Development — browser modern saja
+[development]
+last 1 chrome version
+last 1 firefox version
+last 1 safari version
+
+# Modern browsers — hanya yang support ES modules
+[modern]
+supports es6-module
+not dead
+
+# Contoh query lainnya:
+# chrome >= 80          → Chrome 80+
+# ios_saf >= 14         → Safari iOS 14+
+# firefox_esr           → Firefox ESR
+# samsung >= 13         → Samsung Internet 13+
+# covers > 80% in ID    → Browser populer di Indonesia
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Nesting             -->
+      <!-- ============================== -->
+      <h2 id="nesting">5. CSS Nesting</h2>
+
+      <p><strong>CSS Nesting</strong> memungkinkan Anda menulis selector yang bersarang (nested) seperti di Sass, tapi langsung menggunakan CSS. Browser modern (Chrome 120+, Firefox 117+, Safari 17.2+) sudah mendukung CSS nesting native, tapi PostCSS memungkinkan Anda menggunakan fitur ini di semua browser.</p>
+
+      <h3>PostCSS Nesting</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CSS — PostCSS Nesting</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>/* Input: CSS dengan nesting */
+
+/* Nesting dengan &amp; (parent selector) */
+.card {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: var(--card-bg);
+
+  &amp; .card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  &amp; .card-content {
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  &amp;:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+
+  &amp;:first-child {
+    margin-top: 0;
+  }
+
+  /* Nested media query */
+  @media (max-width: 768px) {
+    padding: 1rem;
+
+    &amp; .card-title {
+      font-size: 1rem;
+    }
+  }
+}
+
+/* Complex nesting */
+.navbar {
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+
+  &amp; .brand {
+    font-size: 1.5rem;
+    font-weight: 800;
+
+    &amp; img {
+      height: 40px;
+    }
+
+    &amp;:hover {
+      opacity: 0.8;
+    }
+  }
+
+  &amp; .nav-links {
+    display: flex;
+    gap: 1rem;
+    list-style: none;
+
+    &amp; li a {
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+
+      &amp;.active {
+        background: var(--primary-color);
+        color: white;
+      }
+
+      &amp;:hover {
+        background: var(--hover-bg);
+      }
+    }
+  }
+}
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CSS — Output (setelah PostCSS)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>/* Output: CSS tanpa nesting (flat selectors) */
+
+.card {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: var(--card-bg);
+}
+
+.card .card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.card .card-content {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.card:first-child {
+  margin-top: 0;
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 1rem;
+  }
+
+  .card .card-title {
+    font-size: 1rem;
+  }
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+}
+
+.navbar .brand {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.navbar .brand img {
+  height: 40px;
+}
+
+.navbar .brand:hover {
+  opacity: 0.8;
+}
+
+.navbar .nav-links {
+  display: flex;
+  gap: 1rem;
+  list-style: none;
+}
+
+.navbar .nav-links li a {
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
+.navbar .nav-links li a.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+.navbar .nav-links li a:hover {
+  background: var(--hover-bg);
+}
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ PostCSS Nesting vs postcss-nested</div>
+        <p>Ada dua plugin nesting yang populer: <code>postcss-nesting</code> (mengikuti spesifikasi CSS Nesting resmi W3C) dan <code>postcss-nested</code> (meniru perilaku Sass). Gunakan <code>postcss-nesting</code> untuk kompatibilitas dengan native CSS nesting di masa depan. Perbedaan utama: <code>postcss-nesting</code> membutuhkan <code>&</code> di depan setiap nested selector.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Custom Selectors    -->
+      <!-- ============================== -->
+      <h2 id="custom-selectors">6. Custom Selectors &amp; Properties</h2>
+
+      <h3>Custom Selectors</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CSS — Custom Selectors</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>/* Definisikan custom selector sekali, gunakan di mana saja */
+@custom-selector :--heading h1, h2, h3, h4, h5, h6;
+@custom-selector :--text-input input[type="text"], input[type="email"], input[type="password"];
+@custom-selector :--btn :any-link, button;
+
+/* Penggunaan */
+:--heading {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+:--text-input {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+:--btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  background: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Output (setelah PostCSS): */
+/* h1, h2, h3, h4, h5, h6 { ... } */
+/* input[type="text"], input[type="email"], input[type="password"] { ... } */
+/* :any-link, button { ... } */
+</code></pre>
+      </div>
+
+      <h3>CSS Custom Properties (Variables)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CSS — Custom Properties</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>/* Definisikan CSS Custom Properties di :root */
+:root {
+  /* Colors */
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-primary-light: #93c5fd;
+  --color-surface: #1a1a2e;
+  --color-text: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+
+  /* Spacing scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+  --space-xl: 4rem;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+}
+
+/* Dark theme override */
+[data-theme="dark"] {
+  --color-surface: #0f172a;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+}
+
+/* Menggunakan variables */
+.button {
+  background: var(--color-primary);
+  color: white;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  transition: background 0.2s;
+}
+
+.button:hover {
+  background: var(--color-primary-dark);
+}
+</code></pre>
+      </div>
+
+      <h3>Menggunakan Custom Properties di JavaScript</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Membaca CSS Custom Property dari JavaScript
+const root = document.documentElement;
+const primaryColor = getComputedStyle(root)
+  .getPropertyValue('--color-primary');
+console.log(primaryColor); // #3b82f6
+
+// Mengubah CSS Custom Property dari JavaScript
+root.style.setProperty('--color-primary', '#ef4444');
+
+// Contoh: theme switcher
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+}
+
+// Toggle dark/light mode
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  setTheme(current === 'dark' ? 'light' : 'dark');
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: preset-env          -->
+      <!-- ============================== -->
+      <h2 id="postcss-preset-env">7. postcss-preset-env</h2>
+
+      <p><strong>postcss-preset-env</strong> memungkinkan Anda menggunakan fitur CSS modern (yang belum didukung semua browser) dengan cara menuliskan CSS standar, dan PostCSS akan mentranspilasinya agar kompatibel dengan browser lama. Ini seperti Babel, tapi untuk CSS!</p>
+
+      <h3>Fitur yang Didukung</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">postcss.config.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>export default {
+  plugins: {
+    'postcss-preset-env': {
+      // Stage: 0 (experimental) sampai 4 (standar resmi)
+      // Stage 3 = fitur yang sangat mungkin jadi standar
+      stage: 3,
+
+      // Enable/disable fitur spesifik
+      features: {
+        'nesting-rules': true,
+        'custom-media-queries': true,
+        'custom-selectors': true,
+        'color-mix': true,
+        'is-pseudo-class': true,
+        'focus-visible-pseudo-class': true,
+        'gap-properties': true,
+        'clamp': true
+      },
+
+      // Target browser
+      browsers: [
+        '> 1%',
+        'last 2 versions',
+        'not dead'
+      ],
+
+      // Inject polyfill (untuk fitur yang butuh JS)
+      insertBefore: {},
+      insertAfter: {}
+    }
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>Contoh Modern CSS dengan preset-env</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CSS — Modern Features</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>/* 1. Custom Media Queries */
+@custom-media --mobile (max-width: 768px);
+@custom-media --tablet (max-width: 1024px);
+@custom-media --desktop (min-width: 1025px);
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+
+  @media (--mobile) {
+    padding: 0.5rem;
+  }
+}
+
+/* 2. :is() pseudo-class */
+.card :is(h1, h2, h3) {
+  font-weight: 800;
+}
+
+/* 3. :focus-visible */
+button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* 4. color-mix() */
+.button-primary {
+  background: color-mix(in srgb, var(--color-primary) 80%, black);
+}
+
+.button-hover {
+  background: color-mix(in srgb, var(--color-primary) 90%, white);
+}
+
+/* 5. clamp() untuk responsive typography */
+.heading-1 {
+  font-size: clamp(1.5rem, 4vw, 3rem);
+}
+
+.heading-2 {
+  font-size: clamp(1.25rem, 3vw, 2rem);
+}
+
+/* 6. Logical Properties */
+.card {
+  margin-inline: auto;
+  padding-block: 2rem;
+  padding-inline: 1.5rem;
+  border-inline-start: 4px solid var(--color-primary);
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Plugin Populer      -->
+      <!-- ============================== -->
+      <h2 id="plugins-populer">8. Plugin Populer</h2>
+
+      <p>Ekosistem PostCSS memiliki lebih dari <strong>2000 plugin</strong>. Berikut beberapa yang paling berguna untuk workflow sehari-hari:</p>
+
+      <h3>Plugin untuk Development</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Plugin</th>
+            <th>Fungsi</th>
+            <th>Install</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>autoprefixer</code></td><td>Vendor prefix otomatis</td><td>npm i autoprefixer</td></tr>
+          <tr><td><code>postcss-nesting</code></td><td>CSS Nesting (W3C spec)</td><td>npm i postcss-nesting</td></tr>
+          <tr><td><code>postcss-preset-env</code></td><td>Modern CSS → compatible CSS</td><td>npm i postcss-preset-env</td></tr>
+          <tr><td><code>postcss-import</code></td><td>@import inlining (seperti Sass)</td><td>npm i postcss-import</td></tr>
+          <tr><td><code>postcss-mixins</code></td><td>Mixins (seperti Sass)</td><td>npm i postcss-mixins</td></tr>
+          <tr><td><code>postcss-extend</code></td><td>@extend (seperti Sass)</td><td>npm i postcss-extend</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Plugin untuk Production</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Plugin</th>
+            <th>Fungsi</th>
+            <th>Install</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>cssnano</code></td><td>CSS minification &amp; optimization</td><td>npm i cssnano</td></tr>
+          <tr><td><code>postcss-sort-media-queries</code></td><td>Urutkan media queries</td><td>npm i postcss-sort-media-queries</td></tr>
+          <tr><td><code>postcss-combine-duplicated-selectors</code></td><td>Gabungkan selector duplikat</td><td>npm i postcss-combine-duplicated-selectors</td></tr>
+          <tr><td><code>postcss-purgecss</code></td><td>Hapus CSS yang tidak digunakan</td><td>npm i postcss-purgecss</td></tr>
+          <tr><td><code>postcss-csso</code></td><td>Minifikasi dengan CSO algorithm</td><td>npm i postcss-csso</td></tr>
+          <tr><td><code>postcss-url</code></td><td>Rewrite URL dalam CSS</td><td>npm i postcss-url</td></tr>
+        </tbody>
+      </table>
+
+      <h3>cssnano — CSS Minification</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">postcss.config.js — Production Config</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>export default {
+  plugins: {
+    'postcss-preset-env': { stage: 3 },
+    autoprefixer: {},
+    cssnano: {
+      // Preset: default, advanced, atau custom
+      preset: ['advanced', {
+        // Opsi advanced
+        discardComments: {
+          removeAll: true    // Hapus semua komentar
+        },
+        reduceIdents: true,  // Minify keyframe names
+        zindex: true,        // Optimize z-index values
+        mergeRules: true,    // Gabungkan rules yang sama
+        discardDuplicates: true  // Hapus duplikat
+      }]
+    }
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>postcss-import — File Splitting</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CSS — @import dengan postcss-import</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>/* src/main.css */
+
+/* Import utilities */
+@import './utils/variables.css';
+@import './utils/mixins.css';
+@import './utils/animations.css';
+
+/* Import base styles */
+@import './base/reset.css';
+@import './base/typography.css';
+
+/* Import components */
+@import './components/button.css';
+@import './components/card.css';
+@import './components/navbar.css';
+@import './components/modal.css';
+
+/* Import layouts */
+@import './layouts/grid.css';
+@import './layouts/container.css';
+
+/* postcss-import akan menggabungkan semua file ini */
+/* menjadi satu file CSS output */
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Vite Integration    -->
+      <!-- ============================== -->
+      <h2 id="vite-integration">9. Integrasi dengan Vite &amp; Framework</h2>
+
+      <h3>Vite</h3>
+      <p>Vite mendukung PostCSS secara native. Cukup buat file <code>postcss.config.js</code> di root proyek dan Vite akan otomatis menggunakannya.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">vite.config.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// vite.config.js — PostCSS sudah terintegrasi
+// Tapi Anda bisa override dari sini jika diperlukan
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  css: {
+    postcss: {
+      plugins: [
+        // Override postcss config langsung di sini
+        // Atau biarkan postcss.config.js yang menangani
+      ]
+    },
+    // Preprocessor options (untuk Sass/SCSS)
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@import "~/assets/variables.scss";`
+      }
+    }
+  }
+});
+</code></pre>
+      </div>
+
+      <h3>Tailwind CSS + PostCSS</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">postcss.config.js — Tailwind CSS</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// postcss.config.js — Tailwind CSS + PostCSS
+export default {
+  plugins: {
+    // Tailwind CSS adalah PostCSS plugin!
+    tailwindcss: {},
+
+    // Autoprefixer — setelah Tailwind
+    autoprefixer: {},
+
+    // cssnano — hanya di production
+    ...(process.env.NODE_ENV === 'production' ? {
+      cssnano: {
+        preset: ['default', {
+          discardComments: { removeAll: true }
+        }]
+      }
+    } : {})
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>Webpack Integration</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">webpack.config.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// webpack.config.js — PostCSS dengan postcss-loader
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',     // Inject CSS ke DOM
+          'css-loader',       // Resolve @import dan url()
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: [
+                  'autoprefixer',
+                  'postcss-nesting',
+                  ['postcss-preset-env', { stage: 3 }]
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+};
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Custom Plugin      -->
+      <!-- ============================== -->
+      <h2 id="membuat-plugin">10. Membuat Custom Plugin</h2>
+
+      <p>Salah satu kekuatan terbesar PostCSS adalah kemudahan membuat plugin sendiri. Plugin PostCSS adalah fungsi JavaScript yang menerima AST dan memanipulasinya.</p>
+
+      <h3>Plugin Sederhana</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">postcss-plugin-rem-to-px.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Plugin untuk mengkonversi rem ke px (fallback)
+// postcss-plugin-rem-to-px.js
+
+const plugin = {
+  postcssPlugin: 'postcss-rem-to-px',
+
+  Declaration(decl) {
+    // Cari semua nilai yang mengandung rem
+    if (decl.value.includes('rem')) {
+      // Konversi rem ke px (base: 16px)
+      const remMatch = decl.value.match(/([\d.]+)rem/g);
+
+      if (remMatch) {
+        let newValue = decl.value;
+
+        remMatch.forEach(match => {
+          const remValue = parseFloat(match);
+          const pxValue = remValue * 16;
+          newValue = newValue.replace(match, `${pxValue}px /* ${match} */`);
+        });
+
+        // Tambahkan declaration baru sebelum yang lama
+        decl.cloneBefore({
+          prop: decl.prop,
+          value: newValue
+        });
+      }
+    }
+  }
+};
+
+plugin.postcss = true;
+export default plugin;
+
+// Penggunaan di postcss.config.js:
+// import remToPx from './postcss-plugin-rem-to-px.js';
+// plugins: { './postcss-plugin-rem-to-px.js': {} }
+</code></pre>
+      </div>
+
+      <h3>Plugin yang Lebih Kompleks</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">postcss-plugin-theme-variants.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Plugin untuk generate theme variants secara otomatis
+// postcss-plugin-theme-variants.js
+
+const plugin = {
+  postcssPlugin: 'postcss-theme-variants',
+
+  // Plugin initialization
+  Once(root, { result }) {
+    const themeDecls = [];
+
+    // Cari semua rule dengan @theme-variant
+    root.walkAtRules('theme-variant', atRule => {
+      const themeName = atRule.params;
+      const themeRule = atRule.clone();
+
+      // Buat selector baru dengan data-theme attribute
+      themeRule.selector = `[data-theme="${themeName}"] ${atRule.parent.selector}`;
+
+      // Tambahkan ke root
+      themeDecls.push(themeRule);
+      atRule.remove();
+    });
+
+    // Tambahkan semua theme variants di akhir file
+    if (themeDecls.length > 0) {
+      const wrapper = postcss.rule({
+        selector: ''
+      });
+
+      themeDecls.forEach(rule => {
+        root.append(rule);
+      });
+    }
+  }
+};
+
+plugin.postcss = true;
+export default plugin;
+
+// Penggunaan:
+// .button {
+//   background: blue;
+//
+//   @theme-variant dark {
+//     background: white;
+//     color: black;
+//   }
+//
+//   @theme-variant high-contrast {
+//     background: black;
+//     color: yellow;
+//   }
+// }
+
+// Output:
+// .button { background: blue; }
+// [data-theme="dark"] .button { background: white; color: black; }
+// [data-theme="high-contrast"] .button { background: black; color: yellow; }
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Saat membuat plugin PostCSS, gunakan <code>postcss.plugin()</code> API atau object format dengan <code>postcssPlugin</code> property. Object format (PostCSS 8+) lebih disarankan karena mendukung parallel execution dan tree-shaking yang lebih baik.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Quiz               -->
+      <!-- ============================== -->
+      <h2 id="quiz">11. Quiz Pemahaman</h2>
+
+      <p>Uji pemahaman Anda tentang PostCSS dengan quiz interaktif berikut!</p>
+
+      <div class="quiz-section">
+        <div class="quiz-question" data-correct="c">
+          <p><strong>1. Apa itu PostCSS?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q1" value="a"> CSS preprocessor seperti Sass</label>
+            <label><input type="radio" name="q1" value="b"> CSS framework seperti Tailwind</label>
+            <label><input type="radio" name="q1" value="c"> Tool untuk mentransformasi CSS menggunakan JavaScript plugins</label>
+            <label><input type="radio" name="q1" value="d"> CSS minifier seperti cssnano</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>2. Apa fungsi utama Autoprefixer?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q2" value="a"> Minifikasi CSS</label>
+            <label><input type="radio" name="q2" value="b"> Menambahkan vendor prefix (-webkit-, -moz-, dll.) otomatis</label>
+            <label><input type="radio" name="q2" value="c"> Menggabungkan file CSS</label>
+            <label><input type="radio" name="q2" value="d"> Menghapus CSS yang tidak digunakan</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Bagaimana cara PostCSS memproses CSS?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q3" value="a"> CSS → AST → transformasi oleh plugins → CSS output</label>
+            <label><input type="radio" name="q3" value="b"> CSS → JavaScript → CSS output</label>
+            <label><input type="radio" name="q3" value="c"> CSS → HTML → CSS output</label>
+            <label><input type="radio" name="q3" value="d"> CSS → string replace → CSS output</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4. Plugin apa yang menggabungkan banyak fitur CSS modern sekaligus?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q4" value="a"> autoprefixer</label>
+            <label><input type="radio" name="q4" value="b"> cssnano</label>
+            <label><input type="radio" name="q4" value="c"> postcss-nesting</label>
+            <label><input type="radio" name="q4" value="d"> postcss-preset-env</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>5. Di mana file konfigurasi PostCSS biasanya disimpan?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q5" value="a"> src/postcss.json</label>
+            <label><input type="radio" name="q5" value="b"> package.json (field "postcss")</label>
+            <label><input type="radio" name="q5" value="c"> postcss.config.js di root proyek</label>
+            <label><input type="radio" name="q5" value="d"> webpack.config.js</label>
+          </div>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz()">Periksa Jawaban</button>
+        <div class="quiz-result" id="quizResult"></div>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">📝 Ringkasan</div>
+        <p>Dalam tutorial ini, Anda telah mempelajari:</p>
+        <ul>
+          <li>Pengenalan PostCSS dan perbedaannya dengan Sass/Less</li>
+          <li>Instalasi, setup, dan konfigurasi PostCSS</li>
+          <li>Cara kerja PostCSS: parsing, transformasi, generation (AST)</li>
+          <li>Autoprefixer untuk vendor prefix otomatis</li>
+          <li>CSS Nesting dengan postcss-nesting</li>
+          <li>Custom Selectors dan CSS Custom Properties</li>
+          <li>postcss-preset-env untuk CSS modern</li>
+          <li>Plugin populer: cssnano, postcss-import, postcss-mixins</li>
+          <li>Integrasi dengan Vite, Tailwind, dan Webpack</li>
+          <li>Membuat custom PostCSS plugin</li>
+        </ul>
+      </div>
+
+      <!-- Related Articles -->
+      <div class="related-articles">
+        <h3>Artikel Terkait</h3>
+        <div class="related-grid">
+          <a href="react-dasar.html" class="related-card">
+            <span class="related-tag">React</span>
+            <h4>React.js untuk Pemula</h4>
+            <p>Belajar JSX, komponen, props, state, dan hooks</p>
+          </a>
+          <a href="turbopack.html" class="related-card">
+            <span class="related-tag">Turbopack</span>
+            <h4>Turbopack: Rust-based Bundler</h4>
+            <p>Arsitektur, migrasi, dan performa bundler</p>
+          </a>
+          <a href="nuxt-js.html" class="related-card">
+            <span class="related-tag">Nuxt.js</span>
+            <h4>Nuxt.js: Vue Full-Stack Framework</h4>
+            <p>SSR, SSG, auto-imports, modules, dan server API</p>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== FOOTER ========== -->

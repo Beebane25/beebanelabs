@@ -1,0 +1,784 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Database</a>
+        <span class="separator">/</span>
+        <span class="current">Redis &amp; Caching Strategy</span>
+      </div>
+      <span class="category-tag">Database</span>
+      <h1>Redis &amp; Caching Strategy untuk Developer</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Panduan lengkap Redis dan caching — data types, pub/sub messaging, caching patterns (cache-aside, write-through), TTL, session store, dan rate limiting untuk aplikasi production</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 10 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-redis">Pengenalan Redis</a></li>
+          <li><a href="#instalasi">Instalasi &amp; Setup Redis</a></li>
+          <li><a href="#data-types">Redis Data Types</a></li>
+          <li><a href="#pub-sub">Pub/Sub Messaging</a></li>
+          <li><a href="#caching-patterns">Caching Patterns</a></li>
+          <li><a href="#ttl">TTL &amp; Key Expiration</a></li>
+          <li><a href="#session-store">Session Store dengan Redis</a></li>
+          <li><a href="#rate-limiting">Rate Limiting</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan Redis    -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-redis">1. Pengenalan Redis</h2>
+
+      <p><strong>Redis</strong> (Remote Dictionary Server) adalah database <strong>in-memory</strong> yang berfungsi sebagai cache, message broker, dan data store berperforma tinggi. Dibuat oleh <strong>Salvatore Sanfilippo</strong> pada tahun 2009, Redis mampu menangani jutaan operasi per detik dengan latensi sub-milidetik karena seluruh data disimpan di RAM.</p>
+
+      <p>Redis bukan sekadar cache — Redis mendukung berbagai tipe data struktural (string, list, set, sorted set, hash), pub/sub messaging, Lua scripting, transaksi, dan bahkan persistence ke disk. Perusahaan besar seperti Twitter, GitHub, Stack Overflow, dan Snapchat menggunakan Redis di production.</p>
+
+      <h3>Mengapa Redis Begitu Cepat?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Faktor</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>In-Memory</td><td>Seluruh data disimpan di RAM — akses data ~100.000x lebih cepat dari disk SSD</td></tr>
+          <tr><td>Single-Threaded</td><td>Tidak ada overhead locking/context switching — memanfaatkan event loop efisien</td></tr>
+          <tr><td>I/O Multiplexing</td><td>Menggunakan epoll/kqueue untuk menangani ribuan koneksi secara paralel</td></tr>
+          <tr><td>Data Structure Optimized</td><td>Struktur data dioptimalkan secara khusus — bukan general-purpose seperti HashMap</td></tr>
+          <tr><td>Protocol Sederhana</td><td>RESP (Redis Serialization Protocol) sangat ringan dan cepat di-parse</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Redis vs Alternatif Lain</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Redis</th>
+            <th>Memcached</th>
+            <th>Varnish</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Data Types</td><td>Beragam (string, list, set, hash, sorted set)</td><td>Hanya string</td><td>HTTP objects</td></tr>
+          <tr><td>Persistence</td><td>✅ RDB + AOF</td><td>❌</td><td>✅ Disk-backed</td></tr>
+          <tr><td>Pub/Sub</td><td>✅</td><td>❌</td><td>❌</td></tr>
+          <tr><td>Clustering</td><td>✅ Built-in</td><td>Client-side</td><td>✅</td></tr>
+          <tr><td>Scripting</td><td>✅ Lua</td><td>❌</td><td>VCL</td></tr>
+          <tr><td>Cocok untuk</td><td>Cache, session, queue, analytics</td><td>Simple key-value cache</td><td>HTTP cache/reverse proxy</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Posisi Redis dalam Arsitektur Aplikasi</div>
+<pre class="mermaid">
+flowchart TB
+    Client["📱 Client"] -->|"Request"| App["🖥️ App Server"]
+    App -->|"Check Cache"| Redis["⚡ Redis\n(In-Memory Cache)"]
+    Redis -->|"Cache Hit ✅"| App
+    Redis -->|"Cache Miss ❌"| DB["("#quot;🗄️ Database\n(PostgreSQL/MySQL")#quot;)"]
+    DB -->|"Data"| Redis
+    Redis -->|"Store + Return"| App
+    App -->|"Response"| Client
+
+    style Client fill:#2a0f1e,stroke:#f472b6
+    style App fill:#0f1d3a,stroke:#60a5fa,stroke-width:2px
+    style Redis fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+    style DB fill:#0f2a1f,stroke:#3ecf8e,stroke-width:1.5px
+</pre>
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Instalasi           -->
+      <!-- ============================== -->
+      <h2 id="instalasi">2. Instalasi &amp; Setup Redis</h2>
+
+      <h3>Docker (Rekomendasi untuk Development)</h3>
+      </div>
+<pre class="mermaid">
+sequenceDiagram
+    participant App as 🖥️ App
+    participant Cache as ⚡ Redis
+    participant DB as 🗄️ Database
+
+    Note over App,DB: READ Path
+    App->>Cache: GET key
+    alt Cache Hit
+        Cache-->>App: Return cached data
+    else Cache Miss
+        App->>DB: SELECT data
+        DB-->>App: Return data
+        App->>Cache: SET key data (TTL)
+        App->>App: Return data
+    end
+
+    Note over App,DB: WRITE Path
+    App->>DB: UPDATE data
+    App->>Cache: DELETE key
+    Note over Cache: Invalidate cache
+</pre>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Cache-Aside</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>const Redis = require('ioredis');
+const redis = new Redis();
+const db = require('./database'); // Database connection
+
+// ==========================================
+// CACHE-ASIDE PATTERN
+// ==========================================
+
+async function getProductById(productId) {
+  const cacheKey = `product:${productId}`;
+
+  // Langkah 1: Cek cache
+  const cached = await redis.get(cacheKey);
+  if (cached) {
+    console.log('✅ Cache HIT');
+    return JSON.parse(cached);
+  }
+
+  // Langkah 2: Cache MISS — query database
+  console.log('❌ Cache MISS — querying database');
+  const product = await db.query(
+    'SELECT * FROM products WHERE id = ?', [productId]
+  );
+
+  if (!product) return null;
+
+  // Langkah 3: Simpan ke cache dengan TTL 1 jam
+  await redis.setex(cacheKey, 3600, JSON.stringify(product));
+
+  return product;
+}
+
+// ==========================================
+// CACHE INVALIDATION
+// ==========================================
+
+async function updateProduct(productId, newData) {
+  // Update database dulu
+  await db.query(
+    'UPDATE products SET name = ?, price = ? WHERE id = ?',
+    [newData.name, newData.price, productId]
+  );
+
+  // Hapus cache (bukan update!) — biar lazy reload
+  await redis.del(`product:${productId}`);
+
+  // Atau: update cache langsung (write-through ringan)
+  const updated = { id: productId, ...newData };
+  await redis.setex(`product:${productId}`, 3600, JSON.stringify(updated));
+}
+</code></pre>
+      </div>
+
+      <h3>Pattern 2: Write-Through</h3>
+      <p>Setiap kali data ditulis ke database, data juga sekaligus ditulis ke cache. Cache selalu konsisten dengan database.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Write-Through</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ==========================================
+// WRITE-THROUGH PATTERN
+// ==========================================
+
+async function createProduct(productData) {
+  // Langkah 1: Tulis ke database
+  const result = await db.query(
+    'INSERT INTO products (name, price, stock) VALUES (?, ?, ?)',
+    [productData.name, productData.price, productData.stock]
+  );
+
+  const newProduct = {
+    id: result.insertId,
+    ...productData,
+    created_at: new Date().toISOString()
+  };
+
+  // Langkah 2: Tulis ke cache SEKALIGUS
+  const cacheKey = `product:${newProduct.id}`;
+  await redis.setex(cacheKey, 3600, JSON.stringify(newProduct));
+
+  // Langkah 3: Tambahkan ke list produk terbaru
+  await redis.lpush('products:latest', JSON.stringify(newProduct));
+  await redis.ltrim('products:latest', 0, 49); // Simpan 50 terbaru
+
+  return newProduct;
+}
+
+// Kelebihan: Cache selalu up-to-date
+// Kekurangan: Write latency lebih tinggi (harus tulis ke 2 tempat)
+// Cocok untuk: Data yang sering dibaca dan jarang diubah
+</code></pre>
+      </div>
+
+      <h3>Pattern 3: Write-Behind (Write-Back)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Write-Behind</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ==========================================
+// WRITE-BEHIND PATTERN
+// Data ditulis ke cache dulu, database di-update belakangan
+// ==========================================
+
+const writeQueue = [];
+
+async function updatePageView(pageId) {
+  // Langkah 1: Tulis ke Redis (sangat cepat)
+  await redis.incr(`page:${pageId}:views`);
+
+  // Langkah 2: Tambahkan ke queue untuk update database nanti
+  writeQueue.push({
+    type: 'page_view',
+    pageId: pageId,
+    timestamp: Date.now()
+  });
+}
+
+// Background worker — flush ke database setiap 10 detik
+setInterval(async () => {
+  if (writeQueue.length === 0) return;
+
+  const batch = writeQueue.splice(0, writeQueue.length);
+  console.log(`Flushing ${batch.length} writes ke database...`);
+
+  try {
+    // Batch update ke database
+    for (const item of batch) {
+      await db.query(
+        'UPDATE pages SET views = views + 1 WHERE id = ?',
+        [item.pageId]
+      );
+    }
+  } catch (err) {
+    console.error('Flush error:', err);
+    // Kembalikan ke queue untuk retry
+    writeQueue.unshift(...batch);
+  }
+}, 10000);
+
+// Cocok untuk: Counter, analytics, logging — data yang toleran kehilangan
+// ⚠️ Risiko: Data hilang jika Redis crash sebelum flush
+</code></pre>
+      </div>
+
+      <h3>Perbandingan Caching Patterns</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Pattern</th>
+            <th>Read Speed</th>
+            <th>Write Speed</th>
+            <th>Konsistensi</th>
+            <th>Kompleksitas</th>
+            <th>Cocok untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Cache-Aside</td><td>🟢 Cepat (jika hit)</td><td>🟡 Normal</td><td>⚠️ Bisa stale</td><td>Rendah</td><td>Umum, product catalog</td></tr>
+          <tr><td>Write-Through</td><td>🟢 Selalu cepat</td><td>🟡 Lebih lambat</td><td>✅ Konsisten</td><td>Sedang</td><td>Data penting, profil user</td></tr>
+          <tr><td>Write-Behind</td><td>🟢 Selalu cepat</td><td>🟢 Sangat cepat</td><td>⚠️ Delay</td><td>Tinggi</td><td>Counter, analytics, log</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: TTL                 -->
+      <!-- ============================== -->
+      <h2 id="ttl">6. TTL &amp; Key Expiration</h2>
+
+      <p><strong>TTL</strong> (Time To Live) adalah mekanisme untuk mengatur berapa lama sebuah key akan hidup di Redis sebelum otomatis dihapus. Ini sangat penting untuk mencegah cache menjadi stale dan mengontrol penggunaan memori.</p>
+
+      <h3>Operasi TTL</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Redis CLI</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Set dengan expiry
+SET session:abc123 '{"user_id":1}' EX 3600    # 1 jam
+SET otp:0812345 "938271" EX 300                 # 5 menit
+SET temp:upload:file1 "processing" EX 1800      # 30 menit
+
+# Set expiry pada key yang sudah ada
+EXPIRE session:abc123 7200      # Ubah ke 2 jam
+EXPIREAT session:abc123 1687766400  # Expire pada timestamp tertentu
+
+# Cek sisa TTL
+TTL session:abc123              # 3599 (detik tersisa)
+PTTL session:abc123             # 3599234 (milidetik tersisa)
+
+# Hasil -1 = key ada tanpa expiry
+# Hasil -2 = key tidak ditemukan
+
+# Hapus expiry (buat persisten)
+PERSIST session:abc123          # TTL dihapus, key hidup selamanya
+
+# Set kalau belum ada (opsional)
+SETNX lock:resource1 "worker-1" # Hanya set jika key belum ada
+</code></pre>
+      </div>
+
+      <h3>Strategi TTL untuk Berbagai Kasus</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Kasus Penggunaan</th>
+            <th>TTL yang Disarankan</th>
+            <th>Alasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Session user</td><td>30 menit — 24 jam</td><td>Auto-logout setelah idle</td></tr>
+          <tr><td>OTP / Token verifikasi</td><td>3 — 5 menit</td><td>Keamanan — OTP harus cepat expired</td></tr>
+          <tr><td>Product cache</td><td>1 — 6 jam</td><td>Update tidak perlu real-time</td></tr>
+          <tr><td>API rate limit counter</td><td>1 — 60 detik (window)</td><td>Counter di-reset per window</td></tr>
+          <tr><td>Cache populer / trending</td><td>5 — 15 menit</td><td>Data berubah cepat</td></tr>
+          <tr><td>Distributed lock</td><td>10 — 30 detik</td><td>Cegah deadlock jika worker crash</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Session Store       -->
+      <!-- ============================== -->
+      <h2 id="session-store">7. Session Store dengan Redis</h2>
+
+      <p>Menyimpan session di Redis (bukan di memory server atau database) adalah praktik standar untuk aplikasi production. Keuntungannya: <strong>persistent</strong> (tidak hilang saat server restart), <strong>shared</strong> (bisa diakses dari banyak server), dan <strong>cepat</strong> (in-memory).</p>
+
+      <h3>Implementasi Session Store dengan Express.js</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — server.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Instalasi:
+// npm install express express-session connect-redis ioredis
+
+const express = require('express');
+const session = require('express-session');
+const RedisStore = require('connect-redis').default;
+const Redis = require('ioredis');
+
+const app = express();
+
+// Koneksi Redis
+const redisClient = new Redis({
+  host: 'localhost',
+  port: 6379,
+  password: 'rahasia123',
+  db: 1  // Gunakan db terpisah untuk session
+});
+
+// Konfigurasi session dengan Redis store
+app.use(session({
+  store: new RedisStore({
+    client: redisClient,
+    prefix: 'sess:',           // Prefix key di Redis
+    ttl: 86400                 // Session TTL: 24 jam (detik)
+  }),
+  secret: 'rahasia-session-***@example.com'
+    });
+    req.session.userId = user.id;
+    req.session.role = user.role;
+
+    res.json({ message: 'Login berhasil', user: { id: user.id, nama: user.nama } });
+  } else {
+    res.status(401).json({ error: 'Email atau password salah' });
+  }
+});
+
+// Logout — hapus session
+app.post('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) return res.status(500).json({ error: 'Gagal logout' });
+    res.clearCookie('sessionId');
+    res.json({ message: 'Logout berhasil' });
+  });
+});
+
+app.listen(3000, () => console.log('Server jalan di port 3000'));
+</code></pre>
+      </div>
+
+      <h3>Monitoring Session di Redis</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Redis CLI</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Lihat semua session keys
+KEYS sess:*
+
+# Ambil data session
+GET sess:abc123def456
+# Output: {"cookie":{...},"userId":1,"role":"user"}
+
+# Cek TTL session
+TTL sess:abc123def456
+# Output: 82345 (sisa detik)
+
+# Hitung jumlah session aktif
+DBSIZE   # (jika db khusus session)
+
+# Hapus session tertentu (force logout)
+DEL sess:abc123def456
+
+# Hapus semua session (force logout semua user)
+FLUSHDB  # ⚠️ Hati-hati — hapus semua data di db saat ini
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Rate Limiting       -->
+      <!-- ============================== -->
+      <h2 id="rate-limiting">8. Rate Limiting</h2>
+
+      <p><strong>Rate limiting</strong> adalah teknik untuk membatasi jumlah request yang boleh dilakukan oleh satu client dalam periode waktu tertentu. Ini sangat penting untuk melindungi API dari abuse, brute force, dan DDoS. Redis sangat cocok untuk rate limiting karena operasinya atomic dan cepat.</p>
+
+      <h3>Algoritma: Fixed Window Counter</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Rate Limiter</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>const Redis = require('ioredis');
+const redis = new Redis();
+
+// ==========================================
+// RATE LIMITER: Fixed Window Counter
+// ==========================================
+
+async function rateLimitFixedWindow(identifier, maxRequests, windowSeconds) {
+  const key = `ratelimit:${identifier}:${Math.floor(Date.now() / 1000 / windowSeconds)}`;
+
+  // Atomic increment
+  const current = await redis.incr(key);
+
+  // Set expiry hanya pada pertama kali (current === 1)
+  if (current === 1) {
+    await redis.expire(key, windowSeconds);
+  }
+
+  const remaining = Math.max(0, maxRequests - current);
+  const ttl = await redis.ttl(key);
+
+  return {
+    allowed: current <= maxRequests,
+    current: current,
+    remaining: remaining,
+    resetIn: ttl,
+    limit: maxRequests
+  };
+}
+
+// Contoh penggunaan
+async function handleRequest(clientIp) {
+  // Maksimal 100 request per 15 menit per IP
+  const result = await rateLimitFixedWindow(clientIp, 100, 900);
+
+  if (!result.allowed) {
+    return {
+      status: 429,
+      headers: {
+        'X-RateLimit-Limit': result.limit,
+        'X-RateLimit-Remaining': 0,
+        'Retry-After': result.resetIn
+      },
+      body: { error: 'Terlalu banyak request. Coba lagi nanti.' }
+    };
+  }
+
+  // Request diizinkan
+  return { status: 200, headers: { 'X-RateLimit-Remaining': result.remaining } };
+}
+</code></pre>
+      </div>
+
+      <h3>Algoritma: Sliding Window (Lebih Akurat)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Sliding Window</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ==========================================
+// RATE LIMITER: Sliding Window dengan Sorted Set
+// Lebih akurat — tidak ada "burst" di batas window
+// ==========================================
+
+async function rateLimitSlidingWindow(identifier, maxRequests, windowSeconds) {
+  const key = `ratelimit:sliding:${identifier}`;
+  const now = Date.now();
+  const windowStart = now - (windowSeconds * 1000);
+
+  // Gunang Redis pipeline untuk efisiensi
+  const pipeline = redis.pipeline();
+
+  // 1. Hapus request lama yang sudah di luar window
+  pipeline.zremrangebyscore(key, 0, windowStart);
+
+  // 2. Hitung request dalam window saat ini
+  pipeline.zcard(key);
+
+  // 3. Tambah request baru
+  pipeline.zadd(key, now, `${now}:${Math.random()}`);
+
+  // 4. Set expiry pada key
+  pipeline.expire(key, windowSeconds);
+
+  const results = await pipeline.exec();
+  const requestCount = results[1][1]; // Hasil zcard
+
+  const allowed = requestCount < maxRequests;
+  const remaining = Math.max(0, maxRequests - requestCount - 1);
+
+  // Hapus request yang baru ditambah jika tidak diizinkan
+  if (!allowed) {
+    await redis.zrem(key, `${now}:${Math.random()}`);
+  }
+
+  return { allowed, current: requestCount + (allowed ? 1 : 0), remaining };
+}
+
+// Contoh: API endpoint dengan rate limiting
+const express = require('express');
+const app = express();
+
+app.use(async (req, res, next) => {
+  const clientIp = req.ip || req.connection.remoteAddress;
+  const result = await rateLimitSlidingWindow(clientIp, 100, 900);
+
+  res.set('X-RateLimit-Limit', '100');
+  res.set('X-RateLimit-Remaining', result.remaining);
+
+  if (!result.allowed) {
+    return res.status(429).json({ error: 'Rate limit exceeded' });
+  }
+
+  next();
+});
+
+app.get('/api/data', (req, res) => {
+  res.json({ data: 'success' });
+});
+
+app.listen(3000);
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Rate Limiting</div>
+        <ul>
+          <li><strong>Per-IP</strong> — Untuk API publik, limit per IP address</li>
+          <li><strong>Per-User</strong> — Untuk API terautentikasi, limit per user ID</li>
+          <li><strong>Per-Endpoint</strong> — Endpoint berat (export, search) perlu limit lebih ketat</li>
+          <li><strong>Tiered</strong> — User premium dapat limit lebih tinggi dari user gratis</li>
+          <li>Selalu kirim header <code>X-RateLimit-Remaining</code> dan <code>Retry-After</code> agar client tahu sisa kuota mereka</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Redis &amp; Caching Strategy:</p>
+
+      <div class="quiz-container" id="quizRedis">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Mengapa Redis sangat cepat dalam memproses data?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Karena menggunakan GPU untuk komputasi</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Karena seluruh data disimpan di RAM (in-memory) dan menggunakan struktur data yang dioptimalkan</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Karena menggunakan multi-threading paralel</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Karena mengompresi semua data sebelum penyimpanan</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Dalam pattern Cache-Aside, apa yang terjadi ketika terjadi cache miss?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Client menerima error 404</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Aplikasi mengembalikan data dari database dan menyimpannya ke cache untuk request berikutnya</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Cache otomatis mengisi dirinya sendiri dari database</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Request dialihkan ke server lain</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi dari TTL (Time To Live) di Redis?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Mengenkripsi data di Redis</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Mengatur prioritas akses data</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Mengatur berapa lama key akan hidup sebelum otomatis dihapus</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Mengompresi data untuk menghemat memori</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Mengapa session lebih baik disimpan di Redis daripada di memory server atau database?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Karena Redis lebih murah dari database</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Karena Redis tidak memerlukan koneksi jaringan</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Karena session di Redis shared antar server, cepat diakses, dan tidak hilang saat restart</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Karena Redis secara otomatis mengenkripsi session</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa kelebihan algoritma Sliding Window dibanding Fixed Window untuk rate limiting?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Sliding Window menggunakan lebih sedikit memori</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Sliding Window lebih akurat dan tidak mengalami masalah "burst" di batas window</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Sliding Window tidak memerlukan Redis</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Sliding Window mendukung unlimited requests</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="database-design.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Database Design &amp; Normalisasi</span>
+        </a>
+        <a href="python-fastapi.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">FastAPI: Membuat REST API Modern dengan Python</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

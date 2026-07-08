@@ -1,0 +1,509 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">ESP32</a>
+        <span class="separator">/</span>
+        <span class="current">FreeRTOS</span>
+      </div>
+      <span class="category-tag">ESP32 & ESP8266</span>
+      <h1>FreeRTOS pada ESP32: Multitasking Real-time</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Kuasai multitasking pada ESP32 dengan FreeRTOS — dari konsep dasar task hingga proyek concurrent sensor reading</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#apa-itu-rtos">Apa Itu RTOS?</a></li>
+          <li><a href="#freertos-basics">Dasar-dasar FreeRTOS</a></li>
+          <li><a href="#tasks">Task Management</a></li>
+          <li><a href="#semaphores">Semaphore & Mutex</a></li>
+          <li><a href="#queues">Queue: Komunikasi Antar Task</a></li>
+          <li><a href="#timers">Software Timer</a></li>
+          <li><a href="#memory">Memory Management</a></li>
+          <li><a href="#proyek-concurrent">Proyek: Concurrent Sensor Reading</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Apa Itu RTOS?       -->
+      <!-- ============================== -->
+      <h2 id="apa-itu-rtos">1. Apa Itu RTOS?</h2>
+
+      <p><strong>RTOS (Real-Time Operating System)</strong> adalah sistem operasi yang dirancang untuk memproses data dan merespons event dalam waktu yang deterministik. Berbeda dengan OS umum seperti Windows atau Linux yang mengoptimalkan throughput, RTOS menjamin bahwa tugas kritis selesai dalam batas waktu yang ditentukan (<em>deadline</em>).</p>
+
+      <p>ESP32 memiliki <strong>dual-core prosesor</strong>, dan FreeRTOS sudah terintegrasi di dalam ESP-IDF (Espressif IoT Development Framework) secara default. Bahkan ketika Anda menggunakan Arduino IDE, FreeRTOS tetap berjalan di background — Anda hanya perlu memanfaatkannya secara eksplisit.</p>
+
+      <h3>Mengapa FreeRTOS Penting untuk ESP32?</h3>
+
+      <ul>
+        <li><strong>Parallel Execution:</strong> Jalankan pembacaan sensor, komunikasi WiFi, dan display update secara bersamaan.</li>
+        <li><strong>Deterministic Timing:</strong> Respons event kritis (interrupt, sensor alarm) dalam waktu yang terprediksi.</li>
+        <li><strong>Resource Management:</strong> Kelola memori, peripheral, dan akses data dengan aman antar task.</li>
+        <li><strong>Scalability:</strong> Tambah fitur baru tanpa menulis ulang kode existing.</li>
+      </ul>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Arsitektur FreeRTOS pada ESP32</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">📱</div>
+            <div class="arch-label">Arduino App</div>
+            <div class="arch-desc">Kode User Anda</div>
+          </div>
+          <div class="arch-box info">
+            <div class="arch-icon">⚙️</div>
+            <div class="arch-label">ESP-IDF / Arduino API</div>
+            <div class="arch-desc">Hardware Abstraction</div>
+          </div>
+        </div>
+        <div class="arch-arrow down">↓</div>
+        <div class="arch-row">
+          <div class="arch-box warn">
+            <div class="arch-icon">🔄</div>
+            <div class="arch-label">FreeRTOS Kernel</div>
+            <div class="arch-desc">Task Scheduler & IPC</div>
+          </div>
+          <div class="arch-box purple">
+            <div class="arch-icon">📡</div>
+            <div class="arch-label">WiFi / BT Stack</div>
+            <div class="arch-desc">Berjalan di Core 0</div>
+          </div>
+        </div>
+        <div class="arch-arrow down">↓</div>
+        <div class="arch-row">
+          <div class="arch-box danger">
+            <div class="arch-icon">⚡</div>
+            <div class="arch-label">Core 0 (Protocol)</div>
+            <div class="arch-desc">WiFi, BLE, System Tasks</div>
+          </div>
+          <div class="arch-box danger">
+            <div class="arch-icon">⚡</div>
+            <div class="arch-label">Core 1 (App)</div>
+            <div class="arch-desc">User Tasks Default</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Secara default, WiFi dan Bluetooth ESP32 berjalan di <strong>Core 0</strong>, sementara task user (termasuk <code>setup()</code> dan <code>loop()</code>) berjalan di <strong>Core 1</strong>. Ini menghindari konflik dengan protokol stack yang sensitif terhadap timing.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: FreeRTOS Basics     -->
+      <!-- ============================== -->
+      <h2 id="freertos-basics">2. Dasar-dasar FreeRTOS</h2>
+
+      <p>FreeRTOS adalah RTOS ringan open-source yang paling banyak digunakan di dunia. Pada ESP32, FreeRTOS sudah terintegrasi dan menggunakan konfigurasi SMP (Symmetric Multi-Processing) untuk memanfaatkan dual-core.</p>
+
+      <h3>Konsep Inti FreeRTOS</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Konsep</th>
+            <th>Deskripsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Task</strong></td><td>Unit eksekusi yang memiliki stack dan prioritas sendiri</td></tr>
+          <tr><td><strong>Scheduler</strong></td><td>Menentukan task mana yang berjalan berdasarkan prioritas</td></tr>
+          <tr><td><strong>Semaphore</strong></td><td>Mekanisme sinkronisasi antar task</td></tr>
+          <tr><td><strong>Mutex</strong></td><td>Mekanisme untuk melindungi resource bersama</td></tr>
+          <tr><td><strong>Queue</strong></td><td>FIFO buffer untuk komunikasi antar task</td></tr>
+          <tr><td><strong>Timer</strong></td><td>Callback yang dijalankan secara periodik</td></tr>
+          <tr><td><strong>Event Group</strong></td><td>Bit flag untuk sinkronisasi multi-event</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Prioritas Task</h3>
+
+      <p>FreeRTOS menggunakan <strong>preemptive priority-based scheduling</strong>. Task dengan prioritas lebih tinggi selalu mendapat kesempatan eksekusi terlebih dahulu. Jika dua task memiliki prioritas yang sama, scheduler akan bergantian menjalankan keduanya (time-slicing).</p>
+
+      </div>
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: Weather Station Concurrent Architecture</div>
+<pre class="mermaid">
+flowchart TD
+    N0["Queue: sensorDataQueue (10 x SensorData_t)"]
+    N1["TaskSensor Prio: 3 4096 stk"]
+    N1 --> N0
+</pre>
+    </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — weather_station_concurrent.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Weather Station - Concurrent Sensor Reading
+// BeebaneLabs - https://beebanelabs.pages.dev
+// Proyek gabungan: FreeRTOS Task + Queue + Mutex + Timer
+
+#include &lt;Wire.h&gt;
+#include &lt;Adafruit_GFX.h&gt;
+#include &lt;Adafruit_SSD1306.h&gt;
+#include &lt;DHT.h&gt;
+#include &lt;WiFi.h&gt;
+#include &lt;PubSubClient.h&gt;
+
+// ========== Konfigurasi Pin ==========
+#define DHT_PIN       4
+#define DHT_TYPE      DHT22
+#define BMP_SDA       21
+#define BMP_SCL       22
+#define LED_PIN       2
+
+// ========== WiFi & MQTT ==========
+const char* WIFI_SSID     = "NamaWiFi";
+const char* WIFI_PASS     = "PasswordWiFi";
+const char* MQTT_SERVER   = "broker.hivemq.com";
+const int   MQTT_PORT     = 1883;
+
+// ========== Object Global ==========
+DHT dht(DHT_PIN, DHT_TYPE);
+Adafruit_SSD1306 display(128, 64, &Wire, -1);
+WiFiClient espClient;
+PubSubClient mqttClient(espClient);
+
+// ========== FreeRTOS Objects ==========
+typedef struct {
+  float temperature;
+  float humidity;
+  float pressure;
+  float altitude;
+  unsigned long timestamp;
+} SensorData_t;
+
+QueueHandle_t sensorQueue;
+SemaphoreHandle_t displayMutex;
+SemaphoreHandle_t mqttMutex;
+TimerHandle_t heartbeatTimer;
+
+// ========== Heartbeat LED ==========
+void heartbeatCb(TimerHandle_t xTimer) {
+  digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+}
+
+// ========== Task 1: Sensor Reading ==========
+void TaskSensorRead(void *pvParameters) {
+  SensorData_t data;
+
+  for (;;) {
+    // Baca DHT22
+    data.temperature = dht.readTemperature();
+    data.humidity = dht.readHumidity();
+
+    // Baca BMP280 (simulated)
+    data.pressure = 1013.25 + random(-10, 10) / 10.0;
+    data.altitude = 44330.0 * (1.0 - pow(data.pressure / 1013.25, 0.1903));
+    data.timestamp = millis();
+
+    if (!isnan(data.temperature) && !isnan(data.humidity)) {
+      // Kirim ke queue
+      if (xQueueSend(sensorQueue, &data,
+                     pdMS_TO_TICKS(100)) != pdTRUE) {
+        Serial.println("[Sensor] Queue penuh!");
+      }
+    } else {
+      Serial.println("[Sensor] Error membaca DHT!");
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(2000));
+  }
+}
+
+// ========== Task 2: Display Update ==========
+void TaskDisplayUpdate(void *pvParameters) {
+  SensorData_t displayData;
+  bool hasData = false;
+
+  for (;;) {
+    // Coba ambil data terbaru dari queue (non-blocking)
+    SensorData_t tempData;
+    while (xQueueReceive(sensorQueue, &tempData, 0) == pdTRUE) {
+      displayData = tempData;
+      hasData = true;
+    }
+
+    if (hasData && xSemaphoreTake(displayMutex,
+                                  pdMS_TO_TICKS(100)) == pdTRUE) {
+      display.clearDisplay();
+      display.setTextSize(1);
+      display.setTextColor(SSD1306_WHITE);
+
+      display.setCursor(0, 0);
+      display.println("== Weather Station ==");
+
+      display.setCursor(0, 16);
+      display.printf("Suhu:    %.1f C", displayData.temperature);
+
+      display.setCursor(0, 28);
+      display.printf("Kelemb:  %.1f %%", displayData.humidity);
+
+      display.setCursor(0, 40);
+      display.printf("Tekanan: %.1f hPa", displayData.pressure);
+
+      display.setCursor(0, 52);
+      display.printf("Up: %lu s", millis() / 1000);
+
+      display.display();
+      xSemaphoreGive(displayMutex);
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(500));
+  }
+}
+
+// ========== Task 3: MQTT Publisher ==========
+void TaskMQTTPublish(void *pvParameters) {
+  SensorData_t mqttData;
+
+  for (;;) {
+    // Ambil data dari queue
+    if (xQueuePeek(sensorQueue, &mqttData,
+                   portMAX_DELAY) == pdTRUE) {
+      if (xSemaphoreTake(mqttMutex,
+                         pdMS_TO_TICKS(5000)) == pdTRUE) {
+        if (mqttClient.connected()) {
+          char payload[128];
+          snprintf(payload, sizeof(payload),
+            "{\"temp\":%.1f,\"hum\":%.1f,\"pres\":%.1f}",
+            mqttData.temperature,
+            mqttData.humidity,
+            mqttData.pressure);
+
+          mqttClient.publish("beebane/weather", payload);
+          Serial.printf("[MQTT] Published: %s\n", payload);
+        }
+        xSemaphoreGive(mqttMutex);
+      }
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(10000)); // Publish setiap 10 detik
+  }
+}
+
+// ========== Setup ==========
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+
+  // Init sensors
+  dht.begin();
+  Wire.begin(BMP_SDA, BMP_SCL);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  display.display();
+
+  // Buat FreeRTOS objects
+  sensorQueue = xQueueCreate(10, sizeof(SensorData_t));
+  displayMutex = xSemaphoreCreateMutex();
+  mqttMutex = xSemaphoreCreateMutex();
+
+  // Buat heartbeat timer
+  heartbeatTimer = xTimerCreate("Heart",
+    pdMS_TO_TICKS(1000), pdTRUE, NULL, heartbeatCb);
+  xTimerStart(heartbeatTimer, 0);
+
+  // Buat tasks (semua di Core 1)
+  xTaskCreatePinnedToCore(TaskSensorRead, "Sensor",
+                          4096, NULL, 3, NULL, 1);
+  xTaskCreatePinnedToCore(TaskDisplayUpdate, "Display",
+                          4096, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(TaskMQTTPublish, "MQTT",
+                          8192, NULL, 2, NULL, 1);
+
+  Serial.println("Weather Station started!");
+}
+
+void loop() {
+  // Maintenance task
+  static unsigned long lastMemCheck = 0;
+  if (millis() - lastMemCheck > 30000) {
+    Serial.printf("Free heap: %d bytes\n", ESP.getFreeHeap());
+    lastMemCheck = millis();
+  }
+  vTaskDelay(pdMS_TO_TICKS(5000));
+}
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Proyek</div>
+        <p>Perhatikan prioritas task: Sensor (3) > MQTT (2) > Display (1). Sensor harus paling tinggi karena timing-critical. MQTT membutuhkan stack lebih besar (8192) karena library WiFi/MQTT cukup boros stack. Display adalah task paling tidak kritis.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial FreeRTOS di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu:</p>
+
+      <div class="quiz-container" id="quiz03">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Di core berapa task user default (loop()) berjalan pada ESP32?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Core 0</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Core 1</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Kedua core secara bergantian</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Random core</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa perbedaan utama antara Mutex dan Binary Semaphore?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Mutex lebih cepat dari Semaphore</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Mutex memiliki ownership dan priority inheritance</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Binary Semaphore memiliki priority inheritance</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Tidak ada perbedaan</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Fungsi apa yang digunakan untuk membuat task yang terikat pada core tertentu?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) xTaskCreate()</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) xTaskCreatePinnedToCore()</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) vTaskCreate()</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) xTaskSpawn()</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari vTaskDelay(pdMS_TO_TICKS(1000))?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Menghapus task setelah 1 detik</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Menangguhkan task selama 1 detik</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Mengubah prioritas task menjadi 1</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Mengirim data setiap 1 detik</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa stack size 8192 direkomendasikan untuk task MQTT tapi hanya 4096 untuk task sensor?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) MQTT lebih sering dieksekusi</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Library WiFi/MQTT menggunakan lebih banyak stack</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) MQTT berjalan di Core 0</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Sensor tidak membutuhkan stack</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="esp32-bluetooth-ble.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">ESP32 Bluetooth BLE</span>
+        </a>
+        <a href="esp32-sensor-kalibrasi.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Kalibrasi Sensor ESP32</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

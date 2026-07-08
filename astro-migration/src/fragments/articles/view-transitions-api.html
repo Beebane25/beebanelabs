@@ -1,0 +1,675 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Web Development</a><span class="separator">/</span><span class="current">View Transitions API</span></div>
+      <span class="category-tag">Web Development</span>
+      <h1>View Transitions API</h1>
+      <p class="article-subtitle">Buat transisi halaman yang mulus dan elegan menggunakan View Transitions API — same-document transitions, cross-document transitions, custom animations, fallback strategies, dan integrasi dengan SPA frameworks.</p>
+      <div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 14 menit baca</span><span class="difficulty menengah">Menengah</span></div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan View Transitions API</a></li>
+          <li><a href="#same-document">Same-Document Transitions</a></li>
+          <li><a href="#cross-document">Cross-Document Transitions</a></li>
+          <li><a href="#custom-animations">Custom Animations</a></li>
+          <li><a href="#view-transition-name">view-transition-name</a></li>
+          <li><a href="#spa-integration">SPA Integration</a></li>
+          <li><a href="#fallback">Fallback Strategies</a></li>
+          <li><a href="#patterns">Common Patterns</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan View Transitions API</h2>
+
+      <p><strong>View Transitions API</strong> adalah API browser yang memungkinkan Anda membuat animasi transisi antara dua state DOM dengan mudah. Sebelumnya, membuat transisi halaman yang mulus memerlukan library pihak ketiga atau kode JavaScript yang rumit. Dengan View Transitions API, browser melakukan sebagian besar pekerjaan berat.</p>
+
+      <p>API ini tersedia di Chrome 111+, Edge 111+, dan Safari 18+. Untuk browser yang belum mendukung, API ini memberikan graceful degradation — konten berubah tanpa animasi, tanpa error.</p>
+
+      <h3>Apa yang Bisa Dilakukan?</h3>
+      <table class="net-table">
+        <thead><tr><th>Fitur</th><th>Penjelasan</th><th>Contoh</th></tr></thead>
+        <tbody>
+          <tr><td>Same-document</td><td>Transisi dalam satu halaman SPA</td><td>Ganti tab, toggle view</td></tr>
+          <tr><td>Cross-document</td><td>Transisi antar halaman (MPA)</td><td>Navigasi page-to-page</td></tr>
+          <tr><td>Shared elements</td><td>Elemen yang "berpindah" antara state</td><td>Thumbnail → full image</td></tr>
+          <tr><td>Custom animations</td><td>CSS @keyframes untuk transisi</td><td>Slide, fade, morph</td></tr>
+          <tr><td>Fallback</td><td>Tanpa animasi jika tidak didukung</td><td>Graceful degradation</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Cara Kerja View Transitions</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: VIEW TRANSITIONS FLOW</div>
+<pre class="mermaid">
+flowchart TD
+    N0["Halaman A (img) (text)"]
+    N1["Halaman B (new content)"]
+    N0 --> N1
+</pre>
+    </div>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>View Transitions bekerja dengan mengambil screenshot dari state lama dan baru, lalu meng-animasi di antara keduanya. Ini berarti transisi terlihat mulus bahkan untuk perubahan DOM yang kompleks — seperti mengubah layout, menambah/menghapus elemen, atau bahkan berpindah halaman.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="same-document">2. Same-Document Transitions</h2>
+
+      <p>Same-document transitions terjadi dalam satu halaman — misalnya saat mengganti tab, toggle dark/light mode, atau memperbarui konten di SPA.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Basic View Transition</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Cara paling sederhana: document.startViewTransition()
+document.startViewTransition(() => {
+  // Update DOM di dalam callback ini
+  // Browser akan screenshot state sebelum dan sesudah
+  document.getElementById('content').innerHTML = `
+    &lt;h2&gt;Konten Baru&lt;/h2&gt;
+    &lt;p&gt;Ini adalah konten yang sudah diperbarui.&lt;/p&gt;
+  `;
+});
+
+// Dengan async callback (untuk fetch data, dll)
+document.startViewTransition(async () => {
+  const response = await fetch('/api/data');
+  const data = await response.json();
+
+  document.getElementById('content').innerHTML = `
+    &lt;h2&gt;${data.title}&lt;/h2&gt;
+    &lt;p&gt;${data.description}&lt;/p&gt;
+  `;
+});
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Tab Switching</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Tab switching dengan view transition
+const tabs = document.querySelectorAll('.tab-btn');
+const panels = document.querySelectorAll('.tab-panel');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const targetId = tab.dataset.target;
+
+    // Hanya gunakan transition jika browser mendukung
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        switchTab(targetId);
+      });
+    } else {
+      switchTab(targetId);
+    }
+  });
+});
+
+function switchTab(targetId) {
+  // Sembunyikan semua panel
+  panels.forEach(panel => panel.hidden = true);
+  // Tampilkan panel target
+  document.getElementById(targetId).hidden = false;
+
+  // Update tab active state
+  tabs.forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-target="${targetId}"]`).classList.add('active');
+}
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Dark/Light Mode Toggle</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Theme toggle dengan view transition yang cantik
+const themeToggle = document.getElementById('theme-toggle');
+
+themeToggle.addEventListener('click', () => {
+  if (!document.startViewTransition) {
+    document.documentElement.classList.toggle('dark');
+    return;
+  }
+
+  document.startViewTransition(() => {
+    document.documentElement.classList.toggle('dark');
+  });
+});
+
+// CSS: animasi khusus untuk theme transition
+// ::view-transition-old(root) {
+//   animation: fade-out 0.3s ease-in;
+// }
+// ::view-transition-new(root) {
+//   animation: fade-in 0.3s ease-out;
+// }
+</code></pre>
+      </div>
+
+      <!-- SECTION 3 -->
+      <h2 id="cross-document">3. Cross-Document Transitions</h2>
+
+      <p><strong>Cross-document transitions</strong> (juga disebut MPA transitions) memungkinkan animasi saat navigasi antar halaman. Ini bekerja dengan navigasi tradisional (bukan SPA), tanpa perlu JavaScript.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CSS — Cross-Document View Transitions</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>/* Di CSS: aktifkan cross-document view transitions */
+/* @view-transition di kedua halaman (asal dan tujuan) */
+@view-transition {
+  navigation: auto;  /* Aktifkan untuk semua navigasi */
+}
+
+/* Atau hanya untuk navigasi tertentu */
+@view-transition {
+  navigation: auto;
+}
+
+/* Atur animasi untuk cross-document */
+::view-transition-old(root) {
+  animation: fade-and-slide-out 0.4s ease-in;
+}
+
+::view-transition-new(root) {
+  animation: fade-and-slide-in 0.4s ease-out;
+}
+
+/* Animasi khusus untuk shared elements */
+::view-transition-old(hero-image) {
+  animation: scale-down 0.4s ease-in;
+}
+
+::view-transition-new(hero-image) {
+  animation: scale-up 0.4s ease-out;
+}
+
+/* Keyframes */
+@keyframes fade-and-slide-out {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-30px); }
+}
+
+@keyframes fade-and-slide-in {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-down {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.8); opacity: 0; }
+}
+
+@keyframes scale-up {
+  from { transform: scale(1.2); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="custom-animations">4. Custom Animations</h2>
+
+      <p>Anda bisa mengkustomisasi animasi transisi menggunakan CSS <code>@keyframes</code> dan pseudo-elements. Setiap elemen yang memiliki <code>view-transition-name</code> mendapatkan pseudo-element sendiri.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CSS — Animasi Transisi Kustom</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>/* Default transition (seluruh halaman) */
+::view-transition-old(root) {
+  animation: 0.3s ease-in both fade-out;
+}
+::view-transition-new(root) {
+  animation: 0.3s ease-out both fade-in;
+}
+
+/* Slide transition */
+::view-transition-old(root) {
+  animation: 0.4s ease-in both slide-out-left;
+}
+::view-transition-new(root) {
+  animation: 0.4s ease-out both slide-in-right;
+}
+
+/* Zoom/Scale transition untuk shared elements */
+::view-transition-old(hero-image) {
+  animation: 0.4s ease-in both zoom-out;
+}
+::view-transition-new(hero-image) {
+  animation: 0.4s ease-out both zoom-in;
+}
+
+/* Morph transition: elemen berubah bentuk */
+::view-transition-old(card) {
+  animation: 0.5s ease-in-out both morph-old;
+}
+::view-transition-new(card) {
+  animation: 0.5s ease-in-out both morph-new;
+}
+
+/* Keyframes */
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-out-left {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(-100%); opacity: 0; }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes zoom-out {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.5); opacity: 0; }
+}
+@keyframes zoom-in {
+  from { transform: scale(2); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes morph-old {
+  from { clip-path: inset(0); border-radius: 0; }
+  to { clip-path: inset(50%); border-radius: 16px; }
+}
+@keyframes morph-new {
+  from { clip-path: inset(50%); border-radius: 16px; }
+  to { clip-path: inset(0); border-radius: 0; }
+}
+</code></pre>
+      </div>
+
+      <!-- SECTION 5 -->
+      <h2 id="view-transition-name">5. view-transition-name</h2>
+
+      <p>Property <code>view-transition-name</code> menandai elemen sebagai "shared element" — elemen yang tampak "berpindah" antara state lama dan baru. Browser akan secara otomatis meng-animasi perpindahannya.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CSS — Shared Element Transitions</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>/* Halaman daftar produk */
+.product-list .product-image {
+  view-transition-name: product-hero;
+  /* Nama ini harus sama di halaman detail */
+}
+
+/* Halaman detail produk */
+.product-detail .hero-image {
+  view-transition-name: product-hero;
+  /* Browser tahu: ini elemen yang sama! */
+  /* Akan di-animasi dari posisi lama ke posisi baru */
+}
+
+/* Header yang shared antar halaman */
+.main-header {
+  view-transition-name: main-header;
+}
+
+/* Card yang expand ke halaman detail */
+.card-thumbnail {
+  view-transition-name: detail-image;
+}
+
+.detail-hero {
+  view-transition-name: detail-image;
+}
+
+/* Kustomisasi animasi untuk shared element */
+::view-transition-old(product-hero) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(product-hero) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Biarkan browser handle morphing secara default */
+/* Atau tambahkan animasi custom */
+::view-transition-group(product-hero) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Perhatian</div>
+        <p>Setiap <code>view-transition-name</code> harus unik dalam satu state DOM. Jika dua elemen di halaman yang sama memiliki nama yang sama, transisi akan gagal. Gunakan nama yang deskriptif dan spesifik.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="spa-integration">6. SPA Integration</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Integrasi dengan SPA Frameworks</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== Integrasi dengan Router SPA =====
+
+// Contoh: intercept navigasi link
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('a[href]');
+  if (!link) return;
+
+  const href = link.getAttribute('href');
+  // Hanya untuk navigasi internal
+  if (!href || href.startsWith('http') || href.startsWith('#')) return;
+
+  e.preventDefault();
+
+  if (document.startViewTransition) {
+    document.startViewTransition(async () => {
+      // Fetch halaman baru
+      const response = await fetch(href);
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      // Update konten
+      document.getElementById('main-content').innerHTML =
+        doc.getElementById('main-content').innerHTML;
+
+      // Update title dan URL
+      document.title = doc.title;
+      history.pushState({}, '', href);
+    });
+  } else {
+    window.location.href = href;
+  }
+});
+
+// ===== React Router Integration =====
+// Di React, gunakan hook:
+import { useViewTransition } from './hooks/useViewTransition';
+
+function ProductCard({ product }) {
+  const navigate = useNavigate();
+  const startTransition = useViewTransition();
+
+  const handleClick = () => {
+    startTransition(() => {
+      navigate(`/products/${product.id}`);
+    });
+  };
+
+  return (
+    &lt;div onClick={handleClick} style={{ viewTransitionName: `product-${product.id}` }}&gt;
+      &lt;img src={product.image} /&gt;
+      &lt;h3&gt;{product.name}&lt;/h3&gt;
+    &lt;/div&gt;
+  );
+}
+
+// useViewTransition hook
+function useViewTransition() {
+  return (callback) => {
+    if (document.startViewTransition) {
+      return document.startViewTransition(callback);
+    }
+    callback();
+  };
+}
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Waiting for Transition</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Menunggu transisi selesai
+const transition = document.startViewTransition(async () => {
+  await updateDOM();
+});
+
+// transition.ready — promise yang resolve saat animasi dimulai
+transition.ready.then(() => {
+  console.log('Animasi transisi dimulai');
+});
+
+// transition.finished — promise yang resolve saat animasi selesai
+transition.finished.then(() => {
+  console.log('Animasi transisi selesai');
+  // Bisa digunakan untuk cleanup atau analytics
+});
+
+// Membatalkan transisi
+transition.skipTransition();
+// DOM tetap berubah, tapi animasi di-skip
+</code></pre>
+      </div>
+
+      <!-- SECTION 7 -->
+      <h2 id="fallback">7. Fallback Strategies</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Feature Detection &amp; Fallback</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Feature detection
+function supportsViewTransitions() {
+  return typeof document.startViewTransition === 'function';
+}
+
+// Fallback: animasi CSS sederhana
+function transitionWithFallback(updateFn) {
+  if (supportsViewTransitions()) {
+    document.startViewTransition(updateFn);
+  } else {
+    // Fallback: fade manual
+    const content = document.getElementById('main-content');
+    content.classList.add('fade-out');
+
+    content.addEventListener('animationend', () => {
+      updateFn();
+      content.classList.remove('fade-out');
+      content.classList.add('fade-in');
+    }, { once: true });
+  }
+}
+
+// CSS fallback
+// .fade-out { animation: 0.3s ease-out fadeOut; }
+// .fade-in { animation: 0.3s ease-in fadeIn; }
+// @keyframes fadeOut { to { opacity: 0; } }
+// @keyframes fadeIn { from { opacity: 0; } }
+
+// Reduced motion: disable transitions
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+if (prefersReducedMotion.matches) {
+  // CSS: @media (prefers-reduced-motion: reduce) { ... }
+}
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="patterns">8. Common Patterns</h2>
+
+      <h3>Image Gallery Expansion</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">HTML + CSS — Gallery to Detail</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>&lt;!-- Gallery view --&gt;
+&lt;div class="gallery"&gt;
+  &lt;img src="photo1-thumb.jpg" style="view-transition-name: photo-1"&gt;
+  &lt;img src="photo2-thumb.jpg" style="view-transition-name: photo-2"&gt;
+  &lt;img src="photo3-thumb.jpg" style="view-transition-name: photo-3"&gt;
+&lt;/div&gt;
+
+&lt;!-- Detail view (same element, different layout) --&gt;
+&lt;div class="detail-view"&gt;
+  &lt;img src="photo1-full.jpg" style="view-transition-name: photo-1"&gt;
+  &lt;!-- Same view-transition-name = morphing animation! --&gt;
+&lt;/div&gt;
+
+&lt;style&gt;
+.gallery img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.detail-view img {
+  width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 16px;
+}
+
+/* Smooth morph between gallery and detail */
+::view-transition-group(photo-1),
+::view-transition-group(photo-2),
+::view-transition-group(photo-3) {
+  animation-duration: 0.4s;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Keep images sharp during transition */
+::view-transition-old(*),
+::view-transition-new(*) {
+  mix-blend-mode: normal;
+}
+&lt;/style&gt;
+</code></pre>
+      </div>
+
+      <!-- SECTION 9 -->
+      <h2 id="best-practices">9. Best Practices</h2>
+
+      <div class="info-box tip">
+        <div class="info-box-title">✅ View Transitions Best Practices</div>
+        <ul>
+          <li><strong>Selalu gunakan feature detection</strong> — cek <code>document.startViewTransition</code></li>
+          <li><strong>Fallback yang baik</strong> — pastikan konten tetap berubah tanpa animasi</li>
+          <li><strong>Respect reduced-motion</strong> — disable animasi untuk pengguna yang prefers-reduced-motion</li>
+          <li><strong>Nama yang unik</strong> — setiap view-transition-name harus unik per state</li>
+          <li><strong>Animasi yang cepat</strong> — 200-500ms adalah sweet spot untuk transisi</li>
+          <li><strong>Konsistensi</strong> — gunakan timing function yang sama untuk elemen terkait</li>
+          <li><strong>Jangan terlalu banyak</strong> — terlalu banyak shared elements bisa membingungkan</li>
+          <li><strong>Test di berbagai browser</strong> — Safari 18+ mendukung, tapi perilaku bisa berbeda</li>
+          <li><strong>Cross-document butuh @view-transition</strong> — perlu deklarasi eksplisit di CSS</li>
+          <li><strong>Performance</strong> — transisi menggunakan compositor thread, jadi tidak memblokir main thread</li>
+        </ul>
+      </div>
+
+      <!-- SECTION 10 -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial View Transitions API, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quizVT01">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Fungsi JavaScript apa yang memulai view transition?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) document.animate()</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) document.startViewTransition()</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) window.transition()</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) element.animate()</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa perbedaan same-document dan cross-document transitions?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Tidak ada perbedaan</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Same-document dalam satu halaman, cross-document antar halaman</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Same-document hanya untuk desktop</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Cross-document hanya untuk SPA</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: CSS property apa yang menandai elemen sebagai shared element?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) transition-name</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) animation-name</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) view-transition-name</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) element-id</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa yang terjadi jika browser tidak mendukung View Transitions API?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Error dan halaman crash</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Konten tetap berubah tanpa animasi</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Halaman blank</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Animasi menggunakan fallback library</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Durasi animasi transisi yang ideal adalah?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) 1-2 detik</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) 200-500ms</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) 50-100ms</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) 5-10 detik</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="css-container-queries-2.html" class="prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">CSS Container Queries Advanced</span></a>
+        <a href="wasm-rust-web.html" class="next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">WebAssembly dengan Rust</span></a>
+      </div>
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

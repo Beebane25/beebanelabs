@@ -1,0 +1,1387 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">Security</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>Python Security Best Practices</h1>
+      <p class="article-subtitle">Tutorial lengkap keamanan Python — input validation, secrets management, OWASP Top 10, SQL injection prevention, XSS protection, dan secure coding</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 19 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-keamanan">Pengenalan Keamanan Python</a></li>
+          <li><a href="#owasp">OWASP Top 10 &amp; Python</a></li>
+          <li><a href="#input-validation">Input Validation</a></li>
+          <li><a href="#sql-injection">Mencegah SQL Injection</a></li>
+          <li><a href="#xss">Mencegah XSS &amp; CSRF</a></li>
+          <li><a href="#secrets">Secrets Management</a></li>
+          <li><a href="#authentication">Authentication &amp; Authorization</a></li>
+          <li><a href="#cryptography">Kriptografi di Python</a></li>
+          <li><a href="#file-security">Keamanan File &amp; Path Traversal</a></li>
+          <li><a href="#dependency-security">Dependency Security</a></li>
+          <li><a href="#audit">Security Audit &amp; Tools</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-keamanan">1. Pengenalan Keamanan Python</h2>
+
+      <p>Keamanan aplikasi adalah aspek kritis dalam pengembangan perangkat lunak. Dalam era di mana serangan siber semakin canggih, developer Python harus memahami dan menerapkan praktik keamanan yang baik sejak awal pengembangan.</p>
+
+      <p>Python, sebagai bahasa yang populer untuk web development, API, dan otomasi, memiliki tantangan keamanan tersendiri. Sifat dinamis Python yang fleksibel juga bisa menjadi celah keamanan jika tidak digunakan dengan hati-hati.</p>
+
+      <h3>Mengapa Keamanan Penting?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Risiko</th>
+            <th>Dampak</th>
+            <th>Contoh Kasus</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Data Breach</td><td>Kebocoran data pengguna, denda GDPR</td><td>500 juta akun terbocor (LinkedIn 2021)</td></tr>
+          <tr><td>SQL Injection</td><td>Akses database tanpa izin</td><td>" OR 1=1 -- untuk bypass login</td></tr>
+          <tr><td>Remote Code Execution</td><td>Kontrol penuh atas server</td><td>eval() pada input user</td></tr>
+          <tr><td>XSS Attack</td><td>Pencurian session/cookie</td><td>&lt;script&gt;tag di form input</td></tr>
+          <tr><td>Dependency Vulnerability</td><td>Celah keamanan dari library pihak ketiga</td><td>Log4Shell (Log4j)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Layer Keamanan Aplikasi</div>
+<pre class="mermaid">
+flowchart TD
+    A["🌐 Layer Network"] -->|"Firewall dan HTTPS"| B["🖥️ Layer Server"]
+    B -->|"Input Validation"| C["🔐 Layer Autentikasi"]
+    C -->|"Token dan Session"| D["🗄️ Layer Data"]
+    D -->|"Encryption at Rest"| E["💾 Storage Aman"]
+    F["⚠️ Ancaman SQL Injection XSS CSRF"] -.->|"Serang"| A
+    F -.->|"Brute Force"| C
+    F -.->|"Data Breach"| D
+</pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: OWASP                -->
+      <!-- ============================== -->
+      <h2 id="owasp">2. OWASP Top 10 &amp; Python</h2>
+
+      <p><strong>OWASP (Open Web Application Security Project)</strong> adalah organisasi nirlaba yang mengidentifikasi risiko keamanan web yang paling kritis. OWASP Top 10 adalah standar industri untuk awareness keamanan aplikasi web.</p>
+
+      <h3>OWASP Top 10 (2021) dan Relevansinya dengan Python</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Risiko</th>
+            <th>Relevansi Python</th>
+            <th>Prevention</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>A01</td><td>Broken Access Control</td><td>Endpoint tanpa otorisasi</td><td>RBAC, decorator @login_required</td></tr>
+          <tr><td>A02</td><td>Cryptographic Failures</td><td>MD5/SHA1 untuk password</td><td>bcrypt, argon2</td></tr>
+          <tr><td>A03</td><td>Injection</td><td>SQL injection, command injection</td><td>ORM, parameterized queries</td></tr>
+          <tr><td>A04</td><td>Insecure Design</td><td>Tidak ada threat modeling</td><td>Security by design</td></tr>
+          <tr><td>A05</td><td>Security Misconfiguration</td><td>DEBUG=True di production</td><td>Environment-based config</td></tr>
+          <tr><td>A06</td><td>Vulnerable Components</td><td>Library lama dengan CVE</td><td>safety, pip-audit</td></tr>
+          <tr><td>A07</td><td>Auth Failures</td><td>Brute force login</td><td>Rate limiting, MFA</td></tr>
+          <tr><td>A08</td><td>Data Integrity Failures</td><td>eval() pada data</td><td>Hindari eval/exec</td></tr>
+          <tr><td>A09</td><td>Logging Failures</td><td>Tidak ada audit log</td><td>Structured logging</td></tr>
+          <tr><td>A10</td><td>SSRF</td><td>Fetch URL tanpa validasi</td><td>URL whitelist</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan Kritis</div>
+        <p>Jangan pernah menjalankan perintah atau kode dari input user tanpa validasi ketat. Hindari penggunaan <code>eval()</code>, <code>exec()</code>, <code>os.system()</code>, dan <code>subprocess</code> dengan <code>shell=True</code> pada input yang tidak terpercaya.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Input Validation     -->
+      <!-- ============================== -->
+      <h2 id="input-validation">3. Input Validation</h2>
+
+      <p><strong>Input validation</strong> adalah lini pertahanan pertama dalam keamanan aplikasi. Setiap input dari luar (user, API, file) harus divalidasi sebelum diproses.</p>
+
+      <h3>Prinsip Input Validation</h3>
+      <pre><code class="language-python">"""Input Validation — prinsip dasar dan contoh implementasi."""
+import re
+from typing import Any, Optional
+from dataclasses import dataclass
+from enum import Enum
+
+
+class ValidationError(Exception):
+    """Custom exception untuk validation error."""
+    def __init__(self, field: str, message: str):
+        self.field = field
+        self.message = message
+        super().__init__(f"{field}: {message}")
+
+
+class Validator:
+    """Class untuk validasi berbagai tipe input."""
+
+    @staticmethod
+    def validate_email(email: str) -> bool:
+        """Validasi format email."""
+        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(pattern, email):
+            raise ValidationError("email", f"Format email tidak valid: {email}")
+        if len(email) > 254:
+            raise ValidationError("email", "Email terlalu panjang (maks 254 karakter)")
+        return True
+
+    @staticmethod
+    def validate_password(password: str) -> dict[str, Any]:
+        """Validasi kekuatan password."""
+        errors = []
+        if len(password) < 8:
+            errors.append("Password minimal 8 karakter")
+        if not re.search(r'[A-Z]', password):
+            errors.append("Harus mengandung huruf besar")
+        if not re.search(r'[a-z]', password):
+            errors.append("Harus mengandung huruf kecil")
+        if not re.search(r'\d', password):
+            errors.append("Harus mengandung angka")
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+            errors.append("Harus mengandung karakter spesial")
+
+        if errors:
+            raise ValidationError("password", "; ".join(errors))
+
+        return {
+            "valid": True,
+            "strength": "strong" if len(password) >= 12 else "medium",
+        }
+
+    @staticmethod
+    def validate_username(username: str) -> bool:
+        """Validasi username — alphanumeric + underscore."""
+        if not username:
+            raise ValidationError("username", "Username tidak boleh kosong")
+        if len(username) < 3:
+            raise ValidationError("username", "Username minimal 3 karakter")
+        if len(username) > 30:
+            raise ValidationError("username", "Username maksimal 30 karakter")
+        if not re.match(r'^[a-zA-Z0-9_]+$', username):
+            raise ValidationError(
+                "username",
+                "Username hanya boleh mengandung huruf, angka, dan underscore"
+            )
+        if username[0].isdigit():
+            raise ValidationError("username", "Username tidak boleh diawali angka")
+        return True
+
+    @staticmethod
+    def validate_integer(value: Any, min_val: int = None, max_val: int = None) -> int:
+        """Validasi dan konversi ke integer."""
+        try:
+            num = int(value)
+        except (ValueError, TypeError):
+            raise ValidationError("value", f"'{value}' bukan angka yang valid")
+
+        if min_val is not None and num < min_val:
+            raise ValidationError("value", f"Nilai minimal {min_val}")
+        if max_val is not None and num > max_val:
+            raise ValidationError("value", f"Nilai maksimal {max_val}")
+
+        return num
+
+    @staticmethod
+    def sanitize_string(text: str, max_length: int = 1000) -> str:
+        """Sanitasi string dari karakter berbahaya."""
+        if not isinstance(text, str):
+            raise ValidationError("input", "Input harus berupa string")
+
+        # Strip whitespace
+        text = text.strip()
+
+        # Batasi panjang
+        if len(text) > max_length:
+            text = text[:max_length]
+
+        # Hapus karakter kontrol (kecuali newline dan tab)
+        text = ''.join(
+            ch for ch in text
+            if ch in ('\n', '\t') or (ord(ch) >= 32)
+        )
+
+        return text
+
+    @staticmethod
+    def validate_phone_id(phone: str) -> bool:
+        """Validasi nomor telepon Indonesia."""
+        # Format: +62xxx atau 08xxx
+        pattern = r'^(\+62|0)[0-9]{8,13}$'
+        cleaned = re.sub(r'[\s\-]', '', phone)  # Hapus spasi dan dash
+        if not re.match(pattern, cleaned):
+            raise ValidationError(
+                "phone",
+                "Nomor telepon tidak valid. Gunakan format +62xxx atau 08xxx"
+            )
+        return True
+
+
+# Contoh penggunaan
+try:
+    Validator.validate_email("user@example.com")
+    print("✅ Email valid")
+
+    Validator.validate_password("MyStr0ng!Pass")
+    print("✅ Password kuat")
+
+    Validator.validate_username("budi_dev")
+    print("✅ Username valid")
+
+    Validator.validate_phone_id("+62812****5678")
+    print("✅ Nomor telepon valid")
+
+    Validator.validate_integer("42", min_val=1, max_val=100)
+    print("✅ Integer valid")
+
+except ValidationError as e:
+    print(f"❌ Validation error: {e}")</code></pre>
+
+      <h3>Validasi dengan Pydantic</h3>
+      <pre><code class="language-python">"""Input validation menggunakan Pydantic — library populer."""
+from pydantic import BaseModel, Field, field_validator, EmailStr
+from datetime import date
+from typing import Optional
+import re
+
+
+class UserRegistration(BaseModel):
+    """Schema validasi untuk registrasi user."""
+
+    username: str = Field(
+        ...,
+        min_length=3,
+        max_length=30,
+        pattern=r'^[a-zA-Z0-9_]+$',
+        description="Username alphanumeric dengan underscore",
+    )
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=128)
+    full_name: str = Field(..., min_length=1, max_length=100)
+    phone: Optional[str] = None
+    birth_date: Optional[date] = None
+    age: Optional[int] = Field(None, ge=13, le=120)
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, v: str) -> str:
+        if not re.search(r'[A-Z]', v):
+            raise ValueError("Password harus mengandung huruf besar")
+        if not re.search(r'[a-z]', v):
+            raise ValueError("Password harus mengandung huruf kecil")
+        if not re.search(r'\d', v):
+            raise ValueError("Password harus mengandung angka")
+        return v
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            cleaned = re.sub(r'[\s\-]', '', v)
+            if not re.match(r'^(\+62|0)[0-9]{8,13}$', cleaned):
+                raise ValueError("Format nomor telepon Indonesia tidak valid")
+            return cleaned
+        return v
+
+    @field_validator("full_name")
+    @classmethod
+    def sanitize_name(cls, v: str) -> str:
+        # Hapus karakter yang bukan huruf, spasi, atau tanda hubung
+        cleaned = re.sub(r'[^\w\s\-]', '', v, flags=re.UNICODE)
+        return cleaned.strip()
+
+
+# Contoh penggunaan
+try:
+    user = UserRegistration(
+        username="budi_dev",
+        email="budi@example.com",
+        password="MyStr0ng!Pass1",
+        full_name="Budi Santoso",
+        phone="+62812****5678",
+        age=25,
+    )
+    print(f"✅ Valid: {user.username}")
+    print(f"   Email: {user.email}")
+    print(f"   Data: {user.model_dump()}")
+except Exception as e:
+    print(f"❌ Error: {e}")
+
+# Contoh invalid
+try:
+    bad_user = UserRegistration(
+        username="ab",  # Terlalu pendek
+        email="not-an-email",
+        password="weak",  # Terlalu lemah
+        full_name="Test",
+    )
+except Exception as e:
+    print(f"❌ Expected error: {e}")</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: SQL Injection        -->
+      <!-- ============================== -->
+      <h2 id="sql-injection">4. Mencegah SQL Injection</h2>
+
+      <p><strong>SQL Injection</strong> adalah salah satu serangan paling berbahaya dan umum. Attacker bisa memanipulasi query SQL untuk mencuri data, menghapus tabel, atau bahkan mengambil alih database.</p>
+
+      <h3>Contoh SQL Injection</h3>
+      <pre><code class="language-python">"""SQL Injection — contoh VULNERABLE dan SECURE."""
+
+# ❌❌❌ VULNERABLE — JANGAN PERNAH LAKUKAN INI ❌❌❌
+def login_vulnerable(username: str, password: str):
+    """SQL INJECTION VULNERABLE! Ini hanya contoh BURUK."""
+    import sqlite3
+    conn = sqlite3.connect("app.db")
+    cursor = conn.cursor()
+
+    # ⚠️ BAHAYA: String formatting langsung!
+    query = f"SELECT * FROM users WHERE username='{username}' AND password='{password}'"
+    # Jika user memasukkan: username = "admin' OR '1'='1' --"
+    # Query menjadi: SELECT * FROM users WHERE username='admin' OR '1'='1' --' AND password=''
+    # Attacker bisa bypass login!
+
+    cursor.execute(query)
+    result = cursor.fetchone()
+    conn.close()
+    return result
+
+
+# ✅✅✅ SECURE — Gunakan parameterized queries ✅✅✅
+def login_secure(username: str, password: str):
+    """Login yang AMAN menggunakan parameterized query."""
+    import sqlite3
+    conn = sqlite3.connect("app.db")
+    cursor = conn.cursor()
+
+    # ✅ AMAN: Parameter placeholder (?)
+    query = "SELECT * FROM users WHERE username = ? AND password_hash = ?"
+    cursor.execute(query, (username, password))
+    result = cursor.fetchone()
+    conn.close()
+    return result</code></pre>
+
+      <h3>Menggunakan ORM (SQLAlchemy)</h3>
+      <pre><code class="language-python">"""SQL Injection prevention menggunakan SQLAlchemy ORM — metode teraman."""
+from sqlalchemy import create_engine, Column, Integer, String, select
+from sqlalchemy.orm import declarative_base, Session
+
+Base = declarative_base()
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String(50), unique=True, nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(20), default="user")
+
+
+class UserRepository:
+    """Repository yang AMAN dari SQL injection."""
+
+    def __init__(self, session: Session):
+        self.session = session
+
+    def find_by_username(self, username: str):
+        """✅ Aman — ORM menggunakan parameterized query secara otomatis."""
+        return self.session.execute(
+            select(User).where(User.username == username)
+        ).scalar_one_or_none()
+
+    def search_users(self, search_term: str):
+        """✅ Aman — menggunakan bind parameter."""
+        return self.session.execute(
+            select(User).where(User.username.ilike(f"%{search_term}%"))
+        ).scalars().all()
+
+    def find_by_role(self, role: str):
+        """✅ Aman — parameter di-bind otomatis."""
+        return self.session.execute(
+            select(User).where(User.role == role)
+        ).scalars().all()
+
+    def update_user(self, user_id: int, **kwargs):
+        """✅ Aman — menggunakan ORM update method."""
+        user = self.session.get(User, user_id)
+        if user:
+            for key, value in kwargs.items():
+                if hasattr(user, key) and key not in ("id", "password_hash"):
+                    setattr(user, key, value)
+            self.session.commit()
+        return user
+
+
+# Contoh penggunaan yang AMAN
+# engine = create_engine("sqlite:///app.db")
+# with Session(engine) as session:
+#     repo = UserRepository(session)
+#     user = repo.find_by_username("budi")  # ✅ Aman dari injection
+#     users = repo.search_users("admin")     # ✅ Aman dari injection</code></pre>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Hindari Ini</div>
+        <ul>
+          <li>❌ <code>f"SELECT * FROM users WHERE id={user_id}"</code></li>
+          <li>❌ <code>"SELECT * FROM users WHERE name='%s'" % name</code></li>
+          <li>❌ <code>"SELECT * FROM users WHERE name='" + name + "'"</code></li>
+          <li>✅ <code>"SELECT * FROM users WHERE id=?", (user_id,)</code></li>
+          <li>✅ <code>select(User).where(User.id == user_id)</code></li>
+        </ul>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: XSS & CSRF          -->
+      <!-- ============================== -->
+      <h2 id="xss">5. Mencegah XSS &amp; CSRF</h2>
+
+      <p><strong>XSS (Cross-Site Scripting)</strong> terjadi ketika attacker menyisipkan script berbahaya ke halaman web yang dilihat oleh user lain. <strong>CSRF (Cross-Site Request Forgery)</strong> memaksa user melakukan aksi tanpa sepengetahuan mereka.</p>
+
+      <pre><code class="language-python">"""Mencegah XSS dan CSRF di Python web application."""
+import html
+import re
+from markupsafe import escape, Markup
+
+
+# ===== XSS Prevention =====
+
+# ❌ VULNERABLE — menampilkan user input tanpa escaping
+def render_comment_vulnerable(user_comment: str) -> str:
+    """JANGAN LAKUKAN INI! XSS Vulnerable."""
+    return f"&lt;div class='comment'&gt;{user_comment}&lt;/div&gt;"
+    # Jika user_comment = "&lt;script&gt;alert('hacked')&lt;/script&gt;"
+    # Script akan dieksekusi di browser user lain!
+
+
+# ✅ SECURE — escape HTML entities
+def render_comment_secure(user_comment: str) -> str:
+    """Escape HTML entities untuk mencegah XSS."""
+    escaped = html.escape(user_comment)
+    return f"&lt;div class='comment'&gt;{escaped}&lt;/div&gt;"
+    # &lt;script&gt; akan ditampilkan sebagai teks biasa, bukan dieksekusi
+
+
+# ✅ SECURE — menggunakan markupsafe (library yang lebih robust)
+def render_comment_markup(user_comment: str) -> str:
+    """Menggunakan markupsafe.escape — lebih robust."""
+    safe_comment = escape(user_comment)
+    return Markup(f"&lt;div class='comment'&gt;{safe_comment}&lt;/div&gt;")
+
+
+# ✅ SECURE — Whitelist allowed HTML tags (untuk rich text)
+def sanitize_html(user_html: str, allowed_tags: set = None) -> str:
+    """Sanitasi HTML — hapus tag berbahaya, pertahankan yang aman."""
+    if allowed_tags is None:
+        allowed_tags = {"b", "i", "u", "em", "strong", "p", "br", "ul", "ol", "li"}
+
+    # Hapus script dan style tags beserta isinya
+    user_html = re.sub(r'&lt;script[^&gt;]*&gt;.*?&lt;/script&gt;', '', user_html, flags=re.DOTALL)
+    user_html = re.sub(r'&lt;style[^&gt;]*&gt;.*?&lt;/style&gt;', '', user_html, flags=re.DOTALL)
+
+    # Hapus event handlers (onclick, onerror, dll)
+    user_html = re.sub(r'\s*on\w+\s*=\s*["\'][^"\']*["\']', '', user_html)
+
+    # Hapus javascript: URLs
+    user_html = re.sub(r'javascript:', '', user_html, flags=re.IGNORECASE)
+
+    # Hapus tag yang tidak diizinkan
+    def strip_tag(match):
+        tag = match.group(1).lower().split()[0]
+        if tag in allowed_tags:
+            return match.group(0)
+        return ''
+
+    user_html = re.sub(r'&lt;/?(\w+)[^&gt;]*&gt;', strip_tag, user_html)
+
+    return user_html
+
+
+# Contoh XSS payloads yang dicegah
+test_inputs = [
+    "&lt;script&gt;alert('XSS')&lt;/script&gt;",
+    "&lt;img src=x onerror=alert('XSS')&gt;",
+    "&lt;a href='javascript:alert(1)'&gt;Click&lt;/a&gt;",
+    "&lt;div onclick='steal_cookies()'&gt;Click me&lt;/div&gt;",
+    "Normal text without HTML",
+]
+
+print("=== XSS Prevention Demo ===")
+for test in test_inputs:
+    safe = render_comment_secure(test)
+    print(f"  Input : {test[:60]}...")
+    print(f"  Output: {safe[:60]}...")
+    print()
+
+
+# ===== CSRF Prevention =====
+"""CSRF prevention menggunakan token."""
+import secrets
+import hmac
+import hashlib
+import time
+
+
+class CSRFProtection:
+    """CSRF token generation dan validation."""
+
+    def __init__(self, secret_key: str):
+        self.secret_key = secret_key.encode()
+        self._tokens: dict[str, float] = {}
+
+    def generate_token(self, session_id: str) -> str:
+        """Generate CSRF token untuk session."""
+        # Token = random + HMAC(session_id + timestamp)
+        timestamp = str(int(time.time()))
+        random_part = secrets.token_hex(16)
+
+        message = f"{session_id}:{timestamp}:{random_part}"
+        signature = hmac.new(
+            self.secret_key, message.encode(), hashlib.sha256
+        ).hexdigest()
+
+        token = f"{random_part}.{timestamp}.{signature}"
+        self._tokens[token] = time.time()
+        return token
+
+    def validate_token(self, token: str, session_id: str, max_age: int = 3600) -> bool:
+        """Validasi CSRF token."""
+        try:
+            parts = token.split(".")
+            if len(parts) != 3:
+                return False
+
+            random_part, timestamp, signature = parts
+
+            # Cek expiry
+            if time.time() - int(timestamp) > max_age:
+                return False
+
+            # Cek HMAC
+            message = f"{session_id}:{timestamp}:{random_part}"
+            expected = hmac.new(
+                self.secret_key, message.encode(), hashlib.sha256
+            ).hexdigest()
+
+            return hmac.compare_digest(signature, expected)
+        except Exception:
+            return False
+
+
+# Contoh penggunaan
+csrf = CSRFProtection("my-secret-key-very-long")
+
+# Generate token
+token = csrf.generate_token("session_abc123")
+print(f"✅ CSRF Token: {token}")
+
+# Validate token
+is_valid = csrf.validate_token(token, "session_abc123")
+print(f"✅ Token valid: {is_valid}")
+
+# Coba manipulasi
+is_valid = csrf.validate_token("fake.token.here", "session_abc123")
+print(f"❌ Fake token valid: {is_valid}")</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Secrets Management   -->
+      <!-- ============================== -->
+      <h2 id="secrets">6. Secrets Management</h2>
+
+      <p>Menyimpan API keys, database credentials, dan secrets lainnya dengan aman adalah kunci keamanan aplikasi. Jangan pernah hardcode secrets di source code!</p>
+
+      <h3>❌ Cara yang Salah</h3>
+      <pre><code class="language-python"># ❌❌❌ JANGAN PERNAH LAKUKAN INI ❌❌❌
+
+# Hardcoded secrets di source code
+DATABASE_URL = "postgresql://admin:P@ssw0rd@db.example.com:5432/prod"
+API_KEY = "sk-1234567890abcdef"
+SECRET_KEY = "my-super-secret-key-12345"
+AWS_SECRET = "AKIAIOSFODNN7EXAMPLE"
+
+# Secrets di Git repository
+# Sekali di-commit, selamanya ada di history Git!</code></pre>
+
+      <h3>✅ Cara yang Benar: Environment Variables</h3>
+      <pre><code class="language-python">"""Secrets management menggunakan environment variables."""
+import os
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass(frozen=True)
+class AppConfig:
+    """Konfigurasi aplikasi dari environment variables."""
+
+    # Database
+    database_url: str
+    db_pool_size: int = 10
+
+    # API
+    api_key: str
+    api_secret: str
+
+    # Security
+    secret_key: str
+    jwt_secret: str
+
+    # External Services
+    redis_url: str = "redis://localhost:6379"
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_user: Optional[str] = None
+    smtp_pass: Optional[str] = None
+
+    # App
+    debug: bool = False
+    environment: str = "production"
+
+    @classmethod
+    def from_env(cls) -> "AppConfig":
+        """Load konfigurasi dari environment variables."""
+        missing = []
+        required = ["DATABASE_URL", "API_KEY", "API_SECRET", "SECRET_KEY", "JWT_SECRET"]
+
+        for var in required:
+            if not os.environ.get(var):
+                missing.append(var)
+
+        if missing:
+            raise EnvironmentError(
+                f"Environment variables yang hilang: {', '.join(missing)}\n"
+                f"Pastikan sudah di-set di .env atau sistem."
+            )
+
+        return cls(
+            database_url=os.environ["DATABASE_URL"],
+            db_pool_size=int(os.environ.get("DB_POOL_SIZE", "10")),
+            api_key=os.environ["API_KEY"],
+            api_secret=os.environ["API_SECRET"],
+            secret_key=os.environ["SECRET_KEY"],
+            jwt_secret=os.environ["JWT_SECRET"],
+            redis_url=os.environ.get("REDIS_URL", "redis://localhost:6379"),
+            smtp_host=os.environ.get("SMTP_HOST", "smtp.gmail.com"),
+            smtp_port=int(os.environ.get("SMTP_PORT", "587")),
+            smtp_user=os.environ.get("SMTP_USER"),
+            smtp_pass=os.environ.get("SMTP_PASS"),
+            debug=os.environ.get("DEBUG", "false").lower() == "true",
+            environment=os.environ.get("ENVIRONMENT", "production"),
+        )
+
+
+# .env file (JANGAN commit ke Git!)
+"""
+DATABASE_URL=postgresql://user:pass@localhost:5432/mydb
+API_KEY=sk-your-api-key
+API_SECRET=your-api-secret
+SECRET_KEY=generate-a-random-64-char-string
+JWT_SECRET=generate-another-random-string
+DEBUG=false
+ENVIRONMENT=production
+"""
+
+# .gitignore (PASTIKAN ada ini!)
+# .env
+# .env.local
+# .env.production
+# *.pem
+# *.key</code></pre>
+
+      <h3>Menggunakan python-dotenv</h3>
+      <pre><code class="language-python">"""Menggunakan python-dotenv untuk development."""
+# pip install python-dotenv
+
+from dotenv import load_dotenv
+import os
+
+# Load .env file (hanya untuk development)
+load_dotenv()  # Default: cari .env di direktori saat ini
+
+# Akses environment variables
+database_url = os.getenv("DATABASE_URL")
+api_key = os.getenv("API_KEY")
+
+if not database_url:
+    raise ValueError("DATABASE_URL belum di-set")
+
+# Best practice: buat .env.example (tanpa nilai asli) untuk template
+"""
+# .env.example (COMMIT ke Git sebagai template)
+DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+API_KEY=your-api-key-here
+SECRET_KEY=generate-random-key-here
+DEBUG=true
+ENVIRONMENT=development
+"""</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Authentication       -->
+      <!-- ============================== -->
+      <h2 id="authentication">7. Authentication &amp; Authorization</h2>
+
+      <p>Mengimplementasikan authentication dan authorization yang aman sangat kritis. Gunakan library yang sudah teruji seperti <code>bcrypt</code> atau <code>argon2</code> untuk hashing password.</p>
+
+      <pre><code class="language-python">"""Authentication yang aman — password hashing, JWT, rate limiting."""
+import hashlib
+import hmac
+import secrets
+import time
+from dataclasses import dataclass, field
+from typing import Optional
+
+
+# ===== Password Hashing dengan hashlib (built-in) =====
+# NOTE: Untuk production, gunakan bcrypt atau argon2-cffi
+# pip install argon2-cffi
+
+import hashlib
+import os
+
+
+def hash_password_salt(password: str) -> str:
+    """Hash password dengan salt menggunakan hashlib (basic)."""
+    salt = os.urandom(32)  # 32-byte random salt
+    key = hashlib.pbkdf2_hmac(
+        'sha256',
+        password.encode('utf-8'),
+        salt,
+        iterations=600000,  # OWASP recommends 600,000 for PBKDF2-SHA256
+    )
+    # Simpan salt + key
+    return salt.hex() + ":" + key.hex()
+
+
+def verify_password(stored_hash: str, password: str) -> bool:
+    """Verifikasi password terhadap hash yang tersimpan."""
+    salt_hex, key_hex = stored_hash.split(":")
+    salt = bytes.fromhex(salt_hex)
+
+    new_key = hashlib.pbkdf2_hmac(
+        'sha256',
+        password.encode('utf-8'),
+        salt,
+        iterations=600000,
+    )
+    return hmac.compare_digest(key_hex, new_key.hex())
+
+
+# Contoh
+hashed = hash_password_salt("MySecureP@ss123")
+print(f"Hash: {hashed[:50]}...")
+print(f"Verify correct: {verify_password(hashed, 'MySecureP@ss123')}")  # True
+print(f"Verify wrong  : {verify_password(hashed, 'wrongpassword')}")    # False
+
+
+# ===== Argon2 — Rekomendasi Terbaik =====
+# pip install argon2-cffi
+try:
+    from argon2 import PasswordHasher
+    from argon2.exceptions import VerifyMismatchError
+
+    ph = PasswordHasher(
+        time_cost=3,        # Iterations
+        memory_cost=65536,  # 64 MB
+        parallelism=4,      # Threads
+    )
+
+    # Hash
+    hash_argon = ph.hash("MySecureP@ss123")
+    print(f"\nArgon2 hash: {hash_argon[:60]}...")
+
+    # Verify
+    try:
+        ph.verify(hash_argon, "MySecureP@ss123")
+        print("Argon2 verify: ✅ Benar")
+    except VerifyMismatchError:
+        print("Argon2 verify: ❌ Salah")
+
+    # Cek apakah perlu rehash (jika parameter berubah)
+    if ph.check_needs_rehash(hash_argon):
+        print("⚠️ Perlu rehash dengan parameter terbaru")
+except ImportError:
+    print("Argon2 tidak terinstall. Gunakan: pip install argon2-cffi")
+
+
+# ===== JWT (JSON Web Token) =====
+# pip install pyjwt
+try:
+    import jwt
+    from datetime import datetime, timedelta
+
+    SECRET = "your-jwt-secret-key-very-long-and-random"
+
+    def create_token(user_id: int, role: str, expires_hours: int = 24) -> str:
+        """Buat JWT token."""
+        payload = {
+            "user_id": user_id,
+            "role": role,
+            "exp": datetime.utcnow() + timedelta(hours=expires_hours),
+            "iat": datetime.utcnow(),
+            "jti": secrets.token_hex(16),  # Unique token ID
+        }
+        return jwt.encode(payload, SECRET, algorithm="HS256")
+
+    def verify_token(token: str) -> Optional[dict]:
+        """Verifikasi JWT token."""
+        try:
+            payload = jwt.decode(token, SECRET, algorithms=["HS256"])
+            return payload
+        except jwt.ExpiredSignatureError:
+            print("❌ Token expired")
+        except jwt.InvalidTokenError as e:
+            print(f"❌ Token invalid: {e}")
+        return None
+
+    # Contoh
+    token = create_token(user_id=42, role="admin")
+    print(f"\nJWT Token: {token[:50]}...")
+
+    payload = verify_token(token)
+    if payload:
+        print(f"✅ User ID: {payload['user_id']}, Role: {payload['role']}")
+
+except ImportError:
+    print("PyJWT tidak terinstall. Gunakan: pip install pyjwt")
+
+
+# ===== Rate Limiting =====
+class RateLimiter:
+    """Simple rate limiter untuk mencegah brute force."""
+
+    def __init__(self, max_attempts: int = 5, window_seconds: int = 300):
+        self.max_attempts = max_attempts
+        self.window_seconds = window_seconds
+        self._attempts: dict[str, list[float]] = {}
+
+    def is_allowed(self, identifier: str) -> bool:
+        """Cek apakah request diizinkan."""
+        now = time.time()
+        window_start = now - self.window_seconds
+
+        # Bersihkan attempt lama
+        if identifier in self._attempts:
+            self._attempts[identifier] = [
+                t for t in self._attempts[identifier] if t > window_start
+            ]
+        else:
+            self._attempts[identifier] = []
+
+        if len(self._attempts[identifier]) >= self.max_attempts:
+            return False
+
+        self._attempts[identifier].append(now)
+        return True
+
+    def get_remaining_attempts(self, identifier: str) -> int:
+        """Sisa attempt yang diizinkan."""
+        now = time.time()
+        window_start = now - self.window_seconds
+        recent = [t for t in self._attempts.get(identifier, []) if t > window_start]
+        return max(0, self.max_attempts - len(recent))
+
+
+# Contoh rate limiting untuk login
+limiter = RateLimiter(max_attempts=5, window_seconds=60)
+
+for i in range(7):
+    ip = "192.168.1.1"
+    allowed = limiter.is_allowed(ip)
+    remaining = limiter.get_remaining_attempts(ip)
+    status = "✅ Allowed" if allowed else "❌ Blocked"
+    print(f"  Attempt {i+1}: {status} (remaining: {remaining})")</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Kriptografi          -->
+      <!-- ============================== -->
+      <h2 id="cryptography">8. Kriptografi di Python</h2>
+
+      <pre><code class="language-python">"""Kriptografi dasar di Python — hashing, encryption, signing."""
+import hashlib
+import hmac
+import secrets
+import base64
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+import os
+
+
+# ===== 1. Hashing =====
+print("=== Hashing ===")
+
+data = "Hello, World! Ini data sensitif."
+
+# SHA-256 (recommended untuk checksum)
+sha256 = hashlib.sha256(data.encode()).hexdigest()
+print(f"SHA-256: {sha256}")
+
+# SHA-512 (lebih kuat)
+sha512 = hashlib.sha512(data.encode()).hexdigest()
+print(f"SHA-512: {sha512[:64]}...")
+
+# ✅ HMAC — Hash dengan secret key (untuk signing)
+key = b"my-secret-key"
+signature = hmac.new(key, data.encode(), hashlib.sha256).hexdigest()
+print(f"HMAC-SHA256: {signature}")
+
+# Verifikasi signature
+is_valid = hmac.compare_digest(
+    signature,
+    hmac.new(key, data.encode(), hashlib.sha256).hexdigest()
+)
+print(f"Signature valid: {is_valid}")
+
+
+# ===== 2. Simmetric Encryption dengan Fernet =====
+print("\n=== Fernet Encryption ===")
+
+# Generate key
+key = Fernet.generate_key()
+cipher = Fernet(key)
+
+# Encrypt
+plaintext = b"Database password: P@ssw0rd123!"
+encrypted = cipher.encrypt(plaintext)
+print(f"Encrypted: {encrypted[:50]}...")
+
+# Decrypt
+decrypted = cipher.decrypt(encrypted)
+print(f"Decrypted: {decrypted.decode()}")
+
+# Encrypt dengan expiry
+import time
+token = cipher.encrypt_at_time(
+    b"Secret message",
+    current_time=int(time.time())
+)
+# Decrypt — masih valid
+try:
+    result = cipher.decrypt_at_time(token, ttl=3600, current_time=int(time.time()))
+    print(f"Decrypted (with TTL): {result.decode()}")
+except Exception as e:
+    print(f"Token expired: {e}")
+
+
+# ===== 3. AES-GCM (Authenticated Encryption) =====
+print("\n=== AES-256-GCM Encryption ===")
+
+# Generate key dan nonce
+key = AESGCM.generate_key(bit_length=256)
+nonce = os.urandom(12)  # 96-bit nonce
+
+aesgcm = AESGCM(key)
+
+# Encrypt dengan associated data (AAD)
+plaintext = b"Sensitive data yang perlu di-encrypt"
+associated_data = b"user_id:42"  # Metadata yang tidak di-encrypt tapi di-authenticate
+
+ciphertext = aesgcm.encrypt(nonce, plaintext, associated_data)
+print(f"Ciphertext: {ciphertext[:50]}...")
+
+# Decrypt dan verifikasi AAD
+try:
+    decrypted = aesgcm.decrypt(nonce, ciphertext, associated_data)
+    print(f"Decrypted: {decrypted.decode()}")
+except Exception:
+    print("Decryption failed — data dimanipulasi!")
+
+
+# ===== 4. Secret Generation =====
+print("\n=== Secure Random Generation ===")
+
+# Token untuk API key
+api_key = secrets.token_urlsafe(32)
+print(f"API Key: {api_key}")
+
+# Token hex untuk CSRF
+csrf_token = secrets.token_hex(32)
+print(f"CSRF Token: {csrf_token}")
+
+# Secure random number
+otp = secrets.randbelow(1000000)
+print(f"OTP: {otp:06d}")
+
+# Generate password
+import string
+alphabet = string.ascii_letters + string.digits + string.punctuation
+password = ''.join(secrets.choice(alphabet) for _ in range(20))
+print(f"Random Password: {password}")</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: File Security        -->
+      <!-- ============================== -->
+      <h2 id="file-security">9. Keamanan File &amp; Path Traversal</h2>
+
+      <p><strong>Path traversal</strong> terjadi ketika attacker memanipulasi path file untuk mengakses file di luar direktori yang diizinkan.</p>
+
+      <pre><code class="language-python">"""Keamanan file — mencegah path traversal dan unsafe operations."""
+import os
+from pathlib import Path
+
+
+# ❌ VULNERABLE — Path Traversal
+def read_file_vulnerable(filename: str) -> str:
+    """JANGAN LAKUKAN INI! Path Traversal Vulnerable."""
+    # Jika filename = "../../etc/passwd" → attacker bisa baca /etc/passwd!
+    with open(filename, "r") as f:
+        return f.read()
+
+
+# ✅ SECURE — Path validation
+def read_file_secure(filename: str, base_dir: str = "./uploads") -> str:
+    """Baca file dengan validasi path yang aman."""
+    base = Path(base_dir).resolve()
+    target = (base / filename).resolve()
+
+    # Pastikan target berada di dalam base directory
+    if not str(target).startswith(str(base)):
+        raise PermissionError(
+            f"Path traversal detected! {filename} berada di luar direktori yang diizinkan"
+        )
+
+    if not target.exists():
+        raise FileNotFoundError(f"File tidak ditemukan: {filename}")
+
+    if not target.is_file():
+        raise ValueError(f"Bukan file: {filename}")
+
+    with open(target, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+# ✅ SECURE — Filename sanitization
+def sanitize_filename(filename: str) -> str:
+    """Sanitasi filename untuk mencegah path traversal dan karakter berbahaya."""
+    # Hapus path components
+    filename = os.path.basename(filename)
+
+    # Hapus karakter berbahaya
+    allowed = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_")
+    sanitized = ''.join(ch for ch in filename if ch in allowed)
+
+    # Hindari hidden files
+    sanitized = sanitized.lstrip(".")
+
+    # Hindari reserved names di Windows
+    reserved = {"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "LPT1", "LPT2"}
+    name_part = sanitized.split(".")[0].upper()
+    if name_part in reserved:
+        sanitized = f"file_{sanitized}"
+
+    # Default name jika kosong
+    if not sanitized:
+        sanitized = "unnamed_file"
+
+    return sanitized
+
+
+# Contoh test
+test_filenames = [
+    "../../etc/passwd",
+    "..\\..\\windows\\system32\\config\\sam",
+    "normal_file.txt",
+    "file<script>alert(1)</script>.txt",
+    ".hidden_file",
+    "CON.txt",
+    "",
+]
+
+print("=== Filename Sanitization ===")
+for test in test_filenames:
+    sanitized = sanitize_filename(test)
+    print(f"  '{test}' → '{sanitized}'")
+
+
+# ✅ SECURE — File upload validation
+def validate_upload(
+    file_content: bytes,
+    filename: str,
+    max_size_mb: int = 10,
+    allowed_extensions: set = None,
+) -> dict:
+    """Validasi file upload yang aman."""
+    if allowed_extensions is None:
+        allowed_extensions = {".jpg", ".jpeg", ".png", ".gif", ".pdf", ".docx", ".xlsx"}
+
+    errors = []
+
+    # 1. Cek ukuran
+    size_mb = len(file_content) / (1024 * 1024)
+    if size_mb > max_size_mb:
+        errors.append(f"File terlalu besar: {size_mb:.1f}MB (maks {max_size_mb}MB)")
+
+    # 2. Cek ekstensi
+    ext = os.path.splitext(filename)[1].lower()
+    if ext not in allowed_extensions:
+        errors.append(f"Ekstensi '{ext}' tidak diizinkan. Tersedia: {allowed_extensions}")
+
+    # 3. Cek magic bytes (file signature)
+    magic_signatures = {
+        b'\xff\xd8\xff': "jpg",
+        b'\x89PNG': "png",
+        b'GIF8': "gif",
+        b'%PDF': "pdf",
+        b'PK\x03\x04': "zip/docx/xlsx",
+    }
+    detected_type = None
+    for magic, file_type in magic_signatures.items():
+        if file_content[:len(magic)] == magic:
+            detected_type = file_type
+            break
+
+    if detected_type is None:
+        errors.append("Tidak bisa mendeteksi tipe file dari content")
+
+    # 4. Cek apakah ekstensi cocok dengan content
+    # (mencegah file .jpg yang sebenarnya .exe)
+    if detected_type and ext:
+        ext_clean = ext.lstrip(".")
+        if ext_clean not in detected_type and detected_type not in ext_clean:
+            if not (ext_clean in ("docx", "xlsx") and detected_type == "zip/docx/xlsx"):
+                errors.append(
+                    f"Ekstensi '{ext}' tidak cocok dengan tipe file terdeteksi '{detected_type}'"
+                )
+
+    return {
+        "valid": len(errors) == 0,
+        "errors": errors,
+        "sanitized_name": sanitize_filename(filename),
+        "detected_type": detected_type,
+        "size_mb": round(size_mb, 2),
+    }</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Dependency Security -->
+      <!-- ============================== -->
+      <h2 id="dependency-security">10. Dependency Security</h2>
+
+      <p>Library pihak ketiga bisa menjadi celah keamanan. Pastikan dependency Anda selalu di-update dan di-audit secara berkala.</p>
+
+      <pre><code class="language-bash"># ===== Security Audit Tools =====
+
+# 1. pip-audit — audit dependency dari PyPI Advisory Database
+pip install pip-audit
+pip-audit
+
+# Output contoh:
+# Name       ID            Fixed Versions
+# -------    ----------    --------------
+# requests   PYSEC-2023-74  >=2.31.0
+# urllib3    PYSEC-2023-217 >=2.0.7
+
+# 2. safety — cek dependency terhadap Safety DB
+pip install safety
+safety check
+
+# 3. bandit — static analysis untuk kode Python
+pip install bandit
+bandit -r src/ -ll  # Hanya level MEDIUM ke atas
+
+# Contoh output bandit:
+# Issue: [B602:subprocess_popen_with_shell_equals_true] subprocess call with shell=True
+# Severity: High
+# Location: src/utils.py:45
+
+# 4. pip-audit dalam CI/CD
+pip-audit --strict --desc --output audit-report.json --format json
+
+# 5. Semgrep — advanced static analysis
+pip install semgrep
+semgrep --config=auto src/</code></pre>
+
+      <h3>Pre-commit Hooks untuk Security</h3>
+      <pre><code class="language-yaml"># .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: ["-ll", "--recursive"]
+        additional_dependencies: ["bandit[toml]"]
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: detect-private-key
+      - id: check-added-large-files</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Security Audit      -->
+      <!-- ============================== -->
+      <h2 id="audit">11. Security Audit &amp; Tools</h2>
+
+      <h3>Security Checklist</h3>
+      <div class="info-box info">
+        <div class="info-box-title">📋 Security Checklist untuk Proyek Python</div>
+        <ul>
+          <li>✅ Semua input user divalidasi dan di-sanitasi</li>
+          <li>✅ Tidak ada <code>eval()</code>, <code>exec()</code>, atau <code>os.system()</code> pada input user</li>
+          <li>✅ Database queries menggunakan parameterized queries atau ORM</li>
+          <li>✅ Password di-hash menggunakan bcrypt/argon2 (bukan MD5/SHA1)</li>
+          <li>✅ Secrets disimpan di environment variables (bukan di source code)</li>
+          <li>✅ <code>.env</code> dan secrets ada di <code>.gitignore</code></li>
+          <li>✅ HTTPS/TLS diaktifkan untuk semua endpoint</li>
+          <li>✅ CSRF protection diaktifkan untuk semua form</li>
+          <li>✅ XSS prevention (escaping) untuk semua output HTML</li>
+          <li>✅ Rate limiting untuk login dan API endpoints</li>
+          <li>✅ Dependency di-audit secara berkala (<code>pip-audit</code>)</li>
+          <li>✅ <code>DEBUG=False</code> di production</li>
+          <li>✅ Error messages tidak menampilkan informasi sensitif</li>
+          <li>✅ Logging mencatat semua aksi keamanan penting</li>
+          <li>✅ Security headers (CSP, HSTS, X-Frame-Options) di-set</li>
+        </ul>
+      </div>
+
+      <h3>Bandit — Static Security Analysis</h3>
+      <pre><code class="language-bash"># Install bandit
+pip install bandit
+
+# Scan seluruh proyek
+bandit -r src/
+
+# Hanya tampilkan HIGH severity
+bandit -r src/ -lll
+
+# Output ke file
+bandit -r src/ -f json -o security-report.json
+
+# Skip test tertentu
+bandit -r src/ --skip B101  # Skip assert checks
+
+# Scan file spesifik
+bandit src/auth.py src/utils.py</code></pre>
+
+      <h3>Contoh Konfigurasi Bandit</h3>
+      <pre><code class="language-toml"># pyproject.toml
+[tool.bandit]
+exclude_dirs = ["tests", "venv"]
+skips = ["B101"]  # Skip assert warnings
+assert_used = ["src/exceptions.py"]</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">12. Quiz Pemahaman</h2>
+
+      <p>Uji pemahaman Anda tentang keamanan Python:</p>
+
+      <div class="quiz-container" id="quizSecurity">
+        <div class="quiz-question">
+          <h4>1. Bagaimana cara mencegah SQL Injection di Python?</h4>
+          <div class="quiz-options">
+            <label><input type="radio" name="q1" value="a"> Menggunakan f-string untuk query</label>
+            <label><input type="radio" name="q1" value="b"> Menggunakan parameterized queries atau ORM</label>
+            <label><input type="radio" name="q1" value="c"> Menggunakan % formatting untuk query</label>
+            <label><input type="radio" name="q1" value="d"> Menggunakan string concatenation</label>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h4>2. Hashing algorithm apa yang direkomendasikan untuk password?</h4>
+          <div class="quiz-options">
+            <label><input type="radio" name="q2" value="a"> MD5</label>
+            <label><input type="radio" name="q2" value="b"> SHA-1</label>
+            <label><input type="radio" name="q2" value="c"> Argon2 atau bcrypt</label>
+            <label><input type="radio" name="q2" value="d"> Base64</label>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h4>3. Di mana sebaiknya menyimpan API keys dan database password?</h4>
+          <div class="quiz-options">
+            <label><input type="radio" name="q3" value="a"> Di source code Python</label>
+            <label><input type="radio" name="q3" value="b"> Di file config yang di-commit ke Git</label>
+            <label><input type="radio" name="q3" value="c"> Di environment variables atau secrets manager</label>
+            <label><input type="radio" name="q3" value="d"> Di comment di atas kode</label>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h4>4. Apa yang dilakukan fungsi <code>html.escape()</code>?</h4>
+          <div class="quiz-options">
+            <label><input type="radio" name="q4" value="a"> Menghapus semua HTML tags</label>
+            <label><input type="radio" name="q4" value="b"> Mengkonversi karakter HTML entities untuk mencegah XSS</label>
+            <label><input type="radio" name="q4" value="c"> Meng-encode data ke Base64</label>
+            <label><input type="radio" name="q4" value="d"> Menghapus script tags saja</label>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h4>5. Tool apa yang digunakan untuk static security analysis di Python?</h4>
+          <div class="quiz-options">
+            <label><input type="radio" name="q5" value="a"> pytest</label>
+            <label><input type="radio" name="q5" value="b"> black</label>
+            <label><input type="radio" name="q5" value="c"> bandit</label>
+            <label><input type="radio" name="q5" value="d"> mypy</label>
+          </div>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz('quizSecurity', ['b','c','c','b','c'])">✅ Cek Jawaban</button>
+        <div class="quiz-result" id="quizSecurity-result"></div>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== FOOTER ========== -->

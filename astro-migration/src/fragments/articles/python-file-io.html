@@ -1,0 +1,973 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">File I/O</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>Python File I/O: Baca Tulis File</h1>
+      <p class="article-subtitle">Tutorial lengkap Python File I/O — open, read, write, CSV, JSON, pathlib, context manager, dan praktik terbaik untuk bekerja dengan berbagai format file</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan File I/O</a></li>
+          <li><a href="#membaca-file">Membaca File Teks</a></li>
+          <li><a href="#menulis-file">Menulis File Teks</a></li>
+          <li><a href="#mode-file">Mode File</a></li>
+          <li><a href="#context-manager">Context Manager (with statement)</a></li>
+          <li><a href="#csv">Bekerja dengan CSV</a></li>
+          <li><a href="#json">Bekerja dengan JSON</a></li>
+          <li><a href="#pathlib">Pathlib — Modern Path Handling</a></li>
+          <li><a href="#os-module">Modul os dan shutil</a></li>
+          <li><a href="#binary-file">File Binary</a></li>
+          <li><a href="#praktik">Proyek Praktik</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan File I/O</h2>
+
+      <p><strong>File I/O</strong> (Input/Output) adalah kemampuan untuk membaca dan menulis data ke file. Ini adalah keterampilan fundamental dalam pemrograman — mulai dari menyimpan konfigurasi, membaca data CSV, log aplikasi, hingga berkomunikasi dengan sistem lain.</p>
+
+      <p>Python menyediakan fungsi built-in <code>open()</code> dan modul-modul seperti <code>csv</code>, <code>json</code>, dan <code>pathlib</code> untuk menangani berbagai jenis file.</p>
+
+      <h3>Pipeline File I/O</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: File I/O Pipeline di Python</div>
+<pre class="mermaid">
+flowchart TD
+    N0["read(") → baca semua readline(") → baca per baris..."]
+    N1["File Descriptor Mode: r/w/a/rb/wb Encoding: utf..."]
+    N1 --> N0
+</pre>
+    </div>
+      </div>
+
+      <h3>Format File yang Didukung</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Format</th>
+            <th>Modul</th>
+            <th>Penggunaan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Teks (.txt)</td><td>Built-in <code>open()</code></td><td>Konfigurasi, log, catatan</td></tr>
+          <tr><td>CSV (.csv)</td><td><code>csv</code></td><td>Data tabular, spreadsheet</td></tr>
+          <tr><td>JSON (.json)</td><td><code>json</code></td><td>API, konfigurasi, pertukaran data</td></tr>
+          <tr><td>XML (.xml)</td><td><code>xml.etree</code></td><td>Dokumen terstruktur, SOAP</td></tr>
+          <tr><td>Binary (.bin)</td><td>Built-in + <code>struct</code></td><td>Gambar, audio, file terkompresi</td></tr>
+          <tr><td>Excel (.xlsx)</td><td><code>openpyxl</code></td><td>Spreadsheet Excel</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Membaca File         -->
+      <!-- ============================== -->
+      <h2 id="membaca-file">2. Membaca File Teks</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Membaca File</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Cara 1: read() — baca seluruh isi file =====
+f = open("data.txt", "r", encoding="utf-8")
+isi = f.read()
+print(isi)
+f.close()  # WAJIB ditutup!
+
+# ===== Cara 2: read(n) — baca n karakter =====
+f = open("data.txt", "r")
+first_100 = f.read(100)  # 100 karakter pertama
+print(first_100)
+f.close()
+
+# ===== Cara 3: readline() — baca per baris =====
+f = open("data.txt", "r")
+baris1 = f.readline()  # Baris pertama
+baris2 = f.readline()  # Baris kedua
+print(baris1.strip())  # strip() hapus \n di akhir
+print(baris2.strip())
+f.close()
+
+# ===== Cara 4: readlines() — semua baris sebagai list =====
+f = open("data.txt", "r")
+semua_baris = f.readlines()  # ['baris1\n', 'baris2\n', ...]
+for i, baris in enumerate(semua_baris, 1):
+    print(f"Baris {i}: {baris.strip()}")
+f.close()
+
+# ===== Cara 5: Iterasi langsung (PALING EFISIEN) =====
+with open("data.txt", "r", encoding="utf-8") as f:
+    for baris in f:  # Memory-efficient untuk file besar
+        print(baris.strip())
+</code></pre>
+      </div>
+
+      <h3>Encoding</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Encoding</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Selalu tentukan encoding untuk menghindari error
+# Encoding umum:
+# utf-8    → Standar universal, mendukung semua karakter (termasuk Indonesia)
+# latin-1  → Western European
+# ascii    → Hanya karakter ASCII dasar
+
+# UTF-8 (direkomendasikan)
+with open("data_indonesia.txt", "r", encoding="utf-8") as f:
+    print(f.read())
+
+# Jika encoding tidak diketahui, coba deteksi:
+# pip install chardet
+import chardet
+
+with open("mystery_file.txt", "rb") as f:
+    raw = f.read()
+    result = chardet.detect(raw)
+    print(result)  # {'encoding': 'utf-8', 'confidence': 0.99, ...}
+
+# Decode dengan encoding yang terdeteksi
+teks = raw.decode(result['encoding'])
+print(teks)
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Menulis File         -->
+      <!-- ============================== -->
+      <h2 id="menulis-file">3. Menulis File Teks</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Menulis File</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Mode "w" — Write (OVERWRITE / TIMPA isi lama!) =====
+with open("output.txt", "w", encoding="utf-8") as f:
+    f.write("Baris pertama\n")
+    f.write("Baris kedua\n")
+    f.write("Baris ketiga\n")
+
+# ===== Mode "a" — Append (TAMBAH di akhir) =====
+with open("log.txt", "a", encoding="utf-8") as f:
+    from datetime import datetime
+    f.write(f"[{datetime.now()}] Aplikasi dimulai\n")
+    f.write(f"[{datetime.now()}] Koneksi database berhasil\n")
+
+# ===== writelines() — tulis list of strings =====
+baris = [
+    "Nama: Budi Santoso\n",
+    "Umur: 25\n",
+    "Kota: Jakarta\n",
+    "Hobi: Programming\n"
+]
+with open("profil.txt", "w", encoding="utf-8") as f:
+    f.writelines(baris)
+
+# ===== Menulis dengan print() ke file =====
+with open("laporan.txt", "w", encoding="utf-8") as f:
+    print("=== Laporan Penjualan ===", file=f)
+    print(f"Total: Rp 15,000,000", file=f)
+    print(f"Tanggal: 2024-06-26", file=f)
+    # print() otomatis tambah newline
+
+# ===== Penting: Beda "w" dan "a" =====
+# "w" → HAPUS semua isi lama, tulis baru
+# "a" → TAMBAH di akhir file, isi lama tetap ada
+# ⚠️ Salah pakai "w" bisa menghapus data penting!
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Hati-hati dengan Mode "w"!</div>
+        <p>Mode <code>"w"</code> akan <strong>menghapus seluruh isi file</strong> sebelum menulis. Jika Anda ingin menambah data ke file yang sudah ada, gunakan mode <code>"a"</code> (append). Selalu pastikan mode yang benar sebelum menulis!</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Mode File            -->
+      <!-- ============================== -->
+      <h2 id="mode-file">4. Mode File</h2>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>Keterangan</th>
+            <th>Membuat Baru?</th>
+            <th>Timpa Isi?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>"r"</code></td><td>Read (baca)</td><td>❌ (error jika tidak ada)</td><td>Tidak</td></tr>
+          <tr><td><code>"w"</code></td><td>Write (tulis)</td><td>✅</td><td>Ya, hapus semua</td></tr>
+          <tr><td><code>"a"</code></td><td>Append (tambah)</td><td>✅</td><td>Tidak, tambah di akhir</td></tr>
+          <tr><td><code>"x"</code></td><td>Create (buat baru)</td><td>✅</td><td>Error jika sudah ada</td></tr>
+          <tr><td><code>"r+"</code></td><td>Read + Write</td><td>❌</td><td>Tidak (overwrite sebagian)</td></tr>
+          <tr><td><code>"w+"</code></td><td>Write + Read</td><td>✅</td><td>Ya, hapus semua</td></tr>
+          <tr><td><code>"rb"</code></td><td>Read Binary</td><td>❌</td><td>Binary mode</td></tr>
+          <tr><td><code>"wb"</code></td><td>Write Binary</td><td>✅</td><td>Ya, hapus semua (binary)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Mode File</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Mode "x" — Create (error jika sudah ada)
+try:
+    with open("file_baru.txt", "x", encoding="utf-8") as f:
+        f.write("Ini file baru!\n")
+    print("File berhasil dibuat!")
+except FileExistsError:
+    print("File sudah ada! Tidak ditimpa.")
+
+# Mode "r+" — Read + Write (posisi pointer bisa diatur)
+with open("data.txt", "r+", encoding="utf-8") as f:
+    isi = f.read()       # Baca semua
+    f.write("\nBaris baru ditambahkan")  # Tulis di akhir
+
+# Pointer position
+with open("data.txt", "r", encoding="utf-8") as f:
+    print(f.tell())      # Posisi pointer: 0
+    f.read(10)
+    print(f.tell())      # Posisi pointer: 10
+    f.seek(0)            # Kembali ke awal
+    print(f.tell())      # Posisi pointer: 0
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Context Manager      -->
+      <!-- ============================== -->
+      <h2 id="context-manager">5. Context Manager (with statement)</h2>
+
+      <p><strong>Context manager</strong> dengan <code>with</code> adalah cara terbaik untuk bekerja dengan file. File otomatis ditutup bahkan jika terjadi error di dalam blok.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Context Manager</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ❌ TANPA context manager — rawan resource leak
+f = open("data.txt", "r")
+try:
+    data = f.read()
+    # Jika error di sini, file tidak tertutup!
+    proses(data)
+finally:
+    f.close()  # Harus manual
+
+# ✅ DENGAN context manager — auto-close, aman
+with open("data.txt", "r", encoding="utf-8") as f:
+    data = f.read()
+    # Jika error sekalipun, file tetap ditutup otomatis!
+    proses(data)
+# f sudah tertutup di sini
+
+# Multiple context manager sekaligus
+with open("input.txt", "r") as src, open("output.txt", "w") as dst:
+    for baris in src:
+        dst.write(baris.upper())
+
+# Context manager untuk resource lain
+import sqlite3
+with sqlite3.connect("db.sqlite") as conn:
+    cursor = conn.execute("SELECT * FROM users")
+    # Koneksi otomatis ditutup
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Selalu gunakan <code>with open()</code> sebagai context manager. Ini memastikan file ditutup otomatis bahkan jika terjadi exception. Tidak perlu lagi menulis <code>f.close()</code> secara manual!</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: CSV                  -->
+      <!-- ============================== -->
+      <h2 id="csv">6. Bekerja dengan CSV</h2>
+
+      <p><strong>CSV</strong> (Comma-Separated Values) adalah format paling umum untuk pertukaran data tabular. Python menyediakan modul <code>csv</code> built-in untuk membaca dan menulis CSV.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — CSV</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import csv
+
+# ===== Membaca CSV =====
+with open("karyawan.csv", "r", encoding="utf-8") as f:
+    reader = csv.reader(f)
+    header = next(reader)  # Baris pertama = header
+    print(f"Kolom: {header}")
+
+    for row in reader:
+        print(row)  # Setiap row adalah list
+
+# ===== Membaca CSV sebagai Dictionary =====
+with open("karyawan.csv", "r", encoding="utf-8") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        print(f"Nama: {row['Nama']}, Kota: {row['Kota']}")
+        # Akses dengan nama kolom, bukan index
+
+# ===== Menulis CSV =====
+data = [
+    ["Nama", "Umur", "Kota"],
+    ["Budi", 25, "Jakarta"],
+    ["Ani", 22, "Bandung"],
+    ["Dimas", 28, "Surabaya"]
+]
+
+with open("output.csv", "w", newline="", encoding="utf-8") as f:
+    writer = csv.writer(f)
+    writer.writerows(data)
+    # ⚠️ newline="" mencegah baris kosong ekstra di Windows
+
+# ===== Menulis CSV dengan DictWriter =====
+header = ["Nama", "Umur", "Kota"]
+rows = [
+    {"Nama": "Budi", "Umur": 25, "Kota": "Jakarta"},
+    {"Nama": "Ani", "Umur": 22, "Kota": "Bandung"},
+]
+
+with open("output_dict.csv", "w", newline="", encoding="utf-8") as f:
+    writer = csv.DictWriter(f, fieldnames=header)
+    writer.writeheader()
+    writer.writerows(rows)
+
+# ===== CSV dengan delimiter berbeda (TSV, semicolon) =====
+with open("data.tsv", "r", encoding="utf-8") as f:
+    reader = csv.reader(f, delimiter="\t")  # Tab-separated
+    for row in reader:
+        print(row)
+
+with open("data_semicolon.csv", "r", encoding="utf-8") as f:
+    reader = csv.reader(f, delimiter=";")  # Semicolon-separated
+    for row in reader:
+        print(row)
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: JSON                 -->
+      <!-- ============================== -->
+      <h2 id="json">7. Bekerja dengan JSON</h2>
+
+      <p><strong>JSON</strong> (JavaScript Object Notation) adalah format pertukaran data yang paling populer — digunakan oleh API, konfigurasi, dan database NoSQL. Modul <code>json</code> di Python sangat mudah digunakan.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — JSON</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+
+# ===== Python → JSON (Serialization) =====
+data = {
+    "nama": "Budi Santoso",
+    "umur": 25,
+    "kota": "Jakarta",
+    "hobi": ["coding", "gaming", "reading"],
+    "aktif": True,
+    "ipk": None
+}
+
+# dumps() — Python dict → JSON string
+json_string = json.dumps(data, indent=2, ensure_ascii=False)
+print(json_string)
+# {
+#   "nama": "Budi Santoso",
+#   "umur": 25,
+#   ...
+# }
+
+# dump() — Python dict → tulis langsung ke file
+with open("data.json", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+    # ensure_ascii=False agar karakter Indonesia tersimpan benar
+
+# ===== JSON → Python (Deserialization) =====
+# loads() — JSON string → Python dict
+obj = json.loads(json_string)
+print(obj["nama"])    # Budi Santoso
+print(type(obj))      # &lt;class 'dict'&gt;
+
+# load() — baca file JSON → Python dict
+with open("data.json", "r", encoding="utf-8") as f:
+    data = json.load(f)
+    print(data)
+
+# ===== Konversi tipe data =====
+# JSON → Python:
+# object  → dict
+# array   → list
+# string  → str
+# number  → int/float
+# true    → True
+# false   → False
+# null    → None
+
+# ===== Contoh: Konfigurasi aplikasi =====
+config = {
+    "app_name": "BeebaneApp",
+    "version": "2.0.0",
+    "database": {
+        "host": "localhost",
+        "port": 5432,
+        "name": "beebane_db"
+    },
+    "features": ["auth", "dashboard", "api"],
+    "debug": False
+}
+
+# Simpan config
+with open("config.json", "w", encoding="utf-8") as f:
+    json.dump(config, f, indent=4, ensure_ascii=False)
+
+# Baca config
+with open("config.json", "r", encoding="utf-8") as f:
+    app_config = json.load(f)
+    print(f"Aplikasi: {app_config['app_name']}")
+    print(f"DB Host: {app_config['database']['host']}")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Pathlib              -->
+      <!-- ============================== -->
+      <h2 id="pathlib">8. Pathlib — Modern Path Handling</h2>
+
+      <p><code>pathlib</code> adalah modul modern (Python 3.4+) untuk menangani path file dan direktori dengan cara yang lebih intuitif dan cross-platform dibanding modul <code>os.path</code>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Pathlib</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from pathlib import Path
+
+# Membuat Path object
+p = Path("data/latihan/file.txt")
+print(p)           # data/latihan/file.txt
+print(p.name)      # file.txt
+print(p.stem)      # file (tanpa ekstensi)
+print(p.suffix)    # .txt
+print(p.parent)    # data/latihan
+print(p.absolute()) # Path absolut lengkap
+
+# Path khusus
+home = Path.home()     # /home/user atau C:\Users\user
+cwd = Path.cwd()       # Direktori kerja saat ini
+
+# ===== Membuat direktori =====
+Path("output/laporan").mkdir(parents=True, exist_ok=True)
+# parents=True  → buat parent juga jika belum ada
+# exist_ok=True → tidak error jika sudah ada
+
+# ===== Mengecek keberadaan =====
+p = Path("data.txt")
+print(p.exists())      # True/False
+print(p.is_file())     # True jika file
+print(p.is_dir())      # True jika direktori
+
+# ===== Membaca dan menulis dengan Pathlib =====
+# Write text
+Path("catatan.txt").write_text("Halo, ini catatan!\n", encoding="utf-8")
+
+# Read text
+isi = Path("catatan.txt").read_text(encoding="utf-8")
+print(isi)
+
+# Write JSON
+import json
+data = {"nama": "Budi", "umur": 25}
+Path("data.json").write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+# Read JSON
+data = json.loads(Path("data.json").read_text(encoding="utf-8"))
+
+# ===== Iterasi isi direktori =====
+# Semua file .py di direktori saat ini
+for py_file in Path(".").glob("*.py"):
+    print(f"Python file: {py_file.name}")
+
+# Rekursif ke semua sub-direktori (**)
+for py_file in Path(".").rglob("*.py"):
+    print(f"Found: {py_file}")
+
+# ===== Mengubah ekstensi =====
+p = Path("data.csv")
+json_path = p.with_suffix(".json")
+print(json_path)  # data.json
+
+# ===== Mengganti nama file =====
+p = Path("old_name.txt")
+p.rename("new_name.txt")
+
+# ===== Menghapus file =====
+p = Path("temporary.txt")
+p.unlink()  # Hapus file (error jika tidak ada)
+# p.unlink(missing_ok=True)  # Tidak error jika tidak ada
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: os dan shutil        -->
+      <!-- ============================== -->
+      <h2 id="os-module">9. Modul os dan shutil</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — os dan shutil</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import os
+import shutil
+
+# ===== Informasi file =====
+print(os.path.exists("data.txt"))     # True/False
+print(os.path.getsize("data.txt"))    # Ukuran dalam bytes
+print(os.path.abspath("data.txt"))    # Path absolut
+print(os.path.dirname("/a/b/c.txt"))  # /a/b
+print(os.path.basename("/a/b/c.txt")) # c.txt
+print(os.path.splitext("file.txt"))   # ('file', '.txt')
+
+# ===== Direktori =====
+print(os.getcwd())                     # Direktori kerja saat ini
+os.listdir(".")                         # Isi direktori (list)
+
+# Buat direktori
+os.makedirs("output/data/2024", exist_ok=True)
+
+# ===== Operasi file =====
+os.rename("old.txt", "new.txt")        # Ganti nama
+os.remove("file.txt")                   # Hapus file
+os.rmdir("empty_dir")                   # Hapus direktori kosong
+shutil.rmtree("dir_with_contents")      # Hapus direktori + isinya!
+
+# ===== Copy dan Move =====
+shutil.copy("source.txt", "dest.txt")         # Copy file
+shutil.copy2("source.txt", "dest.txt")        # Copy + metadata
+shutil.copytree("src_dir", "dst_dir")         # Copy direktori
+shutil.move("file.txt", "archive/file.txt")   # Pindahkan
+
+# ===== Walking directory tree =====
+for root, dirs, files in os.walk("project"):
+    for file in files:
+        filepath = os.path.join(root, file)
+        print(filepath)
+
+# ===== Environment variables =====
+print(os.environ.get("HOME"))          # Home directory
+print(os.environ.get("PATH"))          # PATH system
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Binary              -->
+      <!-- ============================== -->
+      <h2 id="binary-file">10. File Binary</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Binary File</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Copy file binary (gambar, PDF, dll) =====
+with open("foto_asli.jpg", "rb") as src:
+    with open("foto_copy.jpg", "wb") as dst:
+        chunk_size = 4096  # Baca 4KB sekaligus
+        while True:
+            chunk = src.read(chunk_size)
+            if not chunk:
+                break
+            dst.write(chunk)
+
+# ===== Lebih ringkas dengan shutil =====
+import shutil
+shutil.copy("foto_asli.jpg", "foto_copy.jpg")
+
+# ===== Membaca dan menulis bytes =====
+# Tulis bytes
+with open("data.bin", "wb") as f:
+    f.write(b'\x00\x01\x02\x03')
+    f.write(bytes([10, 20, 30, 40]))
+
+# Baca bytes
+with open("data.bin", "rb") as f:
+    raw = f.read()
+    print(raw)        # b'\x00\x01\x02\x03\x0a\x14\x1e\x28'
+    print(list(raw))  # [0, 1, 2, 3, 10, 20, 30, 40]
+
+# ===== Base64 encoding =====
+import base64
+
+# Encode bytes ke base64 string
+with open("image.png", "rb") as f:
+    encoded = base64.b64encode(f.read()).decode("utf-8")
+    print(f"Base64: {encoded[:50]}...")
+
+# Decode base64 kembali ke bytes
+decoded_bytes = base64.b64decode(encoded)
+with open("image_restored.png", "wb") as f:
+    f.write(decoded_bytes)
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Proyek Praktik      -->
+      <!-- ============================== -->
+      <h2 id="praktik">11. Proyek Praktik: Sistem Catatan Harian</h2>
+
+      <p>Gabungkan semua yang telah dipelajari dalam proyek mini — sistem catatan harian dengan format JSON:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Catatan Harian</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import json
+from datetime import datetime
+from pathlib import Path
+
+FILE_NOTES = Path("catatan_harian.json")
+
+def load_notes():
+    """Baca catatan dari file JSON."""
+    if not FILE_NOTES.exists():
+        return []
+    return json.loads(FILE_NOTES.read_text(encoding="utf-8"))
+
+def save_notes(notes):
+    """Simpan catatan ke file JSON."""
+    FILE_NOTES.write_text(
+        json.dumps(notes, indent=2, ensure_ascii=False),
+        encoding="utf-8"
+    )
+
+def tambah_catatan(judul, isi):
+    """Tambah catatan baru."""
+    notes = load_notes()
+    notes.append({
+        "id": len(notes) + 1,
+        "tanggal": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "judul": judul,
+        "isi": isi
+    })
+    save_notes(notes)
+    print(f"✅ Catatan '{judul}' berhasil ditambahkan!")
+
+def cari_catatan(keyword):
+    """Cari catatan berdasarkan keyword."""
+    notes = load_notes()
+    hasil = [n for n in notes if keyword.lower() in n["judul"].lower()
+             or keyword.lower() in n["isi"].lower()]
+    return hasil
+
+def tampilkan_semua():
+    """Tampilkan semua catatan."""
+    notes = load_notes()
+    if not notes:
+        print("📭 Belum ada catatan.")
+        return
+    print(f"\n📓 Daftar Catatan ({len(notes)} entri):\n")
+    for note in notes:
+        print(f"  [{note['tanggal']}] {note['judul']}")
+        print(f"    {note['isi']}")
+        print()
+
+def export_ke_txt():
+    """Export semua catatan ke file TXT."""
+    notes = load_notes()
+    with open("catatan_export.txt", "w", encoding="utf-8") as f:
+        f.write("=" * 50 + "\n")
+        f.write("EXPORT CATATAN HARIAN\n")
+        f.write(f"Tanggal export: {datetime.now()}\n")
+        f.write("=" * 50 + "\n\n")
+        for note in notes:
+            f.write(f"[{note['tanggal']}] {note['judul']}\n")
+            f.write(f"  {note['isi']}\n\n")
+    print(f"✅ {len(notes)} catatan berhasil di-export ke catatan_export.txt")
+
+# Contoh penggunaan
+tambah_catatan("Belajar Python", "Hari ini belajar File I/O")
+tambah_catatan("Meeting Tim", "Diskusi roadmap Q3 2024")
+tambah_catatan("Ide Proyek", "Buat app pengelolaan keuangan sederhana")
+tampilkan_semua()
+export_ke_txt()
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">12. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Python File I/O:</p>
+
+      <div class="quiz-container" id="quizFileIO01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa perbedaan mode "w" dan "a" saat membuka file?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) "w" untuk Windows, "a" untuk Apple</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) "w" menimpa isi file, "a" menambah di akhir</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) "w" untuk write binary, "a" untuk write ASCII</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Tidak ada perbedaan</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Mengapa disarankan menggunakan <code>with open()</code> daripada <code>open()</code> langsung?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Lebih cepat secara performa</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) File otomatis ditutup meskipun terjadi error</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Bisa membaca file yang lebih besar</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Tidak perlu menentukan mode file</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Fungsi apa yang digunakan untuk mengonversi Python dict ke JSON string?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) <code>json.load()</code></div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) <code>json.loads()</code></div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) <code>json.dump()</code></div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) <code>json.dumps()</code></div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa output dari <code>Path("/home/user/data.csv").suffix</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) "data.csv"</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) "data"</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) ".csv"</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) "/home/user/"</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Parameter apa yang penting saat menulis CSV di Windows untuk mencegah baris kosong?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) <code>encoding="utf-8"</code></div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) <code>newline=""</code></div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) <code>delimiter=","</code></div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) <code>quotechar='"'</code></div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="python-matplotlib.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Matplotlib: Visualisasi Data Python</span>
+        </a>
+        <a href="python-logging.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Python Logging: Sistem Logging</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

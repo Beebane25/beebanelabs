@@ -1,0 +1,1337 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">IoT</a>
+        <span class="separator">/</span>
+        <span class="current">Mosquitto MQTT Broker</span>
+      </div>
+      <span class="category-tag">IoT &amp; Broker</span>
+      <h1>Setup Mosquitto MQTT Broker: Instalasi &amp; Konfigurasi Lengkap</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Panduan komprehensif instalasi dan konfigurasi Mosquitto MQTT broker dari nol — mencakup instalasi Linux &amp; Windows, autentikasi username/password, TLS/SSL, bridge antar broker, monitoring, dan security hardening untuk lingkungan produksi</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 20 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Mosquitto MQTT Broker</a></li>
+          <li><a href="#instalasi-linux">Instalasi Mosquitto di Linux (Ubuntu/Debian)</a></li>
+          <li><a href="#instalasi-windows">Instalasi Mosquitto di Windows</a></li>
+          <li><a href="#konfigurasi-dasar">Konfigurasi Dasar Mosquitto</a></li>
+          <li><a href="#autentikasi">Autentikasi Username &amp; Password</a></li>
+          <li><a href="#testing-mqtt-client">Testing dengan MQTT Client (mosquitto_sub/pub)</a></li>
+          <li><a href="#bridge-config">Bridge Configuration: Menghubungkan Dua Broker</a></li>
+          <li><a href="#security-hardening">Security Hardening untuk Produksi</a></li>
+          <li><a href="#monitoring">Monitoring &amp; Logging Mosquitto</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan Mosquitto -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Mosquitto MQTT Broker</h2>
+
+      <p><strong>Eclipse Mosquitto</strong> adalah broker MQTT open-source yang dikembangkan oleh Eclipse Foundation dan menjadi salah satu broker MQTT paling populer di dunia. Mosquitto dirancang untuk menjadi ringan, mudah dikonfigurasi, dan mendukung protokol MQTT versi 3.1, 3.1.1, dan 5.0. Broker ini cocok digunakan mulai dari proyek IoT pemula hingga lingkungan produksi skala menengah.</p>
+
+      <p>Nama "Mosquitto" sendiri diambil dari kata "Mosquito" (nyamuk) — sebuah metafora bahwa pesan MQTT kecil seperti nyamuk namun mampu menyebar ke mana-mana dengan sangat efisien. Mosquitto tersedia untuk hampir semua platform: Linux, Windows, macOS, dan bahkan Raspberry Pi.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Diagram: Arsitektur Mosquitto MQTT Broker</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">📡</div>
+            <div class="arch-label">IoT Devices</div>
+            <div class="arch-desc">ESP32, Raspberry Pi<br>Sensor, Aktuator</div>
+          </div>
+          <div class="arch-arrow">→ Publish</div>
+          <div class="arch-box info">
+            <div class="arch-icon">🦟</div>
+            <div class="arch-label">Mosquitto Broker</div>
+            <div class="arch-desc">Port 1883 (TCP)<br>Port 8883 (TLS)<br>Port 9001 (WebSocket)</div>
+          </div>
+          <div class="arch-arrow">← Deliver</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">📊</div>
+            <div class="arch-label">Subscribers</div>
+            <div class="arch-desc">Dashboard, Mobile App<br>Database, Cloud</div>
+          </div>
+        </div>
+        <div style="margin-top:1rem; padding-top:1rem; border-top:1px dashed rgba(255,255,255,0.15); display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; font-size:0.85rem; opacity:0.8;">
+          <span><strong>TCP 1883:</strong> Koneksi MQTT standar</span>
+          <span><strong>TLS 8883:</strong> Koneksi terenkripsi</span>
+          <span><strong>WS 9001:</strong> Koneksi WebSocket untuk browser</span>
+        </div>
+      </div>
+
+      <h3>Fitur Utama Mosquitto</h3>
+      <ul>
+        <li><strong>MQTT v3.1.1 &amp; v5.0:</strong> Mendukung dua versi protokol utama dengan semua fitur QoS</li>
+        <li><strong>Lightweight:</strong> Konsumsi memori sangat rendah — cocok untuk Raspberry Pi dan server VPS kecil</li>
+        <li><strong>Authentication:</strong> Username/password, TLS client certificate, dan plugin autentikasi eksternal</li>
+        <li><strong>ACL (Access Control List):</strong> Mengatur hak akses per-client ke topik tertentu</li>
+        <li><strong>Bridge:</strong> Menghubungkan beberapa broker Mosquitto untuk distribusi beban atau klasterisasi</li>
+        <li><strong>WebSocket Support:</strong> Client browser dapat terhubung via WebSocket pada port 9001</li>
+        <li><strong>Persistence:</strong> Menyimpan pesan retained dan session data ke disk</li>
+        <li><strong>Plugin System:</strong> Mendukung plugin C dan dynamic security di Mosquitto 2.x</li>
+      </ul>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Mosquitto 2.x vs 1.x</div>
+        <p>Mosquitto 2.0 membawa perubahan signifikan: anonymous access <strong>dinonaktifkan secara default</strong>, dukungan MQTT 5.0 penuh, dynamic security plugin, dan peningkatan keamanan. Jika Anda mengikuti tutorial lama dan mendapati error koneksi, pastikan Anda menambahkan <code>allow_anonymous true</code> atau mengkonfigurasi autentikasi.</p>
+      </div>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Mosquitto 1.x</th>
+            <th>Mosquitto 2.x</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>MQTT 5.0</td><td>❌ Tidak</td><td>✅ Ya</td></tr>
+          <tr><td>Anonymous Default</td><td>✅ Diizinkan</td><td>❌ Diblokir</td></tr>
+          <tr><td>Dynamic Security</td><td>❌ Tidak</td><td>✅ Plugin bawaan</td></tr>
+          <tr><td>WebSocket</td><td>✅ Perlu plugin</td><td>✅ Built-in</td></tr>
+          <tr><td>Performa</td><td>Baik</td><td>Lebih baik</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Instalasi Linux     -->
+      <!-- ============================== -->
+      <h2 id="instalasi-linux">2. Instalasi Mosquitto di Linux (Ubuntu/Debian)</h2>
+
+      <p>Instalasi Mosquitto di Linux sangat mudah menggunakan package manager bawaan. Namun, repository default biasanya menyediakan versi lama. Untuk mendapatkan versi terbaru (2.x), disarankan menambahkan PPA resmi dari Eclipse Mosquitto.</p>
+
+      <h3>2.1 Instalasi dari Repository Default</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Instalasi Standar Ubuntu/Debian</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# === Update repository ===
+sudo apt update
+
+# === Instal Mosquitto dan CLI tools ===
+sudo apt install -y mosquitto mosquitto-clients
+
+# === Aktifkan service agar berjalan otomatis saat boot ===
+sudo systemctl enable mosquitto
+
+# === Jalankan layanan Mosquitto ===
+sudo systemctl start mosquitto
+
+# === Cek status layanan ===
+sudo systemctl status mosquitto
+
+# === Verifikasi versi ===
+mosquitto -v
+</code></pre>
+      </div>
+
+      <div class="output-block">
+        <strong>Output — systemctl status mosquitto:</strong>
+● mosquitto.service - Mosquitto MQTT Broker
+     Loaded: loaded (/lib/systemd/system/mosquitto.service; enabled)
+     Active: active (running) since Wed 2026-06-25 08:30:15 UTC
+       Docs: man:mosquitto.conf(5)
+    Process: 1234 ExecStart=/usr/sbin/mosquitto -c /etc/mosquitto/mosquitto.conf (code=exited, status=0/SUCCESS)
+   Main PID: 1235 (mosquitto)
+      Tasks: 1 (limit: 4567)
+     Memory: 1.2M
+        CPU: 15ms
+      </div>
+
+      <h3>2.2 Instalasi dari PPA Resmi (Versi Terbaru)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Tambah PPA Mosquitto Terbaru</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# === Tambah repository resmi Eclipse Mosquitto ===
+sudo apt install -y software-properties-common wget
+
+# Download dan tambahkan GPG key
+sudo wget -qO- https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
+
+# Atau gunakan cara manual:
+sudo wget https://repo.mosquitto.org/debian/mosquitto-repo.gpg.key
+sudo apt-key add mosquitto-repo.gpg.key
+
+# Tambah repository (Ubuntu 22.04 Jammy, sesuaikan untuk versi lain)
+echo "deb http://ppa.launchpad.net/mosquitto-dev/mosquitto-ppa/ubuntu jammy main" | \
+  sudo tee /etc/apt/sources.list.d/mosquitto.list
+
+# === Update dan instal ===
+sudo apt update
+sudo apt install -y mosquitto mosquitto-clients
+
+# === Verifikasi versi terbaru ===
+mosquitto -h 2>&1 | head -3
+</code></pre>
+      </div>
+
+      <h3>2.3 Instalasi di Raspberry Pi (Raspbian/Debian ARM)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Instalasi di Raspberry Pi</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Raspberry Pi menggunakan repository Debian yang sama
+sudo apt update
+sudo apt install -y mosquitto mosquitto-clients
+
+# Cek arsitektur ARM
+uname -m
+# Output: aarch64 (Pi 4/5 64-bit) atau armv7l (Pi 3/4 32-bit)
+
+# Cek RAM tersedia (Mosquitto sangat hemat memori)
+free -h
+# Mosquitto hanya butuh ~2MB RAM
+
+# Jalankan
+sudo systemctl enable mosquitto
+sudo systemctl start mosquitto
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Struktur File Instalasi Linux</div>
+        <p>Setelah instalasi di Linux, file penting Mosquitto tersebar di: <code>/etc/mosquitto/mosquitto.conf</code> (konfigurasi utama), <code>/etc/mosquitto/passwd</code> (file password), <code>/etc/mosquitto/aclfile</code> (ACL), <code>/var/lib/mosquitto/</code> (persistence data), dan <code>/var/log/mosquitto/</code> (log).</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Instalasi Windows   -->
+      <!-- ============================== -->
+      <h2 id="instalasi-windows">3. Instalasi Mosquitto di Windows</h2>
+
+      <p>Mosquitto tersedia untuk Windows 64-bit dengan installer yang mudah digunakan. Proses instalasi membutuhkan beberapa langkah tambahan dibanding Linux, termasuk konfigurasi Windows Service.</p>
+
+      <h3>3.1 Download &amp; Instalasi</h3>
+
+      <ol>
+        <li>Kunjungi situs resmi <strong>https://mosquitto.org/download/</strong></li>
+        <li>Download installer <strong>Windows 64-bit</strong> (file .exe)</li>
+        <li>Jalankan installer dengan hak administrator (Run as Administrator)</li>
+        <li>Ikuti wizard instalasi — biarkan folder default: <code>C:\Program Files\mosquitto\</code></li>
+        <li>Pilih opsi <strong>"Install as Windows Service"</strong> jika ditawarkan</li>
+        <li>Centang opsi untuk menambahkan ke <strong>system PATH</strong></li>
+      </ol>
+
+      <h3>3.2 Verifikasi Instalasi</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Command Prompt / PowerShell — Verifikasi</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Cek versi Mosquitto
+mosquitto -h
+
+# Jalankan broker dengan verbose logging (foreground)
+mosquitto -v
+
+# Output:
+# mosquitto version 2.0.18 starting
+# Opening ipv4 listen socket on port 1883.
+# Opening ipv6 listen socket on port 1883.
+# mosquitto version 2.0.18 running
+
+# Atau jalankan dengan config file kustom
+mosquitto -c "C:\mosquitto\mosquitto.conf" -v
+</code></pre>
+      </div>
+
+      <h3>3.3 Konfigurasi Windows Service</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">PowerShell (Admin) — Manajemen Service Windows</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Cek status service Mosquitto
+Get-Service mosquitto
+
+# Jalankan service
+Start-Service mosquitto
+
+# Hentikan service
+Stop-Service mosquitto
+
+# Set agar auto-start saat boot
+Set-Service -Name "mosquitto" -StartupType Automatic
+
+# Install service manual jika belum terdaftar
+sc.exe create mosquitto binPath= "C:\Program Files\mosquitto\mosquitto.exe -c C:\mosquitto\mosquitto.conf start= auto
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Firewall Windows</div>
+        <p>Pastikan Anda mengizinkan Mosquitto melalui Windows Firewall. Buka <strong>Windows Defender Firewall → Advanced Settings → Inbound Rules → New Rule</strong>. Tambahkan aturan untuk TCP port <strong>1883</strong> (MQTT), <strong>8883</strong> (MQTT+TLS), dan <strong>9001</strong> (WebSocket). Atau jalankan dari PowerShell dengan: <code>netsh advfirewall firewall add rule name="MQTT" dir=in action=allow protocol=TCP localport=1883</code></p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Konfigurasi Dasar   -->
+      <!-- ============================== -->
+      <h2 id="konfigurasi-dasar">4. Konfigurasi Dasar Mosquitto</h2>
+
+      <p>File konfigurasi utama Mosquitto terletak di <code>/etc/mosquitto/mosquitto.conf</code> (Linux) atau <code>C:\mosquitto\mosquitto.conf</code> (Windows). Memahami parameter konfigurasi adalah kunci untuk menjalankan broker yang stabil dan aman.</p>
+
+      <h3>4.1 Konfigurasi Minimal untuk Testing</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">mosquitto.conf — Konfigurasi Dasar</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# =============================================
+# Mosquitto MQTT Broker - Konfigurasi Dasar
+# File: /etc/mosquitto/mosquitto.conf
+# =============================================
+
+# === Listener ===
+# Port default MQTT
+listener 1883
+
+# Izinkan anonymous (HANYA untuk testing!)
+allow_anonymous true
+
+# === Persistence ===
+# Simpan data retained message dan session ke disk
+persistence true
+persistence_location /var/lib/mosquitto/
+
+# === Logging ===
+log_dest syslog
+log_dest stdout
+log_type error
+log_type warning
+log_type notice
+log_type information
+connection_messages true
+log_timestamp true
+log_timestamp_format %Y-%m-%dT%H:%M:%S
+
+# === Connection Limits ===
+# -1 = unlimited, 0 = disabled
+max_connections -1
+
+# Keepalive timeout (detik)
+# Client yang tidak mengirim PINGREQ dalam waktu ini dianggap terputus
+# Default 60 detik
+</code></pre>
+      </div>
+
+      <h3>4.2 Konfigurasi Production Dasar</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">mosquitto.conf — Production Setup</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# =============================================
+# Mosquitto Production Configuration
+# =============================================
+
+# === Listener TCP ===
+listener 1883 0.0.0.0
+protocol mqtt
+
+# === Listener WebSocket ===
+listener 9001 0.0.0.0
+protocol websockets
+
+# === Autentikasi (WAJIB untuk production!) ===
+allow_anonymous false
+password_file /etc/mosquitto/passwd
+
+# === ACL (Access Control List) ===
+acl_file /etc/mosquitto/aclfile
+
+# === Persistence ===
+persistence true
+persistence_location /var/lib/mosquitto/
+autosave_interval 1800
+autosave_on_changes false
+
+# === Performance ===
+max_connections 1000
+max_inflight_messages 20
+max_queued_messages 1000
+message_size_limit 1048576
+
+# === Logging ===
+log_dest file /var/log/mosquitto/mosquitto.log
+log_type error
+log_type warning
+log_type notice
+log_type information
+connection_messages true
+log_timestamp true
+</code></pre>
+      </div>
+
+      <h3>4.3 Parameter Konfigurasi Penting</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Default</th>
+            <th>Fungsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>listener</code></td><td>1883</td><td>Port dan alamat IP yang didengarkan broker</td></tr>
+          <tr><td><code>allow_anonymous</code></td><td>false (v2.x)</td><td>Apakah client tanpa autentikasi diizinkan</td></tr>
+          <tr><td><code>password_file</code></td><td>—</td><td>Lokasi file berisi username dan password hash</td></tr>
+          <tr><td><code>acl_file</code></td><td>—</td><td>Lokasi file Access Control List untuk topik</td></tr>
+          <tr><td><code>persistence</code></td><td>false</td><td>Aktifkan penyimpanan data ke disk</td></tr>
+          <tr><td><code>max_connections</code></td><td>-1 (unlimited)</td><td>Batas maksimal client yang terhubung bersamaan</td></tr>
+          <tr><td><code>max_queued_messages</code></td><td>1000</td><td>Pesan antrian maksimal per client</td></tr>
+          <tr><td><code>message_size_limit</code></td><td>0 (unlimited)</td><td>Batas ukuran payload pesan dalam byte</td></tr>
+          <tr><td><code>log_type</code></td><td>all</td><td>Jenis pesan log yang dicatat</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Konfigurasi</div>
+        <p>Selalu restart Mosquitto setelah mengubah konfigurasi: <code>sudo systemctl restart mosquitto</code>. Gunakan <code>mosquitto -c /etc/mosquitto/mosquitto.conf -v</code> untuk menjalankan broker di foreground dengan verbose logging — sangat berguna saat debugging masalah konfigurasi.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Autentikasi         -->
+      <!-- ============================== -->
+      <h2 id="autentikasi">5. Autentikasi Username &amp; Password</h2>
+
+      <p>Autentikasi adalah langkah keamanan pertama yang wajib diterapkan. Mosquitto mendukung autentikasi berbasis username/password yang disimpan dalam file password khusus dengan format ter-hash.</p>
+
+      <h3>5.1 Membuat File Password</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Membuat Password File</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# === Buat password file baru dengan user pertama ===
+# Flag -c = create (membuat file baru, MENIMPA yang lama!)
+mosquitto_passwd -c /etc/mosquitto/passwd admin
+
+# Anda akan diminta memasukkan password dua kali
+# Password: ********
+# Reenter password: ********
+
+# === Tambah user baru (tanpa -c agar tidak menimpa) ===
+mosquitto_passwd -b /etc/mosquitto/passwd sensor_ruang01 password123
+mosquitto_passwd -b /etc/mosquitto/passwd dashboard_viewer secret456
+
+# === Hapus user ===
+mosquitto_passwd -D /etc/mosquitto/passwd sensor_ruang01
+
+# === Lihat isi file (ter-hash) ===
+cat /etc/mosquitto/passwd
+# Output:
+# admin:$6$randomhash...
+# sensor_ruang01:$6$randomhash...
+# dashboard_viewer:$6$randomhash...
+</code></pre>
+      </div>
+
+      <h3>5.2 Membuat ACL (Access Control List)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">/etc/mosquitto/aclfile — Access Control List</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# =============================================
+# Mosquitto ACL Configuration
+# =============================================
+
+# === Default: tolak semua akses ===
+# (Tidak perlu ditulis, karena deny all adalah default)
+
+# === Admin: akses penuh ke semua topik ===
+user admin
+topic readwrite #
+
+# === Sensor: hanya boleh publish ke topik sendiri ===
+user sensor_ruang01
+topic write rumah/ruang01/#
+topic read rumah/ruang01/cmd
+
+user sensor_ruang02
+topic write rumah/ruang02/#
+topic read rumah/ruang02/cmd
+
+# === Dashboard: hanya boleh subscribe (read-only) ===
+user dashboard_viewer
+topic read rumah/#
+
+# === Anonymous (jika diizinkan) ===
+# topic read public/#
+</code></pre>
+      </div>
+
+      <h3>5.3 Mengaktifkan ACL di Konfigurasi</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">mosquitto.conf — Tambahkan ACL</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Aktifkan autentikasi
+allow_anonymous false
+password_file /etc/mosquitto/passwd
+
+# Aktifkan ACL
+acl_file /etc/mosquitto/aclfile
+</code></pre>
+      </div>
+
+      <h3>5.4 Testing Autentikasi</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Test Autentikasi</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Subscribe dengan autentikasi
+mosquitto_sub -h localhost -t "rumah/#" -u admin -P admin_password -v
+
+# Publish dengan autentikasi
+mosquitto_pub -h localhost -t "rumah/ruang01/suhu" \
+  -u sensor_ruang01 -P password123 \
+  -m '{"suhu": 27.5, "kelembaban": 65}'
+
+# Test tanpa autentikasi (seharusnya gagal di v2.x)
+mosquitto_sub -h localhost -t "test"
+# Error: Connection Refused: not authorised.
+
+# Test user yang salah (seharusnya ditolak ACL)
+mosquitto_pub -h localhost -t "rumah/ruang01/suhu" \
+  -u dashboard_viewer -P secret456 \
+  -m "test"
+# Error: Connection Refused: not authorised.
+# (dashboard_viewer hanya boleh READ, bukan WRITE)
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Keamanan File Password</div>
+        <p>File password Mosquitto berisi hash, bukan plaintext password. Namun tetap amankan file ini: <code>sudo chown mosquitto:mosquitto /etc/mosquitto/passwd</code> dan <code>sudo chmod 600 /etc/mosquitto/passwd</code>. Jangan pernah share atau commit file ini ke version control!</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Testing MQTT Client -->
+      <!-- ============================== -->
+      <h2 id="testing-mqtt-client">6. Testing dengan MQTT Client (mosquitto_sub/pub)</h2>
+
+      <p>Setelah broker berjalan, langkah selanjutnya adalah melakukan testing. Mosquitto menyediakan dua tool CLI bawaan: <code>mosquitto_sub</code> (subscriber) dan <code>mosquitto_pub</code> (publisher) yang sangat berguna untuk debugging dan verifikasi.</p>
+
+      <h3>6.1 Contoh Testing Lengkap</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Testing Komprehensif</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# =============================================
+# Buka DUA terminal secara bersamaan
+# =============================================
+
+# === TERMINAL 1: Subscriber ===
+# Subscribe ke semua topik di bawah "rumah/"
+mosquitto_sub -h localhost -t "rumah/#" -v
+
+# Flag penjelasan:
+# -h  = host (localhost atau IP broker)
+# -t  = topik (mendukung wildcard + dan #)
+# -v  = verbose (tampilkan nama topik di depan pesan)
+# -u  = username
+# -P  = password
+# -C  = jumlah pesan lalu keluar (misal -C 5 untuk 5 pesan)
+# -q  = QoS level (0, 1, atau 2)
+# -k  = keepalive dalam detik
+
+
+# === TERMINAL 2: Publisher ===
+# Kirim pesan ke topik spesifik
+mosquitto_pub -h localhost -t "rumah/ruang01/suhu" \
+  -m '{"suhu": 27.5, "kelembaban": 65, "status": "ok"}' \
+  -q 1 -r
+
+# Flag penjelasan:
+# -h  = host
+# -t  = topik
+# -m  = message/payload
+# -q  = QoS level
+# -r  = retained message (disimpan broker sampai ditimpa)
+# -d  = debug mode (tampilkan informasi koneksi)
+# -f  = baca pesan dari file
+</code></pre>
+      </div>
+
+      <div class="output-block">
+        <strong>Output Terminal 1 (Subscriber):</strong>
+rumah/ruang01/suhu {"suhu": 27.5, "kelembaban": 65, "status": "ok"}
+rumah/ruang02/suhu {"suhu": 24.0, "kelembaban": 72, "status": "ok"}
+rumah/ruang01/cmd LED_ON
+      </div>
+
+      <h3>6.2 Testing dengan Payload File</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Publish dari File &amp; Loop</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# === Simpan payload ke file ===
+echo '{"suhu": 28.3, "kelembaban": 60, "gas": 350}' > /tmp/sensor_data.json
+
+# === Publish dari file ===
+mosquitto_pub -h localhost -t "rumah/ruang01/suhu" -f /tmp/sensor_data.json
+
+# === Kirim pesan berulang setiap 5 detik (pakai shell loop) ===
+while true; do
+  SUHU=$(echo "scale=1; 24 + ($RANDOM % 60) / 10" | bc)
+  mosquitto_pub -h localhost -t "rumah/ruang01/suhu" \
+    -m "{\"suhu\": $SUHU, \"ts\": $(date +%s)}" -q 1
+  echo "Dikirim: suhu=$SUHU"
+  sleep 5
+done
+
+# === Subscribe dengan filter spesifik ===
+# Terima hanya data suhu dari ruang01
+mosquitto_sub -h localhost -t "rumah/ruang01/suhu" -v -q 1
+
+# Terima semua data dari lantai 1
+mosquitto_sub -h localhost -t "rumah/lantai1/#" -v
+</code></pre>
+      </div>
+
+      <h3>6.3 Referensi Perintah CLI Lengkap</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Perintah</th>
+            <th>Fungsi</th>
+            <th>Contoh</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>mosquitto_sub -t "topic"</code></td><td>Subscribe ke topik</td><td><code>mosquitto_sub -h localhost -t "test/#" -v</code></td></tr>
+          <tr><td><code>mosquitto_pub -t "topic" -m "msg"</code></td><td>Publish pesan</td><td><code>mosquitto_pub -t "test/hello" -m "hi"</code></td></tr>
+          <tr><td><code>-r</code></td><td>Pesan retained (tersimpan)</td><td><code>mosquitto_pub -t "status" -m "online" -r</code></td></tr>
+          <tr><td><code>-q 1</code></td><td>Set QoS level</td><td><code>mosquitto_sub -t "data" -q 2</code></td></tr>
+          <tr><td><code>-C N</code></td><td>Terima N pesan lalu keluar</td><td><code>mosquitto_sub -t "data" -C 10</code></td></tr>
+          <tr><td><code>-d</code></td><td>Debug mode (lihat paket)</td><td><code>mosquitto_pub -t "test" -m "x" -d</code></td></tr>
+          <tr><td><code>-u user -P pass</code></td><td>Autentikasi</td><td><code>mosquitto_sub -u admin -P pass123</code></td></tr>
+          <tr><td><code>--cafile file</code></td><td>TLS certificate</td><td><code>mosquitto_sub --cafile ca.crt -p 8883</code></td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Bridge Config       -->
+      <!-- ============================== -->
+      <h2 id="bridge-config">7. Bridge Configuration: Menghubungkan Dua Broker</h2>
+
+      <p>Mosquitto mendukung fitur <strong>bridge</strong> yang memungkinkan dua atau lebih broker MQTT saling terhubung. Bridge berguna untuk: menghubungkan broker lokal (edge) dengan broker pusat (cloud), distribusi beban, redundansi, dan replikasi data antar lokasi geografis.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Diagram: Mosquitto Bridge Architecture</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">🏭</div>
+            <div class="arch-label">Edge Broker (Lokal)</div>
+            <div class="arch-desc">Pabrik A<br>192.168.1.10:1883<br>Sensor di lapangan</div>
+          </div>
+          <div class="arch-arrow">→ Bridge →</div>
+          <div class="arch-box info">
+            <div class="arch-icon">☁️</div>
+            <div class="arch-label">Cloud Broker (Pusat)</div>
+            <div class="arch-desc">Server Utama<br>mqtt.cloud.com:8883<br>Database &amp; Dashboard</div>
+          </div>
+          <div class="arch-arrow">← Bridge ←</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">🏭</div>
+            <div class="arch-label">Edge Broker (Lokal)</div>
+            <div class="arch-desc">Pabrik B<br>192.168.2.10:1883<br>Sensor di lapangan</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>7.1 Konfigurasi Bridge (Edge → Cloud)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">mosquitto.conf — Bridge Configuration</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# =============================================
+# Mosquitto Bridge Configuration
+# File: /etc/mosquitto/mosquitto.conf (Edge Broker)
+# =============================================
+
+# Listener lokal
+listener 1883 localhost
+allow_anonymous true
+
+# === Bridge ke Cloud Broker ===
+connection cloud-bridge
+address mqtt.cloud.com:8883
+
+# Topik yang di-bridge
+# Format: topic TOPIC_DIRECTION QoS LOCAL_PREFIX REMOTE_PREFIX
+topic rumah/sensor/# out 1 sensor/ cloud/rumah/
+topic rumah/cmd/# in 1 cmd/ cloud/rumah/cmd/
+
+# "out" = dari lokal → remote (publish)
+# "in"  = dari remote → lokal (subscribe)
+# "both" = dua arah
+
+# Autentikasi bridge
+remote_username bridge_user
+remote_password bridge_secret_pass
+
+# TLS untuk bridge
+bridge_cafile /etc/mosquitto/certs/ca.crt
+bridge_certfile /etc/mosquitto/certs/client.crt
+bridge_keyfile /etc/mosquitto/certs/client.key
+bridge_tls_version tlsv1.2
+
+# Pengaturan bridge
+bridge_protocol_version mqttv311
+cleansession true
+keepalive_interval 60
+restart_timeout 30 300
+try_private true
+notifications true
+notification_topic $SYS/broker/bridge/edge01/state
+
+# Quality of Service
+max_inflight_messages 20
+</code></pre>
+      </div>
+
+      <h3>7.2 Verifikasi Bridge</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Verifikasi Bridge</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# === Restart Mosquitto setelah konfigurasi bridge ===
+sudo systemctl restart mosquitto
+
+# === Cek log untuk status bridge ===
+sudo tail -f /var/log/mosquitto/mosquitto.log | grep bridge
+# Output:
+# Bridge cloud-bridge connecting to mqtt.cloud.com:8883
+# Bridge cloud-bridge connected
+
+# === Test: kirim data dari edge broker ===
+mosquitto_pub -h localhost -t "rumah/sensor/suhu" \
+  -m '{"suhu": 27.5}' -q 1
+
+# === Verifikasi di cloud broker (server lain) ===
+mosquitto_sub -h mqtt.cloud.com -t "cloud/rumah/#" \
+  -u viewer -P viewer_pass -v --cafile ca.crt
+# Output: cloud/rumah/sensor/suhu {"suhu": 27.5}
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Kapan Gunakan Bridge?</div>
+        <p><strong>Edge Computing:</strong> Broker lokal di pabrik/gudang mengumpulkan data sensor, lalu bridge ke broker cloud untuk analisis. <strong>Multi-Site:</strong> Broker di setiap lokasi fisik dihubungkan ke broker pusat. <strong>Load Distribution:</strong> Bridge topik tertentu ke broker khusus yang menangani jenis data tersebut. <strong>Failover:</strong> Jika satu broker down, bridge ke broker cadangan.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Security Hardening  -->
+      <!-- ============================== -->
+      <h2 id="security-hardening">8. Security Hardening untuk Produksi</h2>
+
+      <p>Menjalankan broker MQTT di produksi membutuhkan langkah-langkah keamanan yang ketat. Berikut checklist keamanan komprehensif untuk Mosquitto.</p>
+
+      <h3>8.1 TLS/SSL Encryption</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">mosquitto.conf — TLS/SSL Configuration</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# =============================================
+# TLS/SSL Configuration
+# =============================================
+
+# Listener TLS pada port 8883
+listener 8883 0.0.0.0
+protocol mqtt
+
+# Sertifikat CA, Server, dan Key
+cafile /etc/mosquitto/certs/ca.crt
+certfile /etc/mosquitto/certs/server.crt
+keyfile /etc/mosquitto/certs/server.key
+
+# Require TLS version 1.2 minimum
+tls_version tlsv1.2
+
+# Require client certificate? (mutual TLS)
+require_certificate false
+# Set true jika ingin verifikasi identitas client via sertifikat
+
+# Listener non-TLS hanya untuk localhost
+listener 1883 localhost
+protocol mqtt
+
+# Listener WebSocket TLS
+listener 9002 0.0.0.0
+protocol websockets
+cafile /etc/mosquitto/certs/ca.crt
+certfile /etc/mosquitto/certs/server.crt
+keyfile /etc/mosquitto/certs/server.key
+</code></pre>
+      </div>
+
+      <h3>8.2 Generate Sertifikat TLS</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Generate TLS Certificates</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# === Setup direktori ===
+sudo mkdir -p /etc/mosquitto/certs
+cd /etc/mosquitto/certs
+
+# === 1. Buat Certificate Authority (CA) ===
+openssl genrsa -out ca.key 4096
+openssl req -new -x509 -days 3650 -key ca.key -out ca.crt \
+  -subj "/CN=MQTT-CA/O=BeebaneLabs/C=ID"
+
+# === 2. Buat Server Certificate ===
+openssl genrsa -out server.key 2048
+openssl req -new -key server.key -out server.csr \
+  -subj "/CN=mqtt.example.com/O=BeebaneLabs/C=ID"
+openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key \
+  -CAcreateserial -out server.crt -days 365 \
+  -extfile <(echo "subjectAltName=DNS:mqtt.example.com,IP:192.168.1.100")
+
+# === 3. Buat Client Certificate (opsional, untuk mutual TLS) ===
+openssl genrsa -out client.key 2048
+openssl req -new -key client.key -out client.csr \
+  -subj "/CN=esp32-sensor-01/O=BeebaneLabs/C=ID"
+openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key \
+  -CAcreateserial -out client.crt -days 365
+
+# === 4. Set permissions ===
+sudo chown -R mosquitto:mosquitto /etc/mosquitto/certs
+sudo chmod 600 /etc/mosquitto/certs/*.key
+sudo chmod 644 /etc/mosquitto/certs/*.crt
+
+# === 5. Restart Mosquitto ===
+sudo systemctl restart mosquitto
+
+# === 6. Verifikasi TLS ===
+openssl s_client -connect localhost:8883 -CAfile ca.crt
+</code></pre>
+      </div>
+
+      <h3>8.3 System Hardening Checklist</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Langkah</th>
+            <th>Perintah / Konfigurasi</th>
+            <th>Prioritas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Nonaktifkan Anonymous</td><td><code>allow_anonymous false</code></td><td>🔴 Wajib</td></tr>
+          <tr><td>Aktifkan TLS</td><td>Listener 8883 dengan sertifikat</td><td>🔴 Wajib</td></tr>
+          <tr><td>Gunakan ACL</td><td><code>acl_file /etc/mosquitto/aclfile</code></td><td>🔴 Wajib</td></tr>
+          <tr><td>Batas Koneksi</td><td><code>max_connections 500</code></td><td>🟡 Penting</td></tr>
+          <tr><td>Rate Limiting</td><td>Firewall: limit new connections/detik</td><td>🟡 Penting</td></tr>
+          <tr><td>Jalankan Sebagai User Non-Root</td><td>Default: user <code>mosquitto</code></td><td>🟡 Penting</td></tr>
+          <tr><td>Firewall (UFW/iptables)</td><td>Buka hanya port 1883, 8883, 9001</td><td>🔴 Wajib</td></tr>
+          <tr><td>Disable Unused Protocol</td><td>Hapus listener WebSocket jika tidak dipakai</td><td>🟡 Penting</td></tr>
+          <tr><td>Update Berkala</td><td><code>sudo apt update &amp;&amp; sudo apt upgrade</code></td><td>🟡 Penting</td></tr>
+          <tr><td>Client Certificate (mTLS)</td><td><code>require_certificate true</code></td><td>🟢 Opsional</td></tr>
+          <tr><td>Network Isolation</td><td>Broker di VLAN/DMZ terpisah</td><td>🟢 Opsional</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Firewall Rules (UFW)</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# === Setup firewall untuk Mosquitto ===
+
+# Izinkan MQTT non-TLS dari subnet lokal saja
+sudo ufw allow from 192.168.1.0/24 to any port 1883 proto tcp
+
+# Izinkan MQTT TLS dari mana saja
+sudo ufw allow 8883/tcp
+
+# Izinkan WebSocket (opsional)
+sudo ufw allow 9001/tcp
+
+# Izinkan SSH (jangan lupa!)
+sudo ufw allow 22/tcp
+
+# Aktifkan firewall
+sudo ufw enable
+sudo ufw status verbose
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Monitoring & Logging -->
+      <!-- ============================== -->
+      <h2 id="monitoring">9. Monitoring &amp; Logging Mosquitto</h2>
+
+      <p>Monitoring broker MQTT sangat penting untuk memastikan ketersediaan, performa, dan keamanan sistem. Mosquitto menyediakan informasi internal melalui topik <code>$SYS</code> dan logging ke file atau syslog.</p>
+
+      <h3>9.1 Monitoring via Topik $SYS</h3>
+
+      <p>Mosquitto secara otomatis mempublikasikan statistik broker ke topik internal <code>$SYS/broker/</code>. Anda dapat subscribe ke topik ini untuk memantau kondisi broker secara real-time.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Monitor $SYS Topics</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# === Subscribe ke semua topik $SYS ===
+mosquitto_sub -h localhost -t '$SYS/#' -u admin -P pass123 -v
+
+# === Contoh output topik $SYS ===
+# $SYS/broker/version — Versi Mosquitto
+# $SYS/broker/uptime — Waktu broker berjalan
+# $SYS/broker/clients/connected — Client yang terhubung
+# $SYS/broker/clients/total — Total client terdaftar
+# $SYS/broker/messages/sent — Total pesan terkirim
+# $SYS/broker/messages/received — Total pesan diterima
+# $SYS/broker/messages/publish — Total pesan publish
+# $SYS/broker/load/messages/received/1min — Load 1 menit
+# $SYS/broker/load/messages/sent/1min — Load 1 menit
+# $SYS/broker/retained messages/count — Pesan retained
+# $SYS/broker/subscriptions/count — Total subscriptions
+# $SYS/broker/bytes/received — Total byte diterima
+# $SYS/broker/bytes/sent — Total byte terkirim
+
+# === Monitor hanya koneksi ===
+mosquitto_sub -h localhost -t '$SYS/broker/clients/#' \
+  -u admin -P pass123 -v
+
+# === Monitor hanya message stats ===
+mosquitto_sub -h localhost -t '$SYS/broker/messages/#' \
+  -u admin -P pass123 -v
+</code></pre>
+      </div>
+
+      <h3>9.2 Konfigurasi Logging</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">mosquitto.conf — Logging Configuration</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# =============================================
+# Logging Configuration
+# =============================================
+
+# Log ke file
+log_dest file /var/log/mosquitto/mosquitto.log
+
+# Log ke stdout (untuk systemd journal)
+log_dest stdout
+
+# Log ke syslog
+log_dest syslog
+
+# Jenis log yang dicatat
+log_type error       # Error fatal
+log_type warning     # Peringatan
+log_type notice      # Informasi penting
+log_type information # Informasi umum
+log_type subscribe   # Aktivitas subscribe/unsubscribe
+log_type unsubscribe
+# log_type debug     # Debug detail (HATI-HATI: sangat verbose!)
+# log_type websockets # Log WebSocket khusus
+
+# Tampilkan info koneksi client
+connection_messages true
+
+# Format timestamp
+log_timestamp true
+log_timestamp_format %Y-%m-%dT%H:%M:%S
+</code></pre>
+      </div>
+
+      <h3>9.3 Log Rotation</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">/etc/logrotate.d/mosquitto — Log Rotation</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+/var/log/mosquitto/mosquitto.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 640 mosquitto mosquitto
+    postrotate
+        systemctl reload mosquitto 2>/dev/null || true
+    endscript
+}
+</code></pre>
+      </div>
+
+      <h3>9.4 Script Monitoring Sederhana</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — mqtt_monitor.py</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+#!/usr/bin/env python3
+# mqtt_monitor.py — Monitor Mosquitto Broker via $SYS
+# BeebaneLabs - https://beebanelabs.pages.dev
+
+import paho.mqtt.client as mqtt
+import json
+import time
+from datetime import datetime
+
+BROKER = "localhost"
+PORT = 1883
+USERNAME = "admin"
+PASSWORD = "admin_pass"
+
+stats = {}
+
+def on_connect(client, userdata, flags, rc, properties=None):
+    if rc == 0:
+        print("[OK] Monitor terhubung ke broker")
+        client.subscribe("$SYS/#")
+        print("[INFO] Memantau topik $SYS/#\n")
+    else:
+        print(f"[ERROR] Koneksi gagal: rc={rc}")
+
+def on_message(client, userdata, msg):
+    topic = msg.topic
+    value = msg.payload.decode("utf-8")
+    stats[topic] = value
+
+    # Filter: tampilkan hanya info penting
+    important = [
+        "clients/connected",
+        "messages/sent",
+        "messages/received",
+        "uptime",
+        "version"
+    ]
+
+    for keyword in important:
+        if keyword in topic:
+            ts = datetime.now().strftime("%H:%M:%S")
+            print(f"[{ts}] {topic}: {value}")
+            break
+
+def main():
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, "monitor_01")
+    client.username_pw_set(USERNAME, PASSWORD)
+    client.on_connect = on_connect
+    client.on_message = on_message
+
+    client.connect(BROKER, PORT, keepalive=60)
+    try:
+        client.loop_forever()
+    except KeyboardInterrupt:
+        print("\n[INFO] Monitor dihentikan.")
+        client.disconnect()
+
+if __name__ == "__main__":
+    main()
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Monitoring Lanjutan</div>
+        <p>Untuk monitoring skala produksi, pertimbangkan menggunakan <strong>Prometheus + Grafana</strong> dengan exporter MQTT, atau <strong>Telegraf</strong> untuk mengumpulkan metrik dari topik <code>$SYS</code> dan menyimpannya ke InfluxDB. Kombinasi ini memungkinkan visualisasi dashboard real-time dan alerting otomatis jika broker bermasalah.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz               -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang setup Mosquitto MQTT Broker:</p>
+
+      <div class="quiz-container" id="quiz09">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa yang terjadi jika Anda menjalankan Mosquitto 2.x tanpa konfigurasi autentikasi?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Broker berjalan normal dengan anonymous access aktif</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Client akan mendapat error "Connection Refused: not authorised" karena anonymous diblokir default</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Mosquitto otomatis membuat username dan password random</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Broker hanya mendengarkan di localhost saja</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Perintah apa yang digunakan untuk membuat file password baru dengan user pertama di Mosquitto?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) <code>mosquitto --create-password /etc/mosquitto/passwd admin</code></div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) <code>mosquitto_passwd -c /etc/mosquitto/passwd admin</code></div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) <code>mosquitto_user add admin /etc/mosquitto/passwd</code></div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) <code>htpasswd -c /etc/mosquitto/passwd admin</code></div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi dari konfigurasi bridge pada Mosquitto?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Menghubungkan client MQTT dengan client HTTP secara otomatis</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Menghubungkan dua atau lebih broker MQTT agar saling meneruskan pesan</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Mengkonversi pesan MQTT menjadi format REST API</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Menggandakan broker untuk backup otomatis</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Topik internal apa yang digunakan Mosquitto untuk mempublikasikan statistik broker secara real-time?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) <code>_internal/stats/#</code></div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) <code>$SYS/broker/#</code></div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) <code>mosquitto/status/#</code></div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) <code>system/metrics/#</code></div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mana yang BUKAN bagian dari security hardening untuk Mosquitto broker produksi?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Mengaktifkan TLS/SSL pada port 8883</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Mengkonfigurasi ACL untuk membatasi akses topik per client</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Mengaktifkan <code>allow_anonymous true</code> agar semua perangkat bisa terhubung</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Menjalankan Mosquitto dengan user non-root dan firewall yang ketat</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="mqtt-protocol.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Panduan Lengkap MQTT</span>
+        </a>
+        <a href="sensor-dht-esp32.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Sensor DHT dengan ESP32</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

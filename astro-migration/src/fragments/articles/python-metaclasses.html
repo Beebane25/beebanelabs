@@ -1,0 +1,1359 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">Python Metaclasses</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>Python Metaclasses: Panduan Lengkap</h1>
+      <p class="article-subtitle">Tutorial mendalam tentang Python Metaclasses — type(), __new__, __init_subclass__, ABCMeta, dan metaprogramming tingkat lanjut untuk mengontrol pembuatan kelas secara dinamis</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Metaclasses</a></li>
+          <li><a href="#type-function">Fungsi type() dan Pembuatan Kelas</a></li>
+          <li><a href="#metaclass-dasar">Membuat Metaclass Dasar</a></li>
+          <li><a href="#new-method">Metode __new__ dan __init__</a></li>
+          <li><a href="#init-subclass">__init_subclass__ untuk Kontrol Pewarisan</a></li>
+          <li><a href="#abcmeta">ABCMeta dan Abstract Base Class</a></li>
+          <li><a href="#use-cases">Use Cases Metaclasses</a></li>
+          <li><a href="#singleton">Pola Singleton dengan Metaclass</a></li>
+          <li><a href="#orm">Membangun ORM Sederhana</a></li>
+          <li><a href="#validation">Validasi Atribut Otomatis</a></li>
+          <li><a href="#best-practices">Best Practices dan Alternatif</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Metaclasses</h2>
+
+      <p>Di Python, <strong>semua adalah objek</strong> — termasuk kelas itu sendiri. Ketika Anda mendefinisikan sebuah kelas dengan <code>class Foo: pass</code>, Python sebenarnya membuat sebuah objek yang merupakan <em>instance</em> dari <strong>metaclass</strong>. Secara default, metaclass untuk semua kelas di Python adalah <code>type</code>.</p>
+
+      <p><strong>Metaclass</strong> adalah "kelas dari kelas" — yaitu kelas yang mendefinisikan bagaimana kelas-kelas lain dibuat. Bayangkan seperti cetakan kue: kelas adalah cetakan untuk objek, sedangkan metaclass adalah cetakan untuk kelas itu sendiri.</p>
+
+      <h3>Konsep Dasar: Objek dan Kelas</h3>
+      </div>
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: Hierarki Metaclass</div>
+<pre class="mermaid">
+flowchart TD
+    N0["HIERARKI METACLASS"]
+    N1["type ← metaclass"]
+    N2["(kelas (kelas dari semua kelas)"]
+    N3["dari"]
+    N4["semua)"]
+    N5["isinstance / creates"]
+    N6["int str list ← kelas"]
+    N7["(instance type)"]
+    N8["42 #quot;hi#quot; [1,2] ← instance"]
+
+    N0 --> N1
+    N1 --> N2
+    N2 --> N3
+    N3 --> N4
+    N4 --> N5
+    N5 --> N6
+    N6 --> N7
+    N7 --> N8
+
+    style N0 fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Tim Peters (penulis Zen of Python) pernah berkata: <em>"Metaclasses are deeper magic than 99% of users should ever worry about."</em> Namun, memahami metaclass sangat penting untuk memahami cara kerja framework seperti Django, SQLAlchemy, dan ABC.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: type()               -->
+      <!-- ============================== -->
+      <h2 id="type-function">2. Fungsi type() dan Pembuatan Kelas</h2>
+
+      <p>Fungsi <code>type()</code> memiliki dua kegunaan: (1) mengecek tipe objek, dan (2) <strong>membuat kelas secara dinamis</strong>. Kegunaan kedua inilah yang menjadi fondasi metaclass.</p>
+
+      <h3>Mengecek Tipe Objek</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — type() untuk cek tipe</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># type() untuk mengecek tipe
+print(type(42))            # &lt;class 'int'&gt;
+print(type("Halo"))        # &lt;class 'str'&gt;
+print(type([1, 2, 3]))     # &lt;class 'list'&gt;
+print(type(None))          # &lt;class 'NoneType'&gt;
+
+# Membedakan type() vs isinstance()
+class Hewan:
+    pass
+
+class Kucing(Hewan):
+    pass
+
+k = Kucing()
+
+print(type(k) == Hewan)       # False — type() exact match
+print(isinstance(k, Hewan))    # True  — isinstance() cek parent juga
+</code></pre>
+      </div>
+
+      <h3>Membuat Kelas Dinamis dengan type()</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Membuat kelas dinamis</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Syntax type(): type(nama_kelas, (parent_kelas,), {atribut})
+# Ini sama persis dengan: class nama_kelas(parent_kelas): atribut
+
+# Contoh 1: Kelas sederhana
+# Menulis:
+class Mobil:
+    roda = 4
+    def klakson(self):
+        return "Tin tin!"
+
+# Sama dengan:
+Mobil = type('Mobil', (), {'roda': 4, 'klakson': lambda self: "Tin tin!"})
+
+m = Mobil()
+print(m.roda)        # 4
+print(m.klakson())   # Tin tin!
+print(type(m))       # &lt;class '__main__.Mobil'&gt;
+
+# Contoh 2: Kelas dengan inheritance
+class Kendaraan:
+    def bergerak(self):
+        return "Bergerak..."
+
+# Membuat kelas Mobil yang mewarisi Kendaraan
+Mobil = type('Mobil', (Kendaraan,), {
+    'roda': 4,
+    'klakson': lambda self: "Tin tin!"
+})
+
+m = Mobil()
+print(m.bergerak())  # Bergerak...  (dari Kendaraan)
+print(m.roda)        # 4
+
+# Contoh 3: Menambah metode dari fungsi terpisah
+def info_mobil(self):
+    return f"Mobil dengan {self.roda} roda"
+
+Mobil.info = info_mobil
+print(m.info())      # Mobil dengan 4 roda
+</code></pre>
+      </div>
+
+      <h3>Sintaks class vs type()</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Sintaks class</th>
+            <th>Sintaks type()</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>class Foo: pass</code></td><td><code>type('Foo', (), {})</code></td><td>Kelas tanpa parent</td></tr>
+          <tr><td><code>class Foo(Bar): pass</code></td><td><code>type('Foo', (Bar,), {})</code></td><td>Kelas dengan parent</td></tr>
+          <tr><td><code>class Foo: x = 5</code></td><td><code>type('Foo', (), {'x': 5})</code></td><td>Kelas dengan atribut</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Metaclass Dasar      -->
+      <!-- ============================== -->
+      <h2 id="metaclass-dasar">3. Membuat Metaclass Dasar</h2>
+
+      <p>Metaclass adalah kelas yang mewarisi dari <code>type</code>. Untuk menggunakan metaclass, kita menentukannya dengan parameter <code>metaclass</code> pada definisi kelas.</p>
+
+      <h3>Metaclass Pertama</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Metaclass Dasar</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Membuat metaclass sederhana
+class MetaclassKustom(type):
+    """Metaclass yang memodifikasi kelas yang dibuat"""
+    
+    def __new__(mcs, name, bases, namespace):
+        # mcs      = metaclass itu sendiri (seperti self, tapi untuk metaclass)
+        # name     = nama kelas yang akan dibuat
+        # bases    = tuple parent classes
+        # namespace = dictionary atribut dan metode
+        
+        print(f"Membuat kelas: {name}")
+        print(f"Parent classes: {bases}")
+        print(f"Atribut: {list(namespace.keys())}")
+        
+        # Buat kelas seperti biasa menggunakan type.__new__
+        return super().__new__(mcs, name, bases, namespace)
+
+
+# Menggunakan metaclass
+class Hewan(metaclass=MetaclassKustom):
+    def suara(self):
+        return "..."
+
+# Output saat class didefinisikan:
+# Membuat kelas: Hewan
+# Parent classes: ()
+# Atribut: ['__module__', '__qualname__', 'suara']
+
+class Kucing(Hewan):
+    def suara(self):
+        return "Meong!"
+
+# Output:
+# Membuat kelas: Kucing
+# Parent classes: (&lt;class 'Hewan'&gt;,)
+# Atribut: ['__module__', '__qualname__', 'suara']
+
+k = Kucing()
+print(k.suara())  # Meong!
+</code></pre>
+      </div>
+
+      <h3>Cara Python Membuat Kelas (Langkah demi Langkah)</h3>
+      <div class="info-box info">
+        <div class="info-box-title">🔍 Proses Pembuatan Kelas</div>
+        <ol>
+          <li>Python menemukan definisi <code>class</code></li>
+          <li>Python mengidentifikasi metaclass (default: <code>type</code>)</li>
+          <li>Python memanggil <code>metaclass.__prepare__()</code> untuk mendapatkan namespace</li>
+          <li>Body kelas dieksekusi dalam namespace tersebut</li>
+          <li>Python memanggil <code>metaclass.__new__()</code> untuk membuat objek kelas</li>
+          <li>Python memanggil <code>metaclass.__init__()</code> untuk menginisialisasi kelas</li>
+        </ol>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Proses Lengkap</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Metaclass dengan __prepare__
+class MetaclassLengkap(type):
+    
+    @classmethod
+    def __prepare__(mcs, name, bases, **kwargs):
+        """Dipanggil sebelum body kelas dieksekusi.
+        Harus mengembalikan mapping (dict-like)."""
+        print(f"__prepare__ dipanggil untuk '{name}'")
+        return super().__prepare__(name, bases, **kwargs)
+    
+    def __new__(mcs, name, bases, namespace, **kwargs):
+        """Membuat objek kelas baru."""
+        print(f"__new__ dipanggil untuk '{name}'")
+        return super().__new__(mcs, name, bases, namespace)
+    
+    def __init__(cls, name, bases, namespace, **kwargs):
+        """Menginisialisasi kelas yang sudah dibuat."""
+        print(f"__init__ dipanggil untuk '{name}'")
+        super().__init__(name, bases, namespace)
+
+
+class Contoh(metaclass=MetaclassLengkap):
+    x = 42
+    def method(self):
+        return self.x
+
+# Output:
+# __prepare__ dipanggil untuk 'Contoh'
+# __new__ dipanggil untuk 'Contoh'
+# __init__ dipanggil untuk 'Contoh'
+
+c = Contoh()
+print(c.method())  # 42
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: __new__              -->
+      <!-- ============================== -->
+      <h2 id="new-method">4. Metode __new__ dan __init__</h2>
+
+      <p><code>__new__</code> dan <code>__init__</code> adalah dua metode krusial dalam metaclass. <code>__new__</code> bertanggung jawab untuk <strong>membuat</strong> objek kelas, sedangkan <code>__init__</code> bertanggung jawab untuk <strong>menginisialisasi</strong>-nya.</p>
+
+      <h3>Perbedaan __new__ dan __init__</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Metode</th>
+            <th>Fungsi</th>
+            <th>Parameter Pertama</th>
+            <th>Mengembalikan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>__new__</code></td><td>Membuat instance baru</td><td><code>cls</code> (kelas)</td><td>Instance baru</td></tr>
+          <tr><td><code>__init__</code></td><td>Menginisialisasi instance</td><td><code>self</code> (instance)</td><td><code>None</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — __new__ detail</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># __new__ dipanggil SEBELUM __init__
+# __new__ MENGEMBALIKAN instance
+# __init__ hanya mengkonfigurasi instance yang sudah ada
+
+class LoggerMeta(type):
+    """Metaclass yang menambahkan logging ke semua metode."""
+    
+    def __new__(mcs, name, bases, namespace):
+        # Wrap setiap metode dengan logging
+        for attr_name, attr_value in namespace.items():
+            if callable(attr_value) and not attr_name.startswith('_'):
+                namespace[attr_name] = LoggerMeta._tambah_log(attr_value)
+        
+        return super().__new__(mcs, name, bases, namespace)
+    
+    @staticmethod
+    def _tambah_log(func):
+        def wrapper(*args, **kwargs):
+            print(f"  [LOG] Memanggil: {func.__name__}()")
+            hasil = func(*args, **kwargs)
+            print(f"  [LOG] {func.__name__}() selesai → {hasil}")
+            return hasil
+        wrapper.__name__ = func.__name__
+        return wrapper
+
+
+class Kalkulator(metaclass=LoggerMeta):
+    def tambah(self, a, b):
+        return a + b
+    
+    def kali(self, a, b):
+        return a * b
+
+calc = Kalkulator()
+hasil = calc.tambah(3, 5)
+# Output:
+#   [LOG] Memanggil: tambah()
+#   [LOG] tambah() selesai → 8
+
+hasil = calc.kali(4, 7)
+# Output:
+#   [LOG] Memanggil: kali()
+#   [LOG] kali() selesai → 28
+</code></pre>
+      </div>
+
+      <h3>Modifikasi __new__ pada Instance Level</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — __new__ pada instance</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># __new__ juga bisa di-override di level kelas (bukan metaclass)
+# Berguna untuk immutable types dan singleton
+
+class AngkaPositif:
+    """Kelas yang hanya menyimpan angka positif."""
+    
+    def __new__(cls, nilai):
+        if nilai < 0:
+            raise ValueError(f"Nilai harus positif, dapat: {nilai}")
+        instance = super().__new__(cls)
+        instance._nilai = nilai  # Set atribut di __new__
+        return instance
+    
+    def __init__(self, nilai):
+        # _nilai sudah di-set di __new__
+        # __init__ bisa tambah inisialisasi lain
+        self._label = f"Angka({self._nilai})"
+    
+    def __repr__(self):
+        return self._label
+
+
+a = AngkaPositif(42)
+print(a)          # Angka(42)
+
+try:
+    b = AngkaPositif(-5)
+except ValueError as e:
+    print(f"Error: {e}")  # Error: Nilai harus positif, dapat: -5
+
+
+# Contoh: Singleton menggunakan __new__
+class Singleton:
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
+    def __init__(self):
+        if not hasattr(self, 'data'):
+            self.data = "Halo dari Singleton!"
+
+s1 = Singleton()
+s2 = Singleton()
+print(s1 is s2)     # True — objek yang sama!
+print(s1.data)      # Halo dari Singleton!
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: __init_subclass__    -->
+      <!-- ============================== -->
+      <h2 id="init-subclass">5. __init_subclass__ untuk Kontrol Pewarisan</h2>
+
+      <p><code>__init_subclass__</code> diperkenalkan di Python 3.6 sebagai alternatif yang lebih sederhana untuk metaclass. Metode ini dipanggil setiap kali sebuah kelas turunan (subclass) dibuat.</p>
+
+      <h3>Perbandingan: __init_subclass__ vs Metaclass</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — __init_subclass__ vs metaclass</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># SEBELUM (Python 3.5) — harus pakai metaclass
+class PluginMeta(type):
+    _plugins = {}
+    
+    def __new__(mcs, name, bases, namespace):
+        cls = super().__new__(mcs, name, bases, namespace)
+        if name != 'Plugin':
+            mcs._plugins[name.lower()] = cls
+        return cls
+
+class Plugin(metaclass=PluginMeta):
+    pass
+
+# SESUDAH (Python 3.6+) — cukup __init_subclass__
+class Plugin:
+    _plugins = {}
+    
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        Plugin._plugins[cls.__name__.lower()] = cls
+
+# Kedua cara menghasilkan efek yang sama:
+class AuthPlugin(Plugin):
+    pass
+
+class CachePlugin(Plugin):
+    pass
+
+print(Plugin._plugins)
+# {'authplugin': &lt;class 'AuthPlugin'&gt;, 'cacheplugin': &lt;class 'CachePlugin'&gt;}
+</code></pre>
+      </div>
+
+      <h3>__init_subclass__ dengan Parameter Kustom</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Parameter Kustom</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># __init_subclass__ bisa menerima keyword arguments
+class Model:
+    _tabel = {}
+    
+    def __init_subclass__(cls, nama_tabel=None, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if nama_tabel:
+            cls._nama_tabel = nama_tabel
+            Model._tabel[nama_tabel] = cls
+        else:
+            cls._nama_tabel = cls.__name__.lower()
+
+
+class User(Model, nama_tabel="users"):
+    kolom = ["id", "nama", "email"]
+
+class Product(Model, nama_tabel="products"):
+    kolom = ["id", "nama_produk", "harga"]
+
+print(User._nama_tabel)      # users
+print(Product._nama_tabel)   # products
+print(Model._tabel)          # {'users': User, 'products': Product}
+
+
+# Validasi otomatis
+class ValidatedModel:
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        # Pastikan semua subclass punya metode 'validate'
+        if 'validate' not in cls.__dict__:
+            raise TypeError(
+                f"{cls.__name__} harus mendefinisikan metode validate()"
+            )
+
+class Formulir(ValidatedModel):
+    def validate(self):
+        return True
+
+# class Broken(ValidatedModel):
+#     pass
+# → TypeError: Broken harus mendefinisikan metode validate()
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p><code>__init_subclass__</code> hanya dipanggil untuk <strong>subclass langsung</strong> atau subclass turunan (dengan perubahan Python 3.6.1+). Namun, parameter kustom hanya berlaku untuk subclass langsung. Untuk kebutuhan yang lebih kompleks, tetap gunakan metaclass.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: ABCMeta              -->
+      <!-- ============================== -->
+      <h2 id="abcmeta">6. ABCMeta dan Abstract Base Class</h2>
+
+      <p><code>ABCMeta</code> adalah metaclass yang disediakan oleh modul <code>abc</code> (Abstract Base Classes). ABCMeta memungkinkan Anda mendefinisikan kelas abstrak yang <strong>tidak bisa diinstansiasi</strong> dan memaksa subclass untuk mengimplementasikan metode tertentu.</p>
+
+      <h3>Menggunakan ABCMeta</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — ABCMeta</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from abc import ABCMeta, abstractmethod
+
+# Cara 1: Menggunakan metaclass secara eksplisit
+class Shape(metaclass=ABCMeta):
+    @abstractmethod
+    def luas(self):
+        """Hitung luas bentuk."""
+        pass
+    
+    @abstractmethod
+    def keliling(self):
+        """Hitung keliling bentuk."""
+        pass
+    
+    def info(self):
+        """Metode konkret — bisa langsung dipakai."""
+        return f"Luas: {self.luas():.2f}, Keliling: {self.keliling():.2f}"
+
+
+# shape = Shape()  → TypeError: Can't instantiate abstract class Shape
+#                      with abstract methods keliling, luas
+
+
+class Lingkaran(Shape):
+    def __init__(self, jari_jari):
+        self.r = jari_jari
+    
+    def luas(self):
+        import math
+        return math.pi * self.r ** 2
+    
+    def keliling(self):
+        import math
+        return 2 * math.pi * self.r
+
+
+class Persegi(Shape):
+    def __init__(self, sisi):
+        self.sisi = sisi
+    
+    def luas(self):
+        return self.sisi ** 2
+    
+    def keliling(self):
+        return 4 * self.sisi
+
+
+# Sekarang bisa diinstansiasi
+lingkaran = Lingkaran(5)
+print(lingkaran.info())   # Luas: 78.54, Keliling: 31.42
+
+persegi = Persegi(4)
+print(persegi.info())      # Luas: 16.00, Keliling: 16.00
+
+
+# class Segitiga(Shape):
+#     def luas(self):
+#         return 0.5 * self.alas * self.tinggi
+# → TypeError: Can't instantiate abstract class Segitiga
+#              with abstract method keliling (belum implement keliling!)
+</code></pre>
+      </div>
+
+      <h3>Cara 2: Menggunakan ABC (Shortcut)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — ABC shortcut</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from abc import ABC, abstractmethod
+
+# ABC = convenience class yang sudah set metaclass=ABCMeta
+class Serializable(ABC):
+    @abstractmethod
+    def to_dict(self):
+        pass
+    
+    @abstractmethod
+    def from_dict(cls, data):
+        pass
+
+
+class User(Serializable):
+    def __init__(self, nama, email):
+        self.nama = nama
+        self.email = email
+    
+    def to_dict(self):
+        return {"nama": self.nama, "email": self.email}
+    
+    @classmethod
+    def from_dict(cls, data):
+        return cls(data["nama"], data["email"])
+
+
+user = User("Budi", "budi@email.com")
+data = user.to_dict()
+print(data)  # {'nama': 'Budi', 'email': 'budi@email.com'}
+
+user2 = User.from_dict(data)
+print(user2.nama)  # Budi
+</code></pre>
+      </div>
+
+      <h3>Properti Abstrak dan Classmethod</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Abstract Property</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from abc import ABC, abstractmethod
+
+class BaseConfig(ABC):
+    @property
+    @abstractmethod
+    def nama_aplikasi(self):
+        """Harus diimplementasikan oleh subclass."""
+        pass
+    
+    @classmethod
+    @abstractmethod
+    def dari_env(cls):
+        """Harus diimplementasikan oleh subclass."""
+        pass
+
+
+class DevConfig(BaseConfig):
+    @property
+    def nama_aplikasi(self):
+        return "MyApp-Dev"
+    
+    @classmethod
+    def dari_env(cls):
+        return cls()
+
+
+cfg = DevConfig()
+print(cfg.nama_aplikasi)  # MyApp-Dev
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Use Cases             -->
+      <!-- ============================== -->
+      <h2 id="use-cases">7. Use Cases Metaclasses</h2>
+
+      <p>Meskipun metaclasses sering dianggap "terlalu kompleks", ada beberapa skenario di mana metaclasses sangat berguna dan bahkan diperlukan.</p>
+
+      <h3>Aplikasi Umum Metaclasses</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Use Case</th>
+            <th>Deskripsi</th>
+            <th>Contoh di Dunia Nyata</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>API/ORM</td><td>Mapping class ke database table</td><td>Django Models, SQLAlchemy</td></tr>
+          <tr><td>Singleton</td><td>Memastikan hanya 1 instance</td><td>Database connections, Config</td></tr>
+          <tr><td>Validasi</td><td>Validasi atribut saat class dibuat</td><td>Pydantic, Marshmallow</td></tr>
+          <tr><td>Registration</td><td>Auto-register plugin/handler</td><td>pytest, Django admin</td></tr>
+          <tr><td>Proxy/Wrapping</td><td>Modifikasi metode otomatis</td><td>RPC frameworks, Mocking</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Singleton             -->
+      <!-- ============================== -->
+      <h2 id="singleton">8. Pola Singleton dengan Metaclass</h2>
+
+      <p>Pola <strong>Singleton</strong> memastikan bahwa sebuah kelas hanya memiliki satu instance di seluruh aplikasi. Metaclass adalah cara paling elegan untuk mengimplementasikan pola ini di Python.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Singleton Metaclass</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>class SingletonMeta(type):
+    """Metaclass yang membuat kelas hanya punya satu instance."""
+    _instances = {}
+    
+    def __call__(cls, *args, **kwargs):
+        # __call__ dipanggil saat Anda memanggil ClassName()
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
+class Database(metaclass=SingletonMeta):
+    def __init__(self):
+        print("Menghubungkan ke database...")
+        self.connection = "PostgreSQL://localhost/mydb"
+        self.query_count = 0
+    
+    def query(self, sql):
+        self.query_count += 1
+        return f"[{self.connection}] Executing: {sql}"
+
+
+# Semua Database() mengembalikan instance yang sama
+db1 = Database()
+db2 = Database()
+
+print(db1 is db2)          # True — singleton!
+db1.query("SELECT * FROM users")
+
+print(db2.query_count)     # 1 — db2 adalah db1 yang sama!
+print(db1 is db2)          # True
+</code></pre>
+      </div>
+
+      <h3>Thread-Safe Singleton</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Thread-Safe Singleton</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import threading
+
+class ThreadSafeSingletonMeta(type):
+    """Singleton yang aman untuk multi-threading."""
+    _instances = {}
+    _lock = threading.Lock()
+    
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            with cls._lock:  # Double-checked locking
+                if cls not in cls._instances:
+                    instance = super().__call__(*args, **kwargs)
+                    cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
+class Config(metaclass=ThreadSafeSingletonMeta):
+    def __init__(self):
+        self.debug = True
+        self.port = 8080
+
+# Di multi-thread sekalipun, hanya 1 instance
+config = Config()
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: ORM                   -->
+      <!-- ============================== -->
+      <h2 id="orm">9. Membangun ORM Sederhana</h2>
+
+      <p>Metaclass adalah fondasi dari ORM (Object-Relational Mapping) seperti Django Models dan SQLAlchemy. Di bagian ini kita akan membangun mini ORM menggunakan metaclass.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Mini ORM</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>class Field:
+    """Deskripsi satu kolom di tabel."""
+    def __init__(self, tipe, pk=False):
+        self.tipe = tipe
+        self.pk = pk
+    
+    def __repr__(self):
+        return f"Field({self.tipe.__name__}, pk={self.pk})"
+
+
+class ModelMeta(type):
+    """Metaclass untuk mini ORM."""
+    
+    def __new__(mcs, name, bases, namespace):
+        # Skip base class Model
+        fields = {}
+        for key, value in namespace.items():
+            if isinstance(value, Field):
+                fields[key] = value
+        
+        # Buat _table_name otomatis dari nama kelas
+        namespace['_table_name'] = name.lower() + 's'
+        namespace['_fields'] = fields
+        
+        cls = super().__new__(mcs, name, bases, namespace)
+        return cls
+
+
+class Model(metaclass=ModelMeta):
+    """Base class untuk semua model."""
+    
+    def __init__(self, **kwargs):
+        for field_name, field_obj in self._fields.items():
+            value = kwargs.get(field_name)
+            setattr(self, field_name, value)
+    
+    def save(self):
+        cols = ', '.join(self._fields.keys())
+        vals = ', '.join(repr(getattr(self, f)) for f in self._fields)
+        return f"INSERT INTO {self._table_name} ({cols}) VALUES ({vals})"
+    
+    def __repr__(self):
+        attrs = ', '.join(
+            f"{k}={getattr(self, k)!r}" for k in self._fields
+        )
+        return f"{type(self).__name__}({attrs})"
+
+
+# Definisikan model — seperti Django!
+class User(Model):
+    id = Field(int, pk=True)
+    nama = Field(str)
+    email = Field(str)
+    umur = Field(int)
+
+class Product(Model):
+    id = Field(int, pk=True)
+    nama_produk = Field(str)
+    harga = Field(float)
+
+
+# Gunakan model
+user = User(id=1, nama='Budi Santoso', email='budi***@email.com', umur=25)
+print(user)        # User(id=1, nama='Budi Santoso', email='budi@email.com', umur=25)
+print(user.save()) # [SQL] INSERT INTO users ...
+#                  # "INSERT INTO users (id, nama, email, umur) VALUES (1, 'Budi Santoso', 'budi@email.com', 25)"
+
+product = Product(id=1, nama_produk="Laptop", harga=15000000)
+print(product)      # Product(id=1, nama_produk='Laptop', harga=15000000.0)
+print(product.save())
+
+# Akses metadata
+print(User._table_name)   # users
+print(User._fields)        # {'id': Field(int, pk=True), 'nama': Field(str), ...}
+print(Product._table_name) # products
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: ORM                   -->
+      <!-- ============================== -->
+      <h2 id="orm">9. Membangun ORM Sederhana</h2>
+
+      <p>Salah satu contoh terbaik penggunaan metaclass adalah dalam <strong>ORM (Object-Relational Mapping)</strong>. Framework seperti Django ORM dan SQLAlchemy menggunakan metaclass untuk memetakan kelas Python ke tabel database.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Mini ORM</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>class Field:
+    """Representasi kolom database."""
+    def __init__(self, field_type, primary_key=False, default=None):
+        self.field_type = field_type
+        self.primary_key = primary_key
+        self.default = default
+        self.name = None  # Akan di-set oleh metaclass
+    
+    def __repr__(self):
+        return f"Field({self.field_type.__name__}, pk={self.primary_key})"
+
+
+class ModelMeta(type):
+    """Metaclass untuk mini ORM."""
+    
+    def __new__(mcs, name, bases, namespace):
+        # Jangan proses base class Model itu sendiri
+        if name == 'Model':
+            return super().__new__(mcs, name, bases, namespace)
+        
+        # Kumpulkan fields
+        fields = {}
+        for key, value in namespace.items():
+            if isinstance(value, Field):
+                value.name = key
+                fields[key] = value
+        
+        namespace['_fields'] = fields
+        namespace['_table_name'] = name.lower() + 's'
+        
+        return super().__new__(mcs, name, bases, namespace)
+
+
+class Model(metaclass=ModelMeta):
+    """Base model untuk mini ORM."""
+    
+    def __init__(self, **kwargs):
+        for field_name, field in self._fields.items():
+            value = kwargs.get(field_name, field.default)
+            setattr(self, field_name, value)
+    
+    def save(self):
+        columns = ', '.join(self._fields.keys())
+        values = ', '.join(repr(getattr(self, f)) for f in self._fields)
+        sql = f"INSERT INTO {self._table_name} ({columns}) VALUES ({values})"
+        print(f"  [SQL] {sql}")
+        return sql
+    
+    def __repr__(self):
+        attrs = ', '.join(f"{k}={getattr(self, k)!r}" for k in self._fields)
+        return f"{self.__class__.__name__}({attrs})"
+
+
+# Definisikan model — metaclass otomatis memproses Fields
+class User(Model):
+    id = Field(int, primary_key=True)
+    nama = Field(str)
+    email = Field(str)
+    umur = Field(int, default=0)
+
+
+class Product(Model):
+    id = Field(int, primary_key=True)
+    nama_produk = Field(str)
+    harga = Field(float)
+
+
+# Menggunakan
+user = User(id=1, nama="Budi Santoso", email="budi@email.com", umur=25)
+print(user)        # User(id=1, nama='Budi Santoso', email='budi@email.com', umur=25)
+print(user.save()) # [SQL] INSERT INTO users ...
+#                  # "INSERT INTO users (id, nama, email, umur) VALUES (1, 'Budi Santoso', 'budi@email.com', 25)"
+
+product = Product(id=1, nama_produk="Laptop", harga=15000000)
+print(product)      # Product(id=1, nama_produk='Laptop', harga=15000000.0)
+print(product.save())
+
+# Akses metadata
+print(User._table_name)   # users
+print(User._fields)        # {'id': Field(int, pk=True), 'nama': Field(str), ...}
+print(Product._table_name) # products
+</code></pre>
+      </div>
+<pre class="mermaid">
+flowchart TD
+    N0["INSERT INTO users (id, nama) VALUES (#quot;1, 'Budi'#quot;)"]
+    N1["class User id = Field(") nama = Field(")"]
+    N2["User._table_name = 'users'"]
+    N3["User._fields ("id: ..., nama: ...")"]
+    N1 --> N3
+    N3 --> N2
+    N2 --> N0
+</pre>
+    </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Validation           -->
+      <!-- ============================== -->
+      <h2 id="validation">10. Validasi Atribut Otomatis</h2>
+
+      <p>Metaclass bisa digunakan untuk memvalidasi atribut kelas secara otomatis saat kelas dibuat, bukan saat instance dibuat. Ini memungkinkan error ditemukan lebih awal.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Validasi Otomatis</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>class ValidatedMeta(type):
+    """Metaclass yang memvalidasi atribut class."""
+    
+    def __new__(mcs, name, bases, namespace):
+        # Validasi: semua atribut harus diberi type annotation
+        annotations = namespace.get('__annotations__', {})
+        
+        for attr_name, attr_value in namespace.items():
+            if attr_name.startswith('_') or callable(attr_value):
+                continue
+            
+            if attr_name not in annotations:
+                raise TypeError(
+                    f"{name}.{attr_name} = {attr_value!r} tidak punya type annotation! "
+                    f"Tambahkan: {attr_name}: tipe = ..."
+                )
+        
+        return super().__new__(mcs, name, bases, namespace)
+
+
+class Config(metaclass=ValidatedMeta):
+    nama: str = "MyApp"
+    port: int = 8080
+    debug: bool = False
+
+print(Config.nama)  # MyApp — valid!
+
+# class BrokenConfig(metaclass=ValidatedMeta):
+#     host = "localhost"  # ← Tidak punya type annotation!
+# → TypeError: BrokenConfig.host = 'localhost' tidak punya type annotation!
+
+
+# Contoh: Singleton + Validasi
+class AutoRegisterMeta(type):
+    """Metaclass yang auto-register + validasi."""
+    _registry = {}
+    
+    def __new__(mcs, name, bases, namespace):
+        cls = super().__new__(mcs, name, bases, namespace)
+        
+        # Skip base class
+        if name != 'Base':
+            # Validasi: harus punya 'name' attribute
+            if not hasattr(cls, 'name') or not cls.name:
+                raise ValueError(f"{name} harus mendefinisikan atribut 'name'")
+            
+            mcs._registry[cls.name] = cls
+            print(f"  Registered: {cls.name} → {name}")
+        
+        return cls
+
+
+class Base(metaclass=AutoRegisterMeta):
+    pass
+
+
+class HTTPHandler(Base):
+    name = "http"
+
+class WebSocketHandler(Base):
+    name = "websocket"
+
+print(AutoRegisterMeta._registry)
+# {'http': HTTPHandler, 'websocket': WebSocketHandler}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Best Practices       -->
+      <!-- ============================== -->
+      <h2 id="best-practices">11. Best Practices dan Alternatif</h2>
+
+      <h3>Kapan Menggunakan Metaclass</h3>
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Gunakan metaclass <strong>hanya ketika tidak ada alternatif yang lebih sederhana</strong>. Python menyediakan banyak mekanisme yang bisa menggantikan metaclass untuk kasus yang lebih umum.</p>
+      </div>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Kebutuhan</th>
+            <th>Solusi Terbaik</th>
+            <th>Menggunakan Metaclass?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Hook saat subclass dibuat</td><td><code>__init_subclass__</code></td><td>❌ Tidak perlu</td></tr>
+          <tr><td>Validasi saat kelas dibuat</td><td><code>__init_subclass__</code></td><td>❌ Tidak perlu</td></tr>
+          <tr><td>Abstract methods</td><td><code>ABC + @abstractmethod</code></td><td>❌ Tersembunyi</td></tr>
+          <tr><td>Singleton</td><td>Metaclass atau module-level</td><td>✅ Bagus</td></tr>
+          <tr><td>ORM field mapping</td><td>Metaclass</td><td>✅ Perlu</td></tr>
+          <tr><td>Dynamic class creation</td><td><code>type()</code></td><td>✅ Perlu</td></tr>
+          <tr><td>Decorating all methods</td><td>Metaclass</td><td>✅ Berguna</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Alternatif: Decorators vs Metaclasses</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Alternatif Decorator</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Dengan metaclass:
+class SingletonMeta(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+class DB(metaclass=SingletonMeta):
+    pass
+
+# Alternatif: decorator (lebih sederhana untuk singleton)
+def singleton(cls):
+    instances = {}
+    def get_instance(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+    return get_instance
+
+@singleton
+class Cache:
+    pass
+
+
+# Alternatif: __init_subclass__ untuk validasi
+class ValidatedBase:
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if not hasattr(cls, 'name'):
+            raise TypeError(f"{cls.__name__} harus punya atribut 'name'")
+
+class Handler(ValidatedBase):
+    name = "handler"
+
+# class BadHandler(ValidatedBase):
+#     pass → TypeError!
+</code></pre>
+      </div>
+
+      <h3>Tips Penting Metaclass</h3>
+      <ul>
+        <li><strong>Hindari metaclass yang kompleks</strong> — jika Anda butuh lebih dari 50 baris, pertimbangkan ulang</li>
+        <li><strong>Dokumentasikan dengan baik</strong> — metaclass sulit dipahami oleh developer lain</li>
+        <li><strong>Hati-hati dengan MRO</strong> — metaclass dari parent harus kompatibel</li>
+        <li><strong>Gunakan <code>__init_subclass__</code></strong> jika memungkinkan</li>
+        <li><strong>Test dengan subclass bertingkat</strong> — pastikan metaclass bekerja di seluruh hierarki</li>
+      </ul>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz                 -->
+      <!-- ============================== -->
+      <h2 id="quiz">12. Quiz Pemahaman</h2>
+
+      <p>Uji pemahaman Anda tentang Python Metaclasses dengan quiz berikut:</p>
+
+      <div class="quiz-container" id="quizPythonMeta01">
+        <h3>🧠 Quiz: Python Metaclasses</h3>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1. Apa output dari <code>type(type)</code>?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q1" value="a"> &lt;class 'object'&gt;</label>
+            <label><input type="radio" name="q1" value="b"> &lt;class 'type'&gt;</label>
+            <label><input type="radio" name="q1" value="c"> &lt;class 'metaclass'&gt;</label>
+            <label><input type="radio" name="q1" value="d"> Error</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2. Metode apa yang dipanggil pertama kali saat kelas dibuat?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q2" value="a"> __init__</label>
+            <label><input type="radio" name="q2" value="b"> __new__</label>
+            <label><input type="radio" name="q2" value="c"> __prepare__</label>
+            <label><input type="radio" name="q2" value="d"> __call__</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Apa metaclass default semua kelas di Python?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q3" value="a"> type</label>
+            <label><input type="radio" name="q3" value="b"> object</label>
+            <label><input type="radio" name="q3" value="c"> ABCMeta</label>
+            <label><input type="radio" name="q3" value="d"> metaclass</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>4. Apa fungsi utama ABCMeta?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q4" value="a"> Membuat singleton</label>
+            <label><input type="radio" name="q4" value="b"> Mendefinisikan kelas abstrak dengan metode wajib</label>
+            <label><input type="radio" name="q4" value="c"> Menghapus metode dari kelas</label>
+            <label><input type="radio" name="q4" value="d"> Membuat kelas immutable</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>5. Apa alternatif modern untuk metaclass untuk hook subclass?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q5" value="a"> @classmethod</label>
+            <label><input type="radio" name="q5" value="b"> @staticmethod</label>
+            <label><input type="radio" name="q5" value="c"> @property</label>
+            <label><input type="radio" name="q5" value="d"> __init_subclass__</label>
+          </div>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="submitQuiz('quizPythonMeta01')">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== FOOTER ========== -->

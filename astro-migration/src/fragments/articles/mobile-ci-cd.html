@@ -1,0 +1,613 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a><span class="separator">/</span>
+        <a href="../index.html#categories">Mobile Development</a><span class="separator">/</span>
+        <span class="current">Mobile CI/CD Pipeline</span>
+      </div>
+      <span class="category-tag">Mobile Development</span>
+      <h1>Mobile CI/CD Pipeline</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Pipeline CI/CD mobile — Fastlane, GitHub Actions, TestFlight, Play Store, code signing, beta testing, dan staged rollout</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  <article class="article-content" id="main-content">
+    <div class="container>
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#intro-cicd">Mengapa CI/CD</a></li>
+          <li><a href="#fastlane">Fastlane</a></li>
+          <li><a href="#github-actions">GitHub Actions</a></li>
+          <li><a href="#code-signing">Code Signing</a></li>
+          <li><a href="#testflight">TestFlight & Play Store</a></li>
+          <li><a href="#beta-testing">Beta Testing</a></li>
+          <li><a href="#notifications">Team Notifications</a></li>
+          <li><a href="#cicd-tips">Tips Pipeline</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+
+      <h2 id="intro-cicd">1. Mengapa CI/CD untuk Mobile?</h2>
+      <p><strong>CI/CD (Continuous Integration / Continuous Delivery)</strong> mengotomatisasi proses build, test, dan deployment aplikasi mobile. Tanpa CI/CD, proses rilis manual memakan waktu berjam-jam dan rentan human error.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Pipeline CI/CD Mobile</div>
+        <div class="arch-row">
+          <div class="arch-box highlight"><div class="arch-icon">📝</div><div class="arch-label">Code Push</div><div class="arch-desc">Git commit<br>Pull Request</div></div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box purple"><div class="arch-icon">🔨</div><div class="arch-label">Build & Test</div><div class="arch-desc">Compile, Lint<br>Unit & UI Tests</div></div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box"><div class="arch-icon">🚀</div><div class="arch-label">Deploy</div><div class="arch-desc">TestFlight<br>Play Store</div></div>
+        </div>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Mulai dari yang Sederhana</div>
+        <p>Mulai dengan CI yang menjalankan lint dan unit test. Tambahkan deployment otomatis setelah pipeline stabil. Jangan langsung setup full pipeline.</p>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="fastlane">2. Fastlane</h2>
+      <p><strong>Fastlane</strong> adalah tool open-source yang mengotomatisasi build, signing, dan deployment untuk iOS dan Android.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Instalasi Fastlane</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Install via RubyGems
+gem install fastlane
+
+# Atau via Homebrew (macOS)
+brew install fastlane
+
+# Inisialisasi di proyek
+cd ios && fastlane init
+cd android && fastlane init
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Ruby — Fastfile iOS</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# ios/fastlane/Fastfile
+default_platform(:ios)
+
+platform :ios do
+  desc "Run tests"
+  lane :test do
+    run_tests(
+      scheme: "MyApp",
+      devices: ["iPhone 15"],
+      code_coverage: true,
+    )
+  end
+
+  desc "Build & upload to TestFlight"
+  lane :beta do
+    # Increment build number
+    increment_build_number(
+      build_number: latest_testflight_build_number + 1
+    )
+
+    # Build
+    build_app(
+      scheme: "MyApp",
+      export_method: "app-store",
+      clean: true,
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+    )
+
+    # Notify team
+    slack(
+      message: "New iOS build uploaded to TestFlight!",
+      channel: "#releases",
+    )
+  end
+
+  desc "Upload to App Store"
+  lane :release do
+    build_app(scheme: "MyApp", export_method: "app-store")
+    upload_to_app_store(
+      skip_metadata: false,
+      skip_screenshots: true,
+      submit_for_review: true,
+      automatic_release: true,
+    )
+  end
+end
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Ruby — Fastfile Android</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# android/fastlane/Fastfile
+default_platform(:android)
+
+platform :android do
+  desc "Run tests"
+  lane :test do
+    gradle(task: "test")
+  end
+
+  desc "Build & upload to Play Store (internal track)"
+  lane :beta do
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+    )
+
+    upload_to_play_store(
+      track: "internal",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_screenshots: true,
+    )
+
+    slack(message: "New Android build uploaded to Play Store!")
+  end
+
+  desc "Promote internal to production"
+  lane :release do
+    upload_to_play_store(
+      track: "internal",
+      track_promote_to: "production",
+      skip_upload_aab: true,
+      skip_upload_metadata: false,
+    )
+  end
+end
+</code></pre>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="github-actions">3. GitHub Actions</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — GitHub Actions CI</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# .github/workflows/ci.yml
+name: Mobile CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  flutter-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze --fatal-infos
+
+      - name: Run tests
+        run: flutter test --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage/lcov.info
+
+  build-android:
+    needs: flutter-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  build-ios:
+    needs: flutter-test
+    runs-on: macos-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+
+      - name: Build IPA
+        run: flutter build ipa --release --no-codesign
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-release
+          path: build/ios/ipa/*.ipa
+</code></pre>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="code-signing">4. Code Signing</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Code Signing dengan Fastlane Match</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  deploy-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install Fastlane
+        run: bundle install
+
+      - name: Setup signing
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+        run: |
+          cd ios
+          bundle exec fastlane match appstore --readonly
+
+      - name: Build & Upload
+        env:
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.ASC_API_KEY }}
+        run: |
+          cd ios
+          bundle exec fastlane beta
+</code></pre>
+      </div>      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Jangan Commit Secrets</div>
+        <p>Gunakan GitHub Secrets untuk menyimpan API keys, passwords, dan certificates. JANGAN pernah commit credentials ke repository.</p>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="testflight">5. TestFlight &amp; Play Store</h2>
+      <table class="spec-table">
+        <thead><tr><th>Platform</th><th>Track</th><th>Audience</th><th>Review Time</th></tr></thead>
+        <tbody>
+          <tr><td>TestFlight Internal</td><td>Internal testing</td><td>Tim internal (100 orang)</td><td>Tidak perlu review</td></tr>
+          <tr><td>TestFlight External</td><td>Beta testing</td><td>Publik (10.000 orang)</td><td>1-3 hari</td></tr>
+          <tr><td>Play Internal</td><td>internal</td><td>100 tester</td><td>Tidak perlu review</td></tr>
+          <tr><td>Play Closed</td><td>closed (alpha/beta)</td><td>Undangan</td><td>Beberapa jam</td></tr>
+          <tr><td>Play Open</td><td>open (beta)</td><td>Publik (link)</td><td>Beberapa jam</td></tr>
+          <tr><td>Play Production</td><td>production</td><td>Semua user</td><td>1-7 hari</td></tr>
+        </tbody>
+      </table>
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="beta-testing">6. Beta Testing Strategy</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Automated Beta Deploy</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# .github/workflows/beta.yml
+name: Deploy Beta
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform'
+        required: true
+        type: choice
+        options: ['ios', 'android', 'both']
+      track:
+        description: 'Track'
+        required: true
+        type: choice
+        options: ['internal', 'closed', 'open']
+
+jobs:
+  beta-android:
+    if: inputs.platform == 'android' || inputs.platform == 'both'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - run: flutter build appbundle --release
+
+      - uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT }}
+          packageName: com.myapp
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: ${{ inputs.track }}
+
+  beta-ios:
+    if: inputs.platform == 'ios' || inputs.platform == 'both'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+      - name: Deploy to TestFlight
+        run: cd ios && bundle exec fastlane beta
+</code></pre>
+      </div>
+
+      <h3>6.1 Testing Ring Strategy</h3>
+      <table class="spec-table">
+        <thead><tr><th>Ring</th><th>Siapa</th><th>Ukuran</th><th>Tujuan</th></tr></thead>
+        <tbody>
+          <tr><td>Ring 0</td><td>Developer</td><td>1-5</td><td>Smoke test</td></tr>
+          <tr><td>Ring 1</td><td>QA Team</td><td>5-20</td><td>Regression test</td></tr>
+          <tr><td>Ring 2</td><td>Internal team</td><td>20-100</td><td>Dogfooding</td></tr>
+          <tr><td>Ring 3</td><td>Beta users</td><td>100-1000</td><td>Real-world testing</td></tr>
+          <tr><td>Ring 4</td><td>Production</td><td>Semua</td><td>Full release</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Staged Rollout</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Android staged rollout
+- uses: r0adkll/upload-google-play@v1
+  with:
+    serviceAccountJsonPlainText: ${{ secrets.PLAY_SA }}
+    packageName: com.myapp
+    releaseFiles: app-release.aab
+    track: production
+    # Rollout ke 20% user dulu
+    status: inProgress
+    userFraction: 0.2
+
+# Setelah yakin stabil, promote ke 100%
+# Bisa dilakukan manual di Play Console
+</code></pre>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="notifications">7. Team Notifications</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Slack & Email Notifications</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Tambahkan di akhir workflow
+  notify:
+    needs: [deploy-ios, deploy-android]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🚀 Release ${{ github.ref_name }} deployed!",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Release ${{ github.ref_name }}*\nPlatform: ${{ github.event.inputs.platform }}\nTrack: ${{ github.event.inputs.track }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+</code></pre>
+      </div>      <div class="info-box info">
+        <div class="info-box-title">📋 Post-Deploy Checklist</div>
+        <p>Setelah deploy: (1) Monitor crash reports 24 jam, (2) Cek analytics & user feedback, (3) Siapkan rollback plan, (4) Update release notes.</p>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="cicd-tips">8. Tips Pipeline yang Efisien</h2>
+      <table class="spec-table">
+        <thead><tr><th>Tips</th><th>Manfaat</th></tr></thead>
+        <tbody>
+          <tr><td>Cache dependencies (pub, gradle, cocoapods)</td><td>Build 2-5x lebih cepat</td></tr>
+          <tr><td>Run tests secara paralel</td><td>Kurangi total pipeline time</td></tr>
+          <tr><td>Conditional build (changed files only)</td><td>Skip build jika tidak ada perubahan</td></tr>
+          <tr><td>Separate CI &amp; CD pipeline</td><td>CI di setiap push, CD manual/tag only</td></tr>
+          <tr><td>Artifact retention policy</td><td>Hapus build lama untuk hemat storage</td></tr>
+          <tr><td>Build matrix (debug + release)</td><td>Test kedua variant sekaligus</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="quiz">Quiz Pemahaman</h2>
+      <div class="quiz-container" id="quiz07">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Tool apa yang mengotomatisasi build, signing, dan deployment mobile?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Gradle</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) CocoaPods</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Fastlane</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Xcode</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Track apa di Play Store yang tidak memerlukan review?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) production</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) open testing</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) closed testing</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) internal testing</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Layanan Apple apa untuk beta distribution?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) App Store Connect</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) TestFlight</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Xcode Cloud</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Apple Developer</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Di mana menyimpan API keys di GitHub Actions?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Di file config</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Di README</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Di GitHub Secrets</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Di .env file</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa fungsi staged rollout di Play Store?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Build otomatis</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Release bertahap ke persentase user tertentu</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Rollback otomatis</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) A/B testing</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+      <div class="article-nav">
+        <a href="../index.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">Kembali ke Beranda</span></a>
+        <a href="../kategori.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">Lihat Kategori</span></a>
+      </div>
+    </div>
+  </article>
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

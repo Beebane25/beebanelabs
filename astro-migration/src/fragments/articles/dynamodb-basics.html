@@ -1,0 +1,1235 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Database</a>
+        <span class="separator">/</span>
+        <span class="current">AWS DynamoDB</span>
+      </div>
+      <span class="category-tag">Database</span>
+      <h1>AWS DynamoDB: NoSQL Database</h1>
+      <p class="article-subtitle">Tables, queries, GSI/LSI indexes, capacity modes, DynamoDB Streams — panduan lengkap managed NoSQL database di AWS</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 20 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan DynamoDB</a></li>
+          <li><a href="#tabel">Membuat &amp; Mengelola Tabel</a></li>
+          <li><a href="#crud">CRUD Operations</a></li>
+          <li><a href="#query-scan">Query vs Scan</a></li>
+          <li><a href="#gsi-lsi">GSI &amp; LSI — Secondary Indexes</a></li>
+          <li><a href="#capacity">Capacity Modes — On-Demand vs Provisioned</a></li>
+          <li><a href="#streams">DynamoDB Streams &amp; Triggers</a></li>
+          <li><a href="#ttl">TTL &amp; DAX Cache</a></li>
+          <li><a href="#python">Python SDK (boto3)</a></li>
+          <li><a href="#best-practices">Best Practices &amp; Anti-Patterns</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan DynamoDB</h2>
+
+      <p><strong>Amazon DynamoDB</strong> adalah layanan database NoSQL fully-managed dari AWS. DynamoDB dirancang untuk performa tinggi, skalabilitas, dan ketersediaan — tanpa perlu mengelola server, patching, atau konfigurasi infrastruktur.</p>
+
+      <p>DynamoDB digunakan oleh perusahaan besar seperti <strong>Amazon.com</strong> itu sendiri, <strong>Netflix</strong>, <strong>Lyft</strong>, <strong>Airbnb</strong>, dan <strong>Samsung</strong> untuk menangani traffic dalam skala miliaran request per hari.</p>
+
+      <h3>Fitur Utama DynamoDB</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Deskripsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Fully Managed</td><td>Tidak perlu server, patching, atau maintenance</td></tr>
+          <tr><td>Serverless</td><td>Otomatis scale up/down sesuai demand</td></tr>
+          <tr><td>Single-digit ms latency</td><td>Konsisten &lt;10ms untuk read/write</td></tr>
+          <tr><td>Auto Scaling</td><td>Otomatis menyesuaikan kapasitas</td></tr>
+          <tr><td>Global Tables</td><td>Multi-region replication untuk latency rendah global</td></tr>
+          <tr><td>ACID Transaction</td><td>Transaksi lintas tabel (sejak 2018)</td></tr>
+          <tr><td>DynamoDB Streams</td><td>Capture perubahan data real-time</td></tr>
+          <tr><td>Backup &amp; Restore</td><td>Point-in-time recovery</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Arsitektur DynamoDB</div>
+<pre class="mermaid">
+flowchart TB
+    Client["📱 Client (App / SDK)"] -->|"API Request"| DAX["⚡ DAX\n(In-memory Cache)"]
+    DAX -->|"Cache miss"| DDB["🗄️ DynamoDB Service\n(Managed NoSQL Database)"]
+    
+    subgraph partitions["Partitions"]
+        P1["Partition 1"]
+        P2["Partition 2"]
+        P3["Partition 3"]
+        P4["Partition 4"]
+    end
+    
+    DDB --> partitions
+    
+    DDB --> Streams["📡 DynamoDB Streams"]
+    Streams --> Lambda["⚡ Lambda"]
+    Lambda --> SNS["📢 SNS/SQS"]
+
+    style Client fill:#2a0f1e,stroke:#f472b6
+    style DAX fill:#2a1f0a,stroke:#f59e0b,stroke-width:1.5px
+    style DDB fill:#0f1d3a,stroke:#60a5fa,stroke-width:2px
+    style partitions fill:#0a0a12,stroke:#3ecf8e
+    style Streams fill:#1a0f2e,stroke:#a78bfa
+    style Lambda fill:#0f2a1f,stroke:#3ecf8e
+    style SNS fill:#2a0f1e,stroke:#f472b6
+</pre>
+
+      <h3>Setup AWS CLI &amp; SDK</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Setup AWS</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# INSTALASI AWS CLI
+# =============================================
+# macOS
+brew install awscli
+
+# Linux
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+# Konfigurasi credentials
+aws configure
+# AWS Access Key ID: AKIAIOSFODNN7EXAMPLE
+# AWS Secret Access Key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+# Default region: ap-southeast-1 (Singapore)
+# Default output format: json
+
+# Cek konfigurasi
+aws sts get-caller-identity
+
+# =============================================
+# PYTHON SDK (boto3)
+# =============================================
+pip install boto3
+
+# =============================================
+# LOCAL DynamoDB (untuk development)
+# =============================================
+# Download JAR
+mkdir -p ~/dynamodb-local
+cd ~/dynamodb-local
+curl -O https://d1ni2b6xgvw0s0.cloudfront.net/v2.x/dynamodb_local_latest.tar.gz
+tar xzf dynamodb_local_latest.tar.gz
+
+# Jalankan
+java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8000
+
+# Test dengan AWS CLI ke local
+aws dynamodb list-tables --endpoint-url http://localhost:8000
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Tabel                -->
+      <!-- ============================== -->
+      <h2 id="tabel">2. Membuat &amp; Mengelola Tabel</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">AWS CLI — Membuat Tabel DynamoDB</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# MEMBUAT TABEL
+# =============================================
+
+# Tabel sederhana dengan partition key saja
+aws dynamodb create-table \
+    --table-name Products \
+    --attribute-definitions \
+        AttributeName=product_id,AttributeType=S \
+    --key-schema \
+        AttributeName=product_id,KeyType=HASH \
+    --billing-mode PAY_PER_REQUEST \
+    --table-class STANDARD
+
+# Tabel dengan partition key + sort key
+aws dynamodb create-table \
+    --table-name Orders \
+    --attribute-definitions \
+        AttributeName=customer_id,AttributeType=S \
+        AttributeName=order_date,AttributeType=S \
+    --key-schema \
+        AttributeName=customer_id,KeyType=HASH \
+        AttributeName=order_date,KeyType=RANGE \
+    --billing-mode PAY_PER_REQUEST
+
+# Tabel dengan provisioned capacity
+aws dynamodb create-table \
+    --table-name SensorData \
+    --attribute-definitions \
+        AttributeName=sensor_id,AttributeType=S \
+        AttributeName=timestamp,AttributeType=N \
+    --key-schema \
+        AttributeName=sensor_id,KeyType=HASH \
+        AttributeName=timestamp,KeyType=RANGE \
+    --provisioned-throughput \
+        ReadCapacityUnits=10,WriteCapacityUnits=10
+
+
+# =============================================
+# KELOLA TABEL
+# =============================================
+
+# Cek semua tabel
+aws dynamodb list-tables
+
+# Describe tabel (detail)
+aws dynamodb describe-table --table-name Products
+
+# Update capacity
+aws dynamodb update-table \
+    --table-name SensorData \
+    --provisioned-throughput \
+        ReadCapacityUnits=20,WriteCapacityUnits=20
+
+# Hapus tabel
+aws dynamodb delete-table --table-name Products
+
+# Backup
+aws dynamodb create-backup \
+    --table-name Orders \
+    --backup-name orders-backup-2026-06
+</code></pre>
+      </div>
+
+      <h3>Konsep Kunci: Primary Key</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Tipe Key</th>
+            <th>Komponen</th>
+            <th>Cocok Untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Partition Key (HASH)</td><td>Satu atribut</td><td>Data dengan key unik (user_id, product_id)</td></tr>
+          <tr><td>Composite Key (HASH + RANGE)</td><td>Dua atribut</td><td>Data dengan pola many-to-many (customer + date)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: CRUD                 -->
+      <!-- ============================== -->
+      <h2 id="crud">3. CRUD Operations</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">AWS CLI — CRUD Operations</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# PUT ITEM (Insert/Update)
+# =============================================
+aws dynamodb put-item \
+    --table-name Products \
+    --item '{
+        "product_id": {"S": "PROD-001"},
+        "name": {"S": "Laptop ASUS ROG"},
+        "price": {"N": "15000000"},
+        "category": {"S": "Elektronik"},
+        "stock": {"N": "50"},
+        "tags": {"SS": ["gaming", "laptop", "asus"]},
+        "in_stock": {"BOOL": true},
+        "specs": {"M": {
+            "cpu": {"S": "Intel i9"},
+            "ram": {"S": "32GB"},
+            "storage": {"S": "1TB SSD"}
+        }}
+    }'
+
+# Tipe data DynamoDB:
+# S  = String
+# N  = Number (always string format!)
+# B  = Binary
+# BOOL = Boolean
+# NULL = Null
+# M  = Map (object/dict)
+# L  = List (array)
+# SS = String Set
+# NS = Number Set
+# BS = Binary Set
+
+
+# =============================================
+# GET ITEM (Read by key)
+# =============================================
+aws dynamodb get-item \
+    --table-name Products \
+    --key '{"product_id": {"S": "PROD-001"}}' \
+    --projection-expression "product_id, #n, price" \
+    --expression-attribute-names '{"#n": "name"}'
+
+
+# =============================================
+# UPDATE ITEM
+# =============================================
+aws dynamodb update-item \
+    --table-name Products \
+    --key '{"product_id": {"S": "PROD-001"}}' \
+    --update-expression "SET price = :p, stock = stock - :s" \
+    --expression-attribute-values '{
+        ":p": {"N": "14500000"},
+        ":s": {"N": "1"}
+    }' \
+    --return-values UPDATED_NEW
+
+# Conditional update (hanya jika stok > 0)
+aws dynamodb update-item \
+    --table-name Products \
+    --key '{"product_id": {"S": "PROD-001"}}' \
+    --update-expression "SET stock = stock - :s" \
+    --expression-attribute-values '{
+        ":s": {"N": "1"},
+        ":min_stock": {"N": "0"}
+    }' \
+    --condition-expression "stock > :min_stock" \
+    --return-values UPDATED_NEW
+
+
+# =============================================
+# DELETE ITEM
+# =============================================
+aws dynamodb delete-item \
+    --table-name Products \
+    --key '{"product_id": {"S": "PROD-001"}}'
+
+# Conditional delete
+aws dynamodb delete-item \
+    --table-name Products \
+    --key '{"product_id": {"S": "PROD-001"}}' \
+    --condition-expression "attribute_exists(product_id)"
+
+
+# =============================================
+# BATCH WRITE (multiple items)
+# =============================================
+aws dynamodb batch-write-item \
+    --request-items '{
+        "Products": [
+            {
+                "PutRequest": {
+                    "Item": {
+                        "product_id": {"S": "PROD-002"},
+                        "name": {"S": "Keyboard Mechanical"},
+                        "price": {"N": "850000"},
+                        "category": {"S": "Aksesoris"}
+                    }
+                }
+            },
+            {
+                "PutRequest": {
+                    "Item": {
+                        "product_id": {"S": "PROD-003"},
+                        "name": {"S": "Mouse Logitech"},
+                        "price": {"N": "350000"},
+                        "category": {"S": "Aksesoris"}
+                    }
+                }
+            }
+        ]
+    }'
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Query vs Scan        -->
+      <!-- ============================== -->
+      <h2 id="query-scan">4. Query vs Scan</h2>
+
+      <p>Ini adalah <strong>konsep terpenting</strong> di DynamoDB. <code>Query</code> menggunakan index untuk pencarian efisien. <code>Scan</code> membaca seluruh tabel — sangat tidak efisien untuk tabel besar.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">AWS CLI — Query & Scan</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# QUERY (cepat — gunakan partition key!)
+# =============================================
+
+# Query orders berdasarkan customer_id (partition key)
+aws dynamodb query \
+    --table-name Orders \
+    --key-condition-expression "customer_id = :cid" \
+    --expression-attribute-values '{
+        ":cid": {"S": "CUST-001"}
+    }'
+
+# Query dengan sort key range
+aws dynamodb query \
+    --table-name Orders \
+    --key-condition-expression \
+        "customer_id = :cid AND order_date BETWEEN :d1 AND :d2" \
+    --expression-attribute-values '{
+        ":cid": {"S": "CUST-001"},
+        ":d1": {"S": "2026-01-01"},
+        ":d2": {"S": "2026-06-30"}
+    }'
+
+# Query dengan filter expression (filter SETELAH query)
+aws dynamodb query \
+    --table-name Orders \
+    --key-condition-expression "customer_id = :cid" \
+    --filter-expression "total_amount > :min_amount AND #s = :status" \
+    --expression-attribute-names '{"#s": "status"}' \
+    --expression-attribute-values '{
+        ":cid": {"S": "CUST-001"},
+        ":min_amount": {"N": "100000"},
+        ":status": {"S": "completed"}
+    }'
+
+# Query dengan limit dan pagination
+aws dynamodb query \
+    --table-name Orders \
+    --key-condition-expression "customer_id = :cid" \
+    --expression-attribute-values '{":cid": {"S": "CUST-001"}}' \
+    --limit 10 \
+    --scan-index-forward false  # descending
+
+
+# =============================================
+# SCAN (lambat — baca SELURUH tabel!)
+# =============================================
+
+# Scan semua data (HINDARI di tabel besar!)
+aws dynamodb scan --table-name Products
+
+# Scan dengan filter
+aws dynamodb scan \
+    --table-name Products \
+    --filter-expression "category = :cat AND price > :min_price" \
+    --expression-attribute-values '{
+        ":cat": {"S": "Elektronik"},
+        ":min_price": {"N": "1000000"}
+    }'
+
+# Scan dengan projection (ambil kolom tertentu)
+aws dynamodb scan \
+    --table-name Products \
+    --projection-expression "product_id, #n, price" \
+    --expression-attribute-names '{"#n": "name"}'
+
+
+# =============================================
+# PERBANDINGAN QUERY vs SCAN
+# =============================================
+# ┌──────────────┬──────────────────┬──────────────────┐
+# │ Aspek        │ QUERY            │ SCAN             │
+# ├──────────────┼──────────────────┼──────────────────┤
+# │ Kecepatan    │ ✅ Sangat cepat  │ ❌ Lambat        │
+# │ Cost         │ ✅ Murah (sedikit│ ❌ Mahal (banyak  │
+# │              │    RCU)          │    RCU)          │
+# │ Filter       │ Hanya key kolom  │ Semua kolom      │
+# │ Skalabilitas │ ✅ Konsisten     │ ❌ Makin lambat  │
+# │              │                  │    seiring data  │
+# │ Kapan pakai  │ Selalu!          │ Terakhir kali    │
+# └──────────────┴──────────────────┴──────────────────┘
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Scan = Full Table Scan</div>
+        <p><code>Scan</code> di DynamoDB sama buruknya dengan <code>SELECT * FROM tabel</code> tanpa WHERE di SQL. Untuk tabel dengan jutaan item, scan bisa memakan waktu menit dan biaya RCU yang sangat besar. Selalu usahakan menggunakan <code>Query</code> dengan partition key.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: GSI & LSI            -->
+      <!-- ============================== -->
+      <h2 id="gsi-lsi">5. GSI &amp; LSI — Secondary Indexes</h2>
+
+      <p>DynamoDB memiliki dua jenis secondary index: <strong>GSI (Global Secondary Index)</strong> dan <strong>LSI (Local Secondary Index)</strong>. GSI adalah yang paling sering digunakan.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">AWS CLI — Secondary Indexes</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# GSI (Global Secondary Index)
+# =============================================
+# GSI = "virtual table" dengan partition key BERBEDA dari tabel utama
+# Berguna untuk query berdasarkan kolom selain primary key
+
+# Tambah GSI ke tabel yang sudah ada
+aws dynamodb update-table \
+    --table-name Products \
+    --attribute-definitions \
+        AttributeName=category,AttributeType=S \
+        AttributeName=price,AttributeType=N \
+    --global-secondary-index-updates '[
+        {
+            "Create": {
+                "IndexName": "GSI-Category-Price",
+                "KeySchema": [
+                    {"AttributeName": "category", "KeyType": "HASH"},
+                    {"AttributeName": "price", "KeyType": "RANGE"}
+                ],
+                "Projection": {
+                    "ProjectionType": "INCLUDE",
+                    "NonKeyAttributes": ["name", "stock"]
+                }
+            }
+        }
+    ]' --billing-mode PAY_PER_REQUEST
+
+# Query GSI (seperti query tabel biasa)
+aws dynamodb query \
+    --table-name Products \
+    --index-name "GSI-Category-Price" \
+    --key-condition-expression "category = :cat AND price BETWEEN :p1 AND :p2" \
+    --expression-attribute-values '{
+        ":cat": {"S": "Elektronik"},
+        ":p1": {"N": "500000"},
+        ":p2": {"N": "5000000"}
+    }'
+
+
+# =============================================
+# Membuat tabel BARU dengan GSI
+# =============================================
+aws dynamodb create-table \
+    --table-name Orders \
+    --attribute-definitions \
+        AttributeName=customer_id,AttributeType=S \
+        AttributeName=order_id,AttributeType=S \
+        AttributeName=status,AttributeType=S \
+        AttributeName=order_date,AttributeType=S \
+    --key-schema \
+        AttributeName=customer_id,KeyType=HASH \
+        AttributeName=order_id,KeyType=RANGE \
+    --global-secondary-index '[
+        {
+            "IndexName": "GSI-Status-Date",
+            "KeySchema": [
+                {"AttributeName": "status", "KeyType": "HASH"},
+                {"AttributeName": "order_date", "KeyType": "RANGE"}
+            ],
+            "Projection": {"ProjectionType": "ALL"}
+        }
+    ]' \
+    --billing-mode PAY_PER_REQUEST
+
+
+# =============================================
+# LSI (Local Secondary Index)
+# =============================================
+# LSI = partition key SAMA, sort key BERBEDA
+# Harus dibuat saat tabel dibuat (tidak bisa ditambah nanti)
+# Batasan: max 5 LSI per tabel, 10GB per partition
+
+aws dynamodb create-table \
+    --table-name Orders \
+    --attribute-definitions \
+        AttributeName=customer_id,AttributeType=S \
+        AttributeName=order_date,AttributeType=S \
+        AttributeName=total_amount,AttributeType=N \
+    --key-schema \
+        AttributeName=customer_id,KeyType=HASH \
+        AttributeName=order_date,KeyType=RANGE \
+    --local-secondary-indexes '[
+        {
+            "IndexName": "LSI-Customer-Amount",
+            "KeySchema": [
+                {"AttributeName": "customer_id", "KeyType": "HASH"},
+                {"AttributeName": "total_amount", "KeyType": "RANGE"}
+            ],
+            "Projection": {"ProjectionType": "ALL"}
+        }
+    ]' \
+    --billing-mode PAY_PER_REQUEST
+</code></pre>
+      </div>
+
+      <h3>GSI vs LSI</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>GSI</th>
+            <th>LSI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Partition Key</td><td>Bisa berbeda dari tabel</td><td>Harus sama dengan tabel</td></tr>
+          <tr><td>Sort Key</td><td>Bisa berbeda</td><td>Harus berbeda dari tabel</td></tr>
+          <tr><td>Kapan dibuat</td><td>Kapan saja</td><td>Hanya saat buat tabel</td></tr>
+          <tr><td>Capacity</td><td>Capacity terpisah</td><td>Berbagi capacity tabel</td></tr>
+          <tr><td>Consistency</td><td>Eventually consistent</td><td>Strongly consistent</td></tr>
+          <tr><td>Ukuran</td><td>Tidak terbatas</td><td>Max 10GB per partition</td></tr>
+          <tr><td>Rekomendasi</td><td>✅ Gunakan ini (default)</td><td>Hanya jika butuh strong consistency</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Projection Types</div>
+        <p><strong>ALL</strong>: Semua atribut tabel di-copy ke GSI (besar tapi lengkap). <strong>KEYS_ONLY</strong>: Hanya key attributes (kecil, hemat cost). <strong>INCLUDE</strong>: Key + atribut tertentu (balance). Pilih yang paling sesuai dengan query Anda.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Capacity Modes       -->
+      <!-- ============================== -->
+      <h2 id="capacity">6. Capacity Modes — On-Demand vs Provisioned</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">AWS CLI — Capacity Management</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# ON-DEMAND MODE
+# =============================================
+# Bayar per request (pay-per-request)
+# Cocok untuk: workload unpredictable, baru mulai, development
+
+aws dynamodb update-table \
+    --table-name Products \
+    --billing-mode PAY_PER_REQUEST
+
+
+# =============================================
+# PROVISIONED MODE
+# =============================================
+# Bayar per kapasitas yang dialokasikan (RCU/WCU)
+# Cocok untuk: workload predictable, cost optimization
+
+aws dynamodb update-table \
+    --table-name Products \
+    --billing-mode PROVISIONED \
+    --provisioned-throughput \
+        ReadCapacityUnits=25,WriteCapacityUnits=10
+
+
+# =============================================
+# AUTO SCALING (Provisioned mode)
+# =============================================
+# Otomatis sesuaikan RCU/WCU berdasarkan utilisasi
+
+# Register scalable target
+aws application-autoscaling register-scalable-target \
+    --service-namespace dynamodb \
+    --resource-id table/Products \
+    --scalable-dynamodb/table:ReadCapacityUnits \
+    --min-capacity 5 \
+    --max-capacity 100
+
+# Create scaling policy
+aws application-autoscaling put-scaling-policy \
+    --service-namespace dynamodb \
+    --scalable-dynamodb/table:ReadCapacityUnits \
+    --resource-id table/Products \
+    --policy-name ReadAutoScaling \
+    --policy-type TargetTrackingScaling \
+    --target-tracking-scaling-policy-configuration '{
+        "TargetValue": 70.0,
+        "PredefinedMetricSpecification": {
+            "PredefinedMetricType": "DynamoDBReadCapacityUtilization"
+        },
+        "ScaleInCooldown": 60,
+        "ScaleOutCooldown": 60
+    }'
+</code></pre>
+      </div>
+
+      <h3>Understanding RCU &amp; WCU</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Unit</th>
+            <th>Apa</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1 RCU</td><td>1 strongly consistent read/detik</td><td>Item hingga 4KB</td></tr>
+          <tr><td>1 RCU</td><td>2 eventually consistent reads/detik</td><td>Item hingga 4KB</td></tr>
+          <tr><td>1 WCU</td><td>1 write/detik</td><td>Item hingga 1KB</td></tr>
+          <tr><td>1 WCU</td><td>1 read/detik (transaction)</td><td>2x WCU</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Streams              -->
+      <!-- ============================== -->
+      <h2 id="streams">7. DynamoDB Streams &amp; Triggers</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">AWS CLI — DynamoDB Streams</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# AKTIFKAN STREAMS
+# =============================================
+aws dynamodb update-table \
+    --table-name Orders \
+    --stream-specification \
+        StreamEnabled=true,StreamViewType=NEW_AND_OLD_IMAGES
+
+# StreamViewType options:
+# KEYS_ONLY         — hanya key attributes
+# NEW_IMAGE         — data baru saja
+# OLD_IMAGE         — data lama saja
+# NEW_AND_OLD_IMAGES — data baru + lama (paling lengkap)
+
+# Cek stream
+aws dynamodb describe-table --table-name Orders \
+    --query 'Table.LatestStreamArn'
+
+# Read stream records
+aws dynamodb get-records \
+    --shard-iterator "ITERATOR_STRING"
+
+
+# =============================================
+# TRIGGER: Lambda function saat data berubah
+# =============================================
+# Skenario: Kirim notifikasi saat order dibuat
+
+# Lambda function (Python):
+"""
+import json
+
+def lambda_handler(event, context):
+    for record in event['Records']:
+        if record['eventName'] == 'INSERT':
+            new_image = record['dynamodb']['NewImage']
+            customer_id = new_image['customer_id']['S']
+            total = new_image['total']['N']
+            print(f"New order from {customer_id}: Rp{total}")
+
+            # Kirim notifikasi via SNS, email, dll.
+            # send_notification(customer_id, total)
+    return {'statusCode': 200}
+"""
+
+# Buat event source mapping di AWS Console atau CLI:
+# aws lambda create-event-source-mapping \
+#     --event-source-arn arn:aws:dynamodb:region:account:table/Orders/stream/xxx \
+#     --function-name order-processor \
+#     --starting-position LATEST
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: TTL & DAX            -->
+      <!-- ============================== -->
+      <h2 id="ttl">8. TTL &amp; DAX Cache</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">AWS CLI — TTL & DAX</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# TTL (Time To Live)
+# =============================================
+# Aktifkan TTL pada kolom "expires_at" (Unix timestamp)
+aws dynamodb update-table \
+    --table-name SessionData \
+    --attribute-definitions AttributeName=expires_at,AttributeType=N \
+    --time-to-live-specification \
+        Enabled=true,AttributeName=expires_at
+
+# Set item dengan TTL (30 hari dari sekarang)
+# expires_at = current Unix timestamp + 2592000 detik
+import time
+# expires_at: int(time.time()) + 2592000
+
+# =============================================
+# DAX (DynamoDB Accelerator) — In-Memory Cache
+# =============================================
+# DAX = cache in-memory yang kompatibel dengan DynamoDB API
+# Latency: DynamoDB ~5ms → DAX ~microseconds!
+
+# Buat DAX cluster via Console atau CLI
+# Cocok untuk workload read-heavy yang butuh latency sangat rendah
+
+# Python dengan DAX:
+# pip install amazon-dax-client
+
+"""
+import amazondax
+import boto3
+
+# Tanpa DAX:
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('Products')
+response = table.get_item(Key={'product_id': 'PROD-001'})
+
+# Dengan DAX:
+dax_client = amazondax.AmazonDaxClient('dax://my-cluster.xxxx.dax-clusters.REGION.amazonaws.com')
+table = dax_client.Table('Products')
+response = table.get_item(Key={'product_id': 'PROD-001'})  # ~μs!
+"""
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Python SDK           -->
+      <!-- ============================== -->
+      <h2 id="python">9. Python SDK (boto3)</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — boto3 DynamoDB</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import boto3
+from boto3.dynamodb.conditions import Key, Attr
+from decimal import Decimal
+import uuid
+from datetime import datetime
+
+# =============================================
+# KONEKSI
+# =============================================
+# Production:
+dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-1')
+
+# Local development:
+# dynamodb = boto3.resource('dynamodb', endpoint_url='http://localhost:8000')
+
+table = dynamodb.Table('Products')
+
+
+# =============================================
+# CREATE TABLE
+# =============================================
+def create_products_table():
+    dynamodb.create_table(
+        TableName='Products',
+        KeySchema=[
+            {'AttributeName': 'product_id', 'KeyType': 'HASH'},
+        ],
+        AttributeDefinitions=[
+            {'AttributeName': 'product_id', 'AttributeType': 'S'},
+        ],
+        BillingMode='PAY_PER_REQUEST'
+    )
+
+
+# =============================================
+# PUT ITEM
+# =============================================
+def add_product(name, price, category, stock):
+    item = {
+        'product_id': str(uuid.uuid4()),
+        'name': name,
+        'price': Decimal(str(price)),  # Harus Decimal, bukan float!
+        'category': category,
+        'stock': stock,
+        'created_at': datetime.now().isoformat(),
+    }
+    response = table.put_item(Item=item)
+    return response
+
+add_product('Laptop ASUS', 15000000, 'Elektronik', 50)
+add_product('Keyboard Mech', 850000, 'Aksesoris', 200)
+
+
+# =============================================
+# GET ITEM
+# =============================================
+def get_product(product_id):
+    response = table.get_item(
+        Key={'product_id': product_id},
+        ProjectionExpression='#n, price, category',
+        ExpressionAttributeNames={'#n': 'name'}
+    )
+    return response.get('Item')
+
+
+# =============================================
+# QUERY
+# =============================================
+# Query GSI
+def get_products_by_category(category, min_price=None):
+    params = {
+        'IndexName': 'GSI-Category-Price',
+        'KeyConditionExpression': Key('category').eq(category),
+    }
+    if min_price:
+        params['KeyConditionExpression'] = (
+            Key('category').eq(category) & Key('price').gte(min_price)
+        )
+    response = table.query(**params)
+    return response['Items']
+
+
+# =============================================
+# SCAN dengan filter
+# =============================================
+def search_products(keyword):
+    response = table.scan(
+        FilterExpression=Attr('name').contains(keyword)
+    )
+    return response['Items']
+
+
+# =============================================
+# UPDATE
+# =============================================
+def update_stock(product_id, quantity):
+    response = table.update_item(
+        Key={'product_id': product_id},
+        UpdateExpression='SET stock = stock - :qty',
+        ExpressionAttributeValues={':qty': quantity},
+        ConditionExpression='stock >= :qty',
+        ReturnValues='UPDATED_NEW'
+    )
+    return response['Attributes']
+
+
+# =============================================
+# DELETE
+# =============================================
+def delete_product(product_id):
+    table.delete_item(Key={'product_id': product_id})
+
+
+# =============================================
+# BATCH WRITE
+# =============================================
+def batch_write_products(items):
+    with table.batch_writer() as batch:
+        for item in items:
+            item['product_id'] = str(uuid.uuid4())
+            item['price'] = Decimal(str(item['price']))
+            batch.put_item(Item=item)
+
+# batch_write_products([
+#     {'name': 'Mouse', 'price': 350000, 'category': 'Aksesoris', 'stock': 100},
+#     {'name': 'Monitor', 'price': 3500000, 'category': 'Elektronik', 'stock': 30},
+# ])
+
+
+# =============================================
+# PAGINATION
+# =============================================
+def get_all_products():
+    items = []
+    params = {}
+    while True:
+        response = table.scan(**params)
+        items.extend(response['Items'])
+        if 'LastEvaluatedKey' not in response:
+            break
+        params['ExclusiveStartKey'] = response['LastEvaluatedKey']
+    return items
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Best Practices      -->
+      <!-- ============================== -->
+      <h2 id="best-practices">10. Best Practices &amp; Anti-Patterns</h2>
+
+      <h3>Best Practices</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Praktik</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Gunakan Query, bukan Scan</td><td>Selalu filter dengan partition key</td></tr>
+          <tr><td>Design for access patterns</td><td>Rancang tabel berdasarkan query, bukan entitas</td></tr>
+          <tr><td>Distribusi partition key</td><td>Hindari hot partition — pilih key yang merata</td></tr>
+          <tr><td>Gunakan GSI untuk query alternatif</td><td>Satu GSI = satu access pattern tambahan</td></tr>
+          <tr><td>Batch reads/writes</td><td>BatchWriteItem max 25 item, BatchGetItem max 100 item</td></tr>
+          <tr><td>Projection efficiency</td><td>Ambil hanya kolom yang dibutuhkan</td></tr>
+          <tr><td>TTL untuk data sementara</td><td>Session, cache, temporary data — otomatis dihapus</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Anti-Patterns</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Anti-Pattern</th>
+            <th>Kenapa Buruk</th>
+            <th>Solusi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Scan tanpa filter</td><td>Baca semua data = mahal &amp; lambat</td><td>Gunakan Query + partition key</td></tr>
+          <tr><td>Hot partition</td><td>Satu partition kebanjiran request</td><td>Randomize/shard partition key</td></tr>
+          <tr><td>Too many GSI</td><td>Setiap GSI = biaya write tambahan</td><td>Maksimal 5 GSI, design dengan hati-hati</td></tr>
+          <tr><td>Large items (>400KB)</td><td>Batas per item 400KB</td><td>Simpan di S3, simpan pointer di DynamoDB</td></tr>
+          <tr><td>Float untuk uang</td><td>Precision error</td><td>Selalu gunakan Decimal</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">11. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quiz12">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa perbedaan utama Query dan Scan di DynamoDB?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Query hanya untuk tabel kecil, Scan untuk tabel besar</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Query menggunakan partition key (cepat), Scan membaca seluruh tabel (lambat)</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Query hanya untuk GSI, Scan untuk tabel utama</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Tidak ada perbedaan</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Kapan GSI bisa dibuat?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Hanya saat membuat tabel</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Kapan saja, termasuk setelah tabel ada</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Hanya jika tabel kosong</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Hanya dengan AWS Support</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Mode kapasitas apa yang cocok untuk workload unpredictable?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Provisioned dengan Auto Scaling</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) On-Demand (Pay-per-request)</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Provisioned tanpa Auto Scaling</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Reserved Capacity</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Berapa batas ukuran satu item di DynamoDB?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) 64 KB</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) 400 KB</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) 1 MB</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Tidak ada batas</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa harus menggunakan Decimal, bukan float, untuk harga di Python boto3?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Float terlalu lambat untuk DynamoDB</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) DynamoDB tidak mendukung tipe float</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Float punya precision error yang bisa merugikan perhitungan uang</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Decimal lebih hemat storage</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="cassandra-basics.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Apache Cassandra: NoSQL Distributed Database</span>
+        </a>
+        <a href="elasticsearch-basics.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Elasticsearch: Search Engine</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

@@ -1,0 +1,922 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">ESP32</a>
+        <span class="separator">/</span>
+        <span class="current">Bluetooth BLE</span>
+      </div>
+      <span class="category-tag">ESP32 & ESP8266</span>
+      <h1>ESP32 Bluetooth BLE: Komunikasi Nirkabel Energi Rendah</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Pelajari cara memanfaatkan Bluetooth Low Energy pada ESP32 untuk komunikasi nirkabel hemat daya dalam proyek IoT</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 13 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#ble-vs-classic">BLE vs Classic Bluetooth</a></li>
+          <li><a href="#ble-architecture">Arsitektur BLE: GATT Protocol</a></li>
+          <li><a href="#esp32-ble-setup">Setup ESP32 BLE</a></li>
+          <li><a href="#ble-server">Membuat BLE Server</a></li>
+          <li><a href="#ble-client">Membuat BLE Client</a></li>
+          <li><a href="#data-transfer">Transfer Data BLE</a></li>
+          <li><a href="#ble-beacons">BLE Beacons (iBeacon & Eddystone)</a></li>
+          <li><a href="#security">Keamanan BLE</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: BLE vs Classic      -->
+      <!-- ============================== -->
+      <h2 id="ble-vs-classic">1. BLE vs Classic Bluetooth</h2>
+
+      <p>Bluetooth Low Energy (BLE) adalah protokol nirkabel yang dirancang oleh Bluetooth Special Interest Group (SIG) untuk komunikasi jarak pendek dengan konsumsi daya yang sangat rendah. Berbeda dengan Classic Bluetooth yang digunakan untuk streaming audio atau transfer file, BLE dioptimalkan untuk mengirimkan data kecil secara periodik — sangat cocok untuk aplikasi IoT.</p>
+
+      <p>ESP32 mendukung <strong>kedua jenis Bluetooth</strong> ini: Classic Bluetooth (BR/EDR) dan Bluetooth Low Energy (BLE 4.2). Ini menjadikan ESP32 salah satu mikrokontroler paling fleksibel untuk proyek nirkabel.</p>
+
+      <h3>Perbandingan BLE vs Classic Bluetooth</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Classic Bluetooth</th>
+            <th>Bluetooth Low Energy (BLE)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Konsumsi Daya</td><td>Tinggi (~30 mA)</td><td>Sangat rendah (~15 µA sleep)</td></tr>
+          <tr><td>Throughput</td><td>Hingga 3 Mbps</td><td>Hingga 2 Mbps</td></tr>
+          <tr><td>Latency</td><td>~100 ms</td><td>~6 ms</td></tr>
+          <tr><td>Jarak Efektif</td><td>~100 m</td><td>~100 m (tergantung TX power)</td></tr>
+          <tr><td>Ukuran Data</td><td>Streaming kontinyu</td><td>Paket kecil (hingga 512 bytes)</td></tr>
+          <tr><td>Koneksi</td><td>Point-to-point</td><td>Point-to-point, Broadcast, Mesh</td></tr>
+          <tr><td>Penggunaan</td><td>Audio, file transfer, serial</td><td>Sensor, beacon, wearable, IoT</td></tr>
+          <tr><td>Waktu Koneksi</td><td>~100 ms</td><td>~6 ms</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Untuk proyek IoT yang menggunakan baterai, <strong>selalu pilih BLE</strong> dibanding Classic Bluetooth. BLE dapat berjalan bertahun-tahun dengan satu baterai koin CR2032 karena desain hemat dayanya.</p>
+      </div>
+
+      <div class="compare-grid cols-2">
+        <div class="compare-card" style="--card-color: #00e5ff">
+          <div class="cc-icon">🔵</div>
+          <div class="cc-title">Classic Bluetooth</div>
+          <div class="cc-subtitle">Koneksi Stabil & Cepat</div>
+          <ul class="cc-features">
+            <li><span class="check">✅</span> Streaming audio (A2DP)</li>
+            <li><span class="check">✅</span> Transfer file besar (OBEX)</li>
+            <li><span class="check">✅</span> Serial Port Profile (SPP)</li>
+            <li><span class="cross">❌</span> Konsumsi daya tinggi</li>
+            <li><span class="cross">❌</span> Tidak cocok untuk baterai</li>
+            <li><span class="cross">❌</span> Koneksi lambat</li>
+          </ul>
+        </div>
+        <div class="compare-card" style="--card-color: #ffeb00">
+          <div class="cc-icon">⚡</div>
+          <div class="cc-title">Bluetooth Low Energy</div>
+          <div class="cc-subtitle">Hemat Daya & Fleksibel</div>
+          <ul class="cc-features">
+            <li><span class="check">✅</span> Konsumsi daya sangat rendah</li>
+            <li><span class="check">✅</span> Koneksi cepat (6 ms)</li>
+            <li><span class="check">✅</span> Mendukung Beacon/Broadcast</li>
+            <li><span class="check">✅</span> Ideal untuk sensor IoT</li>
+            <li><span class="cross">❌</span> Tidak cocok untuk streaming</li>
+            <li><span class="cross">❌</span> Ukuran data terbatas</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: BLE Architecture    -->
+      <!-- ============================== -->
+      <h2 id="ble-architecture">2. Arsitektur BLE: GATT Protocol</h2>
+
+      <p>Untuk memahami BLE, kita harus memahami arsitektur protokolnya. BLE menggunakan model <strong>Client-Server</strong> dengan protokol yang disebut <strong>GATT</strong> (Generic Attribute Profile). GATT mendefinisikan bagaimana dua perangkat BLE bertukar data menggunakan konsep <em>Services</em>, <em>Characteristics</em>, dan <em>Descriptors</em>.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Arsitektur BLE GATT Protocol</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">📱</div>
+            <div class="arch-label">BLE Client</div>
+            <div class="arch-desc">Smartphone / ESP32</div>
+          </div>
+          <div class="arch-box info">
+            <div class="arch-icon">📡</div>
+            <div class="arch-label">Advertising</div>
+            <div class="arch-desc">Broadcast Data</div>
+          </div>
+          <div class="arch-box highlight">
+            <div class="arch-icon">🔧</div>
+            <div class="arch-label">BLE Server</div>
+            <div class="arch-desc">ESP32 / Sensor Node</div>
+          </div>
+        </div>
+        <div class="arch-arrow down">↓</div>
+        <div class="arch-row">
+          <div class="arch-box warn">
+            <div class="arch-icon">📦</div>
+            <div class="arch-label">Profile</div>
+            <div class="arch-desc">Kumpulan Services</div>
+          </div>
+          <div class="arch-box purple">
+            <div class="arch-icon">🔧</div>
+            <div class="arch-label">Service</div>
+            <div class="arch-desc">Kumpulan Characteristics</div>
+          </div>
+          <div class="arch-box danger">
+            <div class="arch-icon">📊</div>
+            <div class="arch-label">Characteristic</div>
+            <div class="arch-desc">Data + Properties</div>
+          </div>
+          <div class="arch-box info">
+            <div class="arch-icon">📝</div>
+            <div class="arch-label">Descriptor</div>
+            <div class="arch-desc">Metadata tambahan</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Komponen Utama GATT</h3>
+
+      <ul>
+        <li><strong>Service:</strong> Kumpulan data terkait yang merepresentasikan fungsi tertentu. Setiap service memiliki UUID unik. Contoh: "Heart Rate Service" (UUID: 0x180D).</li>
+        <li><strong>Characteristic:</strong> Unit data terkecil dalam service. Berisi value, properties (read, write, notify), dan descriptor. Contoh: "Heart Rate Measurement" (UUID: 0x2A37).</li>
+        <li><strong>Descriptor:</strong> Metadata tambahan yang mendeskripsikan characteristic, seperti deskripsi teks atau format data.</li>
+        <li><strong>UUID:</strong> Identifier unik 128-bit untuk service dan characteristic. BLE menyediakan UUID 16-bit untuk standar umum.</li>
+      </ul>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ UUID dalam BLE</div>
+        <p>UUID standar BLE menggunakan format 16-bit (contoh: 0x180D) yang disematkan dalam base UUID Bluetooth SIG: <code>0000XXXX-0000-1000-8000-00805F9B34FB</code>. Untuk custom service, gunakan UUID 128-bit unik yang Anda generate sendiri.</p>
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Contoh Struktur GATT: Weather Station</div>
+<pre><code>Weather Station (Profile)
+📊 Characteristic: Temperature
+UUID: 0x2A6E
+Properties: Read, Notify
+Value: 25.5 °C
+📝 Descriptor: &quot;Suhu ruangan&quot;
+📊 Characteristic: Humidity
+UUID: 0x2A6F
+Properties: Read, Notify
+Value: 65 %
+📝 Descriptor: &quot;Kelembaban&quot;
+📊 Characteristic: Pressure
+UUID: 0x2A6D
+Properties: Read
+Value: 1013 hPa</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: ESP32 BLE Setup     -->
+      <!-- ============================== -->
+      <h2 id="esp32-ble-setup">3. Setup ESP32 BLE</h2>
+
+      <p>ESP32 memiliki Bluetooth controller terintegrasi yang mendukung BR/EDR dan BLE. Untuk menggunakan BLE di Arduino IDE, kita perlu menginstal library yang tepat.</p>
+
+      <h3>Library yang Dibutuhkan</h3>
+
+      <p>ESP32 Arduino Core sudah termasuk library BLE bawaan, jadi Anda tidak perlu menginstal library tambahan. Cukup gunakan header berikut:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Include Libraries BLE</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('#include <BLEDevice.h>\n#include <BLEServer.h>\n#include <BLEUtils.h>\n#include <BLE2902.h>')">Salin</button>
+        </div>
+<pre><code>
+#include &lt;BLEDevice.h&gt;
+#include &lt;BLEServer.h&gt;
+#include &lt;BLEUtils.h&gt;
+#include &lt;BLE2902.h&gt;
+</code></pre>
+      </div>
+
+      <h3>Inisialisasi BLE Device</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Inisialisasi BLE</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('void setup() {\n  Serial.begin(115200);\n\n  // Inisialisasi BLE dengan nama device\n  BLEDevice::init(\"ESP32-BLE-Server\");\n\n  // Buat BLE Server\n  BLEServer *pServer = BLEDevice::createServer();\n\n  Serial.println(\"BLE Device initialized!\");\n  Serial.print(\"MAC Address: \");\n  Serial.println(BLEDevice::getAddress().toString().c_str());\n}')">Salin</button>
+        </div>
+<pre><code>
+void setup() {
+  Serial.begin(115200);
+
+  // Inisialisasi BLE dengan nama device
+  BLEDevice::init("ESP32-BLE-Server");
+
+  // Buat BLE Server
+  BLEServer *pServer = BLEDevice::createServer();
+
+  Serial.println("BLE Device initialized!");
+  Serial.print("MAC Address: ");
+  Serial.println(BLEDevice::getAddress().toString().c_str());
+}
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Nama BLE device terbatas <strong>29 karakter</strong>. Jika nama terlalu panjang, akan dipotong secara otomatis. Gunakan nama yang singkat dan deskriptif seperti "ESP32-Sensor" atau "BeebaneLabs-Node".</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: BLE Server          -->
+      <!-- ============================== -->
+      <h2 id="ble-server">4. Membuat BLE Server</h2>
+
+      <p>BLE Server adalah perangkat yang menyediakan data (biasanya sensor node). Server membuat <em>services</em> dan <em>characteristics</em>, lalu mengiklankan (advertise) keberadaannya agar client dapat menemukan dan terhubung.</p>
+
+      <h3>Kode Lengkap BLE Server dengan DHT Sensor</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — ble_server_dht.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// BLE Server - ESP32 dengan Sensor DHT22
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include &lt;BLEDevice.h&gt;
+#include &lt;BLEServer.h&gt;
+#include &lt;BLEUtils.h&gt;
+#include &lt;BLE2902.h&gt;
+#include &lt;DHT.h&gt;
+
+// UUID untuk service dan characteristic
+#define SERVICE_UUID        "12345678-1234-1234-1234-123456789abc"
+#define TEMP_CHAR_UUID      "12345678-1234-1234-1234-123456789ab1"
+#define HUMID_CHAR_UUID     "12345678-1234-1234-1234-123456789ab2"
+
+// Pin dan tipe sensor
+#define DHT_PIN 4
+#define DHT_TYPE DHT22
+
+DHT dht(DHT_PIN, DHT_TYPE);
+
+BLEServer* pServer = NULL;
+BLECharacteristic* pTempChar = NULL;
+BLECharacteristic* pHumidChar = NULL;
+bool deviceConnected = false;
+bool oldDeviceConnected = false;
+
+// Callback saat client terhubung/putus
+class MyServerCallbacks: public BLEServerCallbacks {
+  void onConnect(BLEServer* pServer) {
+    deviceConnected = true;
+    Serial.println("Client terhubung!");
+  }
+
+  void onDisconnect(BLEServer* pServer) {
+    deviceConnected = false;
+    Serial.println("Client terputus!");
+  }
+};
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+
+  // Inisialisasi BLE
+  BLEDevice::init("ESP32-WeatherStation");
+
+  // Buat BLE Server
+  pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new MyServerCallbacks());
+
+  // Buat BLE Service
+  BLEService* pService = pServer->createService(SERVICE_UUID);
+
+  // Buat Characteristic untuk Suhu
+  pTempChar = pService->createCharacteristic(
+    TEMP_CHAR_UUID,
+    BLECharacteristic::PROPERTY_READ |
+    BLECharacteristic::PROPERTY_NOTIFY
+  );
+  pTempChar->addDescriptor(new BLE2902());
+
+  // Buat Characteristic untuk Kelembaban
+  pHumidChar = pService->createCharacteristic(
+    HUMID_CHAR_UUID,
+    BLECharacteristic::PROPERTY_READ |
+    BLECharacteristic::PROPERTY_NOTIFY
+  );
+  pHumidChar->addDescriptor(new BLE2902());
+
+  // Mulai service
+  pService->start();
+
+  // Mulai advertising
+  BLEAdvertising* pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID);
+  pAdvertising->setScanResponse(true);
+  pAdvertising->setMinPreferred(0x06);
+  BLEDevice::startAdvertising();
+
+  Serial.println("BLE Server aktif! Menunggu koneksi...");
+}
+
+void loop() {
+  if (deviceConnected) {
+    // Baca sensor DHT22
+    float temperature = dht.readTemperature();
+    float humidity = dht.readHumidity();
+
+    if (!isnan(temperature) && !isnan(humidity)) {
+      // Kirim data suhu
+      char tempStr[8];
+      dtostrf(temperature, 4, 1, tempStr);
+      pTempChar->setValue(tempStr);
+      pTempChar->notify();
+      Serial.print("Suhu: ");
+      Serial.print(tempStr);
+      Serial.println(" °C");
+
+      // Kirim data kelembaban
+      char humidStr[8];
+      dtostrf(humidity, 4, 1, humidStr);
+      pHumidChar->setValue(humidStr);
+      pHumidChar->notify();
+      Serial.print("Kelembaban: ");
+      Serial.print(humidStr);
+      Serial.println(" %");
+    }
+  }
+
+  // Handle reconnection
+  if (!deviceConnected && oldDeviceConnected) {
+    delay(500);
+    pServer->startAdvertising();
+    Serial.println("Mulai advertising lagi...");
+    oldDeviceConnected = deviceConnected;
+  }
+  if (deviceConnected && !oldDeviceConnected) {
+    oldDeviceConnected = deviceConnected;
+  }
+
+  delay(2000); // Kirim data setiap 2 detik
+}
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Gunakan <strong>nRF Connect</strong> app (tersedia di Android dan iOS) untuk memindai dan menguji BLE Server Anda. Aplikasi ini sangat berguna untuk debugging dan memverifikasi bahwa service serta characteristic terbaca dengan benar.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: BLE Client          -->
+      <!-- ============================== -->
+      <h2 id="ble-client">5. Membuat BLE Client</h2>
+
+      <p>BLE Client adalah perangkat yang mencari dan terhubung ke BLE Server untuk membaca data. Dalam contoh ini, kita akan membuat ESP32 kedua yang bertindak sebagai client dan membaca data suhu dari server.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — ble_client_reader.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// BLE Client - Membaca data dari BLE Server
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include "BLEDevice.h"
+
+// UUID yang sama dengan server
+#define SERVICE_UUID        "12345678-1234-1234-1234-123456789abc"
+#define TEMP_CHAR_UUID      "12345678-1234-1234-1234-123456789ab1"
+
+static BLEAddress* pServerAddress;
+static boolean doConnect = false;
+static boolean connected = false;
+static BLERemoteCharacteristic* pTempCharacteristic;
+
+// Callback saat menemukan device
+class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
+  void onResult(BLEAdvertisedDevice advertisedDevice) {
+    if (advertisedDevice.haveServiceUUID() &&
+        advertisedDevice.isAdvertisingService(BLEUUID(SERVICE_UUID))) {
+      BLEDevice::getScan().stop();
+      pServerAddress = new BLEAddress(advertisedDevice.getAddress());
+      doConnect = true;
+      Serial.print("Server ditemukan: ");
+      Serial.println(advertisedDevice.toString().c_str());
+    }
+  }
+};
+
+bool connectToServer() {
+  Serial.print("Menghubungkan ke ");
+  Serial.println(pServerAddress->toString().c_str());
+
+  BLEClient* pClient = BLEDevice::createClient();
+  pClient->connect(*pServerAddress);
+
+  BLERemoteService* pRemoteService =
+    pClient->getService(BLEUUID(SERVICE_UUID));
+
+  if (pRemoteService == nullptr) {
+    Serial.println("Service tidak ditemukan!");
+    pClient->disconnect();
+    return false;
+  }
+
+  pTempCharacteristic =
+    pRemoteService->getCharacteristic(BLEUUID(TEMP_CHAR_UUID));
+
+  if (pTempCharacteristic == nullptr) {
+    Serial.println("Characteristic tidak ditemukan!");
+    pClient->disconnect();
+    return false;
+  }
+
+  // Register callback untuk notifikasi
+  pTempCharacteristic->registerForNotify([](
+    BLERemoteCharacteristic* pChar,
+    uint8_t* pData, size_t length, bool isNotify
+  ) {
+    String value = String((char*)pData);
+    Serial.print("Suhu dari server: ");
+    Serial.print(value);
+    Serial.println(" °C");
+  });
+
+  connected = true;
+  return true;
+}
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("BLE Client - Scanning...");
+
+  BLEDevice::init("");
+  BLEScan* pBLEScan = BLEDevice::getScan();
+  pBLEScan->setAdvertisedDeviceCallbacks(
+    new MyAdvertisedDeviceCallbacks()
+  );
+  pBLEScan->setActiveScan(true);
+  pBLEScan->start(30); // Scan selama 30 detik
+}
+
+void loop() {
+  if (doConnect) {
+    if (connectToServer()) {
+      Serial.println("Terhubung ke BLE Server!");
+    } else {
+      Serial.println("Gagal terhubung.");
+    }
+    doConnect = false;
+  }
+  delay(1000);
+}
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Data Transfer       -->
+      <!-- ============================== -->
+      <h2 id="data-transfer">6. Transfer Data BLE</h2>
+
+      <p>BLE memiliki batasan ukuran data per transaksi. Secara default, <strong>MTU (Maximum Transmission Unit)</strong> BLE adalah 23 bytes, di mana 3 bytes digunakan untuk header ATT, sehingga hanya 20 bytes payload yang tersedia. Namun ESP32 mendukung MTU negosiasi hingga 512 bytes.</p>
+
+      <h3>Mode Komunikasi BLE</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>Arah</th>
+            <th>Deskripsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Read</strong></td><td>Client → Server</td><td>Client membaca value dari characteristic</td></tr>
+          <tr><td><strong>Write</strong></td><td>Client → Server</td><td>Client menulis value ke characteristic</td></tr>
+          <tr><td><strong>Notify</strong></td><td>Server → Client</td><td>Server mengirim data otomatis saat berubah</td></tr>
+          <tr><td><strong>Indicate</strong></td><td>Server → Client</td><td>Seperti Notify tapi dengan ACK</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Mengirim Data String Besar</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Transfer data besar via BLE</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Fungsi untuk mengirim data panjang via BLE
+// Memecah data menjadi paket-paket kecil
+void sendDataChunked(BLECharacteristic* pChar, String data) {
+  int chunkSize = 20; // MTU default
+  int dataLen = data.length();
+  int offset = 0;
+
+  while (offset < dataLen) {
+    int len = min(chunkSize, dataLen - offset);
+    String chunk = data.substring(offset, offset + len);
+
+    pChar->setValue((uint8_t*)chunk.c_str(), len);
+    pChar->notify();
+
+    offset += len;
+    delay(50); // Delay antar paket
+  }
+
+  // Kirim terminator
+  pChar->setValue((uint8_t*)"\0", 1);
+  pChar->notify();
+}
+
+// Mengirim struct sensor data
+struct SensorData {
+  float temperature;
+  float humidity;
+  float pressure;
+  uint16_t battery;
+};
+
+void sendSensorStruct(BLECharacteristic* pChar, SensorData data) {
+  pChar->setValue((uint8_t*)&data, sizeof(SensorData));
+  pChar->notify();
+}
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Mengatasi MTU Limit</div>
+        <p>Untuk meningkatkan MTU, gunakan <code>pClient->setMTU(512)</code> pada sisi client sebelum koneksi. Namun, perlu diingat bahwa tidak semua perangkat mendukung MTU besar. Aman menggunakan 20 bytes untuk kompatibilitas maksimal dengan smartphone.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: BLE Beacons         -->
+      <!-- ============================== -->
+      <h2 id="ble-beacons">7. BLE Beacons (iBeacon & Eddystone)</h2>
+
+      <p>BLE Beacon adalah mode di mana perangkat BLE menyiarkan (broadcast) informasi secara terus-menerus tanpa perlu koneksi. Ini sangat berguna untuk <strong>indoor positioning</strong>, <strong>asset tracking</strong>, dan <strong>proximity marketing</strong>.</p>
+
+      <h3>Dua Format Beacon Utama</h3>
+
+      <ul>
+        <li><strong>iBeacon</strong> — Format milik Apple. Mengirim UUID, Major, dan Minor number.</li>
+        <li><strong>Eddystone</strong> — Format open-source milik Google. Mendukung UID, URL (Physical Web), dan TLM (telemetry).</li>
+      </ul>
+
+      <h3>Membuat iBeacon dengan ESP32</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — esp32_ibeacon.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// iBeacon dengan ESP32
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include &lt;BLEDevice.h&gt;
+#include &lt;BLEServer.h&gt;
+#include &lt;BLEUtils.h&gt;
+#include &lt;BLEBeacon.h&gt;
+
+#define BEACON_UUID "12345678-1234-1234-1234-123456789abc"
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("ESP32 iBeacon Starting...");
+
+  BLEDevice::init("BeebaneLabs-Beacon");
+
+  // Buat iBeacon
+  BLEBeacon oBeacon = BLEBeacon();
+  oBeacon.setManufacturerId(0x4C00); // Apple manufacturer ID
+  oBeacon.setProximityUUID(BLEUUID(BEACON_UUID));
+  oBeacon.setMajor(1);  // Major number
+  oBeacon.setMinor(10); // Minor number
+  oBeacon.setSignalPower(-59); // RSSI pada 1 meter
+
+  BLEAdvertisementData oAdvertisementData = BLEAdvertisementData();
+  BLEAdvertisementData oScanResponseData = BLEAdvertisementData();
+
+  oAdvertisementData.setFlags(0x04); // BR/EDR Not Supported
+
+  std::string strServiceData = "";
+  strServiceData += (char)26;     // Panjang
+  strServiceData += (char)0xFF;   // Type: Manufacturer Specific
+  strServiceData += oBeacon.getData();
+  oAdvertisementData.addData(strServiceData);
+
+  BLEAdvertising* pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->setAdvertisementData(oAdvertisementData);
+  pAdvertising->setScanResponseData(oScanResponseData);
+  pAdvertising->setMinPreferred(0x06);
+  pAdvertising->setMinPreferred(0x12);
+
+  BLEDevice::startAdvertising();
+  Serial.println("iBeacon aktif dan broadcasting!");
+}
+
+void loop() {
+  delay(1000);
+}
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Beacon</div>
+        <p>Gunakan app <strong>Beacon Simulator</strong> atau <strong>nRF Connect</strong> untuk memverifikasi beacon ESP32 Anda terdeteksi. Untuk indoor positioning, pasang minimal 3 beacon dan gunakan trilateration berdasarkan RSSI.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Security            -->
+      <!-- ============================== -->
+      <h2 id="security">8. Keamanan BLE</h2>
+
+      <p>Keamanan adalah aspek penting dalam komunikasi BLE, terutama untuk perangkat IoT yang mengirim data sensitif. BLE mendukung beberapa tingkat keamanan:</p>
+
+      <h3>Tingkat Keamanan BLE</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Level</th>
+            <th>Nama</th>
+            <th>Deskripsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Level 1</td><td>No Security</td><td>Tanpa enkripsi, tanpa autentikasi</td></tr>
+          <tr><td>Level 2</td><td>Unauthenticated Encryption</td><td>Enkripsi tanpa pairing (Just Works)</td></tr>
+          <tr><td>Level 3</td><td>Authenticated Encryption</td><td>Enkripsi dengan pairing (PIN/Passkey)</td></tr>
+          <tr><td>Level 4</td><td>Authenticated LE SC</td><td>Secure Connections dengan ECDH</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Mengaktifkan Keamanan pada BLE Server</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — BLE Security Configuration</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Konfigurasi keamanan BLE
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+void setupSecurity() {
+  // Set security
+  BLESecurity* pSecurity = new BLESecurity();
+
+  // Set authentication mode
+  pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND);
+
+  // Set encryption key size
+  pSecurity->setCapability(ESP_IO_CAP_NONE);
+
+  // Set static PIN (untuk pairing dengan passkey)
+  // pSecurity->setCapability(ESP_IO_CAP_OUT);
+  // pSecurity->setInitEncryptionKey(ESP_BLE_ENC_KEY_MASK |
+  //                                  ESP_BLE_ID_KEY_MASK);
+
+  // Set key size
+  BLEDevice::setEncryptionLevel(ESP_BLE_SEC_ENCRYPT);
+
+  // Set passkey (6 digit)
+  // BLEDevice::setSecurityAuth(true, true, true);
+  // pSecurity->setStaticPIN(123456);
+
+  Serial.println("BLE Security diaktifkan!");
+}
+
+// Protect characteristic dengan keamanan
+void setupSecureCharacteristic(BLEService* pService) {
+  BLECharacteristic* pSecureChar =
+    pService->createCharacteristic(
+      SECURE_CHAR_UUID,
+      BLECharacteristic::PROPERTY_READ |
+      BLECharacteristic::PROPERTY_WRITE
+    );
+
+  // Set characteristic hanya bisa diakses setelah pairing
+  pSecureChar->setAccessPermissions(
+    ESP_GATT_PERM_READ_ENCRYPTED |
+    ESP_GATT_PERM_WRITE_ENCRYPTED
+  );
+
+  pSecureChar->setValue("Secret Data");
+}
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan Keamanan</div>
+        <p>Jangan pernah mengirim data sensitif (password, token, API key) melalui BLE tanpa enkripsi. Gunakan minimal <strong>Level 2</strong> (unauthenticated encryption) bahkan untuk proyek sederhana. Untuk aplikasi produksi, gunakan <strong>Level 4</strong> (LE Secure Connections).</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang ESP32 Bluetooth BLE:</p>
+
+      <div class="quiz-container" id="quiz02">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa keunggulan utama BLE dibanding Classic Bluetooth?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Kecepatan transfer data lebih tinggi</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Jarak komunikasi lebih jauh</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Konsumsi daya sangat rendah</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Dapat terhubung ke lebih banyak perangkat</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Dalam arsitektur GATT, apa yang dimaksud dengan "Characteristic"?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Kumpulan services yang membentuk profil</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Unit data terkecil dengan value dan properties</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Nama yang diberikan ke perangkat BLE</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Alamat MAC perangkat BLE</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Berapa ukuran payload default yang dapat dikirim per transaksi BLE?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) 512 bytes</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) 256 bytes</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) 128 bytes</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) 20 bytes</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari BLE Beacon?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Streaming audio ke headphone</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Mengirim file besar antar perangkat</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Broadcast informasi tanpa koneksi</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Menggantikan WiFi untuk internet</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Level keamanan BLE mana yang menggunakan ECDH untuk Secure Connections?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Level 1</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Level 2</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Level 3</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Level 4</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="esp32-fundamentals.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Panduan Lengkap ESP32</span>
+        </a>
+        <a href="esp32-freertos.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">FreeRTOS pada ESP32</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

@@ -1,0 +1,1779 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">IoT</a>
+        <span class="separator">/</span>
+        <span class="current">Telegram Bot</span>
+      </div>
+      <span class="category-tag">IoT &amp; Messaging</span>
+      <h1>Telegram Bot untuk IoT: Kontrol &amp; Notifikasi dari ESP32</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Panduan lengkap membangun Telegram Bot untuk proyek IoT — mulai dari membuat bot di BotFather hingga mengontrol perangkat dan mengirim notifikasi sensor secara real-time</p>
+      <div class="article-meta">
+        <span>📅 20 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#telegram-bot-iot">Telegram Bot untuk IoT</a></li>
+          <li><a href="#membuat-bot">Membuat Bot di Telegram (BotFather)</a></li>
+          <li><a href="#kirim-notifikasi">ESP32 + Telegram Bot: Kirim Notifikasi</a></li>
+          <li><a href="#kontrol-perangkat">Kontrol Perangkat via Telegram</a></li>
+          <li><a href="#kirim-foto">Kirim Foto dari ESP32-CAM ke Telegram</a></li>
+          <li><a href="#grup-monitoring">Grup Telegram untuk Monitoring IoT</a></li>
+          <li><a href="#keamanan">Keamanan Bot Token &amp; Chat ID</a></li>
+          <li><a href="#proyek-alarm">Proyek: Alarm Suhu + Notifikasi Telegram</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Telegram Bot untuk IoT -->
+      <!-- ============================== -->
+      <h2 id="telegram-bot-iot">1. Telegram Bot untuk IoT</h2>
+
+      <p>Telegram Bot adalah program otonom yang berjalan di platform Telegram dan bisa berinteraksi dengan pengguna melalui pesan teks, tombol inline, dan media. Dalam konteks IoT, Telegram Bot menjadi salah satu antarmuka paling powerful dan gratis untuk mengontrol serta memantau perangkat dari jarak jauh.</p>
+
+      <p>Bayangkan Anda sedang bepergian dan ingin mengetahui suhu di gudang penyimpanan. Cukup buka Telegram, ketik <code>/suhu</code>, dan dalam hitungan detik bot akan membalas dengan data suhu real-time dari sensor yang terhubung ke ESP32 di rumah Anda. Tidak perlu aplikasi khusus, tidak perlu server mahal — hanya Telegram yang sudah terinstall di hampir semua smartphone.</p>
+
+      <h3>Mengapa Telegram Bot untuk IoT?</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Kelebihan</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Gratis sepenuhnya</td><td>Telegram Bot API tersedia gratis tanpa batasan pesan</td></tr>
+          <tr><td>Cross-platform</td><td>Bisa diakses dari Android, iOS, desktop, dan web</td></tr>
+          <tr><td>Tidak perlu server</td><td>Tidak perlu hosting VPS atau cloud untuk relay pesan</td></tr>
+          <td>Rich media</td><td>Mendukung teks, foto, dokumen, lokasi, dan tombol inline</td></tr>
+          <tr><td>Keamanan end-to-end</td><td>Telegram menyediakan enkripsi untuk privasi pengguna</td></tr>
+          <tr><td>Mudah dikembangkan</td><td>API sederhana, banyak library Arduino/Python yang tersedia</td></tr>
+          <tr><td>Komunitas besar</td><td>Ekosistem Telegram yang luas memudahkan integrasi</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Use Cases Telegram Bot di IoT</h3>
+
+      <ul>
+        <li><strong>Monitoring Suhu &amp; Kelembaban</strong> — Kirim notifikasi otomatis saat suhu melebihi batas tertentu dari sensor DHT11/DHT22</li>
+        <li><strong>Kontrol Relay</strong> — Nyalakan/matikan lampu, pompa, atau perangkat rumah pintar lewat perintah teks</li>
+        <li><strong>Sistem Keamanan</strong> — Kirim foto dari ESP32-CAM saat terdeteksi gerakan</li>
+        <li><strong>Status Sistem</strong> — Laporkan status baterai, koneksi WiFi, dan uptime perangkat secara periodik</li>
+        <li><strong>Data Logging</strong> — Catat data sensor ke spreadsheet Google Sheets atau database InfluxDB</li>
+        <li><strong>Kontrol Servo/Stepper</strong> — Gerakkan servo atau motor stepper dari jarak jauh untuk aplikasi robotika</li>
+      </ul>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Arsitektur Komunikasi Telegram Bot + IoT</div>
+<pre class="mermaid">
+flowchart TD
+    N0["📱 User (Telegram App)"]
+    N1[☁️ Telegram Bot API Server]
+    N2["🔧 ESP32 (WiFi Module)"]
+    N3["Alur Komunikasi: 1. User mengirim pesan ke Bot ..."]
+    N4["ESP32 → GPIO + Sensor/Relay WiFi → Internet → T..."]
+    N5["Protokol: Polling vs Webhook Polling lebih muda..."]
+    N0 --> N1
+    N1 --> N2
+    N2 --> N3
+    N3 --> N4
+    N4 --> N5
+</pre>
+    </div>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Telegram Bot API mendukung dua metode komunikasi: <strong>Polling</strong> (ESP32 secara aktif mengecek pesan baru) dan <strong>Webhook</strong> (Telegram mengirim pesan ke URL server). Untuk proyek pemula, polling lebih sederhana karena tidak memerlukan IP publik atau domain SSL.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Membuat Bot di Telegram -->
+      <!-- ============================== -->
+      <h2 id="membuat-bot">2. Membuat Bot di Telegram (BotFather)</h2>
+
+      <p>Sebelum menghubungkan ESP32 dengan Telegram, kita perlu membuat Bot terlebih dahulu. Telegram menyediakan tool bernama <strong>BotFather</strong> — sebuah bot resmi dari Telegram yang membantu membuat dan mengatur bot lain.</p>
+
+      <h3>Langkah 1: Buka BotFather</h3>
+      <ol>
+        <li>Buka aplikasi Telegram di smartphone atau desktop</li>
+        <li>Cari <strong>@BotFather</strong> (pastikan ada centang biru verified)</li>
+        <li>Mulai percakapan dengan mengklik tombol <strong>Start</strong> atau <strong>/start</strong></li>
+      </ol>
+
+      <h3>Langkah 2: Buat Bot Baru</h3>
+      <p>Ketik perintah berikut di chat BotFather:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Telegram — Perintah BotFather</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('/newbot')">Salin</button></div>
+<pre class="mermaid">
+flowchart TD
+    A["📱 Buka Telegram"] --> B["🔍 Cari @BotFather"]
+    B --> C["▶️ /start"]
+    C --> D["🤖 /newbot"]
+    D --> E["📝 Isi Nama Bot"]
+    E --> F["🔤 Isi Username bot"]
+    F --> G["🔑 Dapat API Token"]
+    G --> H["💾 Simpan Token"]
+    H --> I["🔧 Siap Diprogram!"]
+</pre>
+      </div>
+
+      <p>BotFather akan meminta dua informasi:</p>
+      <ol>
+        <li><strong>Nama Bot</strong> — Nama tampilan yang bisa menggunakan spasi (contoh: <code>IoT Monitor Bot</code>)</li>
+        <li><strong>Username Bot</strong> — Username unik yang diakhiri dengan <code>bot</code> (contoh: <code>iot_monitor_xxx_bot</code>)</li>
+      </ol>
+
+      <div class="output-block">
+<strong>Contoh Balasan BotFather:</strong>
+Done! Congratulations on your new bot. You will find it at t.me/iot_monitor_xxx_bot.
+
+You can now add a description, about section and profile picture for your bot, see /help for a list of commands.
+
+Use this token to access the HTTP API:
+<b>6123456789:AAHk2x8rGz5bY2pMvN1wLdQ3cT7fJ9uKsR4</b>
+
+Keep your token secure and store it safely.
+</div>
+
+      <h3>Langkah 3: Simpan Bot Token</h3>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan Penting</div>
+        <p><strong>Bot Token</strong> adalah kunci akses ke bot Anda. Siapa pun yang memiliki token ini bisa mengontrol bot sepenuhnya. Simpan token di tempat aman dan <strong>jangan pernah</strong> membagikannya di GitHub, forum, atau file publik lainnya.</p>
+      </div>
+
+      <h3>Langkah 4: Atur Deskripsi Bot (Opsional)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Telegram — Perintah Tambahan BotFather</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>/setdescription
+IoT Monitor Bot — Pantau sensor dan kontrol perangkat ESP32 dari jarak jauh.
+
+/setabouttext
+Bot monitoring IoT untuk proyek smart home.
+
+/setuserpic
+(kirim foto profil untuk bot)
+
+/setcommands
+start - Mulai bot dan lihat panduan
+suhu - Baca suhu dari sensor DHT
+kelembaban - Baca kelembaban dari sensor DHT
+ledon - Nyalakan LED indicator
+ledoff - Matikan LED indicator
+status - Status sistem ESP32
+foto - Ambil foto dari ESP32-CAM
+help - Tampilkan bantuan</code></pre>
+      </div>
+
+      <p>Setelah menyetel command, Telegram akan menampilkan menu saran saat pengguna mengetik <code>/</code> di chat bot Anda. Ini membuat bot terlihat lebih profesional dan mudah digunakan.</p>
+
+      <h3>Langkah 5: Dapatkan Chat ID</h3>
+
+      <p>Untuk mengirim pesan dari ESP32 ke Anda, kita memerlukan <strong>Chat ID</strong>. Chat ID adalah identifier unik untuk setiap percakapan di Telegram. Berikut cara mendapatkannya:</p>
+
+      <ol>
+        <li>Mulai percakapan dengan bot baru Anda (klik Start)</li>
+        <li>Kirim pesan apa pun ke bot (misal: <code>/start</code>)</li>
+        <li>Buka browser, akses URL berikut (ganti <code>TOKEN</code> dengan token bot Anda):</li>
+      </ol>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">URL — Dapatkan Chat ID</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('https://api.telegram.org/botTOKEN/getUpdates')">Salin</button>
+        </div>
+<pre><code>https://api.telegram.org/botTOKEN/getUpdates</code></pre>
+      </div>
+
+      <p>Cari field <code>"chat": {"id": 123456789}</code> di dalam respons JSON. Angka tersebut adalah Chat ID Anda. Untuk grup, format Chat ID biasanya diawali dengan tanda minus (misal: <code>-1001234567890</code>).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON — Contoh Respons getUpdates</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>{
+  "ok": true,
+  "result": [
+    {
+      "update_id": 123456789,
+      "message": {
+        "message_id": 1,
+        "from": {
+          "id": 123456789,
+          "first_name": "Ahmad",
+          "username": "ahmad_iot"
+        },
+        "chat": {
+          "id": 123456789,
+          "type": "private"
+        },
+        "date": 1687200000,
+        "text": "/start"
+      }
+    }
+  ]
+}</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: ESP32 + Telegram Bot: Kirim Notifikasi -->
+      <!-- ============================== -->
+      <h2 id="kirim-notifikasi">3. ESP32 + Telegram Bot: Kirim Notifikasi</h2>
+
+      <p>Sekarang kita akan menghubungkan ESP32 dengan Telegram Bot untuk mengirim notifikasi. Kita menggunakan library <strong>UniversalTelegramBot</strong> yang menyederhanakan proses komunikasi HTTP dengan Telegram API.</p>
+
+      <h3>Instalasi Library</h3>
+      <ol>
+        <li>Buka Arduino IDE → <strong>Sketch → Include Library → Manage Libraries</strong></li>
+        <li>Cari <strong>"Universal Telegram Bot"</strong> oleh Brian Lough</li>
+        <li>Klik <strong>Install</strong> (dependencies seperti ArduinoJson akan ikut terinstal)</li>
+        <li>Juga pastikan library <strong>"WiFiClientSecure"</strong> sudah ada (bawaan ESP32 Arduino core)</li>
+      </ol>
+
+      <h3>Kode: Kirim Notifikasi Ke ESP32</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — telegram_notif.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Telegram Bot - Kirim Notifikasi dari ESP32
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClientSecure.h&gt;
+#include &lt;UniversalTelegramBot.h&gt;
+
+// === KONFIGURASI ===
+#define WIFI_SSID "NamaWiFiKamu"
+#define WIFI_PASSWORD "PasswordWiFiKamu"
+
+// Token dari BotFather (jangan bagikan!)
+#define BOT_TOKEN "6123456789:AAHk2x8rGz5bY2pMvN1wLdQ3cT7fJ9uKsR4"
+
+// Chat ID (dari getUpdates)
+#define CHAT_ID "123456789"
+
+// Interval pengiriman pesan (ms)
+#define NOTIF_INTERVAL 30000
+
+WiFiClientSecure securedClient;
+UniversalTelegramBot bot(BOT_TOKEN, securedClient);
+
+unsigned long lastNotifTime = 0;
+int notifCount = 0;
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("=== Telegram Bot IoT ===");
+
+  // Koneksi WiFi
+  Serial.print("Menghubungkan ke WiFi ");
+  Serial.print(WIFI_SSID);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println();
+  Serial.print("WiFi terhubung! IP: ");
+  Serial.println(WiFi.localIP());
+
+  // Set SSL client
+  securedClient.setCACert(TELEGRAM_CERTIFICATE_ROOT);
+
+  // Kirim pesan startup ke Telegram
+  String pesan = "🤖 *IoT Bot Online*\n";
+  pesan += "━━━━━━━━━━━━━━━━━\n";
+  pesan += "📍 IP: " + WiFi.localIP().toString() + "\n";
+  pesan += "📶 WiFi: " + String(WIFI_SSID) + "\n";
+  pesan += "⏰ Uptime: baru saja\n";
+  pesan += "━━━━━━━━━━━━━━━━━\n";
+  pesan += "Ketik /help untuk bantuan";
+
+  if (bot.sendMessage(CHAT_ID, pesan, "Markdown")) {
+    Serial.println("Notifikasi startup terkirim!");
+  } else {
+    Serial.println("Gagal mengirim notifikasi startup.");
+  }
+}
+
+void loop() {
+  unsigned long sekarang = millis();
+
+  // Kirim notifikasi periodik setiap 30 detik
+  if (sekarang - lastNotifTime &gt; NOTIF_INTERVAL) {
+    lastNotifTime = sekarang;
+    notifCount++;
+
+    // Contoh: baca suhu dummy (ganti dengan sensor asli)
+    float suhu = 25.0 + random(-50, 80) / 10.0;
+
+    String pesan = "📊 *Status Sensor*\n";
+    pesan += "━━━━━━━━━━━━━━━━━\n";
+    pesan += "🌡️ Suhu: " + String(suhu, 1) + " °C\n";
+    pesan += "📦 Notif #" + String(notifCount) + "\n";
+    pesan += "📶 WiFi: " + String(WiFi.RSSI()) + " dBm\n";
+
+    if (suhu &gt; 30.0) {
+      pesan += "⚠️ *Peringatan: Suhu tinggi!*";
+    } else {
+      pesan += "✅ Suhu normal.";
+    }
+
+    bot.sendMessage(CHAT_ID, pesan, "Markdown");
+    Serial.println("Notifikasi dikirim: " + String(notifCount));
+  }
+
+  // Cek apakah ada pesan masuk dari Telegram
+  int jumlahPesan = bot.getUpdates(bot.last_message_received + 1);
+
+  while (jumlahPesan) {
+    for (int i = 0; i &lt; jumlahPesan; i++) {
+      String chat_id = String(bot.messages[i].chat_id);
+      String text = bot.messages[i].text;
+
+      Serial.println("Pesan diterima: " + text);
+
+      if (chat_id != CHAT_ID) {
+        bot.sendMessage(chat_id, "⛔ Akses ditolak!", "");
+        continue;
+      }
+
+      if (text == "/start") {
+        String balas = "👋 Selamat datang di IoT Bot!\n\n";
+        balas += "Perintah tersedia:\n";
+        balas += "/suhu — Baca suhu sensor\n";
+        balas += "/status — Status sistem\n";
+        balas += "/help — Bantuan";
+        bot.sendMessage(chat_id, balas, "");
+      }
+      else if (text == "/status") {
+        String balas = "📊 *Status ESP32*\n\n";
+        balas += "Uptime: " + String(millis() / 1000) + " detik\n";
+        balas += "Free RAM: " + String(ESP.getFreeHeap()) + " byte\n";
+        balas += "WiFi RSSI: " + String(WiFi.RSSI()) + " dBm";
+        bot.sendMessage(chat_id, balas, "Markdown");
+      }
+      else if (text == "/help") {
+        String balas = "📖 *Bantuan*\n\n";
+        balas += "Ketik perintah berikut:\n";
+        balas += "/suhu — Baca suhu\n";
+        balas += "/status — Info sistem\n";
+        balas += "/help — Tampilkan ini";
+        bot.sendMessage(chat_id, balas, "Markdown");
+      }
+      else {
+        bot.sendMessage(chat_id, "❓ Perintah tidak dikenal. Ketik /help", "");
+      }
+    }
+    jumlahPesan = bot.getUpdates(bot.last_message_received + 1);
+  }
+
+  delay(1000); // Delay polling
+}
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Pola Polling vs Webhook</div>
+        <p>Kode di atas menggunakan <strong>polling</strong>, di mana ESP32 secara aktif mengecek pesan baru setiap 1 detik melalui HTTP request. Untuk proyek produksi dengan latency rendah, pertimbangkan menggunakan <strong>webhook</strong> yang memerlukan ESP32 terpublikasi di internet (via reverse proxy atau layanan seperti ngrok).</p>
+      </div>
+
+      <h3>Output Serial Monitor</h3>
+
+      <div class="output-block">
+<strong>Output Serial Monitor:</strong>
+=== Telegram Bot IoT ===
+Menghubungkan ke WiFi MyWiFi
+WiFi terhubung! IP: 192.168.1.105
+Notifikasi startup terkirim!
+Pesan diterima: /start
+Pesan diterima: /suhu
+Notifikasi dikirim: 1
+Notifikasi dikirim: 2
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Kontrol Perangkat via Telegram -->
+      <!-- ============================== -->
+      <h2 id="kontrol-perangkat">4. Kontrol Perangkat via Telegram</h2>
+
+      <p>Salah satu kegunaan paling powerful dari Telegram Bot di IoT adalah kemampuan mengontrol perangkat dari jarak jauh. Dalam bagian ini, kita akan belajar mengontrol LED, relay untuk perangkat AC, dan servo motor melalui pesan Telegram.</p>
+
+      <h3>4.1 Kontrol LED via Telegram</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — kontrol_led_telegram.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Kontrol LED via Telegram Bot
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClientSecure.h&gt;
+#include &lt;UniversalTelegramBot.h&gt;
+
+#define WIFI_SSID "NamaWiFiKamu"
+#define WIFI_PASSWORD "PasswordWiFiKamu"
+#define BOT_TOKEN "TOKEN_DARI_BOTFATHER"
+#define CHAT_ID "CHAT_ID_ANDA"
+
+// Pin LED
+#define LED_PIN_R 25   // Merah
+#define LED_PIN_G 26   // Hijau
+#define LED_PIN_B 27   // Biru
+
+WiFiClientSecure securedClient;
+UniversalTelegramBot bot(BOT_TOKEN, securedClient);
+
+unsigned long lastCheck = 0;
+const int checkInterval = 1000;
+
+void setup() {
+  Serial.begin(115200);
+
+  // Setup pin LED
+  pinMode(LED_PIN_R, OUTPUT);
+  pinMode(LED_PIN_G, OUTPUT);
+  pinMode(LED_PIN_B, OUTPUT);
+
+  // Matikan semua LED di awal
+  digitalWrite(LED_PIN_R, LOW);
+  digitalWrite(LED_PIN_G, LOW);
+  digitalWrite(LED_PIN_B, LOW);
+
+  // Koneksi WiFi
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi terhubung!");
+
+  securedClient.setCACert(TELEGRAM_CERTIFICATE_ROOT);
+
+  bot.sendMessage(CHAT_ID, "💡 Bot LED Control aktif!\n\nPerintah:\n/red — LED Merah\n/green — LED Hijau\n/blue — LED Biru\n/off — Matikan semua", "");
+}
+
+void loop() {
+  if (millis() - lastCheck &gt; checkInterval) {
+    int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+
+    for (int i = 0; i &lt; numNewMessages; i++) {
+      String chat_id = String(bot.messages[i].chat_id);
+      String text = bot.messages[i].text;
+
+      if (chat_id != CHAT_ID) {
+        bot.sendMessage(chat_id, "⛔ Akses ditolak!", "");
+        continue;
+      }
+
+      String balasan = "";
+
+      if (text == "/red") {
+        digitalWrite(LED_PIN_R, HIGH);
+        digitalWrite(LED_PIN_G, LOW);
+        digitalWrite(LED_PIN_B, LOW);
+        balasan = "🔴 LED Merah NYALA";
+      }
+      else if (text == "/green") {
+        digitalWrite(LED_PIN_R, LOW);
+        digitalWrite(LED_PIN_G, HIGH);
+        digitalWrite(LED_PIN_B, LOW);
+        balasan = "🟢 LED Hijau NYALA";
+      }
+      else if (text == "/blue") {
+        digitalWrite(LED_PIN_R, LOW);
+        digitalWrite(LED_PIN_G, LOW);
+        digitalWrite(LED_PIN_B, HIGH);
+        balasan = "🔵 LED Biru NYALA";
+      }
+      else if (text == "/off") {
+        digitalWrite(LED_PIN_R, LOW);
+        digitalWrite(LED_PIN_G, LOW);
+        digitalWrite(LED_PIN_B, LOW);
+        balasan = "⚫ Semua LED dimatikan";
+      }
+      else {
+        balasan = "❓ Ketik /help untuk bantuan";
+      }
+
+      bot.sendMessage(chat_id, balasan, "");
+    }
+    lastCheck = millis();
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>4.2 Kontrol Relay (Perangkat AC)</h3>
+
+      <p>Relay memungkinkan ESP32 mengontrol perangkat bertegangan tinggi seperti lampu rumah, kipas, atau pompa air. Berikut kode untuk kontrol relay modul 4-channel via Telegram:</p>
+
+      
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: ESP32 DevKit Relay Module (4-CH)</div>
+<pre class="mermaid">
+flowchart TD
+    N0["/#quot;ESP32 DevKit Relay Module (4-CH)#quot;/"]
+    N1["/#quot;● ● ● ●#quot;/"]
+    N2["/#quot;COM1 COM2 COM3 COM4#quot;/"]
+    N3["/#quot;● ● ● ●#quot;/"]
+    N4["/#quot;VCC#quot;/"]
+    N5["/#quot;●#quot;/"]
+
+    N0 --> N1
+    N1 --> N2
+    N2 --> N3
+    N3 --> N4
+    N4 --> N5
+
+    style N0 fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+</pre>
+    </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Bagian kode kontrol relay</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Definisi pin relay
+#define RELAY_1 16  // Lampu Ruang Tamu
+#define RELAY_2 17  // Kipas Angin
+#define RELAY_3 18  // Pompa Air
+#define RELAY_4 19  // Lampu Taman
+
+// Status relay (aktif-LOW: 0 = ON, 1 = OFF)
+bool relayStatus[4] = {HIGH, HIGH, HIGH, HIGH};
+
+const char* namaRelay[4] = {
+  "Lampu Ruang Tamu",
+  "Kipas Angin",
+  "Pompa Air",
+  "Lampu Taman"
+};
+
+void setupRelay() {
+  pinMode(RELAY_1, OUTPUT);
+  pinMode(RELAY_2, OUTPUT);
+  pinMode(RELAY_3, OUTPUT);
+  pinMode(RELAY_4, OUTPUT);
+
+  // Semua relay OFF saat startup
+  digitalWrite(RELAY_1, HIGH);
+  digitalWrite(RELAY_2, HIGH);
+  digitalWrite(RELAY_3, HIGH);
+  digitalWrite(RELAY_4, HIGH);
+}
+
+// Fungsi handle perintah relay
+String handleRelayCommand(String text) {
+  int relayNum = -1;
+  bool newState = false;
+
+  // /r1on → relay 1 ON
+  if (text == "/r1on") { relayNum = 0; newState = true; }
+  else if (text == "/r1off") { relayNum = 0; newState = false; }
+  else if (text == "/r2on") { relayNum = 1; newState = true; }
+  else if (text == "/r2off") { relayNum = 1; newState = false; }
+  else if (text == "/r3on") { relayNum = 2; newState = true; }
+  else if (text == "/r3off") { relayNum = 2; newState = false; }
+  else if (text == "/r4on") { relayNum = 3; newState = true; }
+  else if (text == "/r4off") { relayNum = 3; newState = false; }
+  else if (text == "/allon") {
+    for (int i = 0; i &lt; 4; i++) {
+      digitalWrite(RELAY_1 + i, LOW);
+      relayStatus[i] = LOW;
+    }
+    return "✅ Semua relay dinyalakan!";
+  }
+  else if (text == "/alloff") {
+    for (int i = 0; i &lt; 4; i++) {
+      digitalWrite(RELAY_1 + i, HIGH);
+      relayStatus[i] = HIGH;
+    }
+    return "⛔ Semua relay dimatikan!";
+  }
+  else {
+    return "";
+  }
+
+  if (relayNum &gt;= 0) {
+    int pin = RELAY_1 + relayNum;
+    digitalWrite(pin, newState ? LOW : HIGH);
+    relayStatus[relayNum] = newState ? LOW : HIGH;
+
+    return String(newState ? "🟢 " : "🔴 ") +
+           namaRelay[relayNum] +
+           String(newState ? " dinyalakan" : " dimatikan");
+  }
+
+  return "";
+}
+</code></pre>
+      </div>
+
+      <h3>4.3 Kontrol Servo via Telegram</h3>
+
+      <p>Servo motor berguna untuk aplikasi seperti membuka tutup ventilasi, menggerakkan kamera, atau mengoperasikan mekanisme mekanis sederhana.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Kontrol Servo via Telegram</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Kontrol Servo via Telegram Bot
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include &lt;ESP32Servo.h&gt;
+
+#define SERVO_PIN 13
+
+Servo servoPintu;
+
+// Handle perintah servo
+String handleServoCommand(String text) {
+  if (text == "/buka") {
+    servoPintu.write(90);
+    return "🚪 Pintu dibuka (90°)";
+  }
+  else if (text == "/tutup") {
+    servoPintu.write(0);
+    return "🚪 Pintu ditutup (0°)";
+  }
+  else if (text.startsWith("/posisi ")) {
+    String nilai = text.substring(8);
+    int sudut = nilai.toInt();
+
+    if (sudut &gt;= 0 &amp;&amp; sudut &lt;= 180) {
+      servoPintu.write(sudut);
+      return "⚙️ Servo dipindah ke " + String(sudut) + "°";
+    } else {
+      return "❌ Sudut harus antara 0-180";
+    }
+  }
+  else if (text == "/servostatus") {
+    return "📊 Posisi servo: " + String(servoPintu.read()) + "°";
+  }
+
+  return "";
+}
+
+// Di dalam setup():
+// servoPintu.attach(SERVO_PIN);
+// servoPintu.write(0);  // Posisi awal tertutup
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Penggunaan Servo</div>
+        <p>Untuk servo standar (SG90 atau MG996R), pastikan supply daya terpisah dari ESP32 karena servo membutuhkan arus yang cukup besar. Gunakan VCC eksternal 5V dan hubungkan GND bersama dengan ESP32.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Kirim Foto dari ESP32-CAM -->
+      <!-- ============================== -->
+      <h2 id="kirim-foto">5. Kirim Foto dari ESP32-CAM ke Telegram</h2>
+
+      <p>ESP32-CAM adalah modul ESP32 yang dilengkapi kamera OV2640. Dengan Telegram Bot, kita bisa mengambil foto dan mengirimkannya langsung ke chat Telegram — sangat berguna untuk sistem keamanan atau monitoring visual jarak jauh.</p>
+
+      <h3>Kebutuhan Komponen</h3>
+      <ul>
+        <li>1x ESP32-CAM (AI-Thinker)</li>
+        <li>1x FTDI USB-to-Serial converter (untuk programming)</li>
+        <li>1x Modul kamera OV2640 (biasanya sudah terpasang)</li>
+        <li>Kabel jumper</li>
+      </ul>
+
+      <h3>Pengaturan Board ESP32-CAM</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Pengaturan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Board</td><td>AI Thinker ESP32-CAM</td></tr>
+          <tr><td>Flash Frequency</td><td>80 MHz</td></tr>
+          <tr><td>Partition Scheme</td><td>Huge APP (3MB No OTA / 1MB SPIFFS)</td></tr>
+          <tr><td>PSRAM</td><td>Enabled</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — esp32cam_telegram.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Kirim Foto ESP32-CAM ke Telegram
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include "esp_camera.h"
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClientSecure.h&gt;
+#include &lt;UniversalTelegramBot.h&gt;
+
+#define WIFI_SSID "NamaWiFiKamu"
+#define WIFI_PASSWORD "PasswordWiFiKamu"
+#define BOT_TOKEN "TOKEN_DARI_BOTFATHER"
+#define CHAT_ID "CHAT_ID_ANDA"
+
+// Pin kamera ESP32-CAM (AI-Thinker)
+#define PWDN_GPIO_NUM     32
+#define RESET_GPIO_NUM    -1
+#define XCLK_GPIO_NUM      0
+#define SIOD_GPIO_NUM     26
+#define SIOC_GPIO_NUM     27
+#define Y9_GPIO_NUM       35
+#define Y8_GPIO_NUM       34
+#define Y7_GPIO_NUM       39
+#define Y6_GPIO_NUM       36
+#define Y5_GPIO_NUM       21
+#define Y4_GPIO_NUM       19
+#define Y3_GPIO_NUM       18
+#define Y2_GPIO_NUM        5
+#define VSYNC_GPIO_NUM    25
+#define HREF_GPIO_NUM     23
+#define PCLK_GPIO_NUM     22
+
+// Flash LED
+#define FLASH_GPIO_NUM     4
+
+WiFiClientSecure securedClient;
+UniversalTelegramBot bot(BOT_TOKEN, securedClient);
+
+void setupCamera() {
+  camera_config_t config;
+  config.ledc_channel = LEDC_CHANNEL_0;
+  config.ledc_timer = LEDC_TIMER_0;
+  config.pin_d0 = Y2_GPIO_NUM;
+  config.pin_d1 = Y3_GPIO_NUM;
+  config.pin_d2 = Y4_GPIO_NUM;
+  config.pin_d3 = Y5_GPIO_NUM;
+  config.pin_d4 = Y6_GPIO_NUM;
+  config.pin_d5 = Y7_GPIO_NUM;
+  config.pin_d6 = Y8_GPIO_NUM;
+  config.pin_d7 = Y9_GPIO_NUM;
+  config.pin_xclk = XCLK_GPIO_NUM;
+  config.pin_pclk = PCLK_GPIO_NUM;
+  config.pin_vsync = VSYNC_GPIO_NUM;
+  config.pin_href = HREF_GPIO_NUM;
+  config.pin_sccb_sda = SIOD_GPIO_NUM;
+  config.pin_sccb_scl = SIOC_GPIO_NUM;
+  config.pin_pwdn = PWDN_GPIO_NUM;
+  config.pin_reset = RESET_GPIO_NUM;
+  config.xclk_freq_hz = 20000000;
+  config.pixel_format = PIXFORMAT_JPEG;
+  config.frame_size = FRAMESIZE_VGA;  // 640x480
+  config.jpeg_quality = 12;
+  config.fb_count = 1;
+  config.fb_location = CAMERA_FB_IN_PSRAM;
+
+  esp_err_t err = esp_camera_init(&amp;config);
+  if (err != ESP_OK) {
+    Serial.printf("Gagal inisialisasi kamera: 0x%x\n", err);
+    return;
+  }
+
+  Serial.println("Kamera berhasil diinisialisasi!");
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  // Setup kamera
+  setupCamera();
+
+  // Setup flash LED
+  pinMode(FLASH_GPIO_NUM, OUTPUT);
+  digitalWrite(FLASH_GPIO_NUM, LOW);
+
+  // Koneksi WiFi
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi terhubung!");
+
+  securedClient.setCACert(TELEGRAM_CERTIFICATE_ROOT);
+
+  bot.sendMessage(CHAT_ID, "📷 ESP32-CAM Bot aktif!\nKetik /foto untuk mengambil gambar.", "");
+}
+
+void kirimFotoTelegram(String chatId) {
+  // Nyalakan flash
+  digitalWrite(FLASH_GPIO_NUM, HIGH);
+  delay(200);
+
+  // Ambil foto
+  camera_fb_t *fb = esp_camera_fb_get();
+
+  digitalWrite(FLASH_GPIO_NUM, LOW);
+
+  if (!fb) {
+    bot.sendMessage(chatId, "❌ Gagal mengambil foto!", "");
+    return;
+  }
+
+  Serial.printf("Foto diambil: %d bytes\n", fb-&gt;len);
+
+  // Kirim foto ke Telegram
+  bool terkirim = bot.sendPhoto(
+    chatId,
+    fb-&gt;buf,
+    fb-&gt;len,
+    "📷 Foto dari ESP32-CAM"
+  );
+
+  // Bebaskan buffer kamera
+  esp_camera_fb_return(fb);
+
+  if (terkirim) {
+    Serial.println("Foto berhasil dikirim ke Telegram!");
+  } else {
+    Serial.println("Gagal mengirim foto!");
+  }
+}
+
+void loop() {
+  int numMessages = bot.getUpdates(bot.last_message_received + 1);
+
+  for (int i = 0; i &lt; numMessages; i++) {
+    String chatId = String(bot.messages[i].chat_id);
+    String text = bot.messages[i].text;
+
+    if (chatId != CHAT_ID) {
+      bot.sendMessage(chatId, "⛔ Akses ditolak!", "");
+      continue;
+    }
+
+    if (text == "/foto" || text == "/ambil") {
+      bot.sendMessage(chatId, "📸 Mengambil foto...", "");
+      kirimFotoTelegram(chatId);
+    }
+    else if (text == "/status") {
+      String msg = "📷 *Status ESP32-CAM*\n\n";
+      msg += "RAM bebas: " + String(ESP.getFreeHeap()) + " byte\n";
+      msg += "PSRAM: " + String(ESP.getFreePsram()) + " byte\n";
+      msg += "WiFi: " + String(WiFi.RSSI()) + " dBm";
+      bot.sendMessage(chatId, msg, "Markdown");
+    }
+  }
+
+  delay(1000);
+}
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Catatan Penting</div>
+        <p>ESP32-CAM memiliki RAM terbatas. Jika foto gagal dikirim, coba kurangi resolusi (<code>FRAMESIZE_SVGA</code> atau <code>FRAMESIZE_CIF</code>) atau tingkatkan nilai <code>jpeg_quality</code> (angka lebih tinggi = kualitas lebih rendah tapi ukuran file lebih kecil). Pastikan juga PSRAM aktif untuk menyimpan buffer gambar.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Grup Telegram untuk Monitoring -->
+      <!-- ============================== -->
+      <h2 id="grup-monitoring">6. Grup Telegram untuk Monitoring IoT</h2>
+
+      <p>Menggunakan bot dalam grup Telegram memungkinkan beberapa orang memantau perangkat IoT secara bersamaan. Ini ideal untuk tim maintenance, smart home dengan banyak pengguna, atau monitoring infrastruktur yang memerlukan notifikasi ke beberapa admin.</p>
+
+      <h3>Langkah Membuat Grup Monitoring</h3>
+      <ol>
+        <li>Buka Telegram dan buat grup baru (klik ikon compose → New Group)</li>
+        <li>Tambahkan anggota yang ingin menerima notifikasi</li>
+        <li>Berikan nama grup yang jelas (contoh: <code>🏠 Smart Home Monitor</code>)</li>
+        <li>Tambahkan bot ke dalam grup (klik nama grup → Add Members → cari bot Anda)</li>
+        <li>Beri bot hak admin agar bisa mengirim pesan</li>
+        <li>Ketik <code>/start</code> di grup untuk mengaktifkan bot</li>
+        <li>Dapatkan Chat ID grup melalui <code>getUpdates</code></li>
+      </ol>
+
+      <h3>Kode: Bot Monitoring untuk Grup</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — bot_grup_monitoring.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Bot Telegram Grup Monitoring IoT
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+// Chat ID Grup (diawali tanda minus)
+#define GRUP_CHAT_ID "-1001234567890"
+
+// Chat ID Admin pribadi (untuk perintah admin)
+#define ADMIN_CHAT_ID "123456789"
+
+// Status notifikasi grup
+bool notifikasiAktif = true;
+bool notifikasiSuhu = true;
+bool notifikasiGerakan = true;
+
+// Kirim laporan periodik ke grup
+void kirimLaporanGrup() {
+  if (!notifikasiAktif) return;
+
+  float suhu = 28.5;   // Ganti dengan pembacaan sensor asli
+  float kelembaban = 75.0;
+  int baterai = 85;     // Persen
+
+  String laporan = "📊 *Laporan Status IoT*\n";
+  laporan += "━━━━━━━━━━━━━━━━━\n";
+  laporan += "🌡️ Suhu: " + String(suhu, 1) + " °C\n";
+  laporan += "💧 Kelembaban: " + String(kelembaban, 1) + " %\n";
+  laporan += "🔋 Baterai: " + String(baterai) + "%\n";
+  laporan += "📶 WiFi: " + String(WiFi.RSSI()) + " dBm\n";
+  laporan += "⏰ Uptime: " + String(millis() / 60000) + " menit\n";
+  laporan += "━━━━━━━━━━━━━━━━━\n";
+  laporan += "_Laporan otomatis setiap 1 jam_";
+
+  bot.sendMessage(GRUP_CHAT_ID, laporan, "Markdown");
+}
+
+// Kirim notifikasi alarm ke grup DAN admin pribadi
+void kirimAlarmGrup(String judul, String pesan) {
+  String alarm = "🚨 *" + judul + "*\n\n" + pesan;
+  alarm += "\n\n_Silakan cek perangkat segera!_";
+
+  // Kirim ke grup
+  bot.sendMessage(GRUP_CHAT_ID, alarm, "Markdown");
+
+  // Juga kirim ke admin pribadi sebagai backup
+  bot.sendMessage(ADMIN_CHAT_ID, alarm, "Markdown");
+}
+
+// Handle perintah di dalam grup
+String handleGrupCommand(String text) {
+  if (text == "/laporan") {
+    // Generate laporan real-time
+    return generateLaporanRealtime();
+  }
+  else if (text == "/matikannotif") {
+    notifikasiAktif = false;
+    return "🔇 Notifikasi grup dimatikan oleh admin.";
+  }
+  else if (text == "/nyalakannotif") {
+    notifikasiAktif = true;
+    return "🔔 Notifikasi grup diaktifkan kembali.";
+  }
+  else if (text == "/statusgrup") {
+    String status = "📋 *Status Monitoring*\n\n";
+    status += "Notifikasi: " + String(notifikasiAktif ? "✅ Aktif" : "❌ Nonaktif") + "\n";
+    status += "Alarm Suhu: " + String(notifikasiSuhu ? "✅" : "❌") + "\n";
+    status += "Alarm Gerakan: " + String(notifikasiGerakan ? "✅" : "❌");
+    return status;
+  }
+
+  return "";
+}
+
+String generateLaporanRealtime() {
+  // Baca data sensor aktual di sini
+  return "📊 Laporan real-time: Suhu 28.5°C, Kelembaban 75%";
+}
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Tips Grup Telegram untuk IoT</div>
+        <p>Untuk grup besar, pertimbangkan menggunakan <strong>Topic/Business Channel</strong> Telegram yang memungkinkan pesan diorganisasi berdasarkan kategori. Aktifkan fitur <strong>Slow Mode</strong> (1 jam) agar chat tidak banjir oleh notifikasi otomatis.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Keamanan Bot Token & Chat ID -->
+      <!-- ============================== -->
+      <h2 id="keamanan">7. Keamanan Bot Token &amp; Chat ID</h2>
+
+      <p>Keamanan adalah aspek kritis dalam sistem IoT. Bot token yang bocor berarti siapa pun bisa mengontrol perangkat Anda dari jarak jauh. Chat ID yang tidak divalidasi memungkinkan penyerang mengirim perintah ke bot Anda.</p>
+
+      <h3>Risiko Keamanan Umum</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Risiko</th>
+            <th>Dampak</th>
+            <th>Solusi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Token bocor di GitHub/public</td><td>Penyerang kontrol penuh bot</td><td>Gunakan variabel lingkungan, tidak hardcode</td></tr>
+          <tr><td>Tidak validasi Chat ID</td><td>Semua orang bisa perintah bot</td><td>Selalu cek Chat ID setiap pesan masuk</td></tr>
+          <tr><td>Tidak ada autentikasi user</td><td>Pengguna tidak dikenal bisa akses</td><td>Gunakan password/PIN perintah</td></tr>
+          <tr><td>Bot token dalam kode firmware</td><td>Mudah di-ekstrak dari ESP32</td><td>Gunakan server relay terpisah</td></tr>
+          <tr><td>Tidak ada enkripsi payload</td><td>Data sensor terekspos di jaringan</td><td>Gunakan HTTPS/WSS selalu</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Praktik Keamanan Terbaik</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Contoh Keamanan Bot Token</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// =============================================
+// KEAMANAN BOT TELEGRAM — Best Practices
+// BeebaneLabs - https://beebanelabs.pages.dev
+// =============================================
+
+// 1. JANGAN hardcode token di kode!
+//    Gunakan file konfigurasi terpisah:
+//    Buat file "credentials.h" dan .gitignore-nya:
+
+// credentials.h (TIDAK di-commit ke repository)
+#define BOT_TOKEN "6123456789:AAHk..."
+#define CHAT_ID "123456789"
+
+// 2. Validasi Chat ID dengan whitelist
+#define MAX_AUTHORIZED_USERS 3
+
+unsigned long authorizedUsers[MAX_AUTHORIZED_USERS] = {
+  123456789,    // Admin utama
+  987654321,    // Anggota keluarga 1
+  555666777     // Anggota keluarga 2
+};
+
+bool isAuthorized(String chatId) {
+  long id = chatId.toInt();
+  for (int i = 0; i &lt; MAX_AUTHORIZED_USERS; i++) {
+    if (authorizedUsers[i] == id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// 3. Sistem PIN untuk perintah sensitif
+String pinConfig = "1234";  // PIN perintah
+bool pinVerified = false;
+
+String handleSecureCommand(String text, String chatId) {
+  if (!isAuthorized(chatId)) {
+    return "⛔ Anda tidak memiliki akses.";
+  }
+
+  // Perintah yang memerlukan PIN
+  if (text.startsWith("/unlock ")) {
+    String inputPin = text.substring(8);
+    if (inputPin == pinConfig) {
+      pinVerified = true;
+      return "🔓 Akses diberikan. Berlaku untuk 1 perintah.";
+    }
+    return "❌ PIN salah! Percobaan akan dilog.";
+  }
+
+  // Perintah berisiko tinggi memerlukan PIN
+  if (text == "/restart" || text == "/factoryreset") {
+    if (!pinVerified) {
+      return "🔐 Perintah ini memerlukan PIN.\nKetik /unlock PIN_ANDA";
+    }
+    pinVerified = false;
+    return "✅ Perintah dieksekusi.";
+  }
+
+  return "";  // Lanjut ke handler normal
+}
+
+// 4. Rate limiting — cegah brute force
+unsigned long lastCommandTime = 0;
+int commandCount = 0;
+
+bool checkRateLimit() {
+  unsigned long now = millis();
+
+  // Reset counter setiap 60 detik
+  if (now - lastCommandTime &gt; 60000) {
+    commandCount = 0;
+    lastCommandTime = now;
+    return true;
+  }
+
+  commandCount++;
+
+  // Maks 20 perintah per menit
+  if (commandCount &gt; 20) {
+    return false;  // Rate limit terlampaui
+  }
+
+  return true;
+}
+
+// 5. Log semua aktivitas ke Serial
+void logActivity(String action, String user) {
+  String logEntry = "[LOG] " + String(millis() / 1000) +
+                    "s | " + action + " | User: " + user;
+  Serial.println(logEntry);
+}
+</code></pre>
+      </div>
+
+      <div class="info-box danger">
+        <div class="info-box-title">🔴 Penting!</div>
+        <p>Jika token bot Anda pernah terekspos di tempat publik (misal GitHub), <strong>segera buat bot baru</strong> melalui BotFather dan revoke token lama. Jangan mencoba "memperbaiki" keamanan setelah token bocor — token yang sudah terekspos harus dianggap compromised.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Proyek Alarm Suhu + Notifikasi Telegram -->
+      <!-- ============================== -->
+      <h2 id="proyek-alarm">8. Proyek: Alarm Suhu + Notifikasi Telegram</h2>
+
+      <p>Mari kita gabungkan semua konsep yang telah dipelajari menjadi proyek lengkap: <strong>Sistem Alarm Suhu</strong> yang membaca suhu dari sensor DHT11 secara real-time, mengirim notifikasi Telegram saat suhu melebihi ambang batas, dan memungkinkan kontrol relay (kipas pendingin) langsung dari Telegram.</p>
+
+      <h3>Spesifikasi Proyek</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Komponen</th>
+            <th>Fungsi</th>
+            <th>Pin ESP32</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>ESP32 DevKit</td><td>Microcontroller utama</td><td>—</td></tr>
+          <tr><td>Sensor DHT11</td><td>Pembaca suhu &amp; kelembaban</td><td>GPIO 4</td></tr>
+          <tr><td>Relay Module (1 CH)</td><td>Kontrol kipas pendingin</td><td>GPIO 16</td></tr>
+          <tr><td>LED Merah</td><td>Indikator alarm</td><td>GPIO 2</td></tr>
+          <tr><td>Buzzer</td><td>Alarm audio</td><td>GPIO 17</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Rangkaian Alarm Suhu Telegram</div>
+<pre><code>ESP32 DEVKIT — GPIO WIRING
+ESP32 DevKit
+GPIO 4
+GPIO 16
+GPIO 2
+GPIO 17
+3.3V
+GND
+Connected Devices
+DHT11
+Temperature &amp; Humidity Sensor
+4-CH Relay
+Fan, Pump, Lights control
+LED Merah
+Visual alarm indicator
+Buzzer
+Audio alarm indicator
+3.3V / GND
+Power supply
+Suhu &gt;35°C → Alarm + Relay + LED + Buzzer</code></pre>
+      </div>
+
+      <h3>Kode Lengkap Proyek</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — alarm_suhu_telegram.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// =============================================
+// PROYEK: Alarm Suhu + Notifikasi Telegram
+// BeebaneLabs - https://beebanelabs.pages.dev
+// =============================================
+
+#include &lt;WiFi.h&gt;
+#include &lt;WiFiClientSecure.h&gt;
+#include &lt;UniversalTelegramBot.h&gt;
+#include "DHT.h"
+
+// === KONFIGURASI ===
+#define WIFI_SSID "NamaWiFiKamu"
+#define WIFI_PASSWORD "PasswordWiFiKamu"
+#define BOT_TOKEN "TOKEN_DARI_BOTFATHER"
+#define CHAT_ID "CHAT_ID_ANDA"
+
+// === PIN KONFIGURASI ===
+#define DHT_PIN 4
+#define DHT_TYPE DHT11
+#define RELAY_PIN 16
+#define LED_ALARM 2
+#define BUZZER_PIN 17
+
+// === THRESHOLD ===
+#define SUHU_ALARM 35.0    // Suhu alarm tinggi (°C)
+#define SUHU_WARNING 30.0  // Suhu warning (°C)
+#define INTERVAL_CEK 5000  // Interval pembacaan (ms)
+#define INTERVAL_LAPORAN 300000 // Laporan periodik (5 menit)
+
+// === OBJEK ===
+DHT dht(DHT_PIN, DHT_TYPE);
+WiFiClientSecure securedClient;
+UniversalTelegramBot bot(BOT_TOKEN, securedClient);
+
+// === VARIABEL STATE ===
+bool alarmAktif = false;
+bool kipasOtomatis = true;
+bool buzzerAktif = true;
+unsigned long lastCek = 0;
+unsigned long lastLaporan = 0;
+float suhuTertinggi = 0;
+float suhuTerendah = 100;
+int alarmTriggered = 0;
+bool pinVerified = false;
+
+// === Whitelist pengguna ===
+unsigned long authorizedUsers[] = {123456789};
+int numAuthorized = 1;
+
+// =============================================
+// SETUP
+// =============================================
+void setup() {
+  Serial.begin(115200);
+  Serial.println("=== Alarm Suhu Telegram IoT ===");
+
+  // Setup pin
+  pinMode(RELAY_PIN, OUTPUT);
+  pinMode(LED_ALARM, OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  digitalWrite(RELAY_PIN, LOW);  // Kipas OFF (aktif-LOW)
+  digitalWrite(LED_ALARM, LOW);
+  digitalWrite(BUZZER_PIN, LOW);
+
+  // Inisialisasi DHT
+  dht.begin();
+  delay(2000);
+
+  // Koneksi WiFi
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("Menghubungkan WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi OK! IP: " + WiFi.localIP().toString());
+
+  // Setup SSL
+  securedClient.setCACert(TELEGRAM_CERTIFICATE_ROOT);
+
+  // Kirim notifikasi startup
+  kirimStartup();
+}
+
+// =============================================
+// LOOP UTAMA
+// =============================================
+void loop() {
+  unsigned long sekarang = millis();
+
+  // --- Pembacaan Sensor Periodik ---
+  if (sekarang - lastCek &gt;= INTERVAL_CEK) {
+    lastCek = sekarang;
+    prosesSensor();
+  }
+
+  // --- Laporan Periodik ---
+  if (sekarang - lastLaporan &gt;= INTERVAL_LAPORAN) {
+    lastLaporan = sekarang;
+    kirimLaporanPeriodik();
+  }
+
+  // --- Cek Pesan Telegram ---
+  int jumlahPesan = bot.getUpdates(bot.last_message_received + 1);
+  while (jumlahPesan) {
+    for (int i = 0; i &lt; jumlahPesan; i++) {
+      prosesPesanTelegram(bot.messages[i]);
+    }
+    jumlahPesan = bot.getUpdates(bot.last_message_received + 1);
+  }
+
+  delay(100);
+}
+
+// =============================================
+// FUNGSI SENSOR
+// =============================================
+void prosesSensor() {
+  float kelembaban = dht.readHumidity();
+  float suhu = dht.readTemperature();
+
+  if (isnan(kelembaban) || isnan(suhu)) {
+    Serial.println("[ERROR] Sensor DHT tidak merespons!");
+    return;
+  }
+
+  Serial.printf("Suhu: %.1f°C | Kelembaban: %.1f%%\n",
+                 suhu, kelembaban);
+
+  // Update statistik
+  if (suhu &gt; suhuTertinggi) suhuTertinggi = suhu;
+  if (suhu &lt; suhuTerendah) suhuTerendah = suhu;
+
+  // --- Alarm Logic ---
+  if (suhu &gt;= SUHU_ALARM &amp;&amp; !alarmAktif) {
+    alarmAktif = true;
+    alarmTriggered++;
+    kirimAlarmTelegram(suhu, kelembaban);
+    aktifkanAlarm();
+  }
+  else if (suhu &lt; SUHU_ALARM &amp;&amp; alarmAktif) {
+    alarmAktif = false;
+    matikanAlarm();
+    bot.sendMessage(CHAT_ID,
+      "✅ Suhu normal kembali: " + String(suhu, 1) + "°C",
+      "");
+  }
+  else if (suhu &gt;= SUHU_WARNING &amp;&amp; suhu &lt; SUHU_ALARM) {
+    // Warning level — kirim notifikasi (rate-limited)
+    static unsigned long lastWarning = 0;
+    if (millis() - lastWarning &gt; 120000) { // Max 1 per 2 menit
+      lastWarning = millis();
+      bot.sendMessage(CHAT_ID,
+        "⚠️ Suhu meningkat: " + String(suhu, 1) + "°C\n"
+        "Alarm akan aktif di " + String(SUHU_ALARM, 0) + "°C", "");
+    }
+  }
+
+  // --- Kontrol Kipas Otomatis ---
+  if (kipasOtomatis) {
+    digitalWrite(RELAY_PIN, suhu &gt;= SUHU_WARNING ? HIGH : LOW);
+  }
+}
+
+// =============================================
+// FUNGSI TELEGRAM
+// =============================================
+void prosesPesanTelegram(struct Message &amp;msg) {
+  String chatId = String(msg.chat_id);
+  String text = msg.text;
+
+  // Validasi pengguna
+  if (!isAuthorized(chatId)) {
+    bot.sendMessage(chatId, "⛔ Akses ditolak!", "");
+    return;
+  }
+
+  Serial.println("Perintah: " + text);
+
+  // --- Perintah Umum ---
+  if (text == "/start" || text == "/help") {
+    kirimMenuBantuan(chatId);
+  }
+  else if (text == "/suhu") {
+    float s = dht.readTemperature();
+    float h = dht.readHumidity();
+    String pesan = "🌡️ *Pembacaan Sensor*\n\n";
+    pesan += "Suhu: " + String(s, 1) + " °C\n";
+    pesan += "Kelembaban: " + String(h, 1) + " %\n";
+    pesan += "Status: " + String(s &gt;= SUHU_ALARM ? "🔴 ALARM" :
+            (s &gt;= SUHU_WARNING ? "🟡 WARNING" : "🟢 Normal"));
+    bot.sendMessage(chatId, pesan, "Markdown");
+  }
+  else if (text == "/status") {
+    kirimStatusSistem(chatId);
+  }
+  else if (text == "/kipason") {
+    digitalWrite(RELAY_PIN, HIGH);
+    bot.sendMessage(chatId, "💨 Kipas dinyalakan (manual)", "");
+  }
+  else if (text == "/kipasoff") {
+    digitalWrite(RELAY_PIN, LOW);
+    bot.sendMessage(chatId, "💨 Kipas dimatikan (manual)", "");
+  }
+  else if (text == "/kipasauto") {
+    kipasOtomatis = true;
+    bot.sendMessage(chatId, "🤖 Mode kipas otomatis aktif", "");
+  }
+  else if (text == "/buzzeron") {
+    buzzerAktif = true;
+    bot.sendMessage(chatId, "🔔 Buzzer diaktifkan", "");
+  }
+  else if (text == "/buzzeroff") {
+    buzzerAktif = false;
+    digitalWrite(BUZZER_PIN, LOW);
+    bot.sendMessage(chatId, "🔕 Buzzer dinonaktifkan", "");
+  }
+  else if (text == "/resetstat") {
+    suhuTertinggi = 0;
+    suhuTerendah = 100;
+    alarmTriggered = 0;
+    bot.sendMessage(chatId, "🔄 Statistik di-reset", "");
+  }
+}
+
+// =============================================
+// FUNGSI ALARM
+// =============================================
+void aktifkanAlarm() {
+  digitalWrite(LED_ALARM, HIGH);
+
+  if (buzzerAktif) {
+    // Pola buzzer: 3 kali beep
+    for (int i = 0; i &lt; 3; i++) {
+      digitalWrite(BUZZER_PIN, HIGH);
+      delay(200);
+      digitalWrite(BUZZER_PIN, LOW);
+      delay(100);
+    }
+  }
+
+  if (kipasOtomatis) {
+    digitalWrite(RELAY_PIN, HIGH); // Kipas ON otomatis
+  }
+}
+
+void matikanAlarm() {
+  digitalWrite(LED_ALARM, LOW);
+  digitalWrite(BUZZER_PIN, LOW);
+
+  if (kipasOtomatis) {
+    digitalWrite(RELAY_PIN, LOW); // Kipas OFF
+  }
+}
+
+// =============================================
+// FUNGSI PESAN TELEGRAM
+// =============================================
+void kirimStartup() {
+  String pesan = "🤖 *Alarm Suhu IoT Aktif!*\n";
+  pesan += "━━━━━━━━━━━━━━━━━\n";
+  pesan += "📍 IP: " + WiFi.localIP().toString() + "\n";
+  pesan += "⏰ Mulai: " + String(millis() / 1000) + "s\n";
+  pesan += "🌡️ Alarm: &gt; " + String(SUHU_ALARM, 0) + "°C\n";
+  pesan += "⚠️ Warning: &gt; " + String(SUHU_WARNING, 0) + "°C\n";
+  pesan += "━━━━━━━━━━━━━━━━━\n";
+  pesan += "Ketik /help untuk panduan";
+  bot.sendMessage(CHAT_ID, pesan, "Markdown");
+}
+
+void kirimAlarmTelegram(float suhu, float kelembaban) {
+  String pesan = "🚨 *ALARM SUHU TINGGI!*\n";
+  pesan += "━━━━━━━━━━━━━━━━━\n";
+  pesan += "🌡️ Suhu: *" + String(suhu, 1) + "°C*\n";
+  pesan += "💧 Kelembaban: " + String(kelembaban, 1) + "%\n";
+  pesan += "💨 Kipas: " + String(kipasOtomatis ? "AKTIF OTOMATIS" : "Manual") + "\n";
+  pesan += "📊 Trigger ke-" + String(alarmTriggered) + "\n";
+  pesan += "━━━━━━━━━━━━━━━━━\n";
+  pesan += "_Ketik /kipasoff untuk matikan kipas_";
+  bot.sendMessage(CHAT_ID, pesan, "Markdown");
+}
+
+void kirimLaporanPeriodik() {
+  float suhu = dht.readTemperature();
+  float kelembaban = dht.readHumidity();
+
+  String pesan = "📊 *Laporan Periodik*\n";
+  pesan += "━━━━━━━━━━━━━━━━━\n";
+  pesan += "🌡️ Saat ini: " + String(suhu, 1) + "°C\n";
+  pesan += "💧 Kelembaban: " + String(kelembaban, 1) + "%\n";
+  pesan += "📈 Tertinggi: " + String(suhuTertinggi, 1) + "°C\n";
+  pesan += "📉 Terendah: " + String(suhuTerendah, 1) + "°C\n";
+  pesan += "🚨 Alarm: " + String(alarmTriggered) + "x\n";
+  pesan += "⏱️ Uptime: " + String(millis() / 60000) + " menit\n";
+  pesan += "📶 WiFi: " + String(WiFi.RSSI()) + " dBm";
+  bot.sendMessage(CHAT_ID, pesan, "Markdown");
+}
+
+void kirimMenuBantuan(String chatId) {
+  String pesan = "📖 *Panduan Alarm Suhu IoT*\n\n";
+  pesan += "*Monitoring:*\n";
+  pesan += "/suhu — Baca suhu saat ini\n";
+  pesan += "/status — Status sistem lengkap\n\n";
+  pesan += "*Kontrol Kipas:*\n";
+  pesan += "/kipason — Nyalakan kipas\n";
+  pesan += "/kipasoff — Matikan kipas\n";
+  pesan += "/kipasauto — Mode otomatis\n\n";
+  pesan += "*Pengaturan:*\n";
+  pesan += "/buzzeron — Aktifkan buzzer\n";
+  pesan += "/buzzeroff — Nonaktifkan buzzer\n";
+  pesan += "/resetstat — Reset statistik";
+  bot.sendMessage(chatId, pesan, "Markdown");
+}
+
+void kirimStatusSistem(String chatId) {
+  float suhu = dht.readTemperature();
+  float kelembaban = dht.readHumidity();
+
+  String pesan = "📊 *Status Sistem*\n";
+  pesan += "━━━━━━━━━━━━━━━━━\n";
+  pesan += "🌡️ Suhu: " + String(suhu, 1) + "°C\n";
+  pesan += "💧 Kelembaban: " + String(kelembaban, 1) + "%\n";
+  pesan += "💨 Kipas: " + String(digitalRead(RELAY_PIN) ? "ON" : "OFF") + "\n";
+  pesan += "🔔 Alarm: " + String(alarmAktif ? "AKTIF" : "OFF") + "\n";
+  pesan += "🔊 Buzzer: " + String(buzzerAktif ? "ON" : "OFF") + "\n";
+  pesan += "🤖 Kipas Auto: " + String(kipasOtomatis ? "YA" : "TIDAK") + "\n";
+  pesan += "📈 Max: " + String(suhuTertinggi, 1) + "°C\n";
+  pesan += "📉 Min: " + String(suhuTerendah, 1) + "°C\n";
+  pesan += "🚨 Total Alarm: " + String(alarmTriggered) + "\n";
+  pesan += "📊 RAM: " + String(ESP.getFreeHeap()) + " byte\n";
+  pesan += "📶 WiFi: " + String(WiFi.RSSI()) + " dBm";
+  bot.sendMessage(chatId, pesan, "Markdown");
+}
+
+bool isAuthorized(String chatId) {
+  long id = chatId.toInt();
+  for (int i = 0; i &lt; numAuthorized; i++) {
+    if (authorizedUsers[i] == id) return true;
+  }
+  return false;
+}
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Pengembangan Lanjutan</div>
+        <p>Untuk versi production, tambahkan fitur: <strong>multi-sensor</strong> (suhu ruangan + luar), <strong>data logging ke SD card</strong>, <strong>grafik suhu via Telegram inline keyboard</strong>, dan <strong>kalibrasi notifikasi via perintah</strong> (<code>/setalarm 37</code>). Pertimbangkan juga menggunakan <strong>deep sleep mode</strong> untuk hemat daya pada proyek baterai.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Telegram Bot untuk IoT:</p>
+
+      <div class="quiz-container" id="quiz13">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa yang harus dilakukan pertama kali untuk membuat Telegram Bot yang bisa dikontrol dari ESP32?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Instal library UniversalTelegramBot di Arduino IDE</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Buat akun Telegram baru khusus untuk ESP32</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Beli domain dan hosting untuk server bot</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Buat bot melalui @BotFather dan dapatkan API token</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Dalam metode komunikasi polling, siapa yang menginisiasi permintaan HTTP ke Telegram API?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Telegram server mengirim notifikasi ke ESP32</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) ESP32 secara aktif mengecek pesan baru ke Telegram API</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) User harus menekan tombol kirim di Telegram</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) BotFather yang mengirim data ke ESP32</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Bagaimana cara mendapatkan Chat ID pengguna untuk mengirim pesan dari ESP32 ke Telegram?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Akses endpoint getUpdates dari Telegram Bot API</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Chat ID otomatis dikirim ke ESP32 saat pertama kali terhubung</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Chat ID selalu sama untuk semua pengguna Telegram</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Chat ID bisa ditemukan di pengaturan akun Telegram</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Mengapa penting untuk melakukan validasi Chat ID saat menerima pesan di Telegram Bot untuk IoT?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Agar respons bot lebih cepat</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Agar bot tidak menggunakan terlalu banyak RAM</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Untuk mencegah pengguna tidak dikenal mengontrol perangkat IoT</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Karena Telegram membatasi jumlah chat tanpa validasi</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Pada proyek alarm suhu, apa yang terjadi ketika suhu melebihi batas alarm dan mode kipas otomatis aktif?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) ESP32 akan restart untuk mendinginkan diri</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Bot mengirim email ke admin</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Kipas tetap mati menunggu perintah manual</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Relay aktif menyalakan kipas, alarm Telegram dikirim, LED dan buzzer menyala</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="mikrotik-firewall.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Firewall MikroTik: NAT, Filter Rules &amp; Security</span>
+        </a>
+        <a href="web-server-esp32.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Web Server ESP32: Dashboard IoT dengan HTML &amp; Sensor</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

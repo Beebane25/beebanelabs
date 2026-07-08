@@ -1,0 +1,711 @@
+<div class="search-overlay" id="searchOverlay"><button class="search-close-btn" aria-label="Tutup pencarian">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+  <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Networking</a><span class="separator">/</span><span class="current">MikroTik Scripting</span></div><span class="category-tag">Networking</span><h1>MikroTik Scripting Language: Panduan Lengkap</h1><p class="article-subtitle">Tutorial komprehensif bahasa scripting MikroTik — variabel, loop, fungsi, scheduler, email alerts, Netwatch automation</p><div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 15 menit baca</span><span class="difficulty lanjut">Lanjut</span></div></div></section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+  <article class="article-content" id="main-content"><div class="container">
+
+    <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#pengenalan">Pengenalan Scripting di RouterOS</a></li>
+      <li><a href="#variabel">Variabel dan Tipe Data</a></li>
+      <li><a href="#operators">Operator dan Ekspresi</a></li>
+      <li><a href="#loops">Loop dan Percabangan</a></li>
+      <li><a href="#functions">Fungsi dan Prosedur</a></li>
+      <li><a href="#scheduler">Scheduler: Tugas Terjadwal</a></li>
+      <li><a href="#email">Email Alerts &amp; Notifikasi</a></li>
+      <li><a href="#netwatch">Netwatch &amp; Monitoring Script</a></li>
+      <li><a href="#automation">Contoh Automation Script</a></li>
+      <li><a href="#quiz">Quiz Pemahaman</a></li>
+    </ol></div>
+
+    <h2 id="pengenalan">1. Pengenalan Scripting di RouterOS</h2>
+    <p><strong>MikroTik Scripting Language</strong> adalah bahasa scripting bawaan RouterOS yang memungkinkan Anda mengotomatiskan konfigurasi, monitoring, dan manajemen router. Script dapat dijalankan manual, via scheduler, atau triggered oleh event tertentu.</p>
+    <p>Dengan scripting, Anda bisa membuat router MikroTik bekerja otomatis — mulai dari backup konfigurasi harian, monitoring link internet, notifikasi email, hingga failover otomatis.</p>
+
+    <div class="arch-diagram">
+      <div class="arch-title">Ekosistem Scripting MikroTik</div>
+      <div class="arch-row">
+        <div class="arch-box highlight"><div class="arch-icon">📝</div><div class="arch-label">Script Editor</div><div class="arch-desc">Tulis script via<br>CLI atau Winbox</div></div>
+        <div class="arch-arrow">→ Execute →</div>
+        <div class="arch-box info"><div class="arch-icon">⚙️</div><div class="arch-label">RouterOS Engine</div><div class="arch-desc">Interpreter script<br>MikroTik</div></div>
+        <div class="arch-arrow">→ Action →</div>
+        <div class="arch-box purple"><div class="arch-icon">🌐</div><div class="arch-label">Router Actions</div><div class="arch-desc">Konfigurasi,<br>monitoring, notif</div></div>
+      </div>
+    </div>
+
+    <h3>1.1 Kapan Menggunakan Script?</h3>
+    <ul>
+      <li><strong>Otomasi backup</strong> — backup konfigurasi secara berkala</li>
+      <li><strong>Monitoring</strong> — cek status link, bandwidth, atau layanan</li>
+      <li><strong>Notifikasi</strong> — kirim email/SMS jika terjadi masalah</li>
+      <li><strong>Failover</strong> — pindah jalur otomatis jika link utama down</li>
+      <li><strong>Batch configuration</strong> — konfigurasi banyak item sekaligus</li>
+      <li><strong>Bandwidth report</strong> — generate laporan penggunaan bandwidth</li>
+    </ul>
+
+    <h3>1.2 Menulis dan Menjalankan Script</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Script Basics</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Menjalankan script langsung di terminal
+:put "Hello World"
+
+# Script multi-line di terminal
+:local myVar "Hello"
+:put ($myVar . " World")
+
+# Menyimpan script di system
+/system script add name=test-script source={
+  :put "Script berjalan!"
+  :put [/system clock get date]
+}
+
+# Menjalankan script yang tersimpan
+/system script run test-script
+
+# Melihat daftar script
+/system script print
+</code></pre>
+    </div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="variabel">2. Variabel dan Tipe Data</h2>
+    <p>RouterOS mendukung dua jenis variabel: <strong>local</strong> (hanya berlaku dalam script yang berjalan) dan <strong>global</strong> (bisa diakses dari mana saja).</p>
+
+    <h3>2.1 Variabel Local dan Global</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Variabel</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Variabel local — hanya berlaku di script ini
+:local myName "BeebaneLabs"
+:local myNumber 42
+:local isActive true
+:local myList ("item1";"item2";"item3")
+
+# Variabel global — bisa diakses dari mana saja
+:global gwIP "192.168.1.1"
+:global ispName "ISP-01"
+:global failoverActive false
+
+# Mengakses variabel
+:put $myName
+:put $gwIP
+
+# Variabel local di function tidak bisa diakses di luar
+:local testFunc do={
+  :local insideVar "secret"
+  :put $insideVar
+}
+# $insideVar tidak bisa diakses di sini
+
+# Global variabel bertahan setelah script selesai
+:put $gwIP
+</code></pre>
+    </div>
+
+    <h3>2.2 Tipe Data</h3>
+    <table class="spec-table">
+      <thead><tr><th>Tipe</th><th>Contoh</th><th>Keterangan</th></tr></thead>
+      <tbody>
+        <tr><td><code>str</code></td><td><code>"hello"</code></td><td>String/teks</td></tr>
+        <tr><td><code>num</code></td><td><code>42</code>, <code>3.14</code></td><td>Angka integer/decimal</td></tr>
+        <tr><td><code>bool</code></td><td><code>true</code>, <code>false</code></td><td>Boolean</td></tr>
+        <tr><td><code>time</code></td><td><code>1d02:30:00</code></td><td>Durasi waktu</td></tr>
+        <tr><td><code>array</code></td><td><code>({1;2;3})</code></td><td>Array/daftar</td></tr>
+        <tr><td><code>nil</code></td><td><code>nothing</code></td><td>Nilai kosong/null</td></tr>
+      </tbody>
+    </table>
+
+    <h3>2.3 Operasi String</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — String Operations</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Konkatenasi string
+:local name "MikroTik"
+:local greeting ("Hello " . $name . "!")
+:put $greeting
+
+# Panjang string
+:put [:len $name]
+
+# Substring
+:put [:pick $name 0 4]
+
+# Mengubah case
+:put [:tostr [:find "HELLO" "ELL"]]
+
+# Konversi tipe
+:put [:tostr 42]
+:put [:tonum "42"]
+:put [:totime "01:30:00"]
+
+# Format string
+:local ip "192.168.1.1"
+:local port 80
+:put ($ip . ":" . [:tostr $port])
+</code></pre>
+    </div>
+
+    <h2 id="operators">3. Operator dan Ekspresi</h2>
+
+    <h3>3.1 Operator Aritmatika dan Perbandingan</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Operators</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Operator aritmatika
+:put (10 + 5)      # 15
+:put (10 - 5)      # 5
+:put (10 * 5)      # 50
+:put (10 / 3)      # 3
+:put (10 % 3)      # 1 (modulus)
+
+# Operator perbandingan
+:put (10 > 5)      # true
+:put (10 < 5)      # false
+:put (10 = 10)     # true
+:put (10 != 5)     # true
+:put (10 >= 10)    # true
+:put (10 <= 9)     # false
+
+# Operator logika
+:put (true and true)    # true
+:put (true and false)   # false
+:put (true or false)    # true
+:put (!true)            # false
+
+# Operator string
+:put ("abc" ~ "a")      # true (match)
+:put ("abc" !~ "d")     # true (not match)
+:put ("hello" . " " . "world")  # concat
+</code></pre>
+    </div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="loops">4. Loop dan Percabangan</h2>
+
+    <h3>4.1 If-Else Statement</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — If-Else</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# If-else dasar
+:local status "up"
+:if ($status = "up") do={
+  :put "Link is UP"
+} else={
+  :put "Link is DOWN"
+}
+
+# If-elseif-else
+:local score 85
+:if ($score >= 90) do={
+  :put "Grade: A"
+} else={
+  :if ($score >= 80) do={
+    :put "Grade: B"
+  } else={
+    :if ($score >= 70) do={
+      :put "Grade: C"
+    } else={
+      :put "Grade: D"
+    }
+  }
+}
+
+# Inline if (single line)
+:local x 10
+:if ($x > 5) do={ :put "big" } else={ :put "small" }
+</code></pre>
+    </div>
+
+    <h3>4.2 For Loop</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Loops</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# For loop
+:for i from=1 to=10 do={
+  :put ("Iteration: " . [:tostr $i])
+}
+
+# While loop (simulasi dengan :while)
+:local counter 0
+:while ($counter < 5) do={
+  :put ("Counter: " . [:tostr $counter])
+  :set counter ($counter + 1)
+}
+
+# Foreach loop
+:local fruits ("apple";"banana";"cherry")
+:foreach fruit in=$fruits do={
+  :put ("Fruit: " . $fruit)
+}
+
+# Loop dengan break
+:for i from=1 to=100 do={
+  :if ($i > 5) do={ :put "Breaking!"; :break }
+  :put $i
+}
+
+# Loop dengan continue
+:for i from=1 to=10 do={
+  :if ($i = 5) do={ :continue }
+  :put $i
+}
+</code></pre>
+    </div>
+
+    <h3>4.3 Array Operations</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Array</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Membuat array
+:local myArray ("item1";"item2";"item3")
+
+# Menambah item
+:set myArray ($myArray, "item4")
+
+# Mengakses item (0-based)
+:put ($myArray->0)
+
+# Panjang array
+:put [:len $myArray]
+
+# Loop array
+:foreach item in=$myArray do={
+  :put $item
+}
+
+# Array dengan key-value (seperti map)
+:local config {
+  "name"="Router01";
+  "ip"="192.168.1.1";
+  "port"=8291
+}
+:put ($config->"name")
+:put ($config->"ip")
+</code></pre>
+    </div>
+
+    <h2 id="functions">5. Fungsi dan Prosedur</h2>
+
+    <h3>5.1 Membuat Fungsi</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Functions</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Fungsi sederhana
+:local greet do={
+  :local name $1
+  :put ("Hello " . $name . "!")
+}
+$greet "Beebane"
+
+# Fungsi dengan return value
+:local add do={
+  :local a $1
+  :local b $2
+  :return ($a + $b)
+}
+:local result [$add 5 3]
+:put $result
+
+# Fungsi untuk cek IP valid
+:local isValidIP do={
+  :local ip $1
+  :if ([:len [:find $ip "."]] > 0) do={
+    :return true
+  } else={
+    :return false
+  }
+}
+:put [$isValidIP "192.168.1.1"]
+
+# Simpan sebagai global function
+:global checkGateway do={
+  :local gwIP $1
+  :local result [/ping $gwIP count=3]
+  :if ($result > 0) do={
+    :return "UP"
+  } else={
+    :return "DOWN"
+  }
+}
+:put [$checkGateway "8.8.8.8"]
+</code></pre>
+    </div>
+
+    <h2 id="scheduler">6. Scheduler: Tugas Terjadwal</h2>
+    <p><strong>Scheduler</strong> memungkinkan Anda menjalankan script secara otomatis berdasarkan interval waktu atau pada waktu tertentu.</p>
+
+    <h3>6.1 Membuat Scheduler</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Scheduler</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Scheduler: cek gateway setiap 1 menit
+/system scheduler add \
+  name=check-gw \
+  interval=1m \
+  on-event={
+    :local gwIP "192.168.1.1"
+    :local result [/ping $gwIP count=3]
+    :if ($result = 0) do={
+      :log warning ("Gateway " . $gwIP . " is DOWN!")
+    } else={
+      :log info ("Gateway " . $gwIP . " is UP (" . $result . "/3)")
+    }
+  } \
+  policy=read,write,test
+
+# Scheduler: backup konfigurasi setiap hari jam 2 pagi
+/system scheduler add \
+  name=daily-backup \
+  start-date=jan/01/2026 \
+  start-time=02:00:00 \
+  interval=1d \
+  on-event={
+    :local filename ("backup-" . [/system clock get date])
+    /system backup save name=$filename
+    :log info ("Backup saved: " . $filename)
+  } \
+  policy=read,write,test
+
+# Scheduler: restart interface WiFi jam 3 pagi
+/system scheduler add \
+  name=wifi-restart \
+  start-time=03:00:00 \
+  interval=1d \
+  on-event={
+    /interface wireless disable wlan1
+    :delay 5s
+    /interface wireless enable wlan1
+    :log info "WiFi restarted"
+  } \
+  policy=read,write,test
+</code></pre>
+    </div>
+
+    <h3>6.2 Scheduler dengan Startup dan One-Shot</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Advanced Scheduler</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Startup script — berjalan saat router boot
+/system scheduler add \
+  name=startup-notify \
+  startup=yes \
+  on-event={
+    :global gwIP "192.168.1.1"
+    :log info "Router has been rebooted!"
+    # Kirim notifikasi di sini
+  } \
+  policy=read,write,test
+
+# One-shot scheduler — berjalan sekali lalu hapus
+/system scheduler add \
+  name=maintenance-window \
+  start-time=03:00:00 \
+  interval=0s \
+  on-event={
+    :log info "Running maintenance..."
+    # Script maintenance
+    /system scheduler remove [find name=maintenance-window]
+  } \
+  policy=read,write,test
+
+# Lihat scheduler yang aktif
+/system scheduler print
+/system scheduler print detail
+
+# Lihat scheduler log
+/system scheduler print stats
+</code></pre>
+    </div>
+
+    <div class="info-box tip"><div class="info-box-title">💡 Tips Scheduler</div>
+    <p>Selalu set <code>policy=read,write,test</code> pada scheduler yang perlu mengubah konfigurasi atau menjalankan ping test. Tanpa policy yang benar, script tidak akan berjalan meskipun ter-trigger.</p></div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="email">7. Email Alerts &amp; Notifikasi</h2>
+    <p>MikroTik bisa mengirim email langsung dari script. Ini berguna untuk notifikasi otomatis ketika terjadi masalah pada jaringan.</p>
+
+    <h3>7.1 Konfigurasi Email Server</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Email Config</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Konfigurasi SMTP server
+/tool e-mail set \
+  address=smtp.gmail.com \
+  port=587 \
+  start-tls=yes \
+  from="router@yourdomain.com" \
+  user="your-email@gmail.com" \
+  password="your-app-password"
+
+# Test kirim email
+/tool e-mail send \
+  to="admin@yourdomain.com" \
+  subject="Test Email from MikroTik" \
+  body="This is a test email from RouterOS scripting." \
+  start-tls=yes
+</code></pre>
+    </div>
+
+    <h3>7.2 Email Notifikasi Otomatis</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Auto Email Alert</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Script: Kirim email jika gateway down
+/system script add \
+  name=gateway-alert \
+  source={
+    :global lastAlertTime
+    :local gwIP "8.8.8.8"
+    :local result [/ping $gwIP count=5]
+    
+    :if ($result = 0) do={
+      :local now [/system clock get time]
+      :if ([:len $lastAlertTime] = 0 || \
+           ([:tonum [:pick $now 0 2]] - [:tonum [:pick $lastAlertTime 0 2]] > 0)) do={
+        /tool e-mail send \
+          to="admin@yourdomain.com" \
+          subject=("ALERT: Gateway " . $gwIP . " is DOWN!") \
+          body=("Gateway " . $gwIP . " tidak merespons.\nWaktu: " . \
+                [/system clock get date] . " " . $now)
+        :set lastAlertTime $now
+        :log warning "Alert email sent: Gateway DOWN"
+      }
+    }
+  } \
+  policy=read,write,test,policy
+</code></pre>
+    </div>
+
+    <h2 id="netwatch">8. Netwatch &amp; Monitoring Script</h2>
+    <p><strong>Netwatch</strong> adalah tool built-in MikroTik yang bisa memantau host dan menjalankan script ketika status berubah (up/down).</p>
+
+    <h3>8.1 Konfigurasi Netwatch</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Netwatch</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Netwatch: monitor gateway utama
+/tool netwatch add \
+  host=8.8.8.8 \
+  interval=10s \
+  timeout=1s \
+  type=icmp \
+  comment="Monitor Google DNS"
+
+# Netwatch dengan script on-up dan on-down
+/tool netwatch add \
+  host=192.168.1.1 \
+  interval=5s \
+  timeout=2s \
+  type=icmp \
+  comment="Monitor ISP Gateway"
+
+# Script on-up (saat host hidup kembali)
+:log info "ISP Gateway is UP"
+/ip route enable [find comment="route-primary"]
+
+# Script on-down (saat host mati)
+:log warning "ISP Gateway is DOWN"
+/ip route disable [find comment="route-primary"]
+
+# Monitor multiple hosts
+:local hosts ("8.8.8.8";"1.1.1.1";"208.67.222.222")
+:foreach h in=$hosts do={
+  /tool netwatch add \
+    host=$h \
+    interval=10s \
+    timeout=2s \
+    type=icmp \
+    comment=("Monitor " . $h)
+}
+
+# Lihat status netwatch
+/tool netwatch print
+/tool netwatch print detail
+</code></pre>
+    </div>
+
+    <h2 id="automation">9. Contoh Automation Script</h2>
+
+    <h3>9.1 Auto Failover Script</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Auto Failover</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Script auto failover ISP
+/system script add \
+  name=auto-failover \
+  source={
+    :global primaryGW "192.168.1.1"
+    :global backupGW "192.168.2.1"
+    :global failoverActive
+    
+    :local primaryOK [/ping 8.8.8.8 count=5 src-address=$primaryGW]
+    
+    :if ($primaryOK = 0 && !$failoverActive) do={
+      :log warning "Primary ISP DOWN - switching to backup"
+      /ip route set [find gateway=$primaryGW] distance=200
+      /ip route set [find gateway=$backupGW] distance=1
+      :set failoverActive true
+      /tool e-mail send \
+        to="admin@yourdomain.com" \
+        subject="FAILOVER: Switched to backup ISP" \
+        body="Primary ISP down at [/system clock get date] [/system clock get time]"
+    }
+    
+    :if ($primaryOK > 0 && $failoverActive) do={
+      :log info "Primary ISP UP - switching back"
+      /ip route set [find gateway=$primaryGW] distance=1
+      /ip route set [find gateway=$backupGW] distance=200
+      :set failoverActive false
+      /tool e-mail send \
+        to="admin@yourdomain.com" \
+        subject="RECOVERY: Back to primary ISP" \
+        body="Primary ISP restored at [/system clock get date] [/system clock get time]"
+    }
+  } \
+  policy=read,write,test,policy
+
+# Jalankan setiap 30 detik
+/system scheduler add \
+  name=failover-check \
+  interval=30s \
+  on-event=auto-failover \
+  policy=read,write,test,policy
+</code></pre>
+    </div>
+
+    <h3>9.2 Bandwidth Monitor Script</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Bandwidth Monitor</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Script monitoring bandwidth
+/system script add \
+  name=bw-monitor \
+  source={
+    :local iface "ether1"
+    :local rxNow [/interface get $iface rx-byte]
+    :local txNow [/interface get $iface tx-byte]
+    
+    :global rxPrev
+    :global txPrev
+    
+    :if ([:len $rxPrev] = 0) do={
+      :set rxPrev $rxNow
+      :set txPrev $txNow
+      :log info "BW Monitor initialized"
+    } else={
+      :local rxRate (($rxNow - $rxPrev) * 8 / 60)
+      :local txRate (($txNow - $txPrev) * 8 / 60)
+      
+      :local rxMbps ([:tonum $rxRate] / 1000000)
+      :local txMbps ([:tonum $txRate] / 1000000)
+      
+      :log info ("BW " . $iface . ": RX=" . $rxMbps . " Mbps TX=" . $txMbps . " Mbps")
+      
+      # Alert jika bandwidth > threshold
+      :if ($rxMbps > 80) do={
+        /tool e-mail send \
+          to="admin@yourdomain.com" \
+          subject="WARNING: High bandwidth usage" \
+          body=("RX: " . $rxMbps . " Mbps on " . $iface)
+      }
+      
+      :set rxPrev $rxNow
+      :set txPrev $txNow
+    }
+  } \
+  policy=read,write,test,policy
+
+# Jalankan setiap 1 menit
+/system scheduler add \
+  name=bw-check \
+  interval=1m \
+  on-event=bw-monitor \
+  policy=read,write,test,policy
+</code></pre>
+    </div>
+
+    <h3>9.3 Auto Backup &amp; Export</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Auto Backup</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Script backup otomatis
+/system script add \
+  name=auto-backup \
+  source={
+    :local date [/system clock get date]
+    :local time [/system clock get time]
+    :local filename ("backup-" . $date)
+    
+    # Backup binary
+    /system backup save name=$filename
+    
+    # Export konfigurasi (text)
+    /export file=("export-" . $date)
+    
+    # Hapus backup lama (lebih dari 7 hari)
+    :foreach f in=[/file find where name~"backup-"] do={
+      :local fname [/file get $f name]
+      :local age ([:tonum [/system clock get date]] - [:tonum [:pick $fname 7 12]])
+      :if ($age > 7) do={
+        /file remove $f
+        :log info ("Deleted old backup: " . $fname)
+      }
+    }
+    
+    :log info ("Backup completed: " . $filename)
+  } \
+  policy=read,write,test
+</code></pre>
+    </div>
+
+    <div class="info-box warning"><div class="info-box-title">⚠️ Best Practice Script</div>
+    <p>Selalu test script di environment development sebelum deploy ke production. Gunakan <code>:log</code> untuk debugging. Hindari script yang terlalu kompleks — pecah menjadi beberapa script kecil yang modular.</p></div>
+
+    <h2 id="quiz">Quiz Pemahaman</h2>
+    <div class="quiz-container" id="quiz10">
+      <h3>🧠 Tes Pemahaman: MikroTik Scripting</h3>
+      <div class="quiz-question" data-correct="b">
+        <p><strong>1. Apa perbedaan antara :local dan :global pada MikroTik scripting?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="1" data-answer="a">a) Tidak ada perbedaan</div>
+          <div class="quiz-option" data-question="1" data-answer="b">b) :local hanya berlaku di script, :global bisa diakses dari mana saja</div>
+          <div class="quiz-option" data-question="1" data-answer="c">c) :local untuk angka, :global untuk string</div>
+          <div class="quiz-option" data-question="1" data-answer="d">d) :global lebih cepat dari :local</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="c">
+        <p><strong>2. Tool apa yang digunakan untuk memantau host dan trigger script otomatis?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="2" data-answer="a">a) Torch</div>
+          <div class="quiz-option" data-question="2" data-answer="b">b) Bandwidth Test</div>
+          <div class="quiz-option" data-question="2" data-answer="c">c) Netwatch</div>
+          <div class="quiz-option" data-question="2" data-answer="d">d) Profile</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="a">
+        <p><strong>3. Bagaimana cara menjalankan script secara otomatis berdasarkan waktu?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="3" data-answer="a">a) Menggunakan System Scheduler</div>
+          <div class="quiz-option" data-question="3" data-answer="b">b) Menggunakan Firewall Rule</div>
+          <div class="quiz-option" data-question="3" data-answer="c">c) Menggunakan DHCP</div>
+          <div class="quiz-option" data-question="3" data-answer="d">d) Menggunakan DNS</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="d">
+        <p><strong>4. Apa fungsi dari :for i from=1 to=10 do={ } ?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="4" data-answer="a">a) Membuat 10 variabel</div>
+          <div class="quiz-option" data-question="4" data-answer="b">b) Menghapus 10 item</div>
+          <div class="quiz-option" data-question="4" data-answer="c">c) Mengirim 10 email</div>
+          <div class="quiz-option" data-question="4" data-answer="d">d) Menjalankan perulangan dari 1 sampai 10</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="b">
+        <p><strong>5. Mengapa policy=read,write,test penting pada scheduler?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="5" data-answer="a">a) Agar scheduler lebih cepat</div>
+          <div class="quiz-option" data-question="5" data-answer="b">b) Agar script bisa mengubah konfigurasi dan menjalankan ping test</div>
+          <div class="quiz-option" data-question="5" data-answer="c">c) Agar scheduler tidak bisa dihapus</div>
+          <div class="quiz-option" data-question="5" data-answer="d">d) Agar script berjalan lebih sering</div>
+        </div>
+      </div>
+      <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+      <div class="quiz-result"></div>
+    </div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <div class="article-nav">
+      <a href="mikrotik-bridge.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">MikroTik Bridge</span></a>
+      <a href="bgp-fundamentals.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">BGP Fundamentals</span></a>
+    </div>
+
+  </div></article>
+
+  <section class="newsletter-section" id="newsletter"><div class="container"><div class="newsletter-card fade-in"><h2>📬 Dapatkan Tutorial Terbaru</h2><p>Subscribe untuk mendapatkan tutorial networking terbaru. Gratis, tanpa spam.</p><form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form></div></div></section>

@@ -1,0 +1,1202 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">Generators</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>Python Generators &amp; Yield</h1>
+      <p class="article-subtitle">Pelajari yield keyword, generator expressions, lazy evaluation, memory efficiency, dan itertools untuk menulis kode Python yang lebih efisien</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Generators</a></li>
+          <li><a href="#yield">Keyword Yield</a></li>
+          <li><a href="#generator-function">Generator Functions</a></li>
+          <li><a href="#generator-expression">Generator Expressions</a></li>
+          <li><a href="#memory">Memory Efficiency</a></li>
+          <li><a href="#lazy-evaluation">Lazy Evaluation</a></li>
+          <li><a href="#send-throw">Send, Throw &amp; Close</a></li>
+          <li><a href="#yield-from">Yield From</a></li>
+          <li><a href="#itertools">Modul Itertools</a></li>
+          <li><a href="#praktik">Studi Kasus Praktis</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Generators</h2>
+
+      <p><strong>Generator</strong> adalah fungsi khusus di Python yang bisa menghasilkan rangkaian nilai secara bertahap, alih-alih menghitung dan menyimpan semua nilai sekaligus di memori. Generator menggunakan keyword <code>yield</code> untuk mengembalikan nilai satu per satu sambil mempertahankan state fungsi.</p>
+
+      <p>Konsep generator didasarkan pada <strong>lazy evaluation</strong> — nilai hanya dihitung ketika dibutuhkan. Ini membuat generator sangat efisien untuk bekerja dengan data berukuran besar atau bahkan data tak terbatas (infinite sequences).</p>
+
+      <h3>Generator vs List</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>List</th>
+            <th>Generator</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Memori</td><td>Semua elemen di RAM</td><td>Hanya elemen saat ini</td></tr>
+          <tr><td>Evaluasi</td><td>Eager (langsung hitung)</td><td>Lazy (hitung saat dibutuhkan)</td></tr>
+          <tr><td>Akses</td><td>Random access [index]</td><td>Sequential only</td></tr>
+          <tr><td>Ulang</td><td>Bisa diulang berkali-kali</td><td>Sekali pakai habis</td></tr>
+          <tr><td>len()</td><td>✅ Bisa</td><td>❌ Tidak bisa</td></tr>
+          <tr><td>Kegunaan</td><td>Data kecil-sedang</td><td>Data besar/infinite</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: List vs Generator</div>
+<pre class="mermaid">
+flowchart TD
+    subgraph normal["NORMAL FUNCTION"]
+        direction TB
+        N1["Call function"] --> N2["Execute all code"]
+        N2 --> N3["Return final result"]
+    end
+    
+    subgraph gen["GENERATOR FUNCTION"]
+        direction TB
+        G1["Call function"] --> G2["Execute until yield"]
+        G2 --> G3["Yield value, pause"]
+        G3 --> G4["Resume on next()"]
+        G4 --> G2
+    end
+
+    style normal fill:#0f1d3a,stroke:#60a5fa,stroke-width:2px
+    style gen fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+</pre>
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Yield               -->
+      <!-- ============================== -->
+      <h2 id="yield">2. Keyword Yield</h2>
+
+      <p>Keyword <code>yield</code> adalah jantung dari generator. Ketika Python menemukan <code>yield</code> dalam sebuah fungsi, fungsi tersebut secara otomatis menjadi generator function. <code>yield</code> mengembalikan nilai dan mengekskusi fungsi, tetapi mempertahankan state lokalnya sehingga bisa dilanjutkan dari tempat terakhir.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Yield Dasar</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Generator function pertama
+def hitung_mundur(n):
+    print("Mulai hitung mundur!")
+    while n > 0:
+        yield n       # Keluarkan nilai n, pause eksekusi
+        n -= 1
+    print("Selesai!")
+
+# Membuat generator object
+gen = hitung_mundur(5)
+print(type(gen))  # &lt;class 'generator'&gt;
+
+# Mengambil nilai satu per satu dengan next()
+print(next(gen))  # Mulai hitung mundur! → 5
+print(next(gen))  # 4
+print(next(gen))  # 3
+print(next(gen))  # 2
+print(next(gen))  # 1
+# print(next(gen))  # Selesai! → StopIteration exception
+
+# Menggunakan for loop (otomatis menangani StopIteration)
+print("\n--- Ulang dengan for loop ---")
+for angka in hitung_mundur(3):
+    print(angka)
+# Mulai hitung mundur!
+# 3
+# 2
+# 1
+# Selesai!
+</code></pre>
+      </div>
+
+      <h3>Yield vs Return</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Yield vs Return</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># RETURN: mengembalikan nilai dan mengakhiri fungsi
+def fungsi_return():
+    yield "ini bukan return"  # ← fungsi ini generator!
+    return "ini return"       # ← StopIteration dengan value
+
+# YIELD: mengembalikan nilai DAN mempertahankan state
+def fungsi_yield():
+    print("Langkah 1")
+    yield "nilai pertama"
+
+    print("Langkah 2")  # Lanjut dari sini saat next() dipanggil lagi
+    yield "nilai kedua"
+
+    print("Langkah 3")
+    yield "nilai ketiga"
+
+gen = fungsi_yield()
+
+print(next(gen))  # Langkah 1 → "nilai pertama"
+print(next(gen))  # Langkah 2 → "nilai kedua"
+print(next(gen))  # Langkah 3 → "nilai ketiga"
+
+# yield bisa mengembalikan beberapa nilai
+def pembagi(angka, pembagi_list):
+    for p in pembagi_list:
+        if p != 0:
+            yield angka / p, p  # Yield tuple
+
+for hasil, pembagi in pembagi(100, [2, 4, 5, 0, 10]):
+    print(f"100 / {pembagi} = {hasil}")
+# 100 / 2 = 50.0
+# 100 / 4 = 25.0
+# 100 / 5 = 20.0
+# 100 / 10 = 10.0
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Perbedaan kunci: <code>return</code> mengakhiri fungsi dan mengembalikan satu nilai. <code>yield</code> mengekskusi fungsi sementara dan mengembalikan satu nilai — fungsi bisa dilanjutkan lagi dari tempat <code>yield</code> terakhir saat <code>next()</code> dipanggil.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Generator Function   -->
+      <!-- ============================== -->
+      <h2 id="generator-function">3. Generator Functions</h2>
+
+      <h3>Generator untuk Menghasilkan Bilangan</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Generator Functions</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Generator Fibonacci
+def fibonacci():
+    a, b = 0, 1
+    while True:  # Infinite generator!
+        yield a
+        a, b = b, a + b
+
+# Ambil 10 bilangan Fibonacci pertama
+gen = fibonacci()
+for _ in range(10):
+    print(next(gen), end=" ")
+# 0 1 1 2 3 5 8 13 21 34
+
+# Generator bilangan prima
+def bilangan_prima():
+    """Generator bilangan prima tak terbatas"""
+    yield 2
+    kandidat = 3
+    prima_sebelumnya = [2]
+
+    while True:
+        is_prima = True
+        for p in prima_sebelumnya:
+            if p * p > kandidat:
+                break
+            if kandidat % p == 0:
+                is_prima = False
+                break
+
+        if is_prima:
+            prima_sebelumnya.append(kandidat)
+            yield kandidat
+
+        kandidat += 2  # Hanya cek ganjil
+
+# Ambil 15 bilangan prima pertama
+prima_gen = bilangan_prima()
+prima_list = [next(prima_gen) for _ in range(15)]
+print(prima_list)
+# [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47]
+
+# Generator untuk membaca file baris per baris
+def baca_file_besar(filepath):
+    """Membaca file besar tanpa memuat semua ke memori"""
+    try:
+        with open(filepath, 'r') as f:
+            for baris in f:
+                yield baris.strip()
+    except FileNotFoundError:
+        print(f"File {filepath} tidak ditemukan")
+
+# Generator range custom
+def range_custom(start, stop=None, step=1):
+    """Replikasi range() menggunakan generator"""
+    if stop is None:
+        start, stop = 0, start
+
+    current = start
+    while (step > 0 and current < stop) or (step < 0 and current > stop):
+        yield current
+        current += step
+
+for x in range_custom(0, 10, 2):
+    print(x, end=" ")
+# 0 2 4 6 8
+</code></pre>
+      </div>
+
+      <h3>Generator yang Bisa Dihentikan</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Cancellable Generator</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Generator dengan batas
+def ambil_n(iterable, n):
+    """Ambil n elemen pertama dari iterable"""
+    for i, item in enumerate(iterable):
+        if i >= n:
+            return  # Menghentikan generator
+        yield item
+
+# Menggunakan dengan infinite generator
+gen = fibonacci()
+sepuluh_pertama = list(ambil_n(gen, 10))
+print(sepuluh_pertama)
+# [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+
+# Generator dengan kondisi berhenti
+def ambil_selama(iterable, kondisi):
+    """Ambil elemen selama kondisi terpenuhi"""
+    for item in iterable:
+        if not kondisi(item):
+            return
+        yield item
+
+# Ambil Fibonacci yang kurang dari 100
+kecil = list(ambil_selama(fibonacci(), lambda x: x < 100))
+print(kecil)
+# [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
+
+# Generator dengan enumerate
+def enumerate_gen(iterable, start=0):
+    """Generator version of enumerate"""
+    n = start
+    for item in iterable:
+        yield n, item
+        n += 1
+
+for idx, val in enumerate_gen(["a", "b", "c"]):
+    print(f"{idx}: {val}")
+# 0: a
+# 1: b
+# 2: c
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Generator Expression  -->
+      <!-- ============================== -->
+      <h2 id="generator-expression">4. Generator Expressions</h2>
+
+      <p>Generator expression (generator comprehension) adalah cara singkat untuk membuat generator menggunakan sintaks yang mirip dengan list comprehension, tetapi dengan tanda kurung <code>()</code>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Generator Expressions</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Generator expression vs List comprehension
+list_comp = [x ** 2 for x in range(10)]     # List
+gen_exp = (x ** 2 for x in range(10))       # Generator
+
+print(type(list_comp))   # &lt;class 'list'&gt;
+print(type(gen_exp))     # &lt;class 'generator'&gt;
+
+# Generator expression langsung digunakan dengan fungsi yang butuh iterable
+total = sum(x ** 2 for x in range(100))
+print(total)  # 328350
+
+terbesar = max(x ** 2 for x in range(-10, 11))
+print(terbesar)  # 100
+
+# any() dan all() dengan generator
+angka = [2, 4, 6, 8, 10]
+print(all(x % 2 == 0 for x in angka))  # True
+
+angka = [1, 2, 3, 4, 5]
+print(any(x > 3 for x in angka))       # True
+
+# String join dengan generator
+kata = ["Python", "Generator", "Sangat", "Efisien"]
+kalimat = " ".join(k.lower() for k in kata)
+print(kalimat)  # python generator sangat efisien
+
+# Filtering dengan generator expression
+data = range(1, 101)
+genap_gen = (x for x in data if x % 2 == 0)
+print(list(genap_gen)[:10])  # [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+
+# Generator expression dalam fungsi
+def statistik(data):
+    """Hitung statistik dari generator"""
+    data_list = list(data)  # Konsumsi generator sekali
+    n = len(data_list)
+    total = sum(data_list)
+    return {
+        "total": total,
+        "rata_rata": total / n,
+        "min": min(data_list),
+        "max": max(data_list)
+    }
+
+# Note: generator habis setelah dikonsumsi sekali!
+gen = (x ** 2 for x in range(1, 11))
+print(statistik(gen))
+# {'total': 385, 'rata_rata': 38.5, 'min': 1, 'max': 100}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Memory Efficiency    -->
+      <!-- ============================== -->
+      <h2 id="memory">5. Memory Efficiency</h2>
+
+      <p>Keunggulan utama generator adalah penghematan memori. Alih-alih menyimpan seluruh rangkaian data dalam memori, generator hanya menyimpan satu elemen pada satu waktu.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Memory Comparison</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import sys
+
+# === Perbandingan memori ===
+n = 1_000_000
+
+# List: menyimpan 1 juta elemen di RAM
+list_data = [x ** 2 for x in range(n)]
+print(f"List:     {sys.getsizeof(list_data):>12,} bytes")  # ~8,448,728 bytes (~8 MB)
+
+# Generator: hanya menyimpan state
+gen_data = (x ** 2 for x in range(n))
+print(f"Generator:{sys.getsizeof(gen_data):>12,} bytes")   # ~200 bytes
+
+# Generator function
+def gen_func():
+    for x in range(n):
+        yield x ** 2
+
+gen_func_data = gen_func()
+print(f"GenFunc:  {sys.getsizeof(gen_func_data):>12,} bytes")  # ~112 bytes
+
+print(f"\nList menggunakan {sys.getsizeof(list_data) // sys.getsizeof(gen_data)}x lebih banyak memori!")
+
+# === Demonstrasi dengan data besar ===
+import os
+import psutil
+
+def get_memory_mb():
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / 1024 / 1024
+
+# List approach
+print(f"Sebelum: {get_memory_mb():.1f} MB")
+big_list = list(range(10_000_000))
+print(f"Setelah list: {get_memory_mb():.1f} MB")
+del big_list
+
+# Generator approach
+big_gen = range(10_000_000)  # range adalah lazy sequence
+print(f"Setelah range: {get_memory_mb():.1f} MB")
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Kapan Pakai Generator</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ✅ GUNAKAN GENERATOR KETIKA:
+
+# 1. Data terlalu besar untuk muat di memori
+def baca_csv_generator(filepath):
+    import csv
+    with open(filepath, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            yield row  # Satu baris pada satu waktu
+
+# 2. Data adalah infinite sequence
+def penghitung_waktu():
+    """Stopwatch generator"""
+    import time
+    mulai = time.time()
+    while True:
+        yield time.time() - mulai
+
+# 3. Pipeline processing (chaining)
+def proses_pipeline(data):
+    """Pipeline: filter → transform → aggregate"""
+    # Step 1: Filter (generator)
+    terfilter = (x for x in data if x > 0)
+
+    # Step 2: Transform (generator)
+    tertransformasi = (x ** 2 for x in terfilter)
+
+    # Step 3: Aggregate (consume)
+    return sum(tertransformasi)
+
+data = [-3, 1, -4, 1, 5, -9, 2, 6, -5, 3]
+print(proses_pipeline(data))  # 1 + 1 + 25 + 4 + 36 + 9 = 76
+
+# ❌ JANGAN PAKAI GENERATOR KETIKA:
+# 1. Butuh akses random (indexing)
+# 2. Butuh iterasi berulang kali
+# 3. Butuh len()
+# 4. Data kecil dan perlu di-manipulate sebagai collection
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Lazy Evaluation      -->
+      <!-- ============================== -->
+      <h2 id="lazy-evaluation">6. Lazy Evaluation</h2>
+
+      <p>Lazy evaluation berarti nilai hanya dihitung ketika benar-benar dibutuhkan. Ini berbeda dari eager evaluation di mana semua nilai dihitung sebelumnya.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Lazy Evaluation</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Lazy evaluation dengan generator
+def operasi_berat(x):
+    """Simulasi operasi yang memakan waktu"""
+    import time
+    time.sleep(0.1)  # Simulasi delay
+    return x ** 2
+
+# EAGER: Semua dihitung sebelum digunakan
+# %timeit list_berat = [operasi_berat(x) for x in range(10)]
+# Akan butuh ~1 detik karena semua 10 elemen langsung dihitung
+
+# LAZY: Hanya dihitung saat diminta
+gen_berat = (operasi_berat(x) for x in range(10))
+
+# Tidak ada perhitungan yang terjadi di sini!
+print("Generator dibuat, belum ada perhitungan")
+
+# Perhitungan terjadi di sini (satu per satu):
+print(next(gen_berat))  # 0 — baru hitung elemen pertama
+print(next(gen_berat))  # 1 — baru hitung elemen kedua
+
+# Sisanya belum dihitung sampai diminta!
+
+# Chain generators — lazy pipeline
+def angka_gen():
+    for i in range(100):
+        yield i
+
+def filter_genap(source):
+    for x in source:
+        if x % 2 == 0:
+            yield x
+
+def kali_dua(source):
+    for x in source:
+        yield x * 2
+
+# Pipeline — semua lazy, belum ada perhitungan
+pipeline = kali_dua(filter_genap(angka_gen()))
+
+# Perhitungan terjadi di sini, satu per satu
+for i, val in enumerate(pipeline):
+    if i >= 5:
+        break
+    print(val, end=" ")
+# 0 4 8 12 16
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Send, Throw, Close   -->
+      <!-- ============================== -->
+      <h2 id="send-throw">7. Send, Throw &amp; Close</h2>
+
+      <p>Generator mendukung komunikasi dua arah melalui method <code>send()</code>, <code>throw()</code>, dan <code>close()</code>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Send &amp; Throw</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === Generator dengan send() ===
+def accumulator():
+    """Generator yang menerima nilai melalui send()"""
+    total = 0
+    while True:
+        nilai = yield total  # yield total DAN terima nilai baru
+        if nilai is None:
+            break
+        total += nilai
+
+gen = accumulator()
+next(gen)           # Inisialisasi: jalankan sampai yield pertama
+print(gen.send(10)) # 10  (kirim 10, terima total)
+print(gen.send(20)) # 30  (kirim 20, terima total)
+print(gen.send(5))  # 35  (kirim 5, terima total)
+
+# === Generator sebagai coroutine sederhana ===
+def logger():
+    """Generator yang menerima pesan log"""
+    log_list = []
+    while True:
+        pesan = yield
+        if pesan is None:
+            return log_list
+        log_list.append(pesan)
+
+log_gen = logger()
+next(log_gen)  # Inisialisasi
+
+log_gen.send("User login: Budi")
+log_gen.send("Page visited: /dashboard")
+log_gen.send("Action: click button")
+
+try:
+    log_gen.send(None)
+except StopIteration as e:
+    logs = e.value
+    print(logs)
+    # ['User login: Budi', 'Page visited: /dashboard', 'Action: click button']
+
+# === throw() — mengirim exception ke generator ===
+def pembagi():
+    while True:
+        try:
+            nilai = yield
+            hasil = 100 / nilai
+            print(f"100 / {nilai} = {hasil}")
+        except ZeroDivisionError:
+            print("⚠️ Tidak bisa bagi nol!")
+        except GeneratorExit:
+            print("👋 Generator ditutup!")
+            return
+
+gen = pembagi()
+next(gen)
+gen.send(5)     # 100 / 5 = 20.0
+gen.send(0)     # ⚠️ Tidak bisa bagi nol!
+gen.throw(ValueError, "Error custom")  # Akan raise ValueError di yield
+
+# close() — menghentikan generator
+gen = pembagi()
+next(gen)
+gen.send(10)    # 100 / 10 = 10.0
+gen.close()     # 👋 Generator ditutup!
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Yield From           -->
+      <!-- ============================== -->
+      <h2 id="yield-from">8. Yield From</h2>
+
+      <p><code>yield from</code> memungkinkan generator untuk mendelegasikan produksi nilai ke sub-generator atau iterable lain. Ini menyederhanakan nested generator patterns.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Yield From</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === yield from dasar ===
+def gen_a():
+    yield 1
+    yield 2
+    yield 3
+
+def gen_b():
+    yield 10
+    yield 20
+    yield 30
+
+# Tanpa yield from — verbose
+def gabungan_lama():
+    for x in gen_a():
+        yield x
+    for x in gen_b():
+        yield x
+
+# Dengan yield from — singkat!
+def gabungan():
+    yield from gen_a()
+    yield from gen_b()
+
+print(list(gabungan()))  # [1, 2, 3, 10, 20, 30]
+
+# === Flatten nested dengan yield from ===
+def flatten(nested_list):
+    """Flatten nested list menggunakan yield from"""
+    for item in nested_list:
+        if isinstance(item, list):
+            yield from flatten(item)  # Rekursif!
+        else:
+            yield item
+
+data = [1, [2, 3], [4, [5, 6]], [7, 8, [9, 10]]]
+print(list(flatten(data)))
+# [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# === yield from dengan return value ===
+def sub_generator():
+    yield 1
+    yield 2
+    return "selesai"  # Return value bisa ditangkap!
+
+def delegator():
+    hasil = yield from sub_generator()
+    print(f"Sub-generator mengembalikan: {hasil}")
+
+gen = delegator()
+print(next(gen))  # 1
+print(next(gen))  # 2
+try:
+    next(gen)
+except StopIteration:
+    pass
+# Sub-generator mengembalikan: selesai
+
+# === Pipeline dengan yield from ===
+def baca_data():
+    for i in range(10):
+        yield i
+
+def filter_data(source):
+    for x in source:
+        if x % 2 == 0:
+            yield x
+
+def transform_data(source):
+    for x in source:
+        yield x ** 2
+
+def pipeline():
+    yield from transform_data(filter_data(baca_data()))
+
+print(list(pipeline()))
+# [0, 4, 16, 36, 64]
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Itertools             -->
+      <!-- ============================== -->
+      <h2 id="itertools">9. Modul Itertools</h2>
+
+      <p>Modul <code>itertools</code> menyediakan koleksi tools yang sangat powerful untuk bekerja dengan iterator dan generator. Ini adalah salah satu modul standar Python yang paling berguna.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Itertools Basics</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import itertools
+
+# === count() — bilangan tak terbatas ===
+counter = itertools.count(start=10, step=3)
+print(next(counter))  # 10
+print(next(counter))  # 13
+print(next(counter))  # 16
+# Gunakan islice untuk membatasi
+sepuluh_pertama = list(itertools.islice(counter, 10))
+
+# === cycle() — iterasi berulang tak terbatas ===
+colors = itertools.cycle(["merah", "hijau", "biru"])
+for _ in range(7):
+    print(next(colors), end=" ")
+# merah hijau biru merah hijau biru merah
+
+# === repeat() — mengulang nilai ===
+threes = itertools.repeat(3, times=5)
+print(list(threes))  # [3, 3, 3, 3, 3]
+
+# === chain() — menggabungkan beberapa iterable ===
+a = [1, 2, 3]
+b = [4, 5, 6]
+c = [7, 8, 9]
+gabungan = list(itertools.chain(a, b, c))
+print(gabungan)  # [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+# === islice() — slicing untuk generator ===
+infinite = itertools.count()
+ambil_5 = list(itertools.islice(infinite, 5))
+print(ambil_5)  # [0, 1, 2, 3, 4]
+
+ambil_range = list(itertools.islice(itertools.count(), 5, 15, 2))
+print(ambil_range)  # [5, 7, 9, 11, 13]
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Itertools Combinatorics</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import itertools
+
+# === permutations() — semua permutasi ===
+items = ['A', 'B', 'C']
+perms = list(itertools.permutations(items))
+print(perms)
+# [('A','B','C'), ('A','C','B'), ('B','A','C'),
+#  ('B','C','A'), ('C','A','B'), ('C','B','A')]
+
+# Permutasi dengan panjang tertentu
+perms_2 = list(itertools.permutations(items, 2))
+print(perms_2)
+# [('A','B'), ('A','C'), ('B','A'), ('B','C'), ('C','A'), ('C','B')]
+
+# === combinations() — semua kombinasi (tanpa urutan) ===
+nums = [1, 2, 3, 4]
+combs = list(itertools.combinations(nums, 2))
+print(combs)
+# [(1,2), (1,3), (1,4), (2,3), (2,4), (3,4)]
+
+# === combinations_with_replacement() ===
+combs_r = list(itertools.combinations_with_replacement([1, 2, 3], 2))
+print(combs_r)
+# [(1,1), (1,2), (1,3), (2,2), (2,3), (3,3)]
+
+# === product() — Cartesian product ===
+warna = ["merah", "biru"]
+ukuran = ["S", "M", "L"]
+produk = list(itertools.product(warna, ukuran))
+print(produk)
+# [('merah','S'), ('merah','M'), ('merah','L'),
+#  ('biru','S'), ('biru','M'), ('biru','L')]
+
+# Product dengan repeat
+kartu = list(itertools.product(range(1, 4), repeat=2))
+print(kartu)
+# [(1,1), (1,2), (1,3), (2,1), (2,2), (2,3), (3,1), (3,2), (3,3)]
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Itertools Advanced</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import itertools
+
+# === groupby() — mengelompokkan data ===
+data = [
+    {"kota": "Jakarta", "nama": "Budi"},
+    {"kota": "Jakarta", "nama": "Ani"},
+    {"kota": "Bandung", "nama": "Dimas"},
+    {"kota": "Bandung", "nama": "Sari"},
+    {"kota": "Surabaya", "nama": "Rini"},
+]
+
+# Data HARUS diurutkan dulu untuk groupby!
+data.sort(key=lambda x: x["kota"])
+
+for kota, grup in itertools.groupby(data, key=lambda x: x["kota"]):
+    nama_list = [item["nama"] for item in grup]
+    print(f"{kota}: {nama_list}")
+# Bandung: ['Dimas', 'Sari']
+# Jakarta: ['Budi', 'Ani']
+# Surabaya: ['Rini']
+
+# === accumulate() — kumulatif ===
+angka = [1, 2, 3, 4, 5]
+kumulatif = list(itertools.accumulate(angka))
+print(kumulatif)  # [1, 3, 6, 10, 15]
+
+# Dengan operator kustom
+import operator
+produk_kumulatif = list(itertools.accumulate(angka, operator.mul))
+print(produk_kumulatif)  # [1, 2, 6, 24, 120]
+
+# accumulate untuk running max
+data = [3, 1, 4, 1, 5, 9, 2, 6]
+running_max = list(itertools.accumulate(data, max))
+print(running_max)  # [3, 3, 4, 4, 5, 9, 9, 9]
+
+# === takewhile & dropwhile ===
+angka = [1, 3, 5, 2, 4, 6, 7, 9]
+
+ambil = list(itertools.takewhile(lambda x: x < 5, angka))
+print(ambil)  # [1, 3]
+
+buang = list(itertools.dropwhile(lambda x: x < 5, angka))
+print(buang)  # [5, 2, 4, 6, 7, 9]
+
+# === compress() — filter berdasarkan selector ===
+data = ['A', 'B', 'C', 'D', 'E']
+selector = [1, 0, 1, 0, 1]
+terpilih = list(itertools.compress(data, selector))
+print(terpilih)  # ['A', 'C', 'E']
+
+# === starmap() ===
+pairs = [(2, 3), (4, 5), (6, 7)]
+hasil = list(itertools.starmap(pow, pairs))
+print(hasil)  # [8, 1024, 279936]
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Studi Kasus         -->
+      <!-- ============================== -->
+      <h2 id="praktik">10. Studi Kasus Praktis</h2>
+
+      <h3>Log File Processor</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Log Processor</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import itertools
+from datetime import datetime
+
+# Simulasi log entries
+def generate_logs():
+    """Generator yang menghasilkan log entries"""
+    logs = [
+        {"level": "INFO", "msg": "User login", "time": "2026-01-01 10:00"},
+        {"level": "ERROR", "msg": "DB connection failed", "time": "2026-01-01 10:01"},
+        {"level": "INFO", "msg": "Page loaded", "time": "2026-01-01 10:02"},
+        {"level": "WARNING", "msg": "Slow query", "time": "2026-01-01 10:03"},
+        {"level": "ERROR", "msg": "Timeout", "time": "2026-01-01 10:04"},
+        {"level": "INFO", "msg": "User logout", "time": "2026-01-01 10:05"},
+        {"level": "ERROR", "msg": "404 Not Found", "time": "2026-01-01 10:06"},
+    ]
+    for log in logs:
+        yield log
+
+# Pipeline: filter → transform → aggregate
+def filter_errors(logs):
+    for log in logs:
+        if log["level"] == "ERROR":
+            yield log
+
+def extract_messages(logs):
+    for log in logs:
+        yield log["msg"]
+
+# Pipeline chaining
+all_logs = generate_logs()
+errors = filter_errors(all_logs)
+messages = extract_messages(errors)
+
+print("Error messages:")
+for msg in messages:
+    print(f"  ❌ {msg}")
+# Error messages:
+#   ❌ DB connection failed
+#   ❌ Timeout
+#   ❌ 404 Not Found
+</code></pre>
+      </div>
+
+      <h3>Window Sliding Generator</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Sliding Window</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import itertools
+
+def sliding_window(iterable, n):
+    """Generator untuk sliding window"""
+    it = iter(iterable)
+    window = list(itertools.islice(it, n))
+    if len(window) == n:
+        yield tuple(window)
+    for item in it:
+        window = window[1:] + [item]
+        yield tuple(window)
+
+# Moving average
+def moving_average(data, window_size):
+    """Hitung moving average"""
+    for window in sliding_window(data, window_size):
+        yield sum(window) / len(window)
+
+data = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+ma_3 = list(moving_average(data, 3))
+print(f"Data: {data}")
+print(f"MA-3: {[f'{x:.1f}' for x in ma_3]}")
+# MA-3: ['20.0', '30.0', '40.0', '50.0', '60.0', '70.0', '80.0', '90.0']
+
+# Chunk generator — bagi data menjadi batch
+def chunk(iterable, size):
+    """Bagi iterable menjadi batch berukuran tetap"""
+    it = iter(iterable)
+    while True:
+        batch = list(itertools.islice(it, size))
+        if not batch:
+            break
+        yield batch
+
+data = range(1, 13)
+for batch in chunk(data, 4):
+    print(batch)
+# [1, 2, 3, 4]
+# [5, 6, 7, 8]
+# [9, 10, 11, 12]
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">11. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Generators:</p>
+
+      <div class="quiz-container" id="quizGenerators01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa yang dilakukan keyword <code>yield</code> dalam generator?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Mengembalikan nilai dan mengakhiri fungsi</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Mengembalikan nilai dan mengekskusi fungsi sementara</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Membuat variabel baru</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Menghapus data dari memori</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa keunggulan utama generator dibanding list?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Generator lebih cepat untuk semua operasi</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Generator menggunakan memori lebih sedikit</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Generator bisa diakses dengan index</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Generator bisa diulang berkali-kali</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa yang terjadi saat memanggil <code>next()</code> pada generator yang sudah habis?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Mengembalikan <code>None</code></div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Mengembalikan <code>0</code></div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Melempar <code>StopIteration</code> exception</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Generator di-reset dari awal</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari <code>yield from</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Menghentikan generator</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Mendelegasikan produksi nilai ke iterable lain</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Mengirim data ke generator</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Membuat generator baru</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Fungsi itertools mana yang menggabungkan beberapa iterable menjadi satu?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) <code>itertools.product()</code></div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) <code>itertools.chain()</code></div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) <code>itertools.zip()</code></div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) <code>itertools.merge()</code></div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="python-decorators.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Python Decorators</span>
+        </a>
+        <a href="python-type-hints.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Python Type Hints</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

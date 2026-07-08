@@ -1,0 +1,1427 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Web Development</a>
+        <span class="separator">/</span>
+        <span class="current">SolidJS</span>
+      </div>
+      <span class="category-tag">Web Development</span>
+      <h1>SolidJS: Reactive UI Framework</h1>
+      <p class="article-subtitle">Tutorial lengkap belajar SolidJS dari nol — signals, components, stores, reactive primitives, dan membangun UI yang ultra-performant tanpa virtual DOM</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-solidjs">Pengenalan SolidJS</a></li>
+          <li><a href="#setup">Setup dan Instalasi</a></li>
+          <li><a href="#signals">Signals: Reactive Primitives</a></li>
+          <li><a href="#components">Components di SolidJS</a></li>
+          <li><a href="#control-flow">Control Flow: Show, For, Switch</a></li>
+          <li><a href="#effects">Effects dan Memos</a></li>
+          <li><a href="#stores">Stores: State Management</a></li>
+          <li><a href="#lifecycle">Lifecycle dan Context</a></li>
+          <li><a href="#routing">Routing dengan Solid Router</a></li>
+          <li><a href="#comparison">SolidJS vs React vs Vue</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan SolidJS   -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-solidjs">1. Pengenalan SolidJS</h2>
+
+      <p><strong>SolidJS</strong> adalah framework JavaScript yang dirancang untuk membangun antarmuka pengguna (UI) dengan pendekatan <strong>fine-grained reactivity</strong>. Dikembangkan oleh <strong>Ryan Carniato</strong> dan pertama kali dirilis pada tahun 2021, SolidJS menawarkan performa yang luar biasa dengan sintaksis yang familiar bagi pengguna React.</p>
+
+      <p>Berbeda dengan React yang menggunakan Virtual DOM, SolidJS langsung memanipulasi DOM asli. Setiap perubahan state di SolidJS hanya memperbarui elemen DOM spesifik yang terpengaruh — tidak me-render ulang seluruh component. Hasilnya? Performa yang sangat cepat dan memory footprint yang kecil.</p>
+
+      <h3>Mengapa Memilih SolidJS?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Keunggulan</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Tanpa Virtual DOM</td><td>SolidJS langsung memanipulasi DOM — update hanya pada elemen yang berubah, bukan seluruh component tree</td></tr>
+          <tr><td>True Reactivity</td><td>Sistem reaksi berbasis dependency tracking otomatis — tidak perlu useEffect atau dependency array</td></tr>
+          <tr><td>Sintaksis Mirip React</td><td>Menggunakan JSX dan hooks-like API (createSignal), sehingga mudah dipelajari oleh React developer</td></tr>
+          <tr><td>Bundle Kecil</td><td>Runtime hanya ~7KB (gzip) — jauh lebih kecil dari React (42KB) atau Angular (143KB)</td></tr>
+          <tr><td>Performa Terbaik</td><td>Secara konsisten menempati peringkat teratas di benchmark JS Frameworks</td></tr>
+          <tr><td>TypeScript Support</td><td>Dibangun dengan TypeScript dari awal, dengan type inference yang sangat baik</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Bagaimana SolidJS Bekerja?</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: SolidJS Fine-Grained Reactivity</div>
+<pre><code class="language-css">SIGNAL-BASED REACTIVITY
+createSignal ► Signal (state)
+(count, 0)
+getter (dipanggil di template)
+▼
+Template / JSX
+&lt;p&gt;Count: {count()}&lt;/p&gt; ← DOM Node 1
+&lt;p&gt;Double: {double()}&lt;/p&gt; ← DOM Node 2
+&lt;button onClick={inc}&gt;+&lt;/button&gt;
+▲
+(hanya node yang terpengaruh yang di-update)
+Signal ► setter (setCount)
+Updated! ► Re-run tracked effects
+► Update DOM nodes yang subscribed
+Perbandingan:
+React: setState → Re-render component → Diff DOM
+Solid: setSignal → Update tracked DOM nodes langsung</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Apa itu Fine-Grained Reactivity?</div>
+        <p>Fine-grained reativity berarti sistem reaksi SolidJS melacak dependency pada level yang sangat detail — hingga ke <strong>individual text node</strong> di DOM. Saat sebuah signal berubah, hanya node DOM yang menggunakan signal tersebut yang diperbarui. Tidak ada re-render component, tidak ada diffing, tidak ada overhead Virtual DOM.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Setup               -->
+      <!-- ============================== -->
+      <h2 id="setup">2. Setup dan Instalasi</h2>
+
+      <p>SolidJS dapat di-setup dengan sangat mudah menggunakan template yang disediakan oleh tim SolidJS. Kita bisa menggunakan <strong>Vite</strong> sebagai bundler untuk development yang cepat.</p>
+
+      <h3>Memulai Proyek Baru</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+# Buat proyek SolidJS baru dengan template TypeScript
+npx degit solidjs/templates/ts my-solid-app
+
+# Atau menggunakan JavaScript
+npx degit solidjs/templates/js my-solid-app
+
+# Masuk ke direktori
+cd my-solid-app
+
+# Instal dependencies
+npm install
+
+# Jalankan development server
+npm run dev
+
+# Build untuk production
+npm run build
+</code></pre>
+      </div>
+
+      <h3>Struktur Folder</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">text</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+</div>
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: my-solid-app/</div>
+<pre><code>/&quot;my-solid-app/&quot;/
+/&quot;node_modules/&quot;/
+public/
+/&quot;favicon.ico&quot;/
+src/
+assets/
+/&quot;components/&quot;/
+/&quot;Counter.tsx&quot;/
+/&quot;TodoList.tsx&quot;/
+/&quot;UserCard.tsx&quot;/
+pages/
+/&quot;Home.tsx&quot;/
+/&quot;About.tsx&quot;/
+/&quot;NotFound.tsx&quot;/
+stores/
+/&quot;todoStore.ts&quot;/
+App.tsx
+App.css
+/&quot;index.tsx&quot;/
+/&quot;index.css&quot;/
+/&quot;index.html&quot;/
+/&quot;package.json&quot;/
+/&quot;tsconfig.json&quot;/
+/&quot;vite.config.ts&quot;/
+/&quot;README.md&quot;/</code></pre>
+    </div>
+      </div>
+
+      <h3>Entry Point</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+// index.tsx — Entry point SolidJS
+import { render } from 'solid-js/web';
+import App from './App';
+
+// render() mirip ReactDOM.render() di React
+// Mount App component ke elemen #root di HTML
+render(() =&gt; &lt;App /&gt;, document.getElementById('root')!);
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Signals              -->
+      <!-- ============================== -->
+      <h2 id="signals">3. Signals: Reactive Primitives</h2>
+
+      <p><strong>Signals</strong> adalah fondasi reactivity di SolidJS. Mirip dengan <code>useState</code> di React, tetapi dengan perbedaan mendasar: Signals tidak memicu re-render component. Sebaliknya, Signals langsung memperbarui DOM nodes yang spesifik.</p>
+
+      <h3>createSignal — Dasar State di SolidJS</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+import { createSignal } from 'solid-js';
+
+function Counter() {
+  // createSignal mengembalikan [getter, setter]
+  const [count, setCount] = createSignal(0);
+
+  // count() — panggil sebagai fungsi untuk mendapatkan nilai
+  // setCount(5) — set nilai baru
+  // setCount(prev =&gt; prev + 1) — update berdasarkan nilai sebelumnya
+
+  return (
+    &lt;div&gt;
+      &lt;h2&gt;Count: {count()}&lt;/h2&gt;
+      &lt;button onClick={() =&gt; setCount(count() + 1)}&gt;Tambah&lt;/button&gt;
+      &lt;button onClick={() =&gt; setCount(count() - 1)}&gt;Kurang&lt;/button&gt;
+      &lt;button onClick={() =&gt; setCount(0)}&gt;Reset&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Penting: Panggil Signal sebagai Fungsi!</div>
+        <p>Di SolidJS, signal diakses dengan memanggilnya sebagai fungsi: <code>count()</code>, bukan langsung <code>count</code>. Ini karena SolidJS perlu melacak akses signal untuk membuat dependency tracking. Jika kamu lupa memanggil <code>()</code>, dependency tracking tidak akan bekerja dan UI tidak akan update.</p>
+      </div>
+
+      <h3>createSignal dengan Tipe Data Berbeda</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+import { createSignal } from 'solid-js';
+
+function DataTypesDemo() {
+  // Signal dengan number
+  const [count, setCount] = createSignal&lt;number&gt;(0);
+
+  // Signal dengan string
+  const [name, setName] = createSignal&lt;string&gt;('Guest');
+
+  // Signal dengan boolean
+  const [isOpen, setIsOpen] = createSignal&lt;boolean&gt;(false);
+
+  // Signal dengan object
+  const [user, setUser] = createSignal&lt;{ name: string; age: number }&gt;({
+    name: 'Budi',
+    age: 25
+  });
+
+  // Signal dengan array
+  const [items, setItems] = createSignal&lt;string[]&gt;(['apel', 'mangga']);
+
+  // Update object (gunakan spread untuk merge)
+  const updateUserName = () =&gt; {
+    setUser(prev =&gt; ({ ...prev, name: 'Andi' }));
+  };
+
+  // Update array
+  const addItem = (item: string) =&gt; {
+    setItems(prev =&gt; [...prev, item]);
+  };
+
+  const removeItem = (index: number) =&gt; {
+    setItems(prev =&gt; prev.filter((_, i) =&gt; i !== index));
+  };
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Count: {count()}&lt;/p&gt;
+      &lt;p&gt;Nama: {name()}&lt;/p&gt;
+      &lt;p&gt;Terbuka: {isOpen() ? 'Ya' : 'Tidak'}&lt;/p&gt;
+      &lt;p&gt;User: {user().name}, Umur: {user().age}&lt;/p&gt;
+      &lt;p&gt;Items: {items().join(', ')}&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      </div>
+
+      <h3>createSignal vs React useState</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>SolidJS createSignal</th>
+            <th>React useState</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Akses Nilai</td><td><code>count()</code> — dipanggil sebagai fungsi</td><td><code>count</code> — langsung diakses</td></tr>
+          <tr><td>Re-render</td><td>Tidak ada re-render — hanya update DOM spesifik</td><td>Seluruh component re-render</td></tr>
+          <tr><td>Fine-grained</td><td>Ya — dependency tracking otomatis per expression</td><td>Tidak — re-render keseluruhan component</td></tr>
+          <tr><td>Setter</td><td><code>setCount(5)</code> atau <code>setCount(p =&gt; p+1)</code></td><td><code>setCount(5)</code> atau <code>setCount(p =&gt; p+1)</code></td></tr>
+          <tr><td>Lazy Init</td><td><code>createSignal(() =&gt; heavyComputation())</code></td><td><code>useState(() =&gt; heavyComputation())</code></td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Components           -->
+      <!-- ============================== -->
+      <h2 id="components">4. Components di SolidJS</h2>
+
+      <p>Components di SolidJS <strong>hanya berjalan sekali</strong> — saat pertama kali dibuat. Setelah itu, hanya reactive expressions (signals) di dalam template yang di-update. Ini berbeda dengan React di mana seluruh function component berjalan ulang setiap render.</p>
+
+      <h3>Anatomi Component</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+// components/UserCard.tsx
+import { Component, Show, createSignal } from 'solid-js';
+
+// Props interface
+interface UserCardProps {
+  name: string;
+  email: string;
+  avatar: string;
+  role?: string;
+  onDelete?: (name: string) =&gt; void;
+}
+
+// Component sebagai arrow function dengan tipe Component
+const UserCard: Component&lt;UserCardProps&gt; = (props) =&gt; {
+  const [isExpanded, setIsExpanded] = createSignal(false);
+
+  // Component function ini HANYA berjalan sekali!
+  console.log('UserCard created:', props.name);
+
+  // Props di SolidJS bersifat reactive — mirip signals
+  // Bisa dipanggil: props.name (object property, bukan function)
+
+  const badgeColor = () =&gt; {
+    const colors: Record&lt;string, string&gt; = {
+      'Admin': '#e74c3c',
+      'Editor': '#f39c12',
+      'User': '#2ecc71'
+    };
+    return colors[props.role || 'User'] || '#95a5a6';
+  };
+
+  return (
+    &lt;div class="user-card" classList={{ expanded: isExpanded() }}&gt;
+      &lt;div class="user-header"&gt;
+        &lt;img src={props.avatar} alt={props.name} class="user-avatar" /&gt;
+        &lt;div class="user-info"&gt;
+          &lt;h3&gt;{props.name}&lt;/h3&gt;
+          &lt;p&gt;{props.email}&lt;/p&gt;
+          &lt;span
+            class="badge"
+            style={{ "background-color": badgeColor() }}
+          &gt;
+            {props.role || 'User'}
+          &lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class="user-actions"&gt;
+        &lt;button onClick={() =&gt; setIsExpanded(!isExpanded())}&gt;
+          {isExpanded() ? 'Tutup' : 'Detail'}
+        &lt;/button&gt;
+        &lt;button onClick={() =&gt; props.onDelete?.(props.name)}&gt;
+          🗑️ Hapus
+        &lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;Show when={isExpanded()}&gt;
+        &lt;div class="user-details"&gt;
+          &lt;p&gt;Detail lengkap tentang {props.name}&lt;/p&gt;
+          &lt;p&gt;Role: {props.role || 'User'}&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/Show&gt;
+    &lt;/div&gt;
+  );
+};
+
+export default UserCard;
+
+// === Parent Component ===
+// components/UserList.tsx
+import { Component, For } from 'solid-js';
+import UserCard from './UserCard';
+
+const UserList: Component = () =&gt; {
+  const [users, setUsers] = createSignal([
+    { name: 'Budi', email: 'budi@mail.com', avatar: '/img/budi.jpg', role: 'Admin' },
+    { name: 'Ani', email: 'ani@mail.com', avatar: '/img/ani.jpg', role: 'Editor' },
+    { name: 'Citra', email: 'citra@mail.com', avatar: '/img/citra.jpg', role: 'User' }
+  ]);
+
+  const deleteUser = (name: string) =&gt; {
+    setUsers(prev =&gt; prev.filter(u =&gt; u.name !== name));
+  };
+
+  return (
+    &lt;div class="user-list"&gt;
+      &lt;h2&gt;Daftar User ({users().length})&lt;/h2&gt;
+      &lt;For each={users()}&gt;
+        {(user) =&gt; (
+          &lt;UserCard
+            name={user.name}
+            email={user.email}
+            avatar={user.avatar}
+            role={user.role}
+            onDelete={deleteUser}
+          /&gt;
+        )}
+      &lt;/For&gt;
+    &lt;/div&gt;
+  );
+};
+
+export default UserList;
+</code></pre>
+      </div>
+
+      <h3>Props di SolidJS — Reactive dan Getter-based</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+import { Component, mergeProps } from 'solid-js';
+
+// Props di SolidJS bersifat reactive secara default
+// Props diakses sebagai getter (property access), bukan function call
+const Greeting: Component&lt;{ name: string; greeting?: string }&gt; = (props) =&gt; {
+  // props.name akan otomatis update jika parent mengubah nama
+  // props.greeting memiliki nilai default
+
+  // Gunakan mergeProps untuk default values
+  const merged = mergeProps({ greeting: 'Halo' }, props);
+
+  return (
+    &lt;div&gt;
+      &lt;h1&gt;{merged.greeting}, {merged.name}!&lt;/h1&gt;
+    &lt;/div&gt;
+  );
+};
+
+// Destructuring props — HATI-HATI!
+// Jangan destructure langsung karena akan memutus reactivity
+// ❌ SALAH:
+// const Bad: Component&lt;Props&gt; = ({ name }) =&gt; &lt;h1&gt;{name}&lt;/h1&gt;;
+
+// ✅ BENAR:
+// const Good: Component&lt;Props&gt; = (props) =&gt; &lt;h1&gt;{props.name}&lt;/h1&gt;;
+
+// Atau gunakan splitProps untuk membagi props
+import { splitProps } from 'solid-js';
+
+const UserAvatar: Component&lt;UserCardProps&gt; = (props) =&gt; {
+  // Pisahkan props untuk component ini vs props yang di-pass ke elemen
+  const [local, others] = splitProps(props, ['name', 'avatar']);
+
+  return (
+    &lt;div {...others}&gt;
+      &lt;img src={local.avatar} alt={local.name} /&gt;
+      &lt;span&gt;{local.name}&lt;/span&gt;
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Control Flow         -->
+      <!-- ============================== -->
+      <h2 id="control-flow">5. Control Flow: Show, For, Switch</h2>
+
+      <p>SolidJS menyediakan komponen control flow khusus yang lebih efisien dibandingkan menggunakan operator JavaScript biasa di dalam JSX. Komponen ini dirancang untuk memanfaatkan fine-grained reactivity.</p>
+
+      <h3>Show — Conditional Rendering</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+import { Component, createSignal, Show } from 'solid-js';
+
+const AuthDemo: Component = () =&gt; {
+  const [isLoggedIn, setIsLoggedIn] = createSignal(false);
+  const [user, setUser] = createSignal({ name: 'Budi', role: 'Admin' });
+
+  return (
+    &lt;div&gt;
+      &lt;!-- Show dengan when --&gt;
+      &lt;Show
+        when={isLoggedIn()}
+        fallback={&lt;button onClick={() =&gt; setIsLoggedIn(true)}&gt;Login&lt;/button&gt;}
+      &gt;
+        &lt;h2&gt;Selamat datang, {user().name}!&lt;/h2&gt;
+        &lt;button onClick={() =&gt; setIsLoggedIn(false)}&gt;Logout&lt;/button&gt;
+      &lt;/Show&gt;
+
+      &lt;!-- Show dengan keyed (untuk mengakses data di children) --&gt;
+      &lt;Show when={user()} keyed&gt;
+        {(u) =&gt; (
+          &lt;div&gt;
+            &lt;p&gt;Nama: {u.name}&lt;/p&gt;
+            &lt;p&gt;Role: {u.role}&lt;/p&gt;
+          &lt;/div&gt;
+        )}
+      &lt;/Show&gt;
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+      </div>
+
+      <h3>For — Rendering Lists</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+import { Component, createSignal, For, Index } from 'solid-js';
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+}
+
+const ProductList: Component = () =&gt; {
+  const [products, setProducts] = createSignal&lt;Product[]&gt;([
+    { id: 1, name: 'Laptop', price: 12000000 },
+    { id: 2, name: 'Mouse', price: 250000 },
+    { id: 3, name: 'Keyboard', price: 750000 }
+  ]);
+  const [searchTerm, setSearchTerm] = createSignal('');
+
+  // Filter products berdasarkan search
+  const filteredProducts = () =&gt;
+    products().filter(p =&gt;
+      p.name.toLowerCase().includes(searchTerm().toLowerCase())
+    );
+
+  const formatPrice = (price: number) =&gt;
+    new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR'
+    }).format(price);
+
+  return (
+    &lt;div&gt;
+      &lt;input
+        type="text"
+        placeholder="Cari produk..."
+        value={searchTerm()}
+        onInput={(e) =&gt; setSearchTerm(e.currentTarget.value)}
+      /&gt;
+
+      &lt;p&gt;{filteredProducts().length} produk ditemukan&lt;/p&gt;
+
+      {/* For: Untuk list yang berubah (dynamic) */}
+      &lt;For each={filteredProducts()} fallback={&lt;p&gt;Tidak ada produk&lt;/p&gt;}&gt;
+        {(product) =&gt; (
+          &lt;div class="product-card"&gt;
+            &lt;h3&gt;{product.name}&lt;/h3&gt;
+            &lt;p&gt;{formatPrice(product.price)}&lt;/p&gt;
+            &lt;button onClick={() =&gt;
+              setProducts(prev =&gt; prev.filter(p =&gt; p.id !== product.id))
+            }&gt;
+              Hapus
+            &lt;/button&gt;
+          &lt;/div&gt;
+        )}
+      &lt;/For&gt;
+
+      {/* Index: Untuk list yang isinya stabil (static) */}
+      &lt;h3&gt;Dengan Index (lebih cepat untuk list statis):&lt;/h3&gt;
+      &lt;Index each={filteredProducts()}&gt;
+        {(product, index) =&gt; (
+          &lt;div&gt;
+            {index + 1}. {product().name} — {formatPrice(product().price)}
+          &lt;/div&gt;
+        )}
+      &lt;/Index&gt;
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+      </div>
+
+      <h3>Switch/Match — Multiple Conditions</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+import { Component, createSignal, Switch, Match } from 'solid-js';
+
+const StatusDisplay: Component = () =&gt; {
+  const [status, setStatus] = createSignal&lt;'loading' | 'success' | 'error'&gt;('loading');
+
+  return (
+    &lt;div&gt;
+      &lt;div class="tabs"&gt;
+        &lt;button onClick={() =&gt; setStatus('loading')}&gt;Loading&lt;/button&gt;
+        &lt;button onClick={() =&gt; setStatus('success')}&gt;Success&lt;/button&gt;
+        &lt;button onClick={() =&gt; setStatus('error')}&gt;Error&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;Switch fallback={&lt;p&gt;Status tidak diketahui&lt;/p&gt;}&gt;
+        &lt;Match when={status() === 'loading'}&gt;
+          &lt;div class="spinner"&gt;
+            &lt;p&gt;⏳ Memuat data...&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/Match&gt;
+
+        &lt;Match when={status() === 'success'}&gt;
+          &lt;div class="success"&gt;
+            &lt;p&gt;✅ Data berhasil dimuat!&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/Match&gt;
+
+        &lt;Match when={status() === 'error'}&gt;
+          &lt;div class="error"&gt;
+            &lt;p&gt;❌ Terjadi kesalahan saat memuat data&lt;/p&gt;
+            &lt;button onClick={() =&gt; setStatus('loading')}&gt;Coba Lagi&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/Match&gt;
+      &lt;/Switch&gt;
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Effects dan Memos    -->
+      <!-- ============================== -->
+      <h2 id="effects">6. Effects dan Memos</h2>
+
+      <p>SolidJS menyediakan beberapa reactive primitives untuk menangani side effects dan komputasi derived: <code>createEffect</code>, <code>createMemo</code>, dan <code>createComputed</code>.</p>
+
+      <h3>createEffect — Side Effects</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+import { createSignal, createEffect, onCleanup } from 'solid-js';
+
+function EffectDemo() {
+  const [count, setCount] = createSignal(0);
+  const [name, setName] = createSignal('Budi');
+
+  // createEffect: Berjalan otomatis saat signal yang diakses berubah
+  createEffect(() =&gt; {
+    console.log('Count berubah menjadi:', count());
+  });
+
+  // Effect dengan dependency tracking otomatis
+  // Hanya berjalan saat name() berubah, karena hanya name() yang diakses
+  createEffect(() =&gt; {
+    console.log(`Halo, ${name()}!`);
+    document.title = `Hello ${name()} - My App`;
+  });
+
+  // Effect dengan cleanup (mirip useEffect return function)
+  createEffect(() =&gt; {
+    const timer = setInterval(() =&gt; {
+      console.log('Timer berjalan untuk:', name());
+    }, 1000);
+
+    // Cleanup function — dijalankan saat effect re-run atau di-destroy
+    onCleanup(() =&gt; {
+      clearInterval(timer);
+      console.log('Timer dibersihkan untuk:', name());
+    });
+  });
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Count: {count()}&lt;/p&gt;
+      &lt;button onClick={() =&gt; setCount(count() + 1)}&gt;+&lt;/button&gt;
+      &lt;input value={name()} onInput={e =&gt; setName(e.currentTarget.value)} /&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      </div>
+
+      <h3>createMemo — Derived/Computed Values</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+import { createSignal, createMemo } from 'solid-js';
+
+function MemoDemo() {
+  const [items, setItems] = createSignal([
+    { name: 'Apel', price: 5000, quantity: 3 },
+    { name: 'Mangga', price: 8000, quantity: 2 },
+    { name: 'Jeruk', price: 6000, quantity: 5 }
+  ]);
+  const [discount, setDiscount] = createSignal(0.1); // 10%
+
+  // createMemo: Derived value yang di-cache
+  // Hanya re-compute saat dependency berubah
+  const subtotal = createMemo(() =&gt;
+    items().reduce((sum, item) =&gt; sum + item.price * item.quantity, 0)
+  );
+
+  const discountAmount = createMemo(() =&gt;
+    subtotal() * discount()
+  );
+
+  const total = createMemo(() =&gt;
+    subtotal() - discountAmount()
+  );
+
+  const itemCount = createMemo(() =&gt;
+    items().reduce((sum, item) =&gt; sum + item.quantity, 0)
+  );
+
+  const formatRupiah = (amount: number) =&gt;
+    new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR'
+    }).format(amount);
+
+  const addRandomItem = () =&gt; {
+    const names = ['Pisang', 'Durian', 'Salak', 'Rambutan'];
+    const randomName = names[Math.floor(Math.random() * names.length)];
+    const randomPrice = Math.floor(Math.random() * 10000) + 2000;
+    setItems(prev =&gt; [...prev, {
+      name: randomName,
+      price: randomPrice,
+      quantity: 1
+    }]);
+  };
+
+  return (
+    &lt;div&gt;
+      &lt;h2&gt;Keranjang Belanja ({itemCount()} item)&lt;/h2&gt;
+
+      &lt;For each={items()}&gt;
+        {(item, i) =&gt; (
+          &lt;div&gt;
+            {item.name}: {item.quantity} × {formatRupiah(item.price)}
+            = {formatRupiah(item.price * item.quantity)}
+          &lt;/div&gt;
+        )}
+      &lt;/For&gt;
+
+      &lt;hr /&gt;
+      &lt;p&gt;Subtotal: {formatRupiah(subtotal())}&lt;/p&gt;
+      &lt;p&gt;Diskon ({(discount() * 100).toFixed(0)}%): -{formatRupiah(discountAmount())}&lt;/p&gt;
+      &lt;p&gt;&lt;strong&gt;Total: {formatRupiah(total())}&lt;/strong&gt;&lt;/p&gt;
+
+      &lt;button onClick={addRandomItem}&gt;+ Tambah Item&lt;/button&gt;
+      &lt;input
+        type="range"
+        min="0"
+        max="0.5"
+        step="0.05"
+        value={discount()}
+        onInput={e =&gt; setDiscount(parseFloat(e.currentTarget.value))}
+      /&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      </div>
+
+      <h3>createSignal vs createMemo vs createEffect</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Primitive</th>
+            <th>Fungsi</th>
+            <th>Kapan Digunakan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>createSignal</code></td><td>State dasar yang bisa di-get dan di-set</td><td>Setiap data yang berubah dari waktu ke waktu</td></tr>
+          <tr><td><code>createMemo</code></td><td>Nilai derived yang di-cache dari signal lain</td><td>Kalkulasi yang mahal atau derived data</td></tr>
+          <tr><td><code>createEffect</code></td><td>Side effects yang berjalan saat dependency berubah</td><td>Logging, DOM manipulation, API calls, sync data</td></tr>
+          <tr><td><code>createComputed</code></td><td>Seperti createMemo tapi synchronous dan tanpa return value</td><td>Updating reactive state berdasarkan signal lain (jarang dipakai)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Stores               -->
+      <!-- ============================== -->
+      <h2 id="stores">7. Stores: State Management</h2>
+
+      <p><strong>Stores</strong> di SolidJS menyediakan cara untuk mengelola <strong>state yang kompleks dan deeply nested</strong> dengan reactivity yang tetap fine-grained. Berbeda dengan signals yang hanya reactive di level pertama, stores bisa reactive hingga level nested properties.</p>
+
+      <h3>createStore — Deep Reactive State</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+// stores/todoStore.ts
+import { createStore, produce } from 'solid-js/store';
+
+interface Todo {
+  id: number;
+  text: string;
+  completed: boolean;
+  tags: string[];
+}
+
+interface TodoStore {
+  todos: Todo[];
+  filter: 'all' | 'active' | 'completed';
+  stats: {
+    total: number;
+    completed: number;
+    active: number;
+  };
+}
+
+// createStore — reactive hingga nested properties
+const [store, setStore] = createStore&lt;TodoStore&gt;({
+  todos: [],
+  filter: 'all',
+  stats: {
+    total: 0,
+    completed: 0,
+    active: 0
+  }
+});
+
+// === Menggunakan Store ===
+// Akses nested property — reactive!
+// store.todos[0].text — reactive
+// store.stats.completed — reactive
+// store.filter — reactive
+
+// === Update Store ===
+
+// Set property langsung
+setStore('filter', 'active');
+
+// Set nested property dengan path
+setStore('stats', 'total', 5);
+setStore('stats', 'completed', 3);
+
+// Set dengan function updater
+setStore('stats', 'active', prev =&gt; prev - 1);
+
+// Add item ke array
+setStore('todos', store.todos.length, {
+  id: Date.now(),
+  text: 'Belajar SolidJS',
+  completed: false,
+  tags: ['belajar', 'frontend']
+});
+
+// Update item spesifik dalam array
+setStore('todos', (todo) =&gt; todo.id === 42, 'completed', true);
+
+// Update nested array property
+setStore('todos', (todo) =&gt; todo.id === 42, 'tags', tags =&gt;
+  [...tags, 'penting']
+);
+
+// Delete item dari array
+setStore('todos', todos =&gt; todos.filter(t =&gt; t.id !== 42));
+
+// === Produce: Immutable update dengan mutable syntax ===
+setStore(produce(store =&gt; {
+  store.todos.push({
+    id: Date.now(),
+    text: 'Item baru',
+    completed: false,
+    tags: []
+  });
+  store.stats.total++;
+  store.stats.active++;
+}));
+
+// Filtered todos (derived dari store)
+import { createMemo } from 'solid-js';
+
+const filteredTodos = createMemo(() =&gt; {
+  switch (store.filter) {
+    case 'active':
+      return store.todos.filter(t =&gt; !t.completed);
+    case 'completed':
+      return store.todos.filter(t =&gt; t.completed);
+    default:
+      return store.todos;
+  }
+});
+</code></pre>
+      </div>
+
+      <h3>Store Patterns: Todo App Lengkap</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+// components/TodoApp.tsx
+import { Component, createSignal, For, Show, createMemo } from 'solid-js';
+import { createStore } from 'solid-js/store';
+
+const TodoApp: Component = () =&gt; {
+  const [store, setStore] = createStore({
+    todos: [] as { id: number; text: string; done: boolean }[],
+    newTodo: ''
+  });
+  const [filter, setFilter] = createSignal&lt;'all' | 'active' | 'done'&gt;('all');
+
+  const filteredTodos = createMemo(() =&gt; {
+    switch (filter()) {
+      case 'active': return store.todos.filter(t =&gt; !t.done);
+      case 'done': return store.todos.filter(t =&gt; t.done);
+      default: return store.todos;
+    }
+  });
+
+  const remaining = createMemo(() =&gt;
+    store.todos.filter(t =&gt; !t.done).length
+  );
+
+  const addTodo = () =&gt; {
+    if (!store.newTodo.trim()) return;
+    setStore('todos', todos =&gt; [
+      ...todos,
+      { id: Date.now(), text: store.newTodo.trim(), done: false }
+    ]);
+    setStore('newTodo', '');
+  };
+
+  const toggleTodo = (id: number) =&gt; {
+    setStore('todos', t =&gt; t.id === id, 'done', d =&gt; !d);
+  };
+
+  const removeTodo = (id: number) =&gt; {
+    setStore('todos', todos =&gt; todos.filter(t =&gt; t.id !== id));
+  };
+
+  return (
+    &lt;div class="todo-app"&gt;
+      &lt;h1&gt;📋 Todo List&lt;/h1&gt;
+
+      &lt;div class="add-todo"&gt;
+        &lt;input
+          value={store.newTodo}
+          onInput={e =&gt; setStore('newTodo', e.currentTarget.value)}
+          onKeyDown={e =&gt; e.key === 'Enter' &amp;&amp; addTodo()}
+          placeholder="Tambah todo baru..."
+        /&gt;
+        &lt;button onClick={addTodo}&gt;Tambah&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div class="filters"&gt;
+        &lt;button classList={{ active: filter() === 'all' }}
+                onClick={() =&gt; setFilter('all')}&gt;Semua&lt;/button&gt;
+        &lt;button classList={{ active: filter() === 'active' }}
+                onClick={() =&gt; setFilter('active')}&gt;Aktif&lt;/button&gt;
+        &lt;button classList={{ active: filter() === 'done' }}
+                onClick={() =&gt; setFilter('done')}&gt;Selesai&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;ul class="todo-list"&gt;
+        &lt;For each={filteredTodos()} fallback={&lt;p&gt;Tidak ada todo&lt;/p&gt;}&gt;
+          {(todo) =&gt; (
+            &lt;li classList={{ done: todo.done }}&gt;
+              &lt;input
+                type="checkbox"
+                checked={todo.done}
+                onChange={() =&gt; toggleTodo(todo.id)}
+              /&gt;
+              &lt;span&gt;{todo.text}&lt;/span&gt;
+              &lt;button onClick={() =&gt; removeTodo(todo.id)}&gt;✕&lt;/button&gt;
+            &lt;/li&gt;
+          )}
+        &lt;/For&gt;
+      &lt;/ul&gt;
+
+      &lt;p class="remaining"&gt;{remaining()} item tersisa&lt;/p&gt;
+    &lt;/div&gt;
+  );
+};
+
+export default TodoApp;
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Lifecycle & Context   -->
+      <!-- ============================== -->
+      <h2 id="lifecycle">8. Lifecycle dan Context</h2>
+
+      <p>Di SolidJS, lifecycle ditangani melalui <strong>onMount</strong>, <strong>onCleanup</strong>, dan <strong>createEffect</strong>. Untuk berbagi data antar component tanpa prop drilling, SolidJS menggunakan <strong>Context</strong>.</p>
+
+      <h3>Lifecycle Hooks</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+import { Component, onMount, onCleanup, createSignal, createEffect } from 'solid-js';
+
+const LifecycleDemo: Component = () =&gt; {
+  const [data, setData] = createSignal(null);
+  const [windowWidth, setWindowWidth] = createSignal(window.innerWidth);
+
+  // onMount: Berjalan sekali setelah component pertama kali mount ke DOM
+  // Mirip componentDidMount di React atau ngOnInit di Angular
+  onMount(async () =&gt; {
+    console.log('Component mounted!');
+
+    // Fetch data saat mount
+    try {
+      const response = await fetch('https://api.example.com/data');
+      const result = await response.json();
+      setData(result);
+    } catch (error) {
+      console.error('Gagal fetch data:', error);
+    }
+  });
+
+  // onCleanup: Berjalan saat component di-destroy dari DOM
+  // Mirip componentWillUnmount atau ngOnDestroy
+  onMount(() =&gt; {
+    const handleResize = () =&gt; setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+
+    onCleanup(() =&gt; {
+      window.removeEventListener('resize', handleResize);
+      console.log('Event listener dibersihkan');
+    });
+  });
+
+  // createEffect: Berjalan otomatis saat signal berubah
+  // Dependency tracking OTOMATIS
+  createEffect(() =&gt; {
+    console.log('Window width changed:', windowWidth());
+  });
+
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Lebar window: {windowWidth()}px&lt;/p&gt;
+      &lt;Show when={data()} fallback={&lt;p&gt;Loading...&lt;/p&gt;}&gt;
+        &lt;pre&gt;{JSON.stringify(data(), null, 2)}&lt;/pre&gt;
+      &lt;/Show&gt;
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+      </div>
+
+      <h3>Context — Berbagi State Tanpa Prop Drilling</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+// context/ThemeContext.tsx
+import { createContext, useContext, createSignal, ParentComponent } from 'solid-js';
+
+interface ThemeContextType {
+  theme: () =&gt; string;
+  toggleTheme: () =&gt; void;
+}
+
+const ThemeContext = createContext&lt;ThemeContextType&gt;();
+
+// Provider component
+export const ThemeProvider: ParentComponent = (props) =&gt; {
+  const [theme, setTheme] = createSignal('dark');
+
+  const toggleTheme = () =&gt; {
+    setTheme(prev =&gt; prev === 'dark' ? 'light' : 'dark');
+  };
+
+  return (
+    &lt;ThemeContext.Provider value={{ theme, toggleTheme }}&gt;
+      {props.children}
+    &lt;/ThemeContext.Provider&gt;
+  );
+};
+
+// Custom hook untuk menggunakan context
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme harus digunakan di dalam ThemeProvider');
+  }
+  return context;
+}
+
+// === Penggunaan ===
+// App.tsx
+const App: Component = () =&gt; (
+  &lt;ThemeProvider&gt;
+    &lt;Header /&gt;
+    &lt;Main /&gt;
+  &lt;/ThemeProvider&gt;
+);
+
+// Header.tsx — bisa akses theme tanpa prop drilling
+const Header: Component = () =&gt; {
+  const { theme, toggleTheme } = useTheme();
+
+  return (
+    &lt;header class={theme() === 'dark' ? 'dark-header' : 'light-header'}&gt;
+      &lt;h1&gt;Aplikasi Saya&lt;/h1&gt;
+      &lt;button onClick={toggleTheme}&gt;
+        {theme() === 'dark' ? '☀️' : '🌙'}
+      &lt;/button&gt;
+    &lt;/header&gt;
+  );
+};
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Routing              -->
+      <!-- ============================== -->
+      <h2 id="routing">9. Routing dengan Solid Router</h2>
+
+      <p><strong>@solidjs/router</strong> adalah router resmi untuk SolidJS yang mendukung file-based dan code-based routing, nested routes, lazy loading, dan data loading.</p>
+
+      <h3>Konfigurasi Router</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+# Instal Solid Router
+npm install @solidjs/router
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">typescript</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+<pre><code>
+// App.tsx
+import { Component, lazy } from 'solid-js';
+import { Router, Route, Routes, A, useNavigate } from '@solidjs/router';
+
+// Lazy loading pages
+const Home = lazy(() =&gt; import('./pages/Home'));
+const Products = lazy(() =&gt; import('./pages/Products'));
+const ProductDetail = lazy(() =&gt; import('./pages/ProductDetail'));
+const About = lazy(() =&gt; import('./pages/About'));
+const NotFound = lazy(() =&gt; import('./pages/NotFound'));
+
+const App: Component = () =&gt; {
+  return (
+    &lt;Router&gt;
+      {/* Navbar */}
+      &lt;nav&gt;
+        &lt;A href="/" activeClass="active"&gt;Beranda&lt;/A&gt;
+        &lt;A href="/products" activeClass="active"&gt;Produk&lt;/A&gt;
+        &lt;A href="/about" activeClass="active"&gt;Tentang&lt;/A&gt;
+      &lt;/nav&gt;
+
+      {/* Routes */}
+      &lt;Routes&gt;
+        &lt;Route path="/" component={Home} /&gt;
+        &lt;Route path="/products" component={Products} /&gt;
+        &lt;Route path="/products/:id" component={ProductDetail} /&gt;
+        &lt;Route path="/about" component={About} /&gt;
+        &lt;Route path="*" component={NotFound} /&gt;
+      &lt;/Routes&gt;
+    &lt;/Router&gt;
+  );
+};
+
+export default App;
+
+// === pages/ProductDetail.tsx ===
+import { Component, createResource } from 'solid-js';
+import { useParams, useNavigate } from '@solidjs/router';
+
+const ProductDetail: Component = () =&gt; {
+  const params = useParams();       // Access URL params
+  const navigate = useNavigate();   // Programmatic navigation
+
+  // Fetch data berdasarkan route param
+  const fetchProduct = async (id: string) =&gt; {
+    const res = await fetch(`https://api.example.com/products/${id}`);
+    return res.json();
+  };
+
+  const [product] = createResource(() =&gt; params.id, fetchProduct);
+
+  return (
+    &lt;div&gt;
+      &lt;Show when={product()} fallback={&lt;p&gt;Loading...&lt;/p&gt;}&gt;
+        &lt;h1&gt;{product()!.name}&lt;/h1&gt;
+        &lt;p&gt;Harga: Rp {product()!.price.toLocaleString()}&lt;/p&gt;
+        &lt;button onClick={() =&gt; navigate('/products')}&gt;
+          ← Kembali ke Produk
+        &lt;/button&gt;
+      &lt;/Show&gt;
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Comparison          -->
+      <!-- ============================== -->
+      <h2 id="comparison">10. SolidJS vs React vs Vue</h2>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>SolidJS</th>
+            <th>React</th>
+            <th>Vue.js</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Re-render</td><td>Tidak ada — fine-grained DOM updates</td><td>Seluruh component re-render</td><td>Component-level reactivity</td></tr>
+          <tr><td>State Primitive</td><td>createSignal (getter function)</td><td>useState (variable)</td><td>ref() / reactive()</td></tr>
+          <tr><td>Bundle Size</td><td>~7 KB (gzip)</td><td>~42 KB (gzip)</td><td>~33 KB (gzip)</td></tr>
+          <tr><td>Virtual DOM</td><td>Tidak menggunakan</td><td>Menggunakan</td><td>Menggunakan</td></tr>
+          <tr><td>Learning Curve</td><td>🟡 Sedang (mirip React)</td><td>🟡 Sedang</td><td>🟢 Mudah</td></tr>
+          <tr><td>Ecosystem</td><td>🟡 Berkembang</td><td>🟢 Sangat besar</td><td>🟢 Besar</td></tr>
+          <tr><td>SSR</td><td>SolidStart</td><td>Next.js</td><td>Nuxt.js</td></tr>
+          <tr><td>Performa Benchmark</td><td>🥇 Tercepat</td><td>🥉 Sedang</td><td>🥈 Cepat</td></tr>
+          <tr><td>Job Market</td><td>🔴 Terbatas</td><td>🟢 Sangat besar</td><td>🟢 Besar</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Best Practices      -->
+      <!-- ============================== -->
+      <h2 id="best-practices">11. Best Practices</h2>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Praktik</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Jangan Destructure Props</td><td>Selalu akses props sebagai <code>props.name</code>, bukan <code>{ name }</code> agar reactivity tetap bekerja</td></tr>
+          <tr><td>Gunakan For untuk List</td><td>Hindari <code>.map()</code> — gunakan <code>&lt;For&gt;</code> untuk list dynamic dan <code>&lt;Index&gt;</code> untuk list statis</td></tr>
+          <tr><td>createMemo untuk Komputasi</td><td>Jangan letakkan kalkulasi mahal di template — gunakan <code>createMemo()</code></td></tr>
+          <tr><td>Stores untuk State Kompleks</td><td>Gunakan <code>createStore</code> untuk state deeply nested, <code>createSignal</code> untuk state sederhana</td></tr>
+          <tr><td>Lazy Load Routes</td><td>Gunakan <code>lazy()</code> untuk memuat pages hanya saat dibutuhkan</td></tr>
+          <tr><td>Panggil Signal sebagai Fungsi</td><td>Selalu gunakan <code>count()</code> bukan <code>count</code> untuk mengakses signal</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">12. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang SolidJS:</p>
+
+      <div class="quiz-container" id="quizSolidJS01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa primitive dasar untuk state management di SolidJS?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) useState</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) createSignal</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) reactive()</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) ref()</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Mengapa SolidJS TIDAK menggunakan Virtual DOM?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Karena terlalu kompleks untuk diimplementasikan</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Karena fine-grained reactivity memungkinkan update DOM secara langsung dan spesifik</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Karena SolidJS hanya untuk aplikasi kecil</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Karena SolidJS menggunakan Shadow DOM</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Komponen apa yang digunakan untuk conditional rendering di SolidJS?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) *ngIf</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) v-if</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Show</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Conditional</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa perbedaan antara <code>&lt;For&gt;</code> dan <code>&lt;Index&gt;</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Tidak ada perbedaan</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) For untuk list yang items berubah, Index untuk list yang index-based dan stabil</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) For lebih cepat dari Index</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Index hanya untuk angka</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Kapan sebaiknya menggunakan <code>createStore</code> dibanding <code>createSignal</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Selalu gunakan createStore</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) createStore untuk state sederhana, createSignal untuk state kompleks</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) createStore untuk state deeply nested dan kompleks, createSignal untuk state sederhana/primitif</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) createSignal sudah deprecated, harus pakai createStore</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="angular-basics.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Angular: Framework Web Enterprise</span>
+        </a>
+        <a href="remix-framework.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Remix: Full-Stack Web Framework</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

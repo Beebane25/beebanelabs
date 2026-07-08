@@ -1,0 +1,731 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Networking</a>
+        <span class="separator">/</span>
+        <span class="current">MikroTik Bridge</span>
+      </div>
+      <span class="category-tag">Networking</span>
+      <h1>MikroTik Bridge dan Switching: Panduan Lengkap</h1>
+      <p class="article-subtitle">Tutorial komprehensif MikroTik Bridge dan Switching — dari bridge settings, STP, RSTP, VLAN filtering, hingga hardware offload untuk performa optimal</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 14 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Bridge &amp; Switching</a></li>
+          <li><a href="#bridge-dasar">Konfigurasi Bridge Dasar</a></li>
+          <li><a href="#stp">STP — Spanning Tree Protocol</a></li>
+          <li><a href="#rstp">RSTP — Rapid Spanning Tree Protocol</a></li>
+          <li><a href="#vlan-filtering">VLAN Filtering pada Bridge</a></li>
+          <li><a href="#hw-offload">Hardware Offload</a></li>
+          <li><a href="#switch-chip">Switch Chip Configuration</a></li>
+          <li><a href="#bridge-firewall">Bridge Firewall &amp; Filter</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan Bridge &amp; Switching</h2>
+
+      <p><strong>Bridge</strong> pada MikroTik adalah fitur yang menghubungkan beberapa interface jaringan sehingga berperilaku seperti satu segmen jaringan. Bridge bekerja di Layer 2 (Data Link) dan meneruskan frame berdasarkan MAC address.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Cara Kerja Bridge pada MikroTik</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">💻</div>
+            <div class="arch-label">PC 1</div>
+            <div class="arch-desc">ether2<br>192.168.1.10</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box info">
+            <div class="arch-icon">🔀</div>
+            <div class="arch-label">MikroTik Bridge</div>
+            <div class="arch-desc">ether2 + ether3 + ether4<br>Bridge IP: 192.168.1.1</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">💻</div>
+            <div class="arch-label">PC 2</div>
+            <div class="arch-desc">ether3<br>192.168.1.11</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Kapan Menggunakan Bridge?</h3>
+      <ul>
+        <li><strong>Menggabungkan beberapa port</strong> menjadi satu segmen jaringan (seperti switch)</li>
+        <li><strong>Menghubungkan WiFi dan Ethernet</strong> dalam satu subnet yang sama</li>
+        <li><strong>VLAN trunking</strong> dan VLAN filtering pada satu bridge</li>
+        <li><strong>Hotspot</strong> yang perlu meng-handle beberapa interface</li>
+        <li><strong>Network segmentation</strong> dengan bridge filter</li>
+      </ul>
+
+      <h3>1.2 Bridge vs Switch</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Fitur</th><th>Bridge (Software)</th><th>Switch Chip (Hardware)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Kecepatan</td><td>Terbatas CPU</td><td>Line-rate / wire-speed</td></tr>
+          <tr><td>Fitur</td><td>Sangat lengkap</td><td>Terbatas pada chip</td></tr>
+          <tr><td>CPU Usage</td><td>Tinggi</td><td>Sangat rendah</td></tr>
+          <tr><td>VLAN Support</td><td>Lengkap (HW offload)</td><td>Tergantung chip</td></tr>
+          <tr><td>Firewall</td><td>Bisa (bridge firewall)</td><td>Tidak bisa</td></tr>
+          <tr><td>Cocok Untuk</td><td>Config kompleks</td><td>Throughput tinggi</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- SECTION 2 -->
+      <h2 id="bridge-dasar">2. Konfigurasi Bridge Dasar</h2>
+
+      <h3>2.1 Membuat Bridge</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Buat Bridge</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Buat bridge baru
+/interface bridge add \
+  name=bridge1 \
+  comment="Main LAN Bridge"
+
+# Tambahkan port ke bridge
+/interface bridge port add bridge=bridge1 interface=ether2
+/interface bridge port add bridge=bridge1 interface=ether3
+/interface bridge port add bridge=bridge1 interface=ether4
+/interface bridge port add bridge=bridge1 interface=ether5
+
+# Assign IP address ke bridge
+/ip address add address=192.168.1.1/24 interface=bridge1
+
+# Verifikasi
+/interface bridge print
+/interface bridge port print
+</code></pre>
+      </div>
+
+      <h3>2.2 Bridge Settings</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Bridge Settings</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Konfigurasi bridge settings
+/interface bridge set bridge1 \
+  admin-mac=auto \
+  auto-mac=yes \
+  ageing-time=5m \
+  arp=enabled \
+  arp-timeout=auto \
+  protocol-mode=none \
+  fast-forward=yes \
+  igmp-snooping=no \
+  dhcp-snooping=no
+
+# Penjelasan:
+# admin-mac     : MAC address manual (auto = dari port pertama)
+# auto-mac      : Otomatis pilih MAC dari port pertama
+# ageing-time   : Waktu MAC address di-cache (default 5 menit)
+# arp           : Mode ARP (enabled/disabled/proxy-arp)
+# protocol-mode : STP mode (none/stp/rstp/mstp)
+# fast-forward  : Optimasi untuk frame yang src dan dst ada di bridge
+</code></pre>
+      </div>
+
+      <h3>2.3 Menghubungkan WiFi ke Bridge</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — WiFi Bridge</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Setup WiFi interface (AP mode)
+/interface wireless set wlan1 \
+  mode=ap-bridge \
+  ssid="MyNetwork" \
+  frequency=auto \
+  band=2ghz-b/g/n \
+  channel-width=20/40mhz-eeCe \
+  wireless-protocol=802.11 \
+  security-profile=default
+
+# Tambahkan WiFi ke bridge
+/interface bridge port add bridge=bridge1 interface=wlan1
+
+# Verifikasi semua port di bridge
+/interface bridge port print where bridge=bridge1
+</code></pre>
+      </div>
+
+      <!-- SECTION 3 -->
+      <h2 id="stp">3. STP — Spanning Tree Protocol</h2>
+
+      <p><strong>STP (IEEE 802.1D)</strong> mencegah loop pada jaringan Layer 2. Ketika ada jalur redundan antar switch, STP akan memblokir salah satu jalur untuk mencegah broadcast storm.</p>
+
+      <h3>3.1 Mengaktifkan STP</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Enable STP</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Aktifkan STP pada bridge
+/interface bridge set bridge1 protocol-mode=stp
+
+# Set bridge priority (menentukan root bridge)
+# Priority harus kelipatan 4096 (0, 4096, 8192, ..., 61440)
+# Semakin rendah = semakin prioritas jadi root
+/interface bridge set bridge1 priority=0x1000
+
+# Set port priority
+/interface bridge port set [find interface=ether2] priority=0x80
+/interface bridge port set [find interface=ether3] priority=0x80
+
+# Set port path cost
+/interface bridge port set [find interface=ether2] path-cost=10
+/interface bridge port set [find interface=ether3] path-cost=100
+
+# Cek status STP
+/interface bridge port print detail where bridge=bridge1
+</code></pre>
+      </div>
+
+      <h3>3.2 Parameter STP</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>Parameter</th><th>Default</th><th>Keterangan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>priority</code></td><td>0x8000 (32768)</td><td>Bridge priority — lebih rendah = lebih prioritas jadi root</td></tr>
+          <tr><td><code>port-priority</code></td><td>0x80</td><td>Port priority — menentukan port mana yang di-block</td></tr>
+          <tr><td><code>path-cost</code></td><td>Auto</td><td>Biaya path — lebih rendah = lebih dipilih</td></tr>
+          <tr><td><code>forward-delay</code></td><td>15s</td><td>Waktu transisi ke forwarding</td></tr>
+          <tr><td><code>max-age</code></td><td>20s</td><td>Waktu BPDU dianggap valid</td></tr>
+          <tr><td><code>hello-time</code></td><td>2s</td><td>Interval pengiriman BPDU</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan STP</div>
+        <p>STP lambat dalam konvergensi (30-50 detik). Untuk jaringan production, gunakan <strong>RSTP</strong> yang konvergensi dalam 1-2 detik. STP cocok untuk kompatibilitas dengan perangkat lama.</p>
+      </div>
+
+      <!-- SECTION 4 -->
+      <h2 id="rstp">4. RSTP — Rapid Spanning Tree Protocol</h2>
+
+      <p><strong>RSTP (IEEE 802.1w)</strong> adalah versi perbaikan dari STP yang memiliki konvergensi jauh lebih cepat — biasanya 1-2 detik dibandingkan 30-50 detik pada STP klasik.</p>
+
+      <h3>4.1 Mengaktifkan RSTP</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Enable RSTP</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Aktifkan RSTP (rekomendasi untuk production)
+/interface bridge set bridge1 protocol-mode=rstp
+
+# Set priority bridge (root bridge selection)
+/interface bridge set bridge1 priority=0x1000
+
+# Port roles:
+# root       : Port terbaik menuju root bridge
+# designated : Port terbaik dari segmen menuju root
+# alternate  : Port cadangan (blocked, siap backup)
+# backup     : Port cadangan di segmen yang sama
+
+# Cek port roles
+/interface bridge port print detail where bridge=bridge1
+
+# Cek RSTP status
+/interface bridge monitor bridge1
+</code></pre>
+      </div>
+
+      <h3>4.2 STP vs RSTP</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Fitur</th><th>STP (802.1D)</th><th>RSTP (802.1w)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Konvergensi</td><td>30-50 detik</td><td>1-2 detik</td></tr>
+          <tr><td>Port States</td><td>5 states</td><td>3 states (discarding, learning, forwarding)</td></tr>
+          <tr><td>Port Roles</td><td>Root, Designated, Non-designated</td><td>Root, Designated, Alternate, Backup</td></tr>
+          <tr><td>BPDU</td><td>Diteruskan oleh root</td><td>Setiap switch mengirim BPDU</td></tr>
+          <tr><td>Proposing/Agreeing</td><td>Tidak ada</td><td>Ada (konvergensi cepat)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 5 -->
+      <h2 id="vlan-filtering">5. VLAN Filtering pada Bridge</h2>
+
+      <p>MikroTik mendukung <strong>VLAN filtering</strong> langsung pada bridge, memungkinkan Anda mengkonfigurasi VLAN tanpa perlu switch chip khusus. Ini sangat powerful dan fleksibel.</p>
+
+      <h3>5.1 Mengaktifkan VLAN Filtering</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — VLAN Filtering Bridge</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Buat bridge dengan VLAN filtering
+/interface bridge add \
+  name=bridge-vlan \
+  vlan-filtering=yes \
+  comment="Bridge with VLAN"
+
+# Konfigurasi VLAN pada bridge port
+# ether2 = trunk (tagged VLAN 10,20,30)
+# ether3 = access (untagged VLAN 10)
+# ether4 = access (untagged VLAN 20)
+# ether5 = access (untagged VLAN 30)
+
+# Tambah port ke bridge
+/interface bridge port add bridge=bridge-vlan interface=ether2
+/interface bridge port add bridge=bridge-vlan interface=ether3
+/interface bridge port add bridge=bridge-vlan interface=ether4
+/interface bridge port add bridge=bridge-vlan interface=ether5
+
+# Set port sebagai trunk (ether2)
+/interface bridge port set [find interface=ether2] \
+  pvid=1 \
+  frame-types=admit-all
+
+# Set port sebagai access (ether3 = VLAN 10)
+/interface bridge port set [find interface=ether3] \
+  pvid=10 \
+  frame-types=admit-only-untagged-and-priority-tagged
+
+# Set port sebagai access (ether4 = VLAN 20)
+/interface bridge port set [find interface=ether4] \
+  pvid=20 \
+  frame-types=admit-only-untagged-and-priority-tagged
+
+# Set port sebagai access (ether5 = VLAN 30)
+/interface bridge port set [find interface=ether5] \
+  pvid=30 \
+  frame-types=admit-only-untagged-and-priority-tagged
+</code></pre>
+      </div>
+
+      <h3>5.2 VLAN Table (Bridge VLAN)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Bridge VLAN Table</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Tambah VLAN entries pada bridge
+# VLAN 10 — untuk kantor
+/interface bridge vlan add bridge=bridge-vlan \
+  vlan-ids=10 \
+  tagged=ether2 \
+  untagged=ether3
+
+# VLAN 20 — untuk tamu
+/interface bridge vlan add bridge=bridge-vlan \
+  vlan-ids=20 \
+  tagged=ether2 \
+  untagged=ether4
+
+# VLAN 30 — untuk IoT
+/interface bridge vlan add bridge=bridge-vlan \
+  vlan-ids=30 \
+  tagged=ether2 \
+  untagged=ether5
+
+# Buat VLAN interface untuk routing antar VLAN
+/interface vlan add name=vlan10 interface=bridge-vlan vlan-id=10
+/interface vlan add name=vlan20 interface=bridge-vlan vlan-id=20
+/interface vlan add name=vlan30 interface=bridge-vlan vlan-id=30
+
+# Assign IP ke VLAN interface
+/ip address add address=10.10.0.1/24 interface=vlan10
+/ip address add address=10.20.0.1/24 interface=vlan20
+/ip address add address=10.30.0.1/24 interface=vlan30
+
+# Verifikasi VLAN table
+/interface bridge vlan print
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips VLAN Filtering</div>
+        <p>Ketika <code>vlan-filtering=yes</code> diaktifkan, semua bridge port secara default hanya menerima untagged frame. Anda perlu mengkonfigurasi setiap port secara eksplisit — baik sebagai access port (untuk VLAN tertentu) atau trunk port (untuk tagged VLAN).</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- SECTION 6 -->
+      <h2 id="hw-offload">6. Hardware Offload</h2>
+
+      <p><strong>Hardware Offload</strong> (HW Offload) memungkinkan bridge processing dilakukan oleh switch chip di hardware, bukan oleh CPU. Ini sangat meningkatkan throughput dan mengurangi latensi.</p>
+
+      <h3>6.1 Mengaktifkan HW Offload</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Hardware Offload</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Cek apakah switch chip tersedia
+/interface ethernet switch print
+
+# Aktifkan HW offload pada bridge port
+/interface bridge port set [find interface=ether2] hw=yes
+/interface bridge port set [find interface=ether3] hw=yes
+/interface bridge port set [find interface=ether4] hw=yes
+
+# Cek status HW offload
+/interface bridge port print detail where hw=yes
+# Kolom "H" menunjukkan status hardware offload
+
+# Untuk VLAN filtering dengan HW offload
+# Pastikan bridge mendukung HW offload
+/interface bridge set bridge1 vlan-filtering=yes
+
+# Cek switch chip yang support
+/interface ethernet switch print detail
+</code></pre>
+      </div>
+
+      <h3>6.2 RouterBoard yang Support HW Offload</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>RouterBoard</th><th>Switch Chip</th><th>HW Offload</th><th>VLAN HW</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>RB750Gr3 (hEX)</td><td>MT7621</td><td>✅ Ya</td><td>✅ Ya</td></tr>
+          <tr><td>RB4011</td><td>MT7621</td><td>✅ Ya</td><td>✅ Ya</td></tr>
+          <tr><td>RB3011</td><td>MT7621</td><td>✅ Ya</td><td>✅ Ya</td></tr>
+          <tr><td>CRS326</td><td>98DX3236</td><td>✅ Ya</td><td>✅ Ya</td></tr>
+          <tr><td>CRS328</td><td>98DX3236</td><td>✅ Ya</td><td>✅ Ya</td></tr>
+          <tr><td>hAP ac²</td><td>MT7621</td><td>✅ Ya</td><td>✅ Ya</td></tr>
+          <tr><td>RB750r2</td><td>QCA8337</td><td>✅ Ya</td><td>⚠️ Parsial</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 7 -->
+      <h2 id="switch-chip">7. Switch Chip Configuration</h2>
+
+      <p>Untuk perangkat yang memiliki switch chip dedicated (seperti CRS series), Anda bisa menggunakan switch chip langsung untuk switching dengan throughput wire-speed.</p>
+
+      <h3>7.1 Switch Chip pada CRS Series</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Switch Chip Config</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Cek switch chip yang tersedia
+/interface ethernet switch print
+
+# Cek port mapping
+/interface ethernet switch port print
+
+# Konfigurasi VLAN pada switch chip (CRS)
+# Mode: VLAN mode pada switch chip
+/interface ethernet switch set switch1 \
+  vlan-mode=secure \
+  vlan-header=always-strip
+
+# Set VLAN pada switch port
+/interface ethernet switch port set ether3 \
+  vlan-mode=secure \
+  vlan-header=add-if-missing \
+  default-vlan-id=10
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Bridge vs Switch Chip</div>
+        <p>Untuk konfigurasi VLAN modern, MikroTik merekomendasikan menggunakan <strong>bridge dengan HW offload</strong> daripada switch chip langsung. Bridge lebih fleksibel dan konsisten antar platform, sementara switch chip memiliki fitur yang bervariasi tergantung model chip.</p>
+      </div>
+
+      <!-- SECTION 8 -->
+      <h2 id="bridge-firewall">8. Bridge Firewall &amp; Filter</h2>
+
+      <p>Bridge firewall memungkinkan filtering traffic Layer 2 — memblokir atau mengizinkan frame berdasarkan MAC address, VLAN tag, protokol, dan kriteria lainnya.</p>
+
+      <h3>8.1 Bridge Filter Rules</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Bridge Firewall</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Blokir MAC address tertentu
+/interface bridge filter add \
+  chain=forward \
+  src-mac-address=AA:BB:CC:DD:EE:FF \
+  action=drop \
+  comment="Block specific MAC"
+
+# Izinkan hanya MAC address tertentu (whitelist)
+/interface bridge filter add \
+  chain=forward \
+  src-mac-address=!00:11:22:33:44:55 \
+  in-interface=ether3 \
+  action=drop \
+  comment="Allow only specific MAC on ether3"
+
+# Blokir traffic antar VLAN
+/interface bridge filter add \
+  chain=forward \
+  in-interface=ether3 \
+  out-interface=ether4 \
+  action=drop \
+  comment="Block inter-VLAN traffic"
+
+# Rate limit ARP untuk mencegah ARP flood
+/interface bridge filter add \
+  chain=input \
+  protocol=arp \
+  action=jump \
+  jump-target=arp-limit
+
+/interface bridge filter add \
+  chain=arp-limit \
+  limit=10/second \
+  action=accept
+
+/interface bridge filter add \
+  chain=arp-limit \
+  action=drop
+
+# Lihat bridge filter
+/interface bridge filter print
+</code></pre>
+      </div>
+
+      <h3>8.2 Bridge NAT</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Bridge NAT</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Bridge NAT untuk mengubah MAC address
+/interface bridge nat add \
+  chain=srcnat \
+  src-mac-address=AA:BB:CC:DD:EE:FF \
+  action=src-nat \
+  to-src-mac-address=11:22:33:44:55:66 \
+  comment="MAC NAT example"
+
+# Redirect HTTP traffic di bridge
+/interface bridge nat add \
+  chain=dstnat \
+  protocol=tcp \
+  dst-port=80 \
+  in-interface=ether3 \
+  action=redirect \
+  to-ports=8080 \
+  comment="Redirect HTTP"
+
+# Lihat bridge NAT rules
+/interface bridge nat print
+</code></pre>
+      </div>
+
+      <!-- SECTION 9 -->
+      <h2 id="best-practices">9. Best Practices</h2>
+
+      <ul>
+        <li><strong>Gunakan RSTP</strong> sebagai protocol-mode default untuk mencegah loop dengan konvergensi cepat</li>
+        <li><strong>Aktifkan HW offload</strong> pada semua port yang mendukung untuk performa optimal</li>
+        <li><strong>Hindari bridge loop</strong> — pastikan STP/RSTP aktif sebelum menghubungkan kabel</li>
+        <li><strong>Dokumentasikan VLAN plan</strong> — buat mapping VLAN ID, nama, dan port assignment</li>
+        <li><strong>Gunakan VLAN filtering pada bridge</strong> (bukan switch chip) untuk konsistensi</li>
+        <li><strong>Set bridge priority</strong> — pastikan router utama menjadi root bridge</li>
+        <li><strong>Monitor bridge state</strong> secara berkala dengan <code>/interface bridge monitor</code></li>
+        <li><strong>Backup konfigurasi</strong> sebelum mengubah bridge settings</li>
+      </ul>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal MikroTik — Monitoring Bridge</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Monitor bridge state
+/interface bridge monitor bridge1
+
+# Lihat MAC address table (host table)
+/interface bridge host print
+
+# Lihat MAC yang belajar di port tertentu
+/interface bridge host print where interface=ether3
+
+# Flush MAC address table
+/interface bridge host remove [find]
+
+# Monitor traffic per port
+/interface print stats
+</code></pre>
+      </div>
+
+      <!-- QUIZ -->
+      <h2 id="quiz">Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quiz10">
+        <h3>🧠 Tes Pemahaman: MikroTik Bridge &amp; Switching</h3>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1. Apa fungsi utama STP/RSTP pada jaringan Layer 2?</strong></p>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Meningkatkan bandwidth</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Mencegah loop pada jaringan</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Mengenkripsi traffic</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Mengatur IP address</div>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2. Berapa lama konvergensi RSTP dibandingkan STP?</strong></p>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Sama, sekitar 30 detik</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) RSTP lebih lambat, 60 detik</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) RSTP 1-2 detik, STP 30-50 detik</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Keduanya instant</div>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Apa fungsi dari parameter "pvid" pada bridge port?</strong></p>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Menentukan VLAN ID default untuk untagged frame</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Mengatur kecepatan port</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Menentukan MAC address</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Mengaktifkan DHCP</div>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4. Keunggulan Hardware Offload pada bridge?</strong></p>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Menghemat listrik</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Mengurangi jumlah kabel</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Menghilangkan kebutuhan VLAN</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Meningkatkan throughput dan mengurangi CPU usage</div>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>5. Mengapa bridge priority yang lebih rendah lebih penting dalam STP?</strong></p>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="5" data-answer="a">a) Karena priority rendah = bandwidth tinggi</div>
+            <div class="quiz-option" data-question="5" data-answer="b">b) Karena priority rendah dipilih sebagai root bridge</div>
+            <div class="quiz-option" data-question="5" data-answer="c">c) Karena priority rendah menghemat CPU</div>
+            <div class="quiz-option" data-question="5" data-answer="d">d) Karena priority rendah mengaktifkan VLAN</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <div class="article-nav">
+        <a href="mikrotik-hotspot.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">MikroTik Hotspot</span>
+        </a>
+        <a href="mikrotik-scripting.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">MikroTik Scripting Language</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial networking terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

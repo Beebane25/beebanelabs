@@ -1,0 +1,512 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Dashboard & Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">AWS IoT Core untuk Device Management</span>
+      </div>
+      <span class="category-tag">Dashboard & Cloud</span>
+      <h1>AWS IoT Core untuk Device Management</h1>
+      <p class="article-subtitle">Tutorial lengkap AWS IoT Core untuk manajemen device IoT. Pelajari MQTT broker, device shadows, rules engine, dan fleet provisioning dari nol hingga mahir.</p>
+      <div class="article-meta">
+        <span>📅 2026-06-29</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  <article class="article-content" id="main-content">
+    <div class="container">
+<div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#apa-itu-aws-iot">Apa Itu AWS IoT Core?</a></li>
+      <li><a href="#setup">Setup AWS IoT Core</a></li>
+      <li><a href="#mqtt">MQTT Broker &amp; Topics</a></li>
+      <li><a href="#device-shadows">Device Shadows (State Management)</a></li>
+      <li><a href="#rules-engine">Rules Engine &amp; Data Routing</a></li>
+      <li><a href="#fleet-provisioning">Fleet Provisioning</a></li>
+      <li><a href="#security">Security &amp; Authentication</a></li>
+      <li><a href="#esp32">ESP32 + AWS IoT Core</a></li>
+      <li><a href="#quiz">Quiz Pemahaman</a></li>
+    </ol></div>
+<h2 id="apa-itu-aws-iot">1. Apa Itu AWS IoT Core?</h2>
+<p>AWS IoT Core adalah managed cloud platform yang memungkinkan kamu menghubungkan miliaran perangkat IoT ke AWS Cloud. Platform ini menyediakan MQTT broker yang scalable, device management, data processing, dan integrasi penuh dengan seluruh ekosistem AWS (Lambda, DynamoDB, S3, SNS, dll).</p>
+<p>Keunggulan utama AWS IoT Core adalah skalabilitas enterprise-grade dan keamanan berlapis. Setiap device terhubung menggunakan X.509 certificate atau custom authorizer, dan semua komunikasi terenkripsi TLS. Rules Engine memungkinkan routing data ke berbagai AWS service tanpa kode.</p>
+
+<div class="info-box tip"><div class="info-box-title">💡 Tips</div>
+<p>AWS IoT Core menggunakan MQTT 3.1.1 dengan extensions. Mendukung MQTT Quality of Service (QoS) 0 dan 1. Untuk device yang sering offline, gunakan persistent sessions dengan QoS 1.</p></div>
+
+<h3>Fitur Utama</h3>
+<table class="net-table"><thead><tr><th>Fitur</th><th>Deskripsi</th></tr></thead><tbody>
+<tr><td>Message Broker</td><td>MQTT broker managed yang mendukung jutaan koneksi simultan</td></tr>
+<tr><td>Device Shadow</td><td>Virtual representation dari device state (desired vs reported)</td></tr>
+<tr><td>Rules Engine</td><td>Route message ke AWS services berdasarkan filter SQL</td></tr>
+<tr><td>Fleet Provisioning</td><td>Provisi massal device dengan certificate dan policy otomatis</td></tr>
+<tr><td>Device Defender</td><td>Security audit dan anomaly detection untuk device fleet</td></tr>
+<tr><td>Jobs</td><td>Remote device management: OTA update, restart, factory reset</td></tr>
+<tr><td>Greengrass</td><td>Edge runtime untuk local compute, ML inference, dan messaging</td></tr>
+</tbody></table>
+
+<h2 id="setup">2. Setup AWS IoT Core</h2>
+<h3>Membuat IoT Thing</h3>
+<pre><code class="language-bash"># Menggunakan AWS CLI
+# 1. Buat Thing Type
+aws iot create-thing-type --thing-type-name "SensorDevice"
+
+# 2. Buat Thing
+aws iot create-thing \
+  --thing-name "sensor-01" \
+  --thing-type-name "SensorDevice" \
+  --attribute-payload '{"attributes":{"location":"warehouse-A","type":"temperature"}}'
+
+# 3. Buat Certificate
+aws iot create-keys-and-certificate \
+  --set-as-active \
+  --certificate-pem-outfile sensor-01.cert.pem \
+  --public-key-outfile sensor-01.public.key \
+  --private-key-outfile sensor-01.private.key
+
+# 4. Buat Policy
+aws iot create-policy \
+  --policy-name "SensorPolicy" \
+  --policy-document '{
+    "Version": "2012-10-17",
+    "Statement": [{
+      "Effect": "Allow",
+      "Action": ["iot:Connect", "iot:Publish", "iot:Subscribe", "iot:Receive"],
+      "Resource": ["arn:aws:iot:REGION:ACCOUNT:client/sensor-*",
+                   "arn:aws:iot:REGION:ACCOUNT:topic/sensors/*",
+                   "arn:aws:iot:REGION:ACCOUNT:topicfilter/sensors/*"]
+    }]
+  }'
+
+# 5. Attach Policy ke Certificate
+aws iot attach-policy \
+  --policy-name "SensorPolicy" \
+  --target "CERTIFICATE_ARN"
+
+# 6. Attach Certificate ke Thing
+aws iot attach-thing-principal \
+  --thing-name "sensor-01" \
+  --principal "CERTIFICATE_ARN"
+
+# 7. Download Root CA
+curl -o root-CA.crt https://www.amazontrust.com/repository/AmazonRootCA1.pem</code></pre>
+
+<h3>Struktur Sertifikat</h3>
+<pre><code class="language-plaintext"># File yang dibutuhkan untuk koneksi TLS:
+# - root-CA.crt       : Amazon Root CA certificate
+# - sensor-01.cert.pem : Certificate device (dari step 3)
+# - sensor-01.private.key : Private key device (dari step 3)
+# - sensor-01.public.key  : Public key device (untuk referensi)
+
+# Endpoint IoT Core:
+# - Data: xxxxxxxxxx-ats.iot.ap-southeast-1.amazonaws.com
+# - Credential: credentials.iot.ap-southeast-1.amazonaws.com
+
+# Untuk mendapatkan endpoint:
+aws iot describe-endpoint --endpoint-type-iot:Data-ATS</code></pre>
+
+<h2 id="mqtt">3. MQTT Broker &amp; Topics</h2>
+<p>AWS IoT Core MQTT broker mendukung topic-based messaging dengan wildcard subscription. Broker juga memiliki reserved topics untuk fitur khusus seperti device shadow dan jobs.</p>
+
+<h3>MQTT Topic Structure</h3>
+<pre><code class="language-plaintext"># Topic umum (custom):
+sensors/temperature/warehouse-a
+devices/sensor-01/telemetry
+factory/line-1/machine-3/status
+
+# Reserved Topics (AWS IoT Core specific):
+$aws/things/{thingName}/shadow/update        # Device shadow update
+$aws/things/{thingName}/shadow/get            # Get device shadow
+$aws/things/{thingName}/jobs/notify           # Job notification
+$aws/things/{thingName}/jobs/{jobId}/update   # Job status update
+$aws/things/{thingName}/defender/metrics      # Device Defender metrics
+$aws/events/presence/connected/{clientId}     # Device connect event
+$aws/events/presence/disconnected/{clientId}  # Device disconnect event
+
+# Wildcard:
+sensors/#           # Semua subtopic dari sensors
++/temperature/#     # Semua device temperature data</code></pre>
+
+<h3>MQTT Testing</h3>
+<pre><code class="language-bash"># Subscribe menggunakan mosquitto CLI
+mosquitto_sub \
+  --cafile root-CA.crt \
+  --cert sensor-01.cert.pem \
+  --key sensor-01.private.key \
+  -h xxxxxxxxxx-ats.iot.ap-southeast-1.amazonaws.com \
+  -p 8883 \
+  -t "sensors/+/data" \
+  --tls-version tlsv1.2
+
+# Publish test message
+mosquitto_pub \
+  --cafile root-CA.crt \
+  --cert sensor-01.cert.pem \
+  --key sensor-01.private.key \
+  -h xxxxxxxxxx-ats.iot.ap-southeast-1.amazonaws.com \
+  -p 8883 \
+  -t "sensors/temperature/data" \
+  -m '{"temp": 25.6, "humidity": 65}' \
+  --tls-version tlsv1.2
+
+# AWS CLI — Publish ke MQTT topic
+aws iot-data publish \
+  --topic "sensors/temperature/data" \
+  --payload '{"temp": 25.6, "humidity": 65}'</code></pre>
+
+<h2 id="device-shadows">4. Device Shadows (State Management)</h2>
+<p>Device Shadow adalah JSON document yang menyimpan state terkini dari device. Shadow memungkinkan aplikasi membaca dan mengubah state device meskipun device sedang offline. Shadow memiliki dua bagian: <strong>desired</strong> (state yang diinginkan) dan <strong>reported</strong> (state aktual dari device).</p>
+
+<h3>Shadow Document Structure</h3>
+<pre><code class="language-json">{
+  "state": {
+    "desired": {
+      "led": "on",
+      "report_interval": 30,
+      "temperature_threshold": 40,
+      "clientToken": "client-001"
+    },
+    "reported": {
+      "led": "off",
+      "report_interval": 60,
+      "temperature_threshold": 35,
+      "firmware_version": "2.1.0",
+      "battery": 87
+    }
+  },
+  "metadata": {
+    "desired": {
+      "led": { "timestamp": 1719600000 },
+      "report_interval": { "timestamp": 1719600000 }
+    },
+    "reported": {
+      "led": { "timestamp": 1719600000 },
+      "report_interval": { "timestamp": 1719600060 }
+    }
+  },
+  "version": 123,
+  "timestamp": 1719600120
+}</code></pre>
+
+<h3>Update Shadow dari Aplikasi</h3>
+<pre><code class="language-bash"># Update desired state (dari backend/app)
+aws iot-data update-thing-shadow \
+  --thing-name "sensor-01" \
+  --payload '{
+    "state": {
+      "desired": {
+        "led": "on",
+        "report_interval": 30
+      }
+    }
+  }' shadow-output.json
+
+# Get current shadow
+aws iot-data get-thing-shadow \
+  --thing-name "sensor-01" \
+  shadow-output.json
+
+# Delete shadow
+aws iot-data delete-thing-shadow \
+  --thing-name "sensor-01"</code></pre>
+
+<h3>Shadow di Device (ESP32)</h3>
+<pre><code class="language-cpp">// ESP32: Update reported state
+void updateShadow(const char* reportedState) {
+  String topic = "$aws/things/sensor-01/shadow/update";
+  String payload = "{"state":{"reported":";
+  payload += reportedState;
+  payload += "}}";
+  mqttClient.publish(topic.c_str(), payload.c_str());
+}
+
+// ESP32: Listen for desired state changes
+void onShadowDelta(const char* topic, byte* payload, unsigned int length) {
+  // Parse delta — perbedaan antara desired dan reported
+  StaticJsonDocument&lt;512&gt; doc;
+  deserializeJson(doc, payload);
+  
+  JsonObject state = doc["state"];
+  if (state.containsKey("led")) {
+    String ledState = state["led"];
+    digitalWrite(LED_PIN, ledState == "on" ? HIGH : LOW);
+    // Update reported setelah perubahan diterapkan
+    updateShadow("{"led":"on"}");
+  }
+}
+
+// Subscribe ke shadow delta
+mqttClient.subscribe("$aws/things/sensor-01/shadow/update/delta");</code></pre>
+
+<h2 id="rules-engine">5. Rules Engine &amp; Data Routing</h2>
+<p>Rules Engine memproses incoming MQTT messages berdasarkan SQL-like query dan meng-arahkan hasilnya ke berbagai AWS service. Ini adalah salah satu fitur terkuat AWS IoT Core.</p>
+
+<h3>Membuat Rule</h3>
+<pre><code class="language-bash"># SQL Rule: Filter sensor data suhu tinggi
+# SELECT statement:
+SELECT temperature, humidity, deviceName, timestamp()
+FROM 'sensors/+/data'
+WHERE temperature > 35
+
+# Rule Actions (pilih salah satu atau kombinasi):
+# 1. Lambda — trigger fungsi untuk processing
+# 2. DynamoDB — simpan ke database
+# 3. S3 — archive raw data
+# 4. SNS — kirim notifikasi
+# 5. SQS — queue untuk async processing
+# 6. Kinesis Firehose — streaming ke data lake
+# 7. Elasticsearch — indexing untuk search
+# 8. IoT Analytics — analisis data IoT</code></pre>
+
+<h3>Contoh Rules untuk IoT</h3>
+<pre><code class="language-plaintext"># Rule 1: Simpan semua telemetry ke DynamoDB
+SELECT *, timestamp() as ts FROM 'sensors/+/data'
+→ Action: DynamoDB (table: IoTTelemetry, hash: deviceName, range: ts)
+
+# Rule 2: Alert suhu tinggi ke SNS
+SELECT temperature, deviceName, timestamp() as ts
+FROM 'sensors/+/data'
+WHERE temperature > 40
+→ Action: SNS (topic: high-temp-alerts)
+
+# Rule 3: Archive ke S3
+SELECT * FROM 'sensors/#'
+→ Action: S3 (bucket: iot-data-archive, key: ${topic()}/${timestamp()})
+
+# Rule 4: Lambda processing
+SELECT * FROM 'devices/+/commands'
+→ Action: Lambda (function: processDeviceCommand)
+
+# Rule 5: Geo-location processing
+SELECT deviceName, location.latitude, location.longitude, timestamp()
+FROM 'trackers/+/location'
+WHERE distance(location.latitude, location.longitude, -6.2088, 106.8456) > 1000
+→ Action: SNS (geofence-violation)</code></pre>
+
+<h2 id="fleet-provisioning">6. Fleet Provisioning</h2>
+<p>Fleet Provisioning memungkinkan provisi massal perangkat IoT secara otomatis. Daripada membuat certificate satu per satu, kamu bisa menggunakan provisioning template yang otomatis menghasilkan certificate, mendaftarkan thing, dan attach policy.</p>
+
+<pre><code class="language-bash"># 1. Buat Provisioning Template
+aws iot create-provisioning-template \
+  --template-name "SensorProvisioning" \
+  --description "Template for sensor devices" \
+  --provisioning-role-arn "arn:aws:iam::ACCOUNT:role/IoTProvisioningRole" \
+  --template-body '{
+    "Parameters": {
+      "SerialNumber": {"Type": "String"},
+      "Location": {"Type": "String"}
+    },
+    "Resources": {
+      "thing": {
+        "Type": "AWS::IoT::Thing",
+        "Properties": {
+          "ThingName": {"Ref": "SerialNumber"},
+          "ThingTypeName": "SensorDevice",
+          "AttributePayload": {
+            "location": {"Ref": "Location"}
+          }
+        }
+      },
+      "certificate": {
+        "Type": "AWS::IoT::Certificate",
+        "Properties": {
+          "CertificateId": {"Ref": "AWS::IoT::Certificate::Id"}
+        }
+      },
+      "policy": {
+        "Type": "AWS::IoT::Policy",
+        "Properties": {
+          "PolicyName": "SensorPolicy"
+        }
+      }
+    }
+  }'
+
+# 2. Device melakukan provisioning:
+# - Generate CSR (Certificate Signing Request)
+# - Hubungi provisioning endpoint dengan template parameters
+# - AWS mengembalikan signed certificate
+# - Device menggunakan certificate untuk koneksi normal</code></pre>
+
+<h2 id="security">7. Security &amp; Authentication</h2>
+<p>AWS IoT Core menyediakan beberapa metode autentikasi: X.509 certificates (paling umum), Custom Authorizer (Lambda-based), dan IAM credentials.</p>
+
+<h3>Security Best Practices</h3>
+<table class="net-table"><thead><tr><th>Praktik</th><th>Deskripsi</th></tr></thead><tbody>
+<tr><td>Certificate per Device</td><td>Setiap device harus memiliki certificate unik</td></tr>
+<tr><td>Least-Privilege Policy</td><td>Batasi aksi dan resource yang diperbolehkan</td></tr>
+<tr><td>Certificate Rotation</td><td>Rotate certificate sebelum expired</td></tr>
+<tr><td>Custom Authorizer</td><td>Gunakan Lambda untuk autentikasi kustom</td></tr>
+<tr><td>TLS 1.2+</td><td>Wajib menggunakan TLS untuk semua koneksi</td></tr>
+<tr><td>Device Defender</td><td>Monitor anomali koneksi dan credential usage</td></tr>
+</tbody></table>
+
+<h2 id="esp32">8. ESP32 + AWS IoT Core</h2>
+<pre><code class="language-cpp">// ESP32 + AWS IoT Core via MQTT
+#include &lt;WiFiClientSecure.h&gt;
+#include &lt;PubSubClient.h&gt;
+#include &lt;ArduinoJson.h&gt;
+
+const char* WIFI_SSID = "your-wifi";
+const char* WIFI_PASS = "your-password";
+const char* AWS_IOT_ENDPOINT = "xxxxx-ats.iot.ap-southeast-1.amazonaws.com";
+const int AWS_IOT_PORT = 8883;
+const char* THING_NAME = "sensor-01";
+
+// Certificate files (di-embed atau dari SPIFFS/LittleFS)
+const char ROOT_CA[] PROGMEM = R"EOF(
+-----BEGIN CERTIFICATE-----
+... Amazon Root CA 1 ...
+-----END CERTIFICATE-----
+)EOF";
+
+const char DEVICE_CERT[] PROGMEM = R"EOF(
+-----BEGIN CERTIFICATE-----
+... Device Certificate ...
+-----END CERTIFICATE-----
+)EOF";
+
+const char DEVICE_KEY[] PROGMEM = R"EOF(
+-----BEGIN RSA PRIVATE KEY-----
+... Device Private Key ...
+-----END RSA PRIVATE KEY-----
+)EOF";
+
+WiFiClientSecure net;
+PubSubClient client(net);
+
+void connectWiFi() {
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
+}
+
+void connectAWS() {
+  net.setCACert(ROOT_CA);
+  net.setCertificate(DEVICE_CERT);
+  net.setPrivateKey(DEVICE_KEY);
+  client.setServer(AWS_IOT_ENDPOINT, AWS_IOT_PORT);
+  
+  while (!client.connected()) {
+    if (client.connect(THING_NAME)) {
+      client.subscribe("$aws/things/" + String(THING_NAME) + "/shadow/update/delta");
+      client.subscribe("$aws/things/" + String(THING_NAME) + "/jobs/notify");
+    } else {
+      delay(5000);
+    }
+  }
+}
+
+void publishTelemetry(float temp, float humidity) {
+  StaticJsonDocument&lt;200&gt; doc;
+  doc["temperature"] = temp;
+  doc["humidity"] = humidity;
+  doc["device"] = THING_NAME;
+  
+  char buffer[200];
+  serializeJson(doc, buffer);
+  String topic = "sensors/" + String(THING_NAME) + "/data";
+  client.publish(topic.c_str(), buffer);
+}
+
+void setup() {
+  Serial.begin(115200);
+  connectWiFi();
+  connectAWS();
+}
+
+void loop() {
+  if (!client.connected()) connectAWS();
+  client.loop();
+  static unsigned long lastSend = 0;
+  if (millis() - lastSend > 10000) {
+    float temp = readTemperature();
+    float hum = readHumidity();
+    publishTelemetry(temp, hum);
+    lastSend = millis();
+  }
+}</code></pre>
+<h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+<p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang AWS IoT Core:</p>
+<div class="quiz-container" id="quiz45">
+  <div class="quiz-question"><h3>Pertanyaan 1: Apa fungsi Device Shadow di AWS IoT Core?</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="0" data-answer="a">a) Mengenkripsi komunikasi device</div>
+      <div class="quiz-option" data-question="0" data-answer="b">b) Menyimpan virtual representation dari device state (desired vs reported)</div>
+      <div class="quiz-option" data-question="0" data-answer="c">c) Mengelola firmware update</div>
+      <div class="quiz-option" data-question="0" data-answer="d">d) Menghubungkan device ke WiFi</div>
+    </div>
+  </div>
+  <div class="quiz-question"><h3>Pertanyaan 2: Metode autentikasi apa yang paling umum digunakan di AWS IoT Core?</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="1" data-answer="a">a) Username/Password</div>
+      <div class="quiz-option" data-question="1" data-answer="b">b) API Key</div>
+      <div class="quiz-option" data-question="1" data-answer="c">c) X.509 Certificate dengan TLS</div>
+      <div class="quiz-option" data-question="1" data-answer="d">d) OAuth 2.0</div>
+    </div>
+  </div>
+  <div class="quiz-question"><h3>Pertanyaan 3: Apa fungsi Rules Engine di AWS IoT Core?</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="2" data-answer="a">a) Mengelola user authentication</div>
+      <div class="quiz-option" data-question="2" data-answer="b">b) Memproses dan merutekan MQTT messages ke AWS services berdasarkan SQL filter</div>
+      <div class="quiz-option" data-question="2" data-answer="c">c) Menyimpan data sensor</div>
+      <div class="quiz-option" data-question="2" data-answer="d">d) Mengupdate firmware device</div>
+    </div>
+  </div>
+  <div class="quiz-question"><h3>Pertanyaan 4: Dalam Device Shadow, apa perbedaan antara "desired" dan "reported"?</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="3" data-answer="a">a) Tidak ada perbedaan</div>
+      <div class="quiz-option" data-question="3" data-answer="b">b) Desired = state yang diinginkan oleh app/cloud, Reported = state aktual dari device</div>
+      <div class="quiz-option" data-question="3" data-answer="c">c) Desired = data lama, Reported = data baru</div>
+      <div class="quiz-option" data-question="3" data-answer="d">d) Desired = private, Reported = public</div>
+    </div>
+  </div>
+  <div class="quiz-question"><h3>Pertanyaan 5: Apa fungsi Fleet Provisioning?</h3>
+    <div class="quiz-options">
+      <div class="quiz-option" data-question="4" data-answer="a">a) Mengelola firmware untuk seluruh fleet</div>
+      <div class="quiz-option" data-question="4" data-answer="b">b) Provisi massal perangkat secara otomatis dengan template certificate dan policy</div>
+      <div class="quiz-option" data-question="4" data-answer="c">c) Monitoring performa fleet</div>
+      <div class="quiz-option" data-question="4" data-answer="d">d) Menghitung biaya operasional fleet</div>
+    </div>
+  </div>
+  <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+  <div class="quiz-result"></div>
+</div>
+
+<div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+<div class="article-nav">
+  <a href="firebase-realtime.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">Firebase Realtime Database</span></a>
+  <a href="azure-iot-hub.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">Azure IoT Hub</span></a>
+</div></div></article>
+  <section class="newsletter-section" id="newsletter"><div class="container"><div class="newsletter-card fade-in">
+    <h2>📬 Dapatkan Tutorial Terbaru</h2>
+    <p>Subscribe untuk mendapatkan tutorial IoT &amp; Cloud terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+    <form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form>
+  </div></div></section>

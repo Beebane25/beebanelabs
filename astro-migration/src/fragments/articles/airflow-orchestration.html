@@ -1,0 +1,479 @@
+<div class="search-overlay" id="searchOverlay"><button class="search-close-btn" aria-label="Tutup pencarian">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+  <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">AI &amp; Data Science</a><span class="separator">/</span><span class="current">Apache Airflow</span></div><span class="category-tag">AI &amp; Data Science</span><h1>Apache Airflow untuk Data Pipeline — DAGs, Operators, XCom &amp; Monitoring</h1><p class="article-subtitle">Tutorial lengkap Apache Airflow untuk data pipeline orchestration — dari konsep DAG, operators, XCom, sensors, pools, backfill, hingga monitoring dan best practices</p><div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 15 menit baca</span><span class="difficulty menengah">Menengah</span></div></div></section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+  <article class="article-content" id="main-content"><div class="container">
+    <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#pengenalan">Pengenalan Airflow</a></li>
+      <li><a href="#setup">Setup &amp; Instalasi</a></li>
+      <li><a href="#dags">DAGs — Directed Acyclic Graphs</a></li>
+      <li><a href="#operators">Operators</a></li>
+      <li><a href="#xcom">XCom — Cross Communication</a></li>
+      <li><a href="#sensors">Sensors &amp; Triggers</a></li>
+      <li><a href="#pools-priority">Pools, Priority &amp; Pools</a></li>
+      <li><a href="#backfill">Backfill &amp; Catchup</a></li>
+      <li><a href="#monitoring">Monitoring &amp; Best Practices</a></li>
+      <li><a href="#quiz">Quiz Pemahaman</a></li>
+    </ol></div>
+      <h2 id="pengenalan">1. Pengenalan Airflow</h2>
+      <p><strong>Apache Airflow</strong> adalah platform open-source untuk <strong>menjadwalkan dan mengelola workflow</strong> (data pipeline). Airflow menggunakan Python untuk mendefinisikan pipeline sebagai kode, memudahkan version control dan testing.</p>
+
+      <h3>Mengapa Airflow?</h3>
+      <table class="net-table"><thead><tr><th>Fitur</th><th>Penjelasan</th></tr></thead><tbody>
+        <tr><td>Code as Pipeline</td><td>Pipeline didefinisikan dalam Python, bisa di-version control</td></tr>
+        <tr><td>Scheduling</td><td>Jalankan pipeline secara otomatis (cron-based)</td></tr>
+        <tr><td>Monitoring</td><td>Web UI untuk melihat status, log, dan retry</td></tr>
+        <tr><td>Scalable</td><td>Dari 1 DAG hingga ribuan DAG</td></tr>
+        <tr><td>Extensible</td><td>Ratusan provider: AWS, GCP, DB, API, dll</td></tr>
+        <tr><td>Error Handling</td><td>Retry, alerting, dan dependency management</td></tr>
+      </tbody></table>
+
+      <div class="diagram-box"><div class="diagram-label">Diagram: Airflow Architecture</div>
+<pre><code>AIRFLOW ARCHITECTURE
+Web UI
+Monitor &amp; Logs
+Scheduler
+Trigger DAGs
+Metadata DB
+PostgreSQL
+read
+write
+dispatch
+Executor
+Worker 1
+Celery/K8s
+Worker 2
+Celery/K8s
+Worker 3
+Celery/K8s
+results → DB
+DAG Files</code></pre>
+      </div>
+
+      <h2 id="setup">2. Setup &amp; Instalasi</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Instalasi Airflow</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># Instalasi Airflow dengan pip
+# (gunakan constraint untuk versi yang kompatibel)
+
+AIRFLOW_VERSION=2.9.3
+PYTHON_VERSION="$(python --version | cut -d " " -f 2 | cut -d "." -f 1-2)"
+CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+
+pip install "apache-airflow==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
+
+# Install providers yang umum
+pip install apache-airflow-providers-google
+pip install apache-airflow-providers-amazon
+pip install apache-airflow-providers-postgres
+
+# Inisialisasi database
+airflow db migrate
+
+# Buat user admin
+airflow users create \
+  --username admin \
+  --firstname Admin \
+  --lastname User \
+  --role Admin \
+  --email admin@beebane.com \
+  --password admin123
+
+# Jalankan webserver dan scheduler
+airflow webserver --port 8080 &
+airflow scheduler &
+
+# Buka http://localhost:8080
+
+# Atau gunakan Docker (recommended)
+# curl -LfO 'https://airflow.apache.org/docs/apache-airflow/stable/docker-compose.yaml'
+# docker compose up -d</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="dags">3. DAGs — Directed Acyclic Graphs</h2>
+      <p><strong>DAG</strong> adalah definisi pipeline di Airflow. Setiap DAG terdiri dari <strong>tasks</strong> yang memiliki <strong>dependencies</strong> (urutan eksekusi). Disebut "acyclic" karena tidak boleh ada loop.</p>
+
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — DAG Dasar</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# File: dags/etlpipeline.py
+# Simpan di ~/airflow/dags/
+# =============================================
+from datetime import datetime, timedelta
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
+
+# Default args untuk semua task dalam DAG
+default_args = {
+    "owner": "beebane",
+    "depends_on_past": False,
+    "email": ["alert@beebane.com"],
+    "email_on_failure": True,
+    "email_on_retry": False,
+    "retries": 2,
+    "retry_delay": timedelta(minutes=5),
+}
+
+# Definisikan DAG
+dag = DAG(
+    dag_id="etl_penjualan_harian",
+    default_args=default_args,
+    description="ETL pipeline untuk data penjualan harian",
+    schedule="0 6 * * *",       # Setiap hari jam 6 pagi
+    start_date=datetime(2026, 1, 1),
+    catchup=False,              # Jangan backfill otomatis
+    tags=["etl", "penjualan", "production"],
+    max_active_runs=1,          # Hanya 1 run aktif
+)
+
+# ----- Definisikan Tasks -----
+def extract_data(**context):
+    """Extract data dari sumber."""
+    import pandas as pd
+    df = pd.read_csv("data/penjualan_raw.csv")
+    print(f"Extracted {len(df)} records")
+    # Simpan ke temporary
+    df.to_csv("/tmp/extracted.csv", index=False)
+    return len(df)
+
+def transform_data(**context):
+    """Transform dan bersihkan data."""
+    import pandas as pd
+    df = pd.read_csv("/tmp/extracted.csv")
+    
+    # Cleaning
+    df = df.dropna()
+    df["total"] = df["harga"] * df["jumlah"]
+    df["tanggal"] = pd.to_datetime(df["tanggal"])
+    
+    df.to_csv("/tmp/transformed.csv", index=False)
+    print(f"Transformed: {len(df)} clean records")
+
+def load_data(**context):
+    """Load ke database tujuan."""
+    import pandas as pd
+    df = pd.read_csv("/tmp/transformed.csv")
+    # df.to_sql("penjualan", engine, if_exists="append")
+    print(f"Loaded {len(df)} records to database")
+
+# Task definitions
+task_extract = PythonOperator(
+    task_id="extract",
+    python_callable=extract_data,
+    dag=dag,
+)
+
+task_transform = PythonOperator(
+    task_id="transform",
+    python_callable=transform_data,
+    dag=dag,
+)
+
+task_load = PythonOperator(
+    task_id="load",
+    python_callable=load_data,
+    dag=dag,
+)
+
+task_notify = BashOperator(
+    task_id="notify",
+    bash_command='echo "ETL pipeline selesai pada $(date)"',
+    dag=dag,
+)
+
+# ----- Dependencies -----
+# Setelah extract → transform → load → notify
+task_extract >> task_transform >> task_load >> task_notify
+# Atau: task_extract.set_downstream(task_transform)</code></pre>
+      </div>
+
+      <h2 id="operators">4. Operators</h2>
+      <p>Operator adalah "building block" task di Airflow. Setiap operator menjalankan satu jenis aksi.</p>
+      <h3>Operator yang Sering Digunakan</h3>
+      <table class="net-table"><thead><tr><th>Operator</th><th>Fungsi</th><th>Contoh</th></tr></thead><tbody>
+        <tr><td>PythonOperator</td><td>Menjalankan Python function</td><td>ETL, data processing</td></tr>
+        <tr><td>BashOperator</td><td>Menjalankan bash command</td><td>Script, CLI tools</td></tr>
+        <tr><td>PostgresOperator</td><td>Menjalankan SQL query</td><td>Insert, update, create table</td></tr>
+        <tr><td>S3Operator</td><td>Upload/download S3</td><td>Backup data ke S3</td></tr>
+        <tr><td>EmailOperator</td><td>Kirim email</td><td>Notifikasi selesai</td></tr>
+        <tr><td>DockerOperator</td><td>Jalankan Docker container</td><td>Isolated execution</td></tr>
+        <tr><td>KubernetesPodOperator</td><td>Jalankan pod di K8s</td><td>Scalable task</td></tr>
+      </tbody></table>
+
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Berbagai Operator</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Operator Examples
+# =============================================
+from airflow.operators.python import PythonOperator, BranchPythonOperator
+from airflow.operators.bash import BashOperator
+from airflow.operators.email import EmailOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
+from airflow.operators.empty import EmptyOperator
+
+# PythonOperator
+def process_data(**context):
+    ti = context["ti"]
+    data = ti.xcom_pull(task_ids="extract")
+    processed = [x * 2 for x in data]
+    return processed
+
+task_process = PythonOperator(
+    task_id="process",
+    python_callable=process_data,
+    dag=dag,
+)
+
+# PostgresOperator
+task_create_table = PostgresOperator(
+    task_id="create_table",
+    postgres_conn_id="my_postgres",
+    sql="""
+        CREATE TABLE IF NOT EXISTS sales (
+            id SERIAL PRIMARY KEY,
+            tanggal DATE,
+            total DECIMAL(10,2)
+        );
+    """,
+    dag=dag,
+)
+
+# BranchPythonOperator (conditional)
+def choose_branch(**context):
+    import datetime
+    if datetime.date.today().weekday() == 0:  # Monday
+        return "weekly_report"
+    return "daily_report"
+
+branch = BranchPythonOperator(
+    task_id="choose_branch",
+    python_callable=choose_branch,
+    dag=dag,
+)
+
+daily = EmptyOperator(task_id="daily_report", dag=dag)
+weekly = EmptyOperator(task_id="weekly_report", dag=dag)
+
+branch >> [daily, weekly]</code></pre>
+      </div>
+
+      <h2 id="xcom">5. XCom — Cross Communication</h2>
+      <p><strong>XCom</strong> (Cross-Communication) memungkinkan tasks berbagi data kecil antar satu sama lain.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — XCom Communication</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# XCom — Task Communication
+# =============================================
+
+# Push data: return value otomatis menjadi XCom
+def extract(**context):
+    data = {"records": 1500, "date": "2026-06-29"}
+    return data  # Otomatis push ke XCom
+
+# Pull data
+def transform(**context):
+    ti = context["ti"]
+    data = ti.xcom_pull(task_ids="extract", key="return_value")
+    print(f"Received {data['records']} records")
+    
+    # Push hasil transform
+    ti.xcom_push(key="transform_result", value={"clean_records": 1450})
+
+# Manual XCom push
+def load(**context):
+    ti = context["ti"]
+    result = ti.xcom_pull(task_ids="transform", key="transform_result")
+    print(f"Loading {result['clean_records']} records")
+
+# ⚠️ XCom bukan untuk data besar! Max ~48KB (default)
+# Untuk data besar: simpan ke file/S3, pass path via XCom
+def extract_large(**context):
+    df = pd.read_csv("large_file.csv")
+    path = "/tmp/extracted.parquet"
+    df.to_parquet(path)
+    return path  # Hanya pass path file</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="sensors">6. Sensors &amp; Triggers</h2>
+      <p><strong>Sensor</strong> adalah task khusus yang menunggu sampai kondisi tertentu terpenuhi sebelum lanjut.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Sensors</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Sensors
+# =============================================
+from airflow.sensors.filesystem import FileSensor
+from airflow.sensors.external_task import ExternalTaskSensor
+from airflow.sensors.sql import SqlSensor
+from airflow.sensors.python import PythonSensor
+
+# FileSensor: tunggu file muncul
+wait_for_file = FileSensor(
+    task_id="wait_for_data_file",
+    filepath="/data/incoming/sales_{{ ds }}.csv",
+    fs_type="local",
+    poke_interval=30,   # Cek setiap 30 detik
+    timeout=3600,       # Timeout 1 jam
+    mode="reschedule",  # Release worker slot saat menunggu
+    dag=dag,
+)
+
+# ExternalTaskSensor: tunggu task lain selesai
+wait_for_other_dag = ExternalTaskSensor(
+    task_id="wait_for_extract_dag",
+    external_dag_id="extract_pipeline",
+    external_task_id="load-example",
+    timeout=7200,
+    dag=dag,
+)
+
+# PythonSensor: custom condition
+def check_api_available():
+    import requests
+    try:
+        r = requests.get("https://api.example.com/health", timeout=5)
+        return r.status_code == 200
+    except:
+        return False
+
+wait_for_api = PythonSensor(
+    task_id="wait_for_api",
+    python_callable=check_api_available,
+    poke_interval=60,
+    timeout=1800,
+    dag=dag,
+)</code></pre>
+      </div>
+
+      <h2 id="pools-priority">7. Pools, Priority &amp; Concurrency</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Pools &amp; Priority</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Pools & Priority
+# =============================================
+
+# Pool: batasi concurrent tasks ke resource tertentu
+# Buat pool via CLI:
+# airflow pools set db_pool 5 "Pool untuk database tasks"
+
+task_db = PythonOperator(
+    task_id="db_operation",
+    python_callable=my_func,
+    pool="db_pool",         # Batasi ke pool ini
+    pool_slots=1,           # Gunakan 1 slot
+    priority_weight=10,     # Prioritas lebih tinggi
+    dag=dag,
+)
+
+# DAG-level concurrency settings
+dag = DAG(
+    "my_dag",
+    max_active_runs=2,              # Max 2 run bersamaan
+    max_active_tasks=10,            # Max 10 task bersamaan
+    concurrency=5,                  # Max 5 task dalam 1 DAG run
+)
+
+# Task-level settings
+task = PythonOperator(
+    task_id="heavy_task",
+    python_callable=heavy_func,
+    retries=3,
+    retry_delay=timedelta(minutes=10),
+    execution_timeout=timedelta(hours=1),
+    queue="heavy",                  # Worker queue
+    dag=dag,
+)</code></pre>
+      </div>
+
+      <h2 id="backfill">8. Backfill &amp; Catchup</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Backfill Commands</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Backfill & Catchup
+# =============================================
+
+# Backfill: jalankan DAG untuk rentang tanggal tertentu
+airflow dags backfill \
+  -s 2026-01-01 \
+  -e 2026-06-01 \
+  etl_penjualan_harian
+
+# Catchup: otomatis jalankan semua run yang terlewat
+# Diatur di DAG:
+dag = DAG(
+    "my_dag",
+    start_date=datetime(2026, 1, 1),
+    catchup=True,    # Jalankan semua dari start_date
+)
+
+# Disable catchup untuk production:
+dag = DAG(
+    "my_dag",
+    start_date=datetime(2026, 1, 1),
+    catchup=False,   # Hanya jalankan yang terbaru
+)</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="monitoring">9. Monitoring &amp; Best Practices</h2>
+      <div class="info-box tip"><div class="info-box-title">💡 Best Practices Airflow</div><ul>
+        <li><strong>Idempotent tasks</strong> — task bisa dijalankan ulang tanpa efek samping</li>
+        <li><strong>Small data via XCom</strong> — untuk data besar, simpan file dan pass path</li>
+        <li><strong>Atomic tasks</strong> — satu task = satu tanggung jawab</li>
+        <li><strong>Use templates</strong> — gunakan Jinja templates untuk dynamic values</li>
+        <li><strong>Version control DAGs</strong> — simpan di Git</li>
+        <li><strong>Alerting</strong> — gunakan email/Slack untuk failure notification</li>
+        <li><strong>Test DAGs</strong> — gunakan <code>airflow tasks test</code> sebelum deploy</li>
+        <li><strong>Avoid top-level code</strong> — jangan jalankan kode berat saat import DAG</li>
+      </ul></div>
+
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" data-correct="2">
+          <p><strong>1. Apa itu DAG di Airflow?</strong></p>
+          <label><input type="radio" name="q1" value="0"> Database untuk menyimpan data</label>
+          <label><input type="radio" name="q1" value="1"> Container untuk menjalankan task</label>
+          <label><input type="radio" name="q1" value="2"> Directed Acyclic Graph — definisi pipeline dengan tasks dan dependencies</label>
+          <label><input type="radio" name="q1" value="3"> Monitoring dashboard</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>2. Apa fungsi XCom?</strong></p>
+          <label><input type="radio" name="q2" value="0"> Menyimpan file besar antar task</label>
+          <label><input type="radio" name="q2" value="1"> Berbagi data kecil antar tasks dalam satu DAG run</label>
+          <label><input type="radio" name="q2" value="2"> Menjadwalkan ulang task yang gagal</label>
+          <label><input type="radio" name="q2" value="3"> Mengelola koneksi database</label>
+        </div>
+        <div class="quiz-question" data-correct="3">
+          <p><strong>3. Apa perbedaan Operator dan Sensor?</strong></p>
+          <label><input type="radio" name="q3" value="0"> Tidak ada perbedaan</label>
+          <label><input type="radio" name="q3" value="1"> Sensor lebih cepat dari Operator</label>
+          <label><input type="radio" name="q3" value="2"> Operator tidak bisa di-retry</label>
+          <label><input type="radio" name="q3" value="3"> Operator menjalankan aksi, Sensor menunggu kondisi terpenuhi</label>
+        </div>
+        <div class="quiz-question" data-correct="0">
+          <p><strong>4. Apa itu backfill?</strong></p>
+          <label><input type="radio" name="q4" value="0"> Menjalankan DAG untuk rentang waktu yang sudah lewat</label>
+          <label><input type="radio" name="q4" value="1"> Menghapus data lama</label>
+          <label><input type="radio" name="q4" value="2"> Menyimpan backup DAG</label>
+          <label><input type="radio" name="q4" value="3"> Menghentikan DAG yang sedang berjalan</label>
+        </div>
+        <div class="quiz-question" data-correct="2">
+          <p><strong>5. Mengapa tasks harus idempotent?</strong></p>
+          <label><input type="radio" name="q5" value="0"> Agar lebih cepat</label>
+          <label><input type="radio" name="q5" value="1"> Agar tidak perlu di-retry</label>
+          <label><input type="radio" name="q5" value="2"> Agar bisa dijalankan ulang tanpa efek samping (tidak duplikasi data)</label>
+          <label><input type="radio" name="q5" value="3"> Agar menggunakan lebih sedikit memori</label>
+        </div>
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <h3>Rangkuman</h3>
+      <div class="info-box info"><div class="info-box-title">📝 Poin Penting</div><ul>
+        <li><strong>Airflow</strong> — platform orchestration untuk menjadwalkan dan mengelola data pipeline</li>
+        <li><strong>DAG</strong> — pipeline didefinisikan sebagai kode Python dengan dependencies</li>
+        <li><strong>Operators</strong> — building block: Python, Bash, SQL, Email, Docker</li>
+        <li><strong>XCom</strong> — komunikasi antar task (data kecil saja)</li>
+        <li><strong>Sensors</strong> — menunggu kondisi: file, API, database</li>
+        <li><strong>Best practices</strong> — idempotent, atomic tasks, version control</li>
+      </ul></div>
+  </div></article>
+  <script src="../js/app.js?v=19.2"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}</script>

@@ -1,0 +1,789 @@
+</header>
+
+    <main class="article-container">
+        <article>
+            <div class="article-header">
+                <div class="article-meta">
+                    <span class="category-badge">Tools</span>
+                    <span class="difficulty-badge">Menengah</span>
+                    <span>📅 29 Juni 2026</span>
+                    <span>⏱️ 15 menit baca</span> <span class="difficulty menengah">Menengah</span>
+                    <span>👁️ 2,567 views</span>
+                </div>
+                <h1>Julia untuk Scientific Computing: Multiple Dispatch, Type System, dan High Performance</h1>
+                <p style="font-size: 1.1em; color: #555;">Julia adalah bahasa pemrograman tingkat tinggi yang dirancang untuk scientific computing dan numerical analysis. Dengan multiple dispatch dan JIT compilation, Julia mencapai kecepatan mendekati C sambil tetap mudah seperti Python.</p>
+            </div>
+
+            <div class="toc">
+                <h3>📋 Daftar Isi</h3>
+                <ul>
+                    <li><a href="#pengenalan">1. Mengapa Julia?</a></li>
+                    <li><a href="#instalasi">2. Instalasi dan Setup</a></li>
+                    <li><a href="#dasar">3. Dasar-Dasar Julia</a></li>
+                    <li><a href="#type-system">4. Type System</a></li>
+                    <li><a href="#multiple-dispatch">5. Multiple Dispatch</a></li>
+                    <li><a href="#arrays">6. Arrays dan Linear Algebra</a></li>
+                    <li><a href="#plotting">7. Plotting dan Visualisasi</a></li>
+                    <li><a href="#parallel">8. Parallel Computing</a></li>
+                    <li><a href="#performance">9. Performance Optimization</a></li>
+                    <li><a href="#metaprogramming">10. Metaprogramming</a></li>
+                    <li><a href="#quiz">11. Kuis</a></li>
+                </ul>
+            </div>
+
+            <section id="pengenalan">
+                <h2>1. Mengapa Julia?</h2>
+                <p>Julia lahir dari frustrasi para ilmuwan komputer yang harus menggunakan Python/MATLAB untuk prototyping lalu rewrite ke C/Fortran untuk performa. Julia memecahkan "two-language problem" ini dengan menjadi bahasa yang mudah ditulis sekaligus cepat dieksekusi.</p>
+
+                <div class="info-box">
+                    <strong>💡 Two-Language Problem</strong>
+                    <p>Sebelum Julia, para peneliti biasanya menulis prototipe di Python/MATLAB (mudah tapi lambat), lalu menulis ulang di C/Fortran (cepat tapi sulit). Julia memberikan keduanya: kemudahan Python dengan kecepatan C.</p>
+                </div>
+
+                <table>
+                    <tr>
+                        <th>Fitur</th>
+                        <th>Julia</th>
+                        <th>Python</th>
+                        <th>MATLAB</th>
+                        <th>R</th>
+                    </tr>
+                    <tr>
+                        <td>Kecepatan</td>
+                        <td>~C</td>
+                        <td>~100x lebih lambat</td>
+                        <td>~10x lebih lambat</td>
+                        <td>~100x lebih lambat</td>
+                    </tr>
+                    <tr>
+                        <td>Multiple Dispatch</td>
+                        <td>✅ Built-in</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                        <td>⚠️ Terbatas</td>
+                    </tr>
+                    <tr>
+                        <td>Parallel</td>
+                        <td>✅ Native</td>
+                        <td>⚠️ GIL</td>
+                        <td>⚠️ Toolbox</td>
+                        <td>⚠️</td>
+                    </tr>
+                    <tr>
+                        <td>Type System</td>
+                        <td>✅ Dynamic + Parametric</td>
+                        <td>✅ Dynamic</td>
+                        <td>❌</td>
+                        <td>❌</td>
+                    </tr>
+                    <tr>
+                        <td>Metaprogramming</td>
+                        <td>✅ Macros</td>
+                        <td>⚠️ Terbatas</td>
+                        <td>❌</td>
+                        <td>⚠️</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="instalasi">
+                <h2>2. Instalasi dan Setup</h2>
+
+                <div class="code-label">Bash</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# macOS
+brew install julia
+
+# Windows (download dari julialang.org)
+# Atau menggunakan juliaup
+curl -fsSL https://install.julialang.org | sh
+juliaup add latest
+juliaup default latest
+
+# Linux
+curl -fsSL https://install.julialang.org | sh
+
+# Verifikasi
+julia --version
+# julia version 1.10.x
+
+# Jalankan REPL
+julia
+
+# Install package manager (Pkg)
+using Pkg
+Pkg.add("Plots")
+Pkg.add("DataFrames")
+Pkg.add("DifferentialEquations")
+
+# Buat project baru
+mkdir myproject && cd myproject
+julia --project=.
+# Di REPL:
+# ] activate .
+# ] add Plots LinearAlgebra
+</code></pre>
+                </div>
+            </section>
+
+            <section id="dasar">
+                <h2>3. Dasar-Dasar Julia</h2>
+
+                <h3>Variables dan Basic Types</h3>
+                <div class="code-label">Julia REPL</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Variables
+nama = "BeebaneLabs"
+umur = 25
+tinggi = 1.75
+aktif = true
+
+# Unicode support (sangat bagus untuk math!)
+α = 0.5
+β = 1.0
+θ = π / 4
+Σ = sum([1, 2, 3, 4, 5])
+
+# Type checking
+typeof(42)        # Int64
+typeof(3.14)      # Float64
+typeof("hello")   # String
+typeof(true)      # Bool
+typeof('c')       # Char
+
+# Type conversion
+Float64(42)       # 42.0
+Int(3.14)         # 3
+string(42)        # "42"
+
+# Arithmetic
+2 + 3             # 5
+10 / 3            # 3.3333...
+10 ÷ 3            # 3 (integer division, ÷ = \div)
+10 % 3            # 1 (modulo)
+2^10              # 1024
+
+# String operations
+s1 = "Hello"
+s2 = "World"
+greeting = "$s1, $s2!"        # "Hello, World!"
+calc = "2 + 3 = $(2 + 3)"    # "2 + 3 = 5"
+</code></pre>
+                </div>
+
+                <h3>Control Flow</h3>
+                <div class="code-label">control_flow.jl</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# If-elseif-else
+nilai = 85
+if nilai >= 90
+    grade = "A"
+elseif nilai >= 80
+    grade = "B"
+elseif nilai >= 70
+    grade = "C"
+else
+    grade = "D"
+end
+
+# Ternary (inline if)
+status = nilai >= 70 ? "Lulus" : "Tidak Lulus"
+
+# For loop
+for i in 1:10
+    println("Iterasi $i")
+end
+
+# For dengan step
+for i in 0:2:20
+    println("Genap: $i")
+end
+
+# For dengan collection
+buah = ["apel", "jeruk", "mangga"]
+for (i, b) in enumerate(buah)
+    println("$i. $b")
+end
+
+# While loop
+n = 10
+while n > 0
+    global n -= 1
+    println("n = $n")
+end
+
+# List comprehension
+kuadrat = [x^2 for x in 1:10]
+genap = [x for x in 1:20 if x % 2 == 0]
+matriks = [i + j for i in 1:3, j in 1:3]
+
+# Functions
+function tambah(a, b)
+    return a + b
+end
+
+# Short form
+tambah2(a, b) = a + b
+
+# Optional arguments
+function greet(nama; greeting="Halo")
+    return "$greeting, $nama!"
+end
+
+# Varargs
+function jumlah(args...)
+    return sum(args)
+end
+</code></pre>
+                </div>
+            </section>
+
+            <section id="type-system">
+                <h2>4. Type System</h2>
+                <p>Type system Julia adalah kombunikasi yang unik: dynamic typing dengan optional type annotations dan parametric types. Ini memungkinkan generic programming yang sangat powerful.</p>
+
+                <div class="code-label">types.jl</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      </div>
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: # Type hierarchy</div>
+<pre><code>/&quot;No. Type hierarchy&quot;/
+Number
+Real
+/&quot;AbstractFloat&quot;/
+/&quot;Float16, Float32, Float64&quot;/
+Integer
+Bool
+/&quot;Signed (Int8, Int16, Int32, Int64)&quot;/
+/&quot;Unsigned (UInt8, UInt16, UInt32, UInt64)&quot;/
+Complex
+/&quot;AbstractString&quot;/
+/&quot;AbstractChar&quot;/
+/&quot;... (many more)&quot;/</code></pre>
+    </div>
+                </div>
+            </section>
+
+            <section id="multiple-dispatch">
+                <h2>5. Multiple Dispatch</h2>
+                <p>Multiple dispatch adalah fitur signature Julia. Berbeda dengan single dispatch di OOP (hanya method receiver yang menentukan method yang dipanggil), multiple dispatch memilih method berdasarkan tipe SEMUA argumen.</p>
+
+                <div class="tip-box">
+                    <strong>🎯 Mengapa Multiple Dispatch Penting?</strong>
+                    <p>Multiple dispatch memungkinkan Anda mendefinisikan perilaku yang berbeda berdasarkan kombinasi tipe argumen. Ini sangat natural untuk scientific computing di mana operasi matematika bergantung pada tipe kedua operand.</p>
+                </div>
+
+                <div class="code-label">dispatch.jl</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Single dispatch (seperti di Python/Java)
+# obj.method(args) -> method dipilih berdasarkan tipe obj
+
+# Multiple dispatch di Julia
+# f(args...) -> method dipilih berdasarkan tipe SEMUA args
+
+# Contoh: operasi overlap antara shapes
+abstract type Shape end
+struct Circle <: Shape
+    radius::Float64
+end
+struct Rectangle <: Shape
+    width::Float64
+    height::Float64
+end
+struct Line <: Shape
+    length::Float64
+end
+
+# Method dispatch berdasarkan kedua argumen
+overlap(a::Circle, b::Circle) = "Circle-Circle overlap"
+overlap(a::Rectangle, b::Rectangle) = "Rect-Rect overlap"
+overlap(a::Circle, b::Rectangle) = "Circle-Rect overlap"
+overlap(a::Rectangle, b::Circle) = "Rect-Circle overlap"
+overlap(a::Shape, b::Shape) = "Generic shape overlap"
+
+# Julia otomatis memilih method yang paling spesifik!
+c = Circle(5.0)
+r = Rectangle(3.0, 4.0)
+
+println(overlap(c, r))  # "Circle-Rect overlap"
+println(overlap(r, c))  # "Rect-Circle overlap"
+println(overlap(c, c))  # "Circle-Circle overlap"
+
+# Lihat semua methods
+methods(overlap)
+
+# Scientific example: vector operations
+struct Vector2D
+    x::Float64
+    y::Float64
+end
+
+struct Vector3D
+    x::Float64
+    y::Float64
+    z::Float64
+end
+
+# Dot product dispatch
+dot(a::Vector2D, b::Vector2D) = a.x * b.x + a.y * b.y
+dot(a::Vector3D, b::Vector3D) = a.x * b.x + a.y * b.y + a.z * b.z
+
+# Cross product hanya untuk 3D
+cross(a::Vector3D, b::Vector3D) = Vector3D(
+    a.y * b.z - a.z * b.y,
+    a.z * b.x - a.x * b.z,
+    a.x * b.y - a.y * b.x
+)
+
+# Operations on different numeric types
+operate(a::Int, b::Int) = "int-int: $(a + b)"
+operate(a::Float64, b::Float64) = "float-float: $(a + b)"
+operate(a::Int, b::Float64) = "int-float: $(Float64(a) + b)"
+operate(a::String, b::String) = "string-string: $a$b"
+</code></pre>
+                </div>
+
+                <h3>Practical Multiple Dispatch</h3>
+                <div class="code-label">dispatch_practical.jl</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Data pipeline dengan multiple dispatch
+abstract type DataSource end
+struct CSVSource <: DataSource
+    path::String
+end
+struct JSONSource <: DataSource
+    path::String
+end
+struct DatabaseSource <: DataSource
+    connection_string::String
+    query::String
+end
+
+abstract type Transform end
+struct Normalize <: Transform end
+struct Filter <: Transform
+    predicate::Function
+end
+struct Aggregate <: Transform
+    func::Function
+end
+
+# Load berdasarkan tipe data source
+load(source::CSVSource) = println("Loading CSV from $(source.path)")
+load(source::JSONSource) = println("Loading JSON from $(source.path)")
+load(source::DatabaseSource) = println("Querying: $(source.query)")
+
+# Apply transform berdasarkan kombinasi source + transform
+apply(source::CSVSource, t::Normalize) = println("Normalize CSV data")
+apply(source::CSVSource, t::Filter) = println("Filter CSV data")
+apply(source::JSONSource, t::Normalize) = println("Normalize JSON data")
+apply(::DataSource, ::Transform) = println("Generic transform")
+
+# Pipeline function
+function pipeline(source::DataSource, transforms::Transform...)
+    load(source)
+    for t in transforms
+        apply(source, t)
+    end
+end
+
+# Usage
+src = CSVSource("data.csv")
+pipeline(src, Normalize(), Filter(x -> x > 0))
+</code></pre>
+                </div>
+            </section>
+
+            <section id="arrays">
+                <h2>6. Arrays dan Linear Algebra</h2>
+
+                <div class="code-label">arrays.jl</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+using LinearAlgebra
+
+# Array creation
+v = [1, 2, 3, 4, 5]
+m = [1 2 3; 4 5 6; 7 8 9]   # 3x3 matrix
+
+# Special matrices
+zeros(3, 3)
+ones(2, 4)
+I(3)         # 3x3 identity matrix
+rand(3, 3)   # random 3x3
+randn(3, 3)  # random normal
+
+# Array operations
+v .+ 1         # element-wise addition
+v .* 2         # element-wise multiplication
+v .^ 2         # element-wise power
+
+# Matrix operations
+A = [1 2; 3 4]
+B = [5 6; 7 8]
+A * B          # matrix multiplication
+A .* B         # element-wise multiplication
+A'             # transpose
+inv(A)         # inverse
+det(A)         # determinant
+eigvals(A)     # eigenvalues
+eigvecs(A)     # eigenvectors
+
+# Solving linear systems Ax = b
+A = [1 2; 3 4]
+b = [5, 6]
+x = A \ b      # solve Ax = b
+
+# Broadcasting
+f(x) = x^2 + 2x + 1
+f.(v)          # apply f to each element
+
+# Slicing
+m = reshape(1:20, 4, 5)
+m[2, 3]        # element at row 2, col 3
+m[:, 1]        # first column
+m[1:2, :]      # first two rows
+
+# Generator expressions (lazy evaluation)
+s = sum(x^2 for x in 1:1000)
+</code></pre>
+                </div>
+            </section>
+
+            <section id="plotting">
+                <h2>7. Plotting dan Visualisasi</h2>
+
+                <div class="code-label">plotting.jl</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+using Plots
+
+# Basic line plot
+x = 0:0.1:2π
+y = sin.(x)
+plot(x, y, title="Sinus", xlabel="x", ylabel="sin(x)", label="sin(x)")
+
+# Multiple plots
+plot(x, [sin.(x) cos.(x)], label=["sin(x)" "cos(x)"],
+     title="Trigonometric Functions")
+
+# Scatter plot
+scatter(randn(100), randn(100), title="Random Scatter",
+        xlabel="x", ylabel="y", markersize=3)
+
+# Histogram
+histogram(randn(10000), bins=50, title="Normal Distribution",
+          label="samples", normalize=:pdf)
+
+# Surface plot
+x = range(-3, 3, length=100)
+y = range(-3, 3, length=100)
+z = [exp(-(x^2 + y^2)) for x in x, y in y]
+surface(x, y, z, title="Gaussian 2D")
+
+# Subplots
+p1 = plot(x, sin.(x), title="sin")
+p2 = plot(x, cos.(x), title="cos")
+p3 = plot(x, tan.(x), title="tan", ylim=(-5, 5))
+p4 = scatter(randn(100), randn(100), title="scatter")
+plot(p1, p2, p3, p4, layout=(2, 2), size=(800, 600))
+
+# Save plot
+savefig("my_plot.png")
+savefig("my_plot.pdf")
+</code></pre>
+                </div>
+            </section>
+
+            <section id="parallel">
+                <h2>8. Parallel Computing</h2>
+                <p>Julia memiliki built-in support untuk parallel computing yang sangat mudah digunakan.</p>
+
+                <div class="code-label">parallel.jl</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Jalankan dengan: julia -p 4 (4 worker processes)
+# Atau:
+using Distributed
+addprocs(4)
+
+# @distributed - parallel for loop
+@distributed for i in 1:100
+    # Setiap iterasi berjalan di worker berbeda
+    sum(sin.(randn(10000)))
+end
+
+# pmap - parallel map
+using Distributed
+results = pmap(x -> x^2, 1:100)
+
+# @spawn - kirim task ke worker
+result = @spawnat 2 heavy_computation()
+
+# Shared arrays
+using SharedArrays
+shared = SharedArray{Float64}(1000)
+@distributed for i in 1:1000
+    shared[i] = sin(i * 0.01)
+end
+
+# Multi-threading (lebih ringan dari multi-process)
+# Jalankan: julia --threads=4
+using Base.Threads
+
+# Thread-safe counter
+counter = Atomic{Int}(0)
+@threads for i in 1:10000
+    atomic_add!(counter, 1)
+end
+println("Counter: $(counter[])")
+
+# Parallel reduction
+function parallel_sum(arr)
+    results = zeros(nthreads())
+    @threads for i in eachindex(arr)
+        results[threadid()] += arr[i]
+    end
+    return sum(results)
+end
+
+# Channel-based communication
+ch = Channel{Int}(32)
+@async begin
+    for i in 1:10
+        put!(ch, i^2)
+    end
+    close(ch)
+end
+for val in ch
+    println("Received: $val")
+end
+</code></pre>
+                </div>
+            </section>
+
+            <section id="performance">
+                <h2>9. Performance Optimization</h2>
+
+                <div class="code-label">performance.jl</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# 1. Avoid global variables (atau gunakan const)
+const N = 10000  # const = type-stable global
+
+# 2. Type stability - pastikan compiler tahu tipe
+function good_sum(v)
+    total = zero(eltype(v))  # type-stable
+    for x in v
+        total += x
+    end
+    return total
+end
+
+# 3. Pre-allocate arrays
+function bad_example(n)
+    result = Float64[]  # growing array
+    for i in 1:n
+        push!(result, sin(i))  # allocation setiap iterasi
+    end
+    return result
+end
+
+function good_example(n)
+    result = Vector{Float64}(undef, n)  # pre-allocate
+    for i in 1:n
+        result[i] = sin(i)  # in-place
+    end
+    return result
+end
+
+# 4. Use views instead of copies
+function process_matrix(A)
+    @views for i in 1:size(A, 2)
+        col = A[:, i]  # creates a copy
+        col_view = @view A[:, i]  # creates a view (no copy)
+    end
+end
+
+# 5. Benchmarking
+using BenchmarkTools
+@btime sin(1.0)
+@benchmark sin(1.0)
+
+# 6. Profiling
+using Profile
+@profile for i in 1:100000; sin(i); end
+Profile.print()
+
+# 7. In-place operations
+function inplace_operations()
+    A = rand(1000, 1000)
+    B = rand(1000, 1000)
+
+    # Bad: creates new array
+    C = A + B
+
+    # Good: in-place
+    C = similar(A)
+    C .= A .+ B  # broadcasts in-place
+
+    # Matrix operations
+    mul!(C, A, B)  # in-place matrix multiply
+end
+
+# 8. Static arrays untuk ukuran kecil
+using StaticArrays
+const Vec3 = SVector{3, Float64}
+const Mat3 = SMatrix{3, 3, Float64}
+
+v = Vec3(1.0, 2.0, 3.0)  # stack-allocated, sangat cepat
+</code></pre>
+                </div>
+            </section>
+
+            <section id="metaprogramming">
+                <h2>10. Metaprogramming</h2>
+
+                <div class="code-label">macros.jl</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Julia code adalah data (AST - Abstract Syntax Tree)
+expr = :(x + y)           # Quote
+dump(expr)                 # Lihat struktur AST
+
+# Macros - code generation saat compile time
+macro sayhello(name)
+    return :(println("Hello, $($name)!"))
+end
+
+@sayhello "World"    # Hello, World!
+
+# Macro untuk benchmarking
+macro mytime(ex)
+    return quote
+        local t0 = time()
+        local val = $ex
+        local t1 = time()
+        println("Elapsed: $(t1 - t0) seconds")
+        val
+    end
+end
+
+@mytime sleep(0.1)
+
+# Macro untuk validasi
+macro assert_positive(ex)
+    return quote
+        local val = $ex
+        @assert val > 0 "Expected positive, got $val"
+        val
+    end
+end
+
+result = @assert_positive sqrt(144)
+
+# Generated functions
+@generated function describe(x)
+    if x <: Integer
+        return :(println("Integer: $x"))
+    elseif x <: AbstractFloat
+        return :(println("Float: $x"))
+    elseif x <: AbstractString
+        return :(println("String: $x"))
+    else
+        return :(println("Unknown type: $x"))
+    end
+end
+
+# Domain-specific language (DSL)
+macro df(ex)
+    # Parse dataframe operations
+    # e.g., @df users select(:name, :age) filter(:age > 18)
+end
+</code></pre>
+                </div>
+            </section>
+
+            <section id="quiz">
+                <div class="quiz-section">
+                    <h2>🧠 Kuis: Julia Scientific Computing</h2>
+
+                    <div class="quiz-question">
+                        <h4>1. Apa yang dimaksud dengan "two-language problem" yang dipecahkan Julia?</h4>
+                        <ul class="quiz-options" data-correct="2">
+                            <li onclick="checkAnswer(this, false)">Julia mendukung dua bahasa natural</li>
+                            <li onclick="checkAnswer(this, true)">Kebutuhan menulis prototipe di bahasa tingkat tinggi lalu rewrite ke C untuk performa</li>
+                            <li onclick="checkAnswer(this, false)">Julia bisa diterjemahkan ke dua bahasa berbeda</li>
+                            <li onclick="checkAnswer(this, false)">Julia memiliki dua mode eksekusi</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>2. Apa itu Multiple Dispatch di Julia?</h4>
+                        <ul class="quiz-options" data-correct="1">
+                            <li onclick="checkAnswer(this, true)">Pemilihan method berdasarkan tipe semua argumen</li>
+                            <li onclick="checkAnswer(this, false)">Kemampuan mengirim pesan ke banyak proses</li>
+                            <li onclick="checkAnswer(this, false)">Menjalankan beberapa fungsi sekaligus</li>
+                            <li onclick="checkAnswer(this, false)">Mendistribusikan kode ke banyak file</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>3. Operator apa yang digunakan untuk element-wise operations di Julia?</h4>
+                        <ul class="quiz-options" data-correct="3">
+                            <li onclick="checkAnswer(this, false)">*</li>
+                            <li onclick="checkAnswer(this, false)">#</li>
+                            <li onclick="checkAnswer(this, true)">. (dot) sebelum operator</li>
+                            <li onclick="checkAnswer(this, false)">&</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>4. Mengapa type stability penting untuk performa Julia?</h4>
+                        <ul class="quiz-options" data-correct="2">
+                            <li onclick="checkAnswer(this, false)">Type stability mencegah runtime errors</li>
+                            <li onclick="checkAnswer(this, true)">Type stability memungkinkan compiler menghasilkan kode yang sangat optimal</li>
+                            <li onclick="checkAnswer(this, false)">Type stability mengurangi penggunaan memory</li>
+                            <li onclick="checkAnswer(this, false)">Type stability tidak berpengaruh pada performa</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>5. Apa fungsi dari macro @distributed di Julia?</h4>
+                        <ul class="quiz-options" data-correct="4">
+                            <li onclick="checkAnswer(this, false)">Mendistribusikan data ke database</li>
+                            <li onclick="checkAnswer(this, false)">Membagi file menjadi beberapa bagian</li>
+                            <li onclick="checkAnswer(this, false)">Menginstall package dari berbagai sumber</li>
+                            <li onclick="checkAnswer(this, true)">Menjalankan loop secara paralel di beberapa worker</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <div style="margin-top: 40px; padding: 20px; background: #f0f0f0; border-radius: 10px;">
+                <h3>📚 Sumber Belajar Lanjutan</h3>
+                <ul>
+                    <li><a href="https://docs.julialang.org/" target="_blank">Dokumentasi Resmi Julia</a></li>
+                    <li><a href="https://julialang.org/learning/" target="_blank">Julia Learning Resources</a></li>
+                    <li><a href="https://github.com/JuliaLang/julia" target="_blank">Julia GitHub</a></li>
+                    <li><a href="https://discourse.julialang.org/" target="_blank">Julia Discourse Forum</a></li>
+                </ul>
+            </div>
+        </article>
+    </main>

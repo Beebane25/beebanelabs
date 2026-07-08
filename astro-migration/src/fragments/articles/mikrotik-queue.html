@@ -1,0 +1,650 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== READING PROGRESS ========== -->
+  <div style="position:fixed;top:64px;left:0;right:0;height:3px;z-index:999;background:transparent;">
+    <div id="readingProgress" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent-primary),var(--accent-cyan));transition:width 0.1s linear;border-radius:0 2px 2px 0;"></div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">›</span>
+        <a href="../index.html#categories">MikroTik</a>
+        <span class="separator">›</span>
+        <span>Queue</span>
+      </div>
+
+      <h1>Manajemen Bandwidth MikroTik: Simple Queue, Queue Tree &amp; PCQ</h1>
+      <span class="access-badge token">TOKEN</span>
+
+      <div class="meta-row">
+        <div class="meta-item">📅 20 Juni 2026</div>
+        <div class="meta-item">📖 15 menit baca</div>
+        <div class="meta-item"><span class="difficulty menengah">Menengah</span></div>
+        <div class="meta-item">🌐 MikroTik</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide" id="ad-slot-top">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li>1. Mengapa Manajemen Bandwidth Penting?</li>
+          <li>2. Simple Queue: Setup Dasar Bandwidth Management</li>
+          <li>3. Queue Tree: HTB dan Hierarchical Traffic Control</li>
+          <li>4. PCQ (Per Connection Queue): Solusi untuk Banyak User</li>
+          <li>5. Mangle untuk Traffic Classification</li>
+          <li>6. Bandwidth Test & Monitoring</li>
+          <li>7. Prioritas Traffic: VoIP, Gaming, Download</li>
+          <li>8. Template Queue untuk RT/RW Net</li>
+          <li>9. Quiz: Uji Pemahamanmu</li>
+          <li>Quiz Pemahaman</li>
+        </ol>
+      </div>
+
+
+
+    <!-- ====== 1. MENGAPA MANAJEMEN BANDWIDTH ====== -->
+    <h2>1. Mengapa Manajemen Bandwidth Penting?</h2>
+
+    <p>
+      Manajemen bandwidth adalah proses mengatur dan membatasi penggunaan jaringan agar setiap
+      pengguna mendapatkan bagian bandwidth yang adil. Tanpa manajemen bandwidth yang baik,
+      satu pengguna yang melakukan download besar-besaran bisa menghabiskan seluruh kapasitas
+      jaringan dan membuat pengguna lain mengalami koneksi yang sangat lambat.
+    </p>
+
+    <h3>Konsep Fair Usage</h3>
+    <p>
+      Fair usage atau penggunaan adil adalah prinsip dasar di mana setiap pengguna di jaringan
+      mendapatkan alokasi bandwidth yang proporsional. Dalam konteks RT/RW net atau warnet,
+      fair usage memastikan bahwa pelanggan dengan paket 5 Mbps benar-benar mendapatkan
+      kecepatan maksimal 5 Mbps, sementara pelanggan paket 10 Mbps mendapatkan 10 Mbps.
+    </p>
+
+    <p>
+      Tanpa pembagian bandwidth yang adil, pengguna yang membayar paket lebih mahal bisa saja
+      mendapatkan kecepatan yang sama dengan pengguna paket murah — atau bahkan lebih lambat
+      jika ada heavy downloader di jaringan yang sama.
+    </p>
+
+    <h3>Kualitas Layanan (QoS)</h3>
+    <p>
+      QoS (Quality of Service) adalah mekanisme untuk memprioritaskan jenis traffic tertentu
+      agar aplikasi yang sensitif terhadap latency seperti VoIP (voice call), video conference,
+      dan gaming online tetap berjalan lancar meskipun jaringan sedang sibuk.
+    </p>
+
+    <table class="net-table">
+      <thead>
+        <tr>
+          <th>Tipe Traffic</th>
+          <th>Sensitivitas</th>
+          <th>Prioritas</th>
+          <th>Catatan</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>VoIP / Telepon</strong></td>
+          <td>🔴 Sangat Sensitif Latency</td>
+          <td>Tinggi (1)</td>
+          <td>Butuh latency &lt;150ms, jitter &lt;30ms</td>
+        </tr>
+        <tr>
+          <td><strong>Gaming Online</strong></td>
+          <td>🔴 Sensitif Latency</td>
+          <td>Tinggi (2)</td>
+          <td>Butuh latency rendah, bandwidth kecil</td>
+        </tr>
+        <tr>
+          <td><strong>Video Conference</strong></td>
+          <td>🟡 Sedang</td>
+          <td>Sedang (3)</td>
+          <td>Butuh bandwidth stabil & minimal 2 Mbps</td>
+        </tr>
+        <tr>
+          <td><strong>Browsing / Email</strong></td>
+          <td>🟢 Tidak Sensitif</td>
+          <td>Normal (4)</td>
+          <td>Intermittent traffic, toleran latency</td>
+        </tr>
+        <tr>
+          <td><strong>Download / Torrent</strong></td>
+          <td>🟢 Tidak Sensitif</td>
+          <td>Rendah (8)</td>
+          <td>Bulk transfer, bisa ditunda</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="diagram-box">
+        <div class="diagram-label">📊 Bagaimana QoS Bekerja</div>
+<pre class="mermaid">
+flowchart TD
+    In["📥 Traffic Masuk"] --> Q{"QoS Engine"}
+    
+    Q -->|"Priority 1"| VoIP["📞 VoIP\n5 Mbps\nHighest Priority"]
+    Q -->|"Priority 2"| Game["🎮 Gaming\n5 Mbps"]
+    Q -->|"Priority 4"| Browse["🌐 Browsing\n20 Mbps"]
+    Q -->|"Priority 7"| Download["📥 Download\nUnlimited\nLowest Priority"]
+    
+    VoIP & Game & Browse & Download --> Out["📤 Interface Output"]
+
+    style Q fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+    style VoIP fill:#0f2a1f,stroke:#3ecf8e,stroke-width:1.5px
+    style Game fill:#0f1d3a,stroke:#60a5fa
+    style Browse fill:#1a0f2e,stroke:#a78bfa
+    style Download fill:#2a0f1e,stroke:#f472b6
+</pre>
+
+    <div class="info-box info">
+      <div class="info-box-title">💡 Mengapa MikroTik untuk Manajemen Bandwidth?</div>
+      <p>
+        RouterOS MikroTik menyediakan fitur queue yang sangat powerful dan fleksibel — mulai dari
+        Simple Queue untuk setup cepat, hingga Queue Tree dengan HTB (Hierarchical Token Bucket)
+        untuk manajemen traffic tingkat lanjut. Semua fitur ini tersedia tanpa lisensi tambahan,
+        menjadikan MikroTik pilihan populer untuk RT/RW net, warnet, dan ISP kecil-menengah di
+        Indonesia.
+      </p>
+    </div>
+
+    <!-- ====== 2. SIMPLE QUEUE ====== -->
+    <h2>2. Simple Queue: Setup Dasar Bandwidth Management</h2>
+
+    <p>
+      Simple Queue adalah metode paling sederhana untuk membatasi bandwidth di MikroTik.
+      Setiap queue bisa dibuat untuk IP address tertentu, subnet, atau bahkan seluruh interface.
+      Simple Queue menggunakan algoritma FIFO (First In, First Out) dan sangat mudah dikonfigurasi.
+    </p>
+
+    <h3>Membuat Simple Queue via WinBox</h3>
+    <p>
+      Buka WinBox → Queue → Simple Queue. Klik tanda <strong>+</strong> untuk menambah queue baru.
+      Beberapa parameter utama yang perlu diatur:
+    </p>
+
+    <table class="net-table">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Deskripsi</th>
+          <th>Contoh</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Name</strong></td>
+          <td>Nama identifikasi queue</td>
+          <td>User-Rumah-A</td>
+        </tr>
+        <tr>
+          <td><strong>Target</strong></td>
+          <td>IP address atau subnet yang dibatasi</td>
+          <td>192.168.10.2</td>
+        </tr>
+        <tr>
+          <td><strong>Max Limit</strong></td>
+          <td>Batas maksimum kecepatan upload/download</td>
+          <td>Down: 5M / Up: 2M</td>
+        </tr>
+        <tr>
+          <td><strong>Limit At</strong></td>
+          <td>Batas minimum yang dijamin (untuk HTB)</td>
+          <td>Down: 1M / Up: 512k</td>
+        </tr>
+        <tr>
+          <td><strong>Queue Type</strong></td>
+          <td>Algoritma penjadwalan queue</td>
+          <td>default (FIFO)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Membuat Simple Queue via Terminal</h3>
+
+    </div>
+<pre class="mermaid">
+flowchart TD
+    subgraph burst["⚡ BURST MECHANISM"]
+        direction TB
+        B1["Normal Rate: 10 Mbps"] -->|"Burst"| B2["Burst Rate: 20 Mbps"]
+        B2 -->|"Time Limit"| B3["Burst Timeout: 10s"]
+        B3 --> B4["Back to Normal: 10 Mbps"]
+    end
+    
+    User["👤 User"] --> burst
+    burst --> Net["🌐 Internet"]
+
+    style burst fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+    style B2 fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+</pre>
+
+    <div class="info-box tip">
+      <div class="info-box-title">✅ Tips: Parent Queue untuk Aggregate</div>
+      <p>
+        Gunakan parameter <code>parent</code> pada Simple Queue untuk membuat hierarki. Queue
+        parent akan membatasi total bandwidth, sementara child queue membatasi masing-masing
+        pengguna. Ini penting untuk memastikan total penggunaan tidak melebihi bandwidth ISP yang
+        tersedia.
+      </p>
+    </div>
+
+    <!-- ====== 3. QUEUE TREE ====== -->
+    <h2>3. Queue Tree: HTB dan Hierarchical Traffic Control</h2>
+
+    <p>
+      Queue Tree adalah metode queue tingkat lanjut yang menggunakan algoritma HTB (Hierarchical
+      Token Bucket). Berbeda dengan Simple Queue yang hanya memproses traffic pada satu arah per
+      queue, Queue Tree memproses traffic melalui pohon hierarki dan menggunakan firewall mangle
+      untuk menandai paket yang akan diqueue.
+    </p>
+
+    <h3>Keunggulan Queue Tree vs Simple Queue</h3>
+
+    <table class="net-table">
+      <thead>
+        <tr>
+          <th>Fitur</th>
+          <th>Simple Queue</th>
+          <th>Queue Tree (HTB)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Performa</strong></td>
+          <td>CPU lebih berat (per-connection)</td>
+          <td>Lebih ringan, proses per-packet</td>
+        </tr>
+        <tr>
+          <td><strong>Hirarki</strong></td>
+          <td>Terbatas (max 1 level parent)</td>
+          <td>Hirarki mendalam, fleksibel</td>
+        </tr>
+        <tr>
+          <td><strong>Prioritas</strong></td>
+          <td>Prioritas 1-8 (per queue)</td>
+          <td>Prioritas 1-10 per level hierarki</td>
+        </tr>
+        <tr>
+          <td><strong>Parent</strong></td>
+          <td>Satu parent saja</td>
+          <td>Banyak child per parent</td>
+        </tr>
+        <tr>
+          <td><strong>Skalabilitas</strong></td>
+          <td>Cocok untuk &lt;50 pengguna</td>
+          <td>Cocok untuk ratusan pengguna</td>
+        </tr>
+        <tr>
+          <td><strong>Packet Marking</strong></td>
+          <td>Tidak perlu mangle</td>
+          <td>Harus pakai firewall mangle</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Konfigurasi Queue Tree dengan HTB</h3>
+    <p>
+      Berikut adalah contoh konfigurasi Queue Tree untuk jaringan RT/RW dengan total bandwidth
+      30 Mbps dari ISP:
+    </p>
+
+    </div>
+<pre class="mermaid">
+flowchart TB
+    Root["📥 TOTAL-DOWNLOAD\nMax: 30M\nParent: ether1"]
+    
+    Root --> VoIP["📞 VOIP-Download\nMax: 5M\nPriority: 1"]
+    Root --> Game["🎮 GAME-Download\nMax: 5M\nPriority: 2"]
+    Root --> Browse["🌐 BROWSING-Down\nMax: 20M\nPriority: 4"]
+    
+    Browse --> Web["HTTP/HTTPS"]
+    Browse --> Other["Other"]
+    
+    style Root fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+    style VoIP fill:#0f2a1f,stroke:#3ecf8e,stroke-width:1.5px
+    style Game fill:#0f1d3a,stroke:#60a5fa
+    style Browse fill:#1a0f2e,stroke:#a78bfa
+</pre>
+
+    <h3>Queue Type untuk Performa Optimal</h3>
+    <p>
+      MikroTik menyediakan beberapa algoritma queue type yang bisa digunakan pada Queue Tree.
+      Pemilihan queue type yang tepat sangat mempengaruhi performa dan keadilan distribusi
+      bandwidth.
+    </p>
+
+    </div>
+<pre class="mermaid">
+flowchart TD
+    Pkt["📥 Paket Masuk"] --> Mangle["Mangle\nMark Packet"]
+    Mangle -->|"voip-pkt"| QT["Queue Tree\nVOIP-Queue"]
+    Mangle -->|"game-pkt"| QT2["Queue Tree\nGAME-Queue"]
+    Mangle -->|"browse-pkt"| QT3["Queue Tree\nBROWSING-Queue"]
+    
+    QT & QT2 & QT3 --> Out["📤 Output"]
+
+    style Mangle fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+    style QT fill:#0f2a1f,stroke:#3ecf8e
+    style QT2 fill:#0f1d3a,stroke:#60a5fa
+    style QT3 fill:#1a0f2e,stroke:#a78bfa
+</pre>
+
+    <!-- ====== 6. BANDWIDTH TEST & MONITORING ====== -->
+    <h2>6. Bandwidth Test & Monitoring</h2>
+
+    <p>
+      Setelah mengkonfigurasi queue, sangat penting untuk menguji dan memantau apakah
+      pembagian bandwidth berjalan sesuai harapan. MikroTik menyediakan berbagai tools bawaan
+      untuk melakukan ini.
+    </p>
+
+    <h3>Built-in Bandwidth Test</h3>
+
+    </div>
+<pre class="mermaid">
+flowchart TB
+    ISP["🌐 ISP\n30M/10M"] --> MT["MikroTik RB750Gr3\nRouterOS v7.x\nQueue: PCQ + Queue Tree + Mangle"]
+    
+    MT -->|"ether2-5"| SW["Switch\n(LAN)"]
+    
+    SW --> User1["👤 User 1\n10 Mbps"]
+    SW --> User2["👤 User 2\n10 Mbps"]
+    SW --> User3["👤 User 3\n10 Mbps"]
+    
+    MT -.->|"ether1 (WAN)"| ISP
+
+    style ISP fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+    style MT fill:#0f1d3a,stroke:#60a5fa,stroke-width:2px
+    style SW fill:#0f2a1f,stroke:#3ecf8e
+</pre>
+
+    <h3>Script Lengkap Template Queue RT/RW</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">MikroTik CLI — Template RT/RW Net</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# ============================================
+# TEMPLATE MANAJEMEN BANDWIDTH RT/RW NET
+# Bandwidth: 30 Mbps Down / 10 Mbps Up
+# Users: 45+ pengguna per-blok
+# ============================================
+
+# ---------- KONFIGURASI INTERFACE ----------
+# Pastikan interface sudah dikonfigurasi dengan benar
+# ether1 = WAN (ke ISP)
+# ether2-5 = LAN (ke user/switch/blok)
+
+# ---------- STEP 1: BUAT ADDRESS LIST ----------
+# Grouping subnet per blok
+/ip firewall address-list
+add address=192.168.10.0/28 list=blok-a comment="Blok A (1-15)"
+add address=192.168.10.16/28 list=blok-b comment="Blok B (16-30)"
+add address=192.168.10.32/28 list=blok-c comment="Blok C (31-45)"
+add address=192.168.10.48/28 list=blok-d comment="Blok D/WiFi (46-60)"
+
+# ---------- STEP 2: MANGLE RULES ----------
+# Mark download semua user
+/ip firewall mangle add chain=forward \
+  src-address-list=blok-a \
+  action=mark-packet new-packet-mark=dl-blok-a \
+  passthrough=yes comment="DL Mark Blok A"
+
+/ip firewall mangle add chain=forward \
+  src-address-list=blok-b \
+  action=mark-packet new-packet-mark=dl-blok-b \
+  passthrough=yes comment="DL Mark Blok B"
+
+/ip firewall mangle add chain=forward \
+  src-address-list=blok-c \
+  action=mark-packet new-packet-mark=dl-blok-c \
+  passthrough=yes comment="DL Mark Blok C"
+
+/ip firewall mangle add chain=forward \
+  src-address-list=blok-d \
+  action=mark-packet new-packet-mark=dl-blok-d \
+  passthrough=yes comment="DL Mark Blok D"
+
+# Mark upload semua user
+/ip firewall mangle add chain=forward \
+  dst-address-list=blok-a \
+  action=mark-packet new-packet-mark=ul-blok-a \
+  passthrough=yes comment="UL Mark Blok A"
+
+/ip firewall mangle add chain=forward \
+  dst-address-list=blok-b \
+  action=mark-packet new-packet-mark=ul-blok-b \
+  passthrough=yes comment="UL Mark Blok B"
+
+/ip firewall mangle add chain=forward \
+  dst-address-list=blok-c \
+  action=mark-packet new-packet-mark=ul-blok-c \
+  passthrough=yes comment="UL Mark Blok C"
+
+/ip firewall mangle add chain=forward \
+  dst-address-list=blok-d \
+  action=mark-packet new-packet-mark=ul-blok-d \
+  passthrough=yes comment="UL Mark Blok D"
+
+# ---------- STEP 3: QUEUE TREE ----------
+# Total bandwidth
+/queue tree add name="TOTAL-DL" parent=ether1 \
+  max-limit=30M limit-at=30M queue=default \
+  priority=1 comment="Total Download"
+
+/queue tree add name="TOTAL-UL" parent=ether1 \
+  max-limit=10M limit-at=10M queue=default \
+  priority=1 comment="Total Upload"
+
+# Per-blok download (masing-masing 7.5M, burstable)
+/queue tree add name="DL-Blok-A" parent="TOTAL-DL" \
+  packet-mark=dl-blok-a max-limit=8M limit-at=5M \
+  priority=8 queue=default-small \
+  comment="Download Blok A - 7.5M"
+
+/queue tree add name="DL-Blok-B" parent="TOTAL-DL" \
+  packet-mark=dl-blok-b max-limit=8M limit-at=5M \
+  priority=8 queue=default-small \
+  comment="Download Blok B - 7.5M"
+
+/queue tree add name="DL-Blok-C" parent="TOTAL-DL" \
+  packet-mark=dl-blok-c max-limit=8M limit-at=5M \
+  priority=8 queue=default-small \
+  comment="Download Blok C - 7.5M"
+
+/queue tree add name="DL-Blok-D" parent="TOTAL-DL" \
+  packet-mark=dl-blok-d max-limit=8M limit-at=5M \
+  priority=8 queue=default-small \
+  comment="Download Blok D/WiFi - 7.5M"
+
+# Per-blok upload (masing-masing 2.5M)
+/queue tree add name="UL-Blok-A" parent="TOTAL-UL" \
+  packet-mark=ul-blok-a max-limit=3M limit-at=2M \
+  priority=8 queue=default-small \
+  comment="Upload Blok A - 2.5M"
+
+/queue tree add name="UL-Blok-B" parent="TOTAL-UL" \
+  packet-mark=ul-blok-b max-limit=3M limit-at=2M \
+  priority=8 queue=default-small \
+  comment="Upload Blok B - 2.5M"
+
+/queue tree add name="UL-Blok-C" parent="TOTAL-UL" \
+  packet-mark=ul-blok-c max-limit=3M limit-at=2M \
+  priority=8 queue=default-small \
+  comment="Upload Blok C - 2.5M"
+
+/queue tree add name="UL-Blok-D" parent="TOTAL-UL" \
+  packet-mark=ul-blok-d max-limit=3M limit-at=2M \
+  priority=8 queue=default-small \
+  comment="Upload Blok D/WiFi - 2.5M"
+      </code></pre>
+    </div>
+
+    <h3>Scheduler untuk Backup & Maintenance</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">MikroTik CLI</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# Backup konfigurasi harian ke floppy
+/system scheduler add name="daily-backup" \
+  start-time=03:00:00 \
+  interval=1d \
+  on-event={
+    /system backup save name="auto-backup-[/system clock get date]"
+    :log info "Auto backup completed"
+  } comment="Backup harian jam 3 pagi"
+
+# Log traffic per user ke file harian
+/system scheduler add name="log-traffic" \
+  start-time=00:00:00 \
+  interval=1d \
+  on-event={
+    /tool fetch url="http://192.168.10.1/api/traffic" \
+      http-data="[queue simple print stats as-value]" \
+      http-method=post
+    :log info "Traffic log exported"
+  } comment="Export traffic log harian"
+
+# Auto-reset counter bulanan
+/system scheduler add name="monthly-reset" \
+  start-time=00:05:00 \
+  interval=1mo \
+  on-event={
+    /queue simple reset-counters-all
+    /ip firewall mangle reset-counters-all
+    :log info "Monthly counter reset"
+  } comment="Reset counters bulanan"
+      </code></pre>
+    </div>
+
+    <div class="info-box tip">
+      <div class="info-box-title">✅ Tips: SaaS Billing untuk RT/RW Net</div>
+      <p>
+        Untuk RT/RW Net dengan banyak pelanggan, pertimbangkan menggunakan sistem billing
+        seperti <strong>Mikhmon</strong>, <strong>userman</strong>, atau <strong>SUMMA</strong>
+        yang terintegrasi dengan MikroTik. Sistem ini bisa mengelola paket pelanggan, pembayaran,
+        dan otomatis mengaktifkan/menonaktifkan queue berdasarkan status langganan.
+      </p>
+    </div>
+
+    <!-- ====== 9. QUIZ ====== -->
+    <h2>9. Quiz: Uji Pemahamanmu</h2>
+
+    <p>
+      Jawab pertanyaan berikut untuk menguji pemahaman kamu tentang manajemen bandwidth
+      di MikroTik. Pilih satu jawaban terbaik untuk setiap pertanyaan.
+    </p>
+
+    <div class="quiz-container" id="quiz20">
+      <h3>📝 Quiz Manajemen Bandwidth MikroTik</h3>
+
+      <!-- Q1 -->
+      <div class="quiz-question">
+        <h4>1. Simple Queue menggunakan algoritma penjadwalan apa secara default?</h4>
+        <button class="quiz-option" data-question="0" data-answer="a">a. FIFO (First In, First Out)</button>
+        <button class="quiz-option" data-question="0" data-answer="b">b. HTB (Hierarchical Token Bucket)</button>
+        <button class="quiz-option" data-question="0" data-answer="c">c. PCQ (Per Connection Queue)</button>
+        <button class="quiz-option" data-question="0" data-answer="d">d. WFQ (Weighted Fair Queuing)</button>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-question">
+        <h4>2. Komponen apa yang HARUS dibuat terlebih dahulu sebelum Queue Tree bisa berfungsi dengan benar?</h4>
+        <button class="quiz-option" data-question="1" data-answer="a">a. Simple Queue sebagai parent</button>
+        <button class="quiz-option" data-question="1" data-answer="b">b. Address list untuk filtering</button>
+        <button class="quiz-option" data-question="1" data-answer="c">c. Firewall Mangle untuk menandai paket</button>
+        <button class="quiz-option" data-question="1" data-answer="d">d. NAT rules untuk translate address</button>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-question">
+        <h4>3. Jika total bandwidth download 30 Mbps dan ada 60 pengguna aktif menggunakan PCQ tanpa rate limit, berapa alokasi bandwidth per pengguna?</h4>
+        <button class="quiz-option" data-question="2" data-answer="a">a. 30 Mbps per pengguna</button>
+        <button class="quiz-option" data-question="2" data-answer="b">b. 2 Mbps per pengguna</button>
+        <button class="quiz-option" data-question="2" data-answer="c">c. 0.5 Mbps (500 Kbps) per pengguna</button>
+        <button class="quiz-option" data-question="2" data-answer="d">d. Bandwidth tidak dibagi rata</button>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-question">
+        <h4>4. Pada Queue Tree, apa yang terjadi jika child queue memiliki priority=1 dan parent queue habis bandwidth-nya?</h4>
+        <button class="quiz-option" data-question="3" data-answer="a">a. Child queue akan mengambil bandwidth dari parent queue lain secara otomatis</button>
+        <button class="quiz-option" data-question="3" data-answer="b">b. Child queue tetap dibatasi oleh limit parent-nya</button>
+        <button class="quiz-option" data-question="3" data-answer="c">c. Router akan crash karena konflik prioritas</button>
+        <button class="quiz-option" data-question="3" data-answer="d">d. Priority diabaikan dan traffic di-drop</button>
+      </div>
+
+      <!-- Q5 -->
+      <div class="quiz-question">
+        <h4>5. Parameter burst pada Simple Queue berfungsi untuk apa?</h4>
+        <button class="quiz-option" data-question="4" data-answer="a">a. Mengizinkan pengguna melebihi max-limit secara sementara jika rata-rata penggunaan di bawah burst threshold</button>
+        <button class="quiz-option" data-question="4" data-answer="b">b. Membatasi bandwidth secara permanen lebih rendah dari max-limit</button>
+        <button class="quiz-option" data-question="4" data-answer="c">c. Menonaktifkan queue untuk periode waktu tertentu</button>
+        <button class="quiz-option" data-question="4" data-answer="d">d. Mengirim notifikasi ke admin ketika penggunaan tinggi</button>
+      </div>
+
+      <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+      <div class="quiz-result"></div>
+    </div>
+
+    <!-- ====== AD SLOT BOTTOM ====== -->
+    <div class="ad-slot ad-slot-wide" id="ad-slot-bottom">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+    <!-- ====== ARTICLE NAVIGATION ====== -->
+    <div class="article-nav">
+      <a href="grafana-influxdb.html" class="prev">
+        <span class="nav-label">← Sebelumnya</span>
+        <span class="nav-title">Monitoring Jaringan dengan Grafana &amp; InfluxDB</span>
+      </a>
+      <a href="blynk-iot.html" class="next">
+        <span class="nav-label">Selanjutnya →</span>
+        <span class="nav-title">Kontrol Perangkat IoT dengan Blynk</span>
+      </a>
+    </div>
+
+  </article>
+
+  <!-- ========== FOOTER ========== -->

@@ -1,0 +1,1029 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Database</a>
+        <span class="separator">/</span>
+        <span class="current">SQL Table Partitioning</span>
+      </div>
+      <span class="category-tag">Database</span>
+      <h1>SQL Table Partitioning: Range, List &amp; Hash Partitioning</h1>
+      <p class="article-subtitle">Pelajari cara membagi tabel besar menjadi partisi yang lebih kecil untuk meningkatkan performa query, memudahkan manajemen data, dan skalabilitas database</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Table Partitioning</a></li>
+          <li><a href="#range-partitioning">Range Partitioning</a></li>
+          <li><a href="#list-partitioning">List Partitioning</a></li>
+          <li><a href="#hash-partitioning">Hash Partitioning</a></li>
+          <li><a href="#subpartitioning">Sub-Partitioning (Composite)</a></li>
+          <li><a href="#manajemen-partisi">Manajemen Partisi</a></li>
+          <li><a href="#partition-pruning">Partition Pruning &amp; Query Optimization</a></li>
+          <li><a href="#best-practices">Best Practices &amp; Kapan Menggunakan</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Table Partitioning</h2>
+
+      <p><strong>Table Partitioning</strong> adalah teknik membagi satu tabel besar menjadi beberapa bagian yang lebih kecil (partisi) berdasarkan aturan tertentu. Secara logik, tabel tetap terlihat sebagai satu tabel utuh, tetapi secara fisik data disimpan dalam partisi-partisi terpisah.</p>
+
+      <p>Bayangkan Anda punya tabel <code>transactions</code> dengan 500 juta baris. Tanpa partisi, setiap query harus memindai tabel utuh. Dengan partisi berdasarkan tahun, query yang hanya butuh data 2026 hanya memindai satu partisi — bukan 500 juta baris.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Tabel Tanpa vs Dengan Partitioning</div>
+<pre class="mermaid">
+flowchart TD
+    N0["transactions (500M rows) id customer amount dat..."]
+    N1["p_2020 (50M rows) p_2021 (55M rows) p_2022 (60M..."]
+    N2["id customer amount date status 1 1234 50000 202..."]
+    N0 --> N2
+    N2 --> N1
+</pre>
+    </div>
+      </div>
+
+      <h3>Manfaat Table Partitioning</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Manfaat</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Performa Query</strong></td><td>Partition pruning — query hanya memindai partisi yang relevan</td></tr>
+          <tr><td><strong>Maintenance Mudah</strong></td><td>Hapus data lama dengan DROP PARTITION — jauh lebih cepat dari DELETE</td></tr>
+          <tr><td><strong>Parallel Processing</strong></td><td>Beberapa partisi bisa diquery secara paralel</td></tr>
+          <tr><td><strong>Storage Management</strong></td><td>Beda partisi bisa di storage berbeda (tablespace)</td></tr>
+          <tr><td><strong>Availability</strong></td><td>Maintenance pada satu partisi tidak mengganggu partisi lain</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Jenis Partitioning</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Jenis</th>
+            <th>Berdasarkan</th>
+            <th>Cocok Untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Range</strong></td><td>Rentang nilai (tanggal, angka)</td><td>Data time-series, log, transaksi</td></tr>
+          <tr><td><strong>List</strong></td><td>Daftar nilai eksplisit</td><td>Data per wilayah, kategori, status</td></tr>
+          <tr><td><strong>Hash</strong></td><td>Hash dari kolom</td><td>Distribusi data merata tanpa pola natural</td></tr>
+          <tr><td><strong>Key</strong></td><td>Similar hash (MySQL)</td><td>Distribusi merata, mendukung multi-kolom</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Range Partitioning   -->
+      <!-- ============================== -->
+      <h2 id="range-partitioning">2. Range Partitioning</h2>
+
+      <p><strong>Range Partitioning</strong> membagi data berdasarkan rentang nilai. Ini adalah jenis partisi paling umum untuk data time-series — setiap partisi mewakili satu periode waktu (hari, bulan, tahun).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Range Partitioning (PostgreSQL)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- RANGE PARTITIONING (PostgreSQL 10+)
+-- =============================================
+
+-- Buat tabel utama (PARTITIONED TABLE)
+CREATE TABLE transactions (
+    id              BIGSERIAL,
+    customer_id     INT NOT NULL,
+    amount          DECIMAL(12,2) NOT NULL,
+    transaction_date DATE NOT NULL,
+    status          VARCHAR(20) DEFAULT 'completed',
+    description     TEXT
+) PARTITION BY RANGE (transaction_date);
+
+
+-- =============================================
+-- Buat partisi per tahun
+-- =============================================
+CREATE TABLE transactions_2023
+    PARTITION OF transactions
+    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+CREATE TABLE transactions_2024
+    PARTITION OF transactions
+    FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
+
+CREATE TABLE transactions_2025
+    PARTITION OF transactions
+    FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
+
+CREATE TABLE transactions_2026
+    PARTITION OF transactions
+    FOR VALUES FROM ('2026-01-01') TO ('2027-01-01');
+
+-- Default partition untuk data di luar range
+CREATE TABLE transactions_default
+    PARTITION OF transactions DEFAULT;
+
+
+-- =============================================
+-- Sub-partisi per kuartal (lebih granular)
+-- =============================================
+CREATE TABLE transactions_q1_2026
+    PARTITION OF transactions
+    FOR VALUES FROM ('2026-01-01') TO ('2026-04-01');
+
+CREATE TABLE transactions_q2_2026
+    PARTITION OF transactions
+    FOR VALUES FROM ('2026-04-01') TO ('2026-07-01');
+
+CREATE TABLE transactions_q3_2026
+    PARTITION OF transactions
+    FOR VALUES FROM ('2026-07-01') TO ('2026-10-01');
+
+CREATE TABLE transactions_q4_2026
+    PARTITION OF transactions
+    FOR VALUES FROM ('2026-10-01') TO ('2027-01-01');
+
+
+-- =============================================
+-- Query — partition pruning otomatis!
+-- =============================================
+-- Query ini HANYA memindai partisi 2026:
+EXPLAIN SELECT * FROM transactions
+WHERE transaction_date >= '2026-01-01'
+  AND transaction_date < '2027-01-01';
+
+-- Output: hanya partisi transactions_2026 yang di-scan
+
+
+-- =============================================
+-- Index pada partisi
+-- =============================================
+-- PostgreSQL otomatis membuat index pada semua partisi
+-- ketika Anda membuat index pada tabel induk:
+CREATE INDEX idx_transactions_customer
+ON transactions(customer_id);
+
+CREATE INDEX idx_transactions_date
+ON transactions(transaction_date);
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Range Partitioning (MySQL)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- RANGE PARTITIONING (MySQL 8+)
+-- =============================================
+
+CREATE TABLE transactions (
+    id              BIGINT AUTO_INCREMENT,
+    customer_id     INT NOT NULL,
+    amount          DECIMAL(12,2) NOT NULL,
+    transaction_date DATE NOT NULL,
+    status          VARCHAR(20) DEFAULT 'completed',
+    PRIMARY KEY (id, transaction_date),
+    INDEX idx_customer (customer_id),
+    INDEX idx_date (transaction_date)
+)
+PARTITION BY RANGE (YEAR(transaction_date)) (
+    PARTITION p2022 VALUES LESS THAN (2023),
+    PARTITION p2023 VALUES LESS THAN (2024),
+    PARTITION p2024 VALUES LESS THAN (2025),
+    PARTITION p2025 VALUES LESS THAN (2026),
+    PARTITION p2026 VALUES LESS THAN (2027),
+    PARTITION pmax  VALUES LESS THAN MAXVALUE
+);
+
+
+-- =============================================
+-- RANGE COLUMNS (langsung pakai DATE)
+-- =============================================
+CREATE TABLE logs (
+    id          BIGINT AUTO_INCREMENT,
+    log_level   VARCHAR(10),
+    message     TEXT,
+    log_date    DATE NOT NULL,
+    PRIMARY KEY (id, log_date)
+)
+PARTITION BY RANGE COLUMNS(log_date) (
+    PARTITION p_jan VALUES LESS THAN ('2026-02-01'),
+    PARTITION p_feb VALUES LESS THAN ('2026-03-01'),
+    PARTITION p_mar VALUES LESS THAN ('2026-04-01'),
+    PARTITION p_apr VALUES LESS THAN ('2026-05-01'),
+    PARTITION p_may VALUES LESS THAN ('2026-06-01'),
+    PARTITION p_jun VALUES LESS THAN ('2026-07-01'),
+    PARTITION p_max VALUES LESS THAN MAXVALUE
+);
+
+
+-- =============================================
+-- CATATAN PENTING MySQL:
+-- =============================================
+-- 1. PRIMARY KEY HARUS mencakup kolom partisi
+--    PRIMARY KEY (id, transaction_date) ✅
+--    PRIMARY KEY (id) ❌ (error!)
+--
+-- 2. UNIQUE INDEX juga harus mencakup kolom partisi
+--
+-- 3. Kolom partisi harus bagian dari semua index
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Catatan MySQL Partitioning</div>
+        <p>Di MySQL, kolom partisi <strong>harus menjadi bagian dari PRIMARY KEY dan semua UNIQUE INDEX</strong>. Ini berbeda dari PostgreSQL yang lebih fleksibel. Pastikan hal ini tidak mengganggu desain schema Anda sebelum memilih MySQL partitioning.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: List Partitioning    -->
+      <!-- ============================== -->
+      <h2 id="list-partitioning">3. List Partitioning</h2>
+
+      <p><strong>List Partitioning</strong> membagi data berdasarkan daftar nilai yang sudah ditentukan. Cocok untuk data dengan kategori tetap — seperti wilayah, kota, atau tipe produk.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — List Partitioning</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- LIST PARTITIONING (PostgreSQL)
+-- =============================================
+
+CREATE TABLE customers (
+    id          SERIAL,
+    nama        VARCHAR(100) NOT NULL,
+    email       VARCHAR(150),
+    wilayah     VARCHAR(20) NOT NULL,
+    kota        VARCHAR(50),
+    created_at  TIMESTAMP DEFAULT NOW()
+) PARTITION BY LIST (wilayah);
+
+-- Partisi per wilayah Indonesia
+CREATE TABLE customers_jawa
+    PARTITION OF customers
+    FOR VALUES IN ('DKI Jakarta', 'Jawa Barat', 'Jawa Tengah',
+                   'Jawa Timur', 'Yogyakarta', 'Banten');
+
+CREATE TABLE customers_sumatera
+    PARTITION OF customers
+    FOR VALUES IN ('Sumatera Utara', 'Sumatera Barat', 'Sumatera Selatan',
+                   'Riau', 'Lampung', 'Aceh', 'Bengkulu', 'Jambi');
+
+CREATE TABLE customers_kalimantan
+    PARTITION OF customers
+    FOR VALUES IN ('Kalimantan Barat', 'Kalimantan Tengah',
+                   'Kalimantan Selatan', 'Kalimantan Timur',
+                   'Kalimantan Utara');
+
+CREATE TABLE customers_sulawesi
+    PARTITION OF customers
+    FOR VALUES IN ('Sulawesi Utara', 'Sulawesi Tengah',
+                   'Sulawesi Selatan', 'Sulawesi Barat',
+                   'Sulawesi Tenggara', 'Gorontalo');
+
+CREATE TABLE customers_indonesia_timur
+    PARTITION OF customers
+    FOR VALUES IN ('Bali', 'NTB', 'NTT', 'Maluku', 'Maluku Utara',
+                   'Papua', 'Papua Barat');
+
+-- Default partisi untuk wilayah tidak dikenal
+CREATE TABLE customers_lainnya
+    PARTITION OF customers DEFAULT;
+
+
+-- =============================================
+-- Query dengan partition pruning
+-- =============================================
+
+-- Hanya scan partisi Jawa!
+SELECT * FROM customers
+WHERE wilayah IN ('DKI Jakarta', 'Jawa Barat');
+
+-- Hanya scan partisi Sulawesi
+SELECT nama, email FROM customers
+WHERE wilayah = 'Sulawesi Selatan';
+
+
+-- =============================================
+-- LIST PARTITIONING (MySQL)
+-- =============================================
+
+CREATE TABLE orders_by_region (
+    id          BIGINT AUTO_INCREMENT,
+    customer_id INT NOT NULL,
+    region      VARCHAR(20) NOT NULL,
+    amount      DECIMAL(12,2),
+    order_date  DATE,
+    PRIMARY KEY (id, region),
+    INDEX idx_customer (customer_id)
+)
+PARTITION BY LIST COLUMNS(region) (
+    PARTITION p_jakarta   VALUES IN ('Jakarta'),
+    PARTITION p_bandung   VALUES IN ('Bandung'),
+    PARTITION p_surabaya  VALUES IN ('Surabaya'),
+    PARTITION p_medan     VALUES IN ('Medan'),
+    PARTITION p_makassar  VALUES IN ('Makassar'),
+    PARTITION p_other     VALUES IN ('Denpasar', 'Semarang', 'Yogyakarta')
+);
+</code></pre>
+      </div>
+
+      <h3>Perbandingan Range vs List</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Range</th>
+            <th>List</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Kolom partisi</td><td>Numerik / tanggal</td><td>Kategori / string</td></tr>
+          <tr><td>Aturan</td><td>Rentang nilai (FROM - TO)</td><td>Daftar nilai eksplisit (IN)</td></tr>
+          <tr><td>Cocok untuk</td><td>Data time-series</td><td>Data kategorikal</td></tr>
+          <tr><td>Partisi baru</td><td>Tambah range baru</td><td>Tambah daftar nilai baru</td></tr>
+          <tr><td>Default partition</td><td>MAXVALUE</td><td>DEFAULT</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Hash Partitioning    -->
+      <!-- ============================== -->
+      <h2 id="hash-partitioning">4. Hash Partitioning</h2>
+
+      <p><strong>Hash Partitioning</strong> mendistribusikan data secara merata ke beberapa partisi menggunakan fungsi hash. Tidak seperti range dan list, hash partitioning tidak berdasarkan logika bisnis — tujuannya adalah distribusi data yang seimbang.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Hash Partitioning</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- HASH PARTITIONING (PostgreSQL)
+-- =============================================
+
+CREATE TABLE user_sessions (
+    session_id  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     INT NOT NULL,
+    ip_address  INET,
+    user_agent  TEXT,
+    started_at  TIMESTAMP DEFAULT NOW(),
+    ended_at    TIMESTAMP
+) PARTITION BY HASH (user_id);
+
+-- Buat 8 partisi (jumlah ideal: power of 2)
+CREATE TABLE user_sessions_p0 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 0);
+CREATE TABLE user_sessions_p1 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 1);
+CREATE TABLE user_sessions_p2 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 2);
+CREATE TABLE user_sessions_p3 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 3);
+CREATE TABLE user_sessions_p4 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 4);
+CREATE TABLE user_sessions_p5 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 5);
+CREATE TABLE user_sessions_p6 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 6);
+CREATE TABLE user_sessions_p7 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 7);
+
+
+-- =============================================
+-- HASH PARTITIONING (MySQL)
+-- =============================================
+
+CREATE TABLE user_sessions_mysql (
+    session_id  VARCHAR(36) NOT NULL,
+    user_id     INT NOT NULL,
+    ip_address  VARCHAR(45),
+    user_agent  TEXT,
+    started_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ended_at    TIMESTAMP NULL,
+    PRIMARY KEY (session_id, user_id)
+)
+PARTITION BY HASH (user_id)
+PARTITIONS 8;
+
+-- MySQL juga mendukung LINEAR HASH untuk distribusi lebih merata
+CREATE TABLE user_events (
+    event_id    BIGINT AUTO_INCREMENT,
+    user_id     INT NOT NULL,
+    event_type  VARCHAR(50),
+    event_data  JSON,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (event_id, user_id)
+)
+PARTITION BY LINEAR HASH (user_id)
+PARTITIONS 16;
+
+
+-- =============================================
+-- Partition pruning pada Hash
+-- =============================================
+
+-- Query ini bisa pruning karena hash(user_id) diketahui:
+SELECT * FROM user_sessions WHERE user_id = 1234;
+-- Hanya 1 partisi yang di-scan
+
+-- Tapi range query TIDAK bisa pruning:
+SELECT * FROM user_sessions WHERE user_id BETWEEN 100 AND 200;
+-- Semua partisi tetap di-scan!
+</code></pre>
+      </div>
+
+      <h3>Kapan Menggunakan Hash?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Situasi</th>
+            <th>Pilihan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Data tersebar merata tanpa pola natural</td><td>✅ Hash</td></tr>
+          <tr><td>Sering query berdasarkan kolom hash</td><td>✅ Hash</td></tr>
+          <tr><td>Sering query range pada kolom lain</td><td>❌ Range lebih baik</td></tr>
+          <tr><td>Data punya kategori natural</td><td>❌ List lebih baik</td></tr>
+          <tr><td>Butuh jumlah partisi tetap</td><td>✅ Hash</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Sub-Partitioning     -->
+      <!-- ============================== -->
+      <h2 id="subpartitioning">5. Sub-Partitioning (Composite)</h2>
+
+      <p><strong>Sub-partitioning</strong> menggabungkan dua jenis partisi — misalnya range di level pertama dan hash di level kedua. Ini cocok untuk tabel sangat besar yang butuh pembagian lebih granular.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Sub-Partitioning (PostgreSQL)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- SUB-PARTITIONING (PostgreSQL)
+-- =============================================
+
+-- Tabel induk: partition by RANGE
+CREATE TABLE events (
+    id          BIGSERIAL,
+    user_id     INT NOT NULL,
+    event_type  VARCHAR(50),
+    payload     JSONB,
+    event_date  DATE NOT NULL
+) PARTITION BY RANGE (event_date);
+
+-- Partisi tahunan: partition by HASH
+CREATE TABLE events_2026
+    PARTITION OF events
+    FOR VALUES FROM ('2026-01-01') TO ('2027-01-01')
+    PARTITION BY HASH (user_id);
+
+-- Sub-partisi per hash
+CREATE TABLE events_2026_p0
+    PARTITION OF events_2026
+    FOR VALUES WITH (MODULUS 4, REMAINDER 0);
+CREATE TABLE events_2026_p1
+    PARTITION OF events_2026
+    FOR VALUES WITH (MODULUS 4, REMAINDER 1);
+CREATE TABLE events_2026_p2
+    PARTITION OF events_2026
+    FOR VALUES WITH (MODULUS 4, REMAINDER 2);
+CREATE TABLE events_2026_p3
+    PARTITION OF events_2026
+    FOR VALUES WITH (MODULUS 4, REMAINDER 3);
+
+-- Hasil: events → events_2026 → events_2026_p0..p3
+-- Query by date → pruning di level pertama
+-- Query by user_id → pruning di level kedua
+
+
+-- =============================================
+-- MySQL: PARTITION + SUBPARTITION
+-- =============================================
+CREATE TABLE large_events (
+    id          BIGINT AUTO_INCREMENT,
+    user_id     INT NOT NULL,
+    event_type  VARCHAR(50),
+    event_date  DATE NOT NULL,
+    PRIMARY KEY (id, event_date, user_id)
+)
+PARTITION BY RANGE (YEAR(event_date))
+SUBPARTITION BY HASH (user_id)
+SUBPARTITIONS 4 (
+    PARTITION p2024 VALUES LESS THAN (2025),
+    PARTITION p2025 VALUES LESS THAN (2026),
+    PARTITION p2026 VALUES LESS THAN (2027),
+    PARTITION pmax  VALUES LESS THAN MAXVALUE
+);
+-- Total: 4 partitions × 4 subpartitions = 16 physical tables
+</code></pre>
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Sub-Partitioning Structure</div>
+<pre class="mermaid">
+flowchart TD
+    A["📋 Tabel Utama events"] -->|"RANGE"| B["📅 p_2024"]
+    A -->|"RANGE"| C["📅 p_2025"]
+    A -->|"RANGE"| D["📅 p_2026"]
+    B -->|"HASH user_id"| B1["🔢 Sub 0-3"]
+    C -->|"HASH user_id"| C1["🔢 Sub 0-3"]
+    D -->|"HASH user_id"| D1["🔢 Sub 0-3"]
+    B1 --> E["💾 16 Tabel Fisik"]
+    C1 --> E
+    D1 --> E
+</pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Manajemen Partisi    -->
+      <!-- ============================== -->
+      <h2 id="manajemen-partisi">6. Manajemen Partisi</h2>
+
+      <p>Salah satu keuntungan terbesar partisi adalah kemudahan manajemen — menambah, menghapus, atau memindahkan partisi tanpa mempengaruhi tabel utuh.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Manajemen Partisi</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- MENAMBAH PARTISI BARU
+-- =============================================
+
+-- PostgreSQL:
+CREATE TABLE transactions_2027
+    PARTITION OF transactions
+    FOR VALUES FROM ('2027-01-01') TO ('2028-01-01');
+
+-- MySQL: ALTER TABLE
+ALTER TABLE transactions
+ADD PARTITION (
+    PARTITION p2027 VALUES LESS THAN (2028)
+);
+
+
+-- =============================================
+-- MENGHAPUS PARTISI (SANGAT CEPAT!)
+-- =============================================
+
+-- PostgreSQL:
+DROP TABLE transactions_2023;
+-- atau detach dulu:
+ALTER TABLE transactions DETACH PARTITION transactions_2023;
+DROP TABLE transactions_2023;
+
+-- MySQL:
+ALTER TABLE transactions DROP PARTITION p2022;
+-- Data di p2022 langsung hilang, TANPA scan!
+
+-- ⚡ DROP PARTITION vs DELETE:
+-- DROP PARTITION: milidetik (hapus file fisik)
+-- DELETE jutaan baris: menit sampai jam (scan + lock)
+
+
+-- =============================================
+-- MEMINDAHKAN PARTISI (Detach/Attach)
+-- =============================================
+
+-- PostgreSQL: Lepas partisi untuk archive
+ALTER TABLE transactions DETACH PARTITION transactions_2023;
+
+-- Simpan di archive table
+CREATE TABLE transactions_archive_2023 (LIKE transactions_2023);
+INSERT INTO transactions_archive_2023 SELECT * FROM transactions_2023;
+
+-- Atau attach kembali
+ALTER TABLE transactions ATTACH PARTITION transactions_2023
+    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+
+-- =============================================
+-- MERGE PARTISI (gabungkan partisi kecil)
+-- =============================================
+
+-- PostgreSQL: buat tabel baru, migrate data, swap
+CREATE TABLE transactions_2024_h1 (
+    LIKE transactions INCLUDING DEFAULTS INCLUDING CONSTRAINTS
+);
+INSERT INTO transactions_2024_h1
+SELECT * FROM transactions_2024
+WHERE transaction_date < '2024-07-01';
+
+-- =============================================
+-- CEK PARTISI YANG ADA
+-- =============================================
+
+-- PostgreSQL:
+SELECT
+    schemaname, tablename,
+    pg_size_pretty(pg_relation_size(schemaname||'.'||tablename)) AS size
+FROM pg_tables
+WHERE tablename LIKE 'transactions%'
+ORDER BY tablename;
+
+-- MySQL:
+SHOW CREATE TABLE transactions;
+SELECT TABLE_NAME, TABLE_ROWS, DATA_LENGTH
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_NAME = 'transactions'
+  AND TABLE_SCHEMA = 'database_name';
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Partition Pruning    -->
+      <!-- ============================== -->
+      <h2 id="partition-pruning">7. Partition Pruning &amp; Query Optimization</h2>
+
+      <p><strong>Partition Pruning</strong> adalah mekanisme dimana optimizer secara otomatis mengeliminasi partisi yang tidak relevan dengan query. Ini adalah sumber utama peningkatan performa dari partitioning.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Partition Pruning</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- PARTITION PRUNING — PostgreSQL
+-- =============================================
+
+-- Set enable_partition_pruning = on; (default)
+
+-- Query dengan filter tanggal — pruning aktif!
+EXPLAIN SELECT * FROM transactions
+WHERE transaction_date = '2026-06-15';
+-- Output: hanya "transactions_2026" yang di-scan ✅
+
+-- Query TANPA filter — scan semua partisi
+EXPLAIN SELECT * FROM transactions;
+-- Output: Append → scan semua partisi ❌
+
+-- Query dengan parameter — optimizer cek runtime
+PREPARE q AS SELECT * FROM transactions
+WHERE transaction_date = $1;
+EXECUTE q('2026-03-15');
+-- PostgreSQL 11+ bisa prune partisi dari prepared statement ✅
+
+
+-- =============================================
+-- PARTITION PRUNING — MySQL
+-- =============================================
+
+-- Pruning dengan YEAR()
+EXPLAIN SELECT * FROM transactions
+WHERE YEAR(transaction_date) = 2026;
+-- Optimizer bisa pruning ke p2026 ✅
+
+-- Pruning dengan range
+EXPLAIN SELECT * FROM transactions
+WHERE transaction_date >= '2026-01-01'
+  AND transaction_date < '2026-07-01';
+-- Pruning ke p2026 ✅
+
+
+-- =============================================
+-- CEK partisi mana yang di-scan
+-- =============================================
+
+-- PostgreSQL: EXPLAIN VERBOSE
+EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
+SELECT * FROM transactions
+WHERE transaction_date >= '2026-06-01'
+  AND transaction_date < '2026-07-01'
+  AND customer_id = 1234;
+
+-- Output akan menunjukkan:
+-- -> Index Scan using transactions_2026_customer_id_idx on transactions_2026
+--    Index Cond: (customer_id = 1234)
+--    Filter: (transaction_date >= ... AND transaction_date < ...)
+
+
+-- =============================================
+-- TIPS: Pastikan query bisa pruning
+-- =============================================
+
+-- ✅ Kolom partisi ada di WHERE
+SELECT * FROM transactions WHERE transaction_date = '2026-01-15';
+
+-- ✅ Kolom partisi dengan range
+SELECT * FROM transactions
+WHERE transaction_date BETWEEN '2026-01-01' AND '2026-03-31';
+
+-- ❌ Function pada kolom partisi — pruning GAGAL di PG
+-- (MySQL kadang masih bisa karena optimizer lebih agresif)
+SELECT * FROM transactions
+WHERE EXTRACT(MONTH FROM transaction_date) = 6;
+
+-- ✅ Solusi: gunakan range langsung
+SELECT * FROM transactions
+WHERE transaction_date >= '2026-06-01'
+  AND transaction_date < '2026-07-01';
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Best Practices       -->
+      <!-- ============================== -->
+      <h2 id="best-practices">8. Best Practices &amp; Kapan Menggunakan</h2>
+
+      <h3>✅ Kapan Sebaiknya Menggunakan Partitioning?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Situasi</th>
+            <th>Rekomendasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Tabel &gt; 100 juta baris</td><td>✅ Sangat dianjurkan</td></tr>
+          <tr><td>Data time-series (log, transaksi)</td><td>✅ Range partitioning</td></tr>
+          <tr><td>Perlu hapus data lama secara rutin</td><td>✅ DROP PARTITION vs DELETE</td></tr>
+          <tr><td>Query selalu filter berdasarkan kolom tertentu</td><td>✅ Partition by kolom tersebut</td></tr>
+          <tr><td>Tabel kecil (&lt; 1 juta baris)</td><td>❌ Index biasa sudah cukup</td></tr>
+          <tr><td>Tidak ada kolom yang jadi filter rutin</td><td>❌ Hash partitioning bisa dipertimbangkan</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Best Practices</h3>
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Partitioning</div>
+        <ul>
+          <li><strong>Pilih kolom partisi yang paling sering muncul di WHERE</strong> — ini kunci partition pruning</li>
+          <li><strong>Range per bulan atau tahun</strong> — jangan terlalu kecil (ribuan partisi = overhead metadata)</li>
+          <li><strong>Siapkan default partition</strong> — menangkap data yang tidak masuk range</li>
+          <li><strong>Auto-create partisi</strong> — gunakan pg_partman (PostgreSQL) atau event scheduler (MySQL)</li>
+          <li><strong>Monitor ukuran partisi</strong> — pastikan distribusi merata</li>
+          <li><strong>Test pruning</strong> — selalu EXPLAIN untuk verifikasi pruning bekerja</li>
+          <li><strong>Index pada setiap partisi</strong> — partisi tanpa index tetap lambat</li>
+          <li><strong>Hindari partition yang terlalu banyak</strong> — &gt; 1000 partisi bisa menurunkan performa DDL</li>
+        </ul>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Auto-Create Partitions (pg_partman)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- AUTO-CREATE PARTITIONS dengan pg_partman
+-- =============================================
+
+-- Install extension (PostgreSQL)
+CREATE EXTENSION pg_partman;
+
+-- Setup auto-partitioning per bulan
+SELECT partman.create_parent(
+    p_parent_table := 'public.transactions',
+    p_control := 'transaction_date',
+    p_type := 'range',
+    p_interval := '1 month',
+    p_premake := 3  -- Buat 3 bulan ke depan otomatis
+);
+
+-- Jalankan maintenance untuk membuat partisi baru
+SELECT partman.run_maintenance();
+
+-- Atau schedule via pg_cron:
+-- SELECT cron.schedule('partman-maintenance', '0 0 1 * *',
+--     'SELECT partman.run_maintenance()');
+
+
+-- =============================================
+-- MySQL: Auto-create dengan Event Scheduler
+-- =============================================
+
+DELIMITER //
+CREATE EVENT create_monthly_partition
+ON SCHEDULE EVERY 1 MONTH
+STARTS '2026-01-01 00:00:00'
+DO
+BEGIN
+    SET @next_month = DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 MONTH), '%Y%m');
+    SET @sql = CONCAT(
+        'ALTER TABLE transactions ADD PARTITION (',
+        'PARTITION p_', @next_month,
+        ' VALUES LESS THAN (', YEAR(DATE_ADD(NOW(), INTERVAL 2 MONTH)), '))'
+    );
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END //
+DELIMITER ;
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                 -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz Pemahaman</h2>
+
+      <p>Uji pemahaman Anda tentang SQL Table Partitioning!</p>
+
+      <div class="quiz-container">
+        <div class="quiz-question" data-correct="1">
+          <p><strong>1. Jenis partisi apa yang cocok untuk tabel log dengan kolom timestamp?</strong></p>
+          <label><input type="radio" name="q1" value="0"> Hash Partitioning</label>
+          <label><input type="radio" name="q1" value="1"> Range Partitioning</label>
+          <label><input type="radio" name="q1" value="2"> List Partitioning</label>
+          <label><input type="radio" name="q1" value="3"> Tidak perlu partisi</label>
+        </div>
+
+        <div class="quiz-question" data-correct="2">
+          <p><strong>2. Apa yang dimaksud dengan partition pruning?</strong></p>
+          <label><input type="radio" name="q2" value="0"> Menghapus partisi yang tidak diperlukan</label>
+          <label><input type="radio" name="q2" value="1"> Menggabungkan beberapa partisi menjadi satu</label>
+          <label><input type="radio" name="q2" value="2"> Optimizer hanya memindai partisi yang relevan dengan filter query</label>
+          <label><input type="radio" name="q2" value="3"> Membagi partisi menjadi sub-partisi</label>
+        </div>
+
+        <div class="quiz-question" data-correct="0">
+          <p><strong>3. Mengapa DROP PARTITION lebih cepat dari DELETE jutaan baris?</strong></p>
+          <label><input type="radio" name="q3" value="0"> DROP PARTITION menghapus file fisik langsung tanpa scan data</label>
+          <label><input type="radio" name="q3" value="1"> DROP PARTITION menghapus data satu per satu</label>
+          <label><input type="radio" name="q3" value="2"> DELETE lebih cepat karena menggunakan index</label>
+          <label><input type="radio" name="q3" value="3"> Keduanya sama cepatnya</label>
+        </div>
+
+        <div class="quiz-question" data-correct="3">
+          <p><strong>4. Di MySQL, apa syarat untuk PRIMARY KEY pada tabel yang di-partisi?</strong></p>
+          <label><input type="radio" name="q4" value="0"> PRIMARY KEY harus auto-increment</label>
+          <label><input type="radio" name="q4" value="1"> PRIMARY KEY harus bertipe INT</label>
+          <label><input type="radio" name="q4" value="2"> PRIMARY KEY harus satu kolom</label>
+          <label><input type="radio" name="q4" value="3"> PRIMARY KEY harus mencakup kolom partisi</label>
+        </div>
+
+        <div class="quiz-question" data-correct="2">
+          <p><strong>5. Hash partitioning cocok digunakan ketika...</strong></p>
+          <label><input type="radio" name="q5" value="0"> Data selalu diquery dengan range tanggal</label>
+          <label><input type="radio" name="q5" value="1"> Data punya kategori natural</label>
+          <label><input type="radio" name="q5" value="2"> Data perlu didistribusikan merata tanpa pola natural</label>
+          <label><input type="radio" name="q5" value="3"> Data perlu dihapus berdasarkan waktu</label>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <h3>Rangkuman</h3>
+      <div class="info-box info">
+        <div class="info-box-title">📝 Poin Penting</div>
+        <ul>
+          <li><strong>Range Partitioning</strong> — terbaik untuk data time-series (tanggal, angka berurutan)</li>
+          <li><strong>List Partitioning</strong> — cocok untuk data kategorikal (wilayah, tipe)</li>
+          <li><strong>Hash Partitioning</strong> — distribusi merata, cocok untuk data tanpa pola natural</li>
+          <li><strong>Partition Pruning</strong> — optimizer otomatis skip partisi tidak relevan</li>
+          <li><strong>DROP PARTITION</strong> — jauh lebih cepat dari DELETE untuk data lama</li>
+          <li><strong>Sub-partitioning</strong> — gabungkan 2 jenis untuk tabel sangat besar</li>
+          <li><strong>Pg_partman</strong> — auto-create partisi baru secara otomatis</li>
+        </ul>
+      </div>
+
+    </div>
+  </article>
+
+  <script src="../js/app.js?v=19.2"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    primaryColor: '#0f2a1f', primaryTextColor: '#e4e4e7',
+    primaryBorderColor: '#3ecf8e', lineColor: '#8b8b8b',
+    secondaryColor: '#0f1d3a', tertiaryColor: '#2a1f0a',
+    background: '#0a0a12', mainBkg: '#0a0a12',
+    nodeBorder: '#3ecf8e', clusterBkg: '#0a0a12',
+    titleColor: '#e4e4e7', edgeLabelBackground: '#0a0a12'
+  },
+  flowchart: { curve: 'basis', padding: 15, htmlLabels: true },
+  sequence: { mirrorActors: false, messageAlign: 'center' }
+});
+</script>

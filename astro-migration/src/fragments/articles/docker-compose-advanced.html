@@ -1,0 +1,1628 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">DevOps & Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">Docker Compose Advanced</span>
+      </div>
+      <span class="category-tag">DevOps & Cloud</span>
+      <h1>Docker Compose Advanced: Multi-Service, Networks, Volumes &amp; Profiles</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Pelajari Docker Compose tingkat lanjut — arsitektur multi-service, custom networks, named volumes, profiles, environment management, health checks, dan production-ready patterns untuk workflow DevOps profesional</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Docker Compose Advanced</a></li>
+          <li><a href="#multi-service">Arsitektur Multi-Service</a></li>
+          <li><a href="#custom-networks">Custom Networks</a></li>
+          <li><a href="#volumes">Named Volumes &amp; Bind Mounts</a></li>
+          <li><a href="#profiles">Docker Compose Profiles</a></li>
+          <li><a href="#environment">Environment Variables &amp; .env Files</a></li>
+          <li><a href="#health-checks">Health Checks &amp; Dependencies</a></li>
+          <li><a href="#scaling">Scaling Services</a></li>
+          <li><a href="#production">Production-Ready Patterns</a></li>
+          <li><a href="#troubleshooting">Troubleshooting &amp; Debugging</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Docker Compose Advanced</h2>
+
+      <p><strong>Docker Compose</strong> adalah tool yang memungkinkan Anda mendefinisikan dan menjalankan aplikasi multi-container menggunakan satu file YAML. Pada level dasar, Compose digunakan untuk menghubungkan beberapa service sederhana. Namun pada level advanced, Compose menjadi tool yang sangat powerful untuk mengelola arsitektur microservices yang kompleks.</p>
+
+      <p>Pada tutorial <a href="docker-dasar.html">Docker Dasar</a> sebelumnya, kita telah mempelajari konsep dasar Docker. Kali ini kita akan membahas fitur-fitur advanced Docker Compose yang sering digunakan dalam environment production.</p>
+
+      <h3>Mengapa Docker Compose Advanced?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Compose Dasar</th>
+            <th>Compose Advanced</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Services</td><td>2-3 service sederhana</td><td>10+ service dengan dependencies kompleks</td></tr>
+          <tr><td>Network</td><td>Default network</td><td>Custom networks dengan isolasi segment</td></tr>
+          <tr><td>Volumes</td><td>Anonymous volumes</td><td>Named volumes, bind mounts, driver options</td></tr>
+          <tr><td>Environment</td><td>Inline variables</td><td>.env files, variable substitution, profiles</td></tr>
+          <tr><td>Security</td><td>Tidak terkelola</td><td>Secrets, configs, read-only filesystem</td></tr>
+          <tr><td>Monitoring</td><td>Tidak ada</td><td>Health checks, restart policies, logging</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Docker Compose Multi-Service Architecture</div>
+<div class="diagram-box">
+        
+<pre class="mermaid">
+flowchart TD
+    N0["▼ ▼ ▼ data-network Postgres Redis MinIO :5432 :..."]
+    N1["Nginx (Proxy) :80,:443"]
+    N2["React (Web) :3000"]
+    N3["Vue.js (Admin) :3001"]
+    N4["Node.js (API) :4000"]
+    N5["Python (ML) :5000"]
+    N6["Worker (Celery)"]
+    N7["Postgres :5432 ("vol:pg")"]
+    N8["Redis :6379 ("vol:rd")"]
+    N9["MinIO :9000 ("vol:mi")"]
+    N1 --> N2
+    N2 --> N3
+    N3 --> N4
+    N4 --> N5
+    N5 --> N6
+    N6 --> N0
+    N0 --> N7
+    N7 --> N8
+    N8 --> N9
+</pre>
+    </div>
+      </div>
+
+      <p>Arsitektur di atas menunjukkan sebuah aplikasi production-grade dengan beberapa keunggulan:</p>
+      <ul>
+        <li><strong>Network Segmentation</strong> — frontend, backend, dan data layer terpisah</li>
+        <li><strong>Named Volumes</strong> — data persisten dengan label yang jelas</li>
+        <li><strong>Service Dependencies</strong> — backend menunggu database siap</li>
+        <li><strong>Health Checks</strong> — memastikan service benar-benar ready sebelum diakses</li>
+      </ul>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Multi-Service       -->
+      <!-- ============================== -->
+      <h2 id="multi-service">2. Arsitektur Multi-Service</h2>
+
+      <p>Arsitektur multi-service memungkinkan kita memecah aplikasi menjadi beberapa service yang saling terhubung. Setiap service berjalan di container terisolasi, memiliki image, konfigurasi, dan lifecycle-nya sendiri.</p>
+
+      <h3>Contoh: Full-Stack Application</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — docker-compose.yml</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># docker-compose.yml — Full-stack multi-service example
+# BeebaneLabs - Docker Compose Advanced Tutorial
+
+services:
+  # ===========================
+  # REVERSE PROXY (Nginx)
+  # ===========================
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: app-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+  # ===========================
+  # FRONTEND (React)
+  # ===========================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=/api
+    container_name: app-frontend
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - frontend-dist:/app/dist
+    networks:
+      - frontend
+    restart: unless-stopped
+
+  # ===========================
+  # BACKEND API (Node.js)
+  # ===========================
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: app-api
+    environment:
+      - DATABASE_URL=postgresql://user:${DB_PASSWORD}@postgres:5432/appdb
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=production
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - api-logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - backend
+      - data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # ===========================
+  # WORKER (Celery/Python)
+  # ===========================
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: app-worker
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://user:${DB_PASSWORD}@postgres:5432/appdb
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+      - data
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+
+  # ===========================
+  # DATABASE (PostgreSQL)
+  # ===========================
+  postgres:
+    image: postgres:16-alpine
+    container_name: app-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: appdb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d appdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - data
+    restart: unless-stopped
+
+  # ===========================
+  # CACHE (Redis)
+  # ===========================
+  redis:
+    image: redis:7-alpine
+    container_name: app-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - data
+    restart: unless-stopped
+
+# ===========================
+# NETWORKS
+# ===========================
+networks:
+  frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+  data:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+
+# ===========================
+# VOLUMES
+# ===========================
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  frontend-dist:
+    driver: local
+  api-logs:
+    driver: local
+</code></pre>
+      </div>
+
+      <h3>Penjelasan Komponen Kunci</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Komponen</th>
+            <th>Fungsi</th>
+            <th>Tips</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>depends_on</code></td><td>Menentukan urutan startup service</td><td>Gunakan <code>condition: service_healthy</code> agar benar-benar menunggu</td></tr>
+          <tr><td><code>healthcheck</code></td><td>Memeriksa kesehatan service</td><td>Selalu tambahkan untuk service kritis seperti database</td></tr>
+          <tr><td><code>deploy.resources</code></td><td>Batasan CPU dan memory</td><td>Penting untuk mencegah satu service menghabiskan semua resource</td></tr>
+          <tr><td><code>restart</code></td><td>Kebijakan restart otomatis</td><td><code>unless-stopped</code> cocok untuk production</td></tr>
+          <tr><td><code>build.target</code></td><td>Multi-stage build target</td><td>Gunakan target berbeda untuk dev dan production</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Perintah Dasar Multi-Service</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Jalankan semua service di background
+docker compose up -d
+
+# Jalankan hanya service tertentu
+docker compose up -d api postgres redis
+
+# Lihat status semua service
+docker compose ps
+
+# Lihat log gabungan semua service
+docker compose logs -f
+
+# Lihat log service tertentu
+docker compose logs -f api
+
+# Restart satu service
+docker compose restart api
+
+# Rebuild dan restart setelah perubahan Dockerfile
+docker compose up -d --build api
+
+# Hentikan semua service (pertahankan data)
+docker compose down
+
+# Hentikan dan hapus volumes (HATI-HATI: data hilang!)
+docker compose down -v
+
+# Scale worker menjadi 3 instance
+docker compose up -d --scale worker=3
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Gunakan <code>docker compose up -d --build</code> setiap kali Anda mengubah Dockerfile. Docker Compose tidak otomatis rebuild image jika Dockerfile berubah — Anda harus trigger secara manual.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Custom Networks     -->
+      <!-- ============================== -->
+      <h2 id="custom-networks">3. Custom Networks</h2>
+
+      <p>Secara default, Docker Compose membuat satu network bridge untuk semua service dalam satu file <code>docker-compose.yml</code>. Namun dalam production, Anda perlu memisahkan network berdasarkan layer arsitektur untuk keamanan dan isolasi yang lebih baik.</p>
+
+      <h3>Jenis Network Driver</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Driver</th>
+            <th>Fungsi</th>
+            <th>Penggunaan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>bridge</code></td><td>Network default, container bisa saling berkomunikasi</td><td>Service yang perlu berinteraksi</td></tr>
+          <tr><td><code>host</code></td><td>Container menggunakan host network langsung</td><td>Performance-critical, hindari NAT overhead</td></tr>
+          <tr><td><code>overlay</code></td><td>Network lintas host (Swarm mode)</td><td>Multi-node deployment</td></tr>
+          <tr><td><code>none</code></td><td>Tidak ada network</td><td>Container yang tidak perlu network</td></tr>
+          <tr><td><code>macvlan</code></td><td>Container mendapat IP langsung dari LAN</td><td>Legacy app yang butuh IP sendiri</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Network Segmentation Strategy</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Custom Networks Configuration</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Network segmentation strategy
+networks:
+  # Frontend network — exposed to outside world
+  # Hanya Nginx dan frontend app
+  frontend:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-frontend
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+    labels:
+      - "app.network=frontend"
+      - "app.environment=production"
+
+  # Backend network — internal API communication
+  # API, Worker, dan proxy
+  backend:
+    driver: bridge
+    internal: false   # bisa akses internet untuk API calls
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+    labels:
+      - "app.network=backend"
+
+  # Data network — TIDAK bisa akses internet
+  # Database, cache, dan storage saja
+  data:
+    driver: bridge
+    internal: true    # TIDAK bisa akses internet!
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+    labels:
+      - "app.network=data"
+</code></pre>
+      </div>
+
+      <h3>Network Aliases</h3>
+      <p>Network aliases memungkinkan service diakses dengan nama yang mudah diingat, bukan nama container:</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Network Aliases</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>services:
+  postgres-primary:
+    image: postgres:16
+    networks:
+      data:
+        aliases:
+          - db-primary
+          - database
+          - postgres
+
+  postgres-replica:
+    image: postgres:16
+    networks:
+      data:
+        aliases:
+          - db-replica
+
+  api:
+    environment:
+      # Service lain bisa pakai alias untuk akses
+      DATABASE_HOST: db-primary
+      REPLICA_HOST: db-replica
+    networks:
+      - backend
+      - data    # API perlu akses ke data network
+</code></pre>
+      </div>
+
+      <h3>Fixed IP Addresses</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Static IP</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>services:
+  nginx:
+    networks:
+      frontend:
+        ipv4_address: 172.20.0.10
+      backend:
+        ipv4_address: 172.21.0.10
+
+  postgres:
+    networks:
+      data:
+        ipv4_address: 172.22.0.10
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Hindari menggunakan fixed IP addresses kecuali benar-benar diperlukan (misalnya untuk whitelist di firewall). Gunakan network aliases sebagai gantinya karena lebih fleksibel dan tidak akan conflict saat scaling.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Volumes             -->
+      <!-- ============================== -->
+      <h2 id="volumes">4. Named Volumes &amp; Bind Mounts</h2>
+
+      <p>Docker menyediakan beberapa cara untuk mengelola data persisten. Pemahaman yang benar tentang volume management sangat penting untuk production deployment.</p>
+
+      <h3>Perbandingan Tipe Volume</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Tipe</th>
+            <th>Sintaks</th>
+            <th>Kelebihan</th>
+            <th>Kekurangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Named Volume</td>
+            <td><code>postgres-data:/var/lib/pg</code></td>
+            <td>Dikelola Docker, portable, backup mudah</td>
+            <td>Tidak bisa edit langsung dari host</td>
+          </tr>
+          <tr>
+            <td>Bind Mount</td>
+            <td><code>./data:/var/lib/pg</code></td>
+            <td>Bisa edit dari host, cocok untuk development</td>
+            <td>Path absolut, portability terbatas</td>
+          </tr>
+          <tr>
+            <td>Tmpfs</td>
+            <td><code>type: tmpfs, target: /tmp</code></td>
+            <td>Di RAM saja, sangat cepat</td>
+            <td>Hilang saat container restart</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Advanced Volume Configuration</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Volume Configurations</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>services:
+  postgres:
+    image: postgres:16
+    volumes:
+      # Named volume dengan mount options
+      - type: volume
+        source: postgres-data
+        target: /var/lib/postgresql/data
+        volume:
+          nocopy: true
+
+      # Read-only bind mount untuk config
+      - type: bind
+        source: ./postgres/postgresql.conf
+        target: /etc/postgresql/postgresql.conf
+        read_only: true
+
+      # Init scripts (read-only)
+      - type: bind
+        source: ./database/init
+        target: /docker-entrypoint-initdb.d
+        read_only: true
+
+  api:
+    image: node:20-alpine
+    volumes:
+      # Bind mount untuk development (hot reload)
+      - type: bind
+        source: ./backend/src
+        target: /app/src
+
+      # Named volume untuk uploads
+      - type: volume
+        source: api-uploads
+        target: /app/uploads
+
+      # tmpfs untuk temporary files (RAM-based)
+      - type: tmpfs
+        target: /app/tmp
+        tmpfs:
+          size: 100000000    # 100MB limit
+          mode: 1777
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - type: volume
+        source: redis-data
+        target: /data
+    # Read-only root filesystem
+    read_only: true
+    tmpfs:
+      - /tmp
+
+# Volume definitions dengan driver options
+volumes:
+  postgres-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/postgres
+    labels:
+      com.example.description: "PostgreSQL production data"
+      com.example.backup: "daily"
+
+  redis-data:
+    driver: local
+    labels:
+      com.example.description: "Redis AOF persistence"
+
+  api-uploads:
+    driver: local
+</code></pre>
+      </div>
+
+      <h3>Backup &amp; Restore Volumes</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Backup volume ke file tar
+docker run --rm \
+  -v myapp_postgres-data:/data:ro \
+  -v $(pwd)/backups:/backup \
+  alpine tar czf /backup/postgres-data-$(date +%Y%m%d).tar.gz -C /data .
+
+# Restore volume dari file tar
+docker run --rm \
+  -v myapp_postgres-data:/data \
+  -v $(pwd)/backups:/backup \
+  alpine tar xzf /backup/postgres-data-20260626.tar.gz -C /data
+
+# List semua volumes
+docker volume ls
+
+# Inspect volume
+docker volume inspect myapp_postgres-data
+
+# Backup PostgreSQL secara konsisten (lebih aman)
+docker compose exec postgres pg_dump -U user appdb > backup.sql
+
+# Restore PostgreSQL
+docker compose exec -T postgres psql -U user appdb < backup.sql
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Untuk backup database production, jangan backup volume secara langsung karena data mungkin sedang ditulis. Gunakan tool backup database seperti <code>pg_dump</code> atau <code>mysqldump</code> untuk konsistensi data.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Profiles            -->
+      <!-- ============================== -->
+      <h2 id="profiles">5. Docker Compose Profiles</h2>
+
+      <p><strong>Profiles</strong> memungkinkan Anda mengelompokkan service berdasarkan kebutuhan. Misalnya, service monitoring dan debugging hanya diaktifkan saat development, sementara service production hanya dijalankan di server.</p>
+
+      <h3>Konsep Profiles</h3>
+      <p>Service tanpa <code>profiles</code> akan selalu dijalankan. Service dengan <code>profiles</code> hanya dijalankan ketika profile-nya diaktifkan secara eksplisit.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Docker Compose Profiles</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>services:
+  # ===========================
+  # SERVICE UTAMA (selalu jalan)
+  # ===========================
+  api:
+    build: ./backend
+    profiles: []    # Tidak ada profile = selalu jalan
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+
+  # ===========================
+  # DEVELOPMENT ONLY
+  # ===========================
+  frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    profiles:
+      - development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src    # Hot reload
+    environment:
+      - NODE_ENV=development
+
+  mailhog:
+    image: mailhog/mailhog
+    profiles:
+      - development
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+
+  # ===========================
+  # DEBUGGING / ADMIN TOOLS
+  # ===========================
+  pgadmin:
+    image: dpage/pgadmin4
+    profiles:
+      - debug
+      - admin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@beebanelabs.com
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
+
+  redis-commander:
+    image: rediscommander/redis-commander
+    profiles:
+      - debug
+      - admin
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+
+  portainer:
+    image: portainer/portainer-ce
+    profiles:
+      - admin
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-data:/data
+    ports:
+      - "9000:9000"
+
+  # ===========================
+  # MONITORING
+  # ===========================
+  prometheus:
+    image: prom/prometheus
+    profiles:
+      - monitoring
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana
+    profiles:
+      - monitoring
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/dashboards:/etc/grafana/provisioning/dashboards:ro
+    ports:
+      - "3000:3000"
+
+  # ===========================
+  # TESTING
+  # ===========================
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    profiles:
+      - test
+    environment:
+      - DATABASE_URL=postgresql://test:test@postgres-test:5432/testdb
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+
+  postgres-test:
+    image: postgres:16
+    profiles:
+      - test
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: testdb
+    tmpfs:
+      - /var/lib/postgresql/data   # RAM-based untuk test cepat
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  postgres-data:
+  portainer-data:
+  prometheus-data:
+  grafana-data:
+</code></pre>
+      </div>
+
+      <h3>Cara Menggunakan Profiles</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Jalankan HANYA service default (tanpa profile)
+docker compose up -d
+
+# Aktifkan profile development
+docker compose --profile development up -d
+
+# Aktifkan multiple profiles
+docker compose --profile debug --profile monitoring up -d
+
+# Aktifkan SEMUA profiles
+docker compose --profile development --profile debug --profile admin --profile monitoring --profile test up -d
+
+# Atau gunakan environment variable
+COMPOSE_PROFILES=development,debug docker compose up -d
+
+# Jalankan test dengan profile test
+docker compose --profile test run --rm test-runner npm test
+
+# Lihat service berdasarkan profile
+docker compose --profile admin ps
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Best Practice Profiles</div>
+        <p>Gunakan profile naming yang konsisten: <code>development</code>, <code>staging</code>, <code>production</code>, <code>debug</code>, <code>admin</code>, <code>monitoring</code>, <code>test</code>. Simpan profile combinations di script shell agar tim tidak perlu menghafal flag yang panjang.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Environment         -->
+      <!-- ============================== -->
+      <h2 id="environment">6. Environment Variables &amp; .env Files</h2>
+
+      <p>Pengelolaan environment variables yang baik adalah kunci keamanan dan portabilitas Docker Compose. Jangan pernah hardcode secrets di dalam <code>docker-compose.yml</code>.</p>
+
+      <h3>Strategi Environment Variables</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — .env file</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># .env — untuk Docker Compose variable substitution
+# JANGAN commit file ini ke git!
+
+# Database
+DB_PASSWORD=super-secret-password-here
+DB_NAME=appdb
+DB_USER=appuser
+
+# Application
+JWT_SECRET=my-jwt-secret-key
+API_KEY=sk-1234567890abcdef
+
+# Docker Compose project name
+COMPOSE_PROJECT_NAME=myapp
+
+# Image tags (bisa di-override per environment)
+API_IMAGE_TAG=latest
+FRONTEND_IMAGE_TAG=latest
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — .env.example (aman untuk commit ke git)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># .env.example — Template environment variables
+# Copy ke .env dan isi dengan nilai yang sesuai
+
+# Database
+DB_PASSWORD=CHANGE_ME
+DB_NAME=appdb
+DB_USER=appuser
+
+# Application
+JWT_SECRET=CHANGE_ME
+API_KEY=CHANGE_ME
+
+# Docker
+COMPOSE_PROJECT_NAME=myapp
+API_IMAGE_TAG=latest
+FRONTEND_IMAGE_TAG=latest
+</code></pre>
+      </div>
+
+      <h3>Variable Substitution di docker-compose.yml</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Variable Substitution</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>services:
+  api:
+    image: myapp/api:${API_IMAGE_TAG:-latest}
+    environment:
+      # Dari .env file
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Default values (jika tidak ada di .env)
+      - NODE_ENV=${NODE_ENV:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - PORT=${API_PORT:-4000}
+
+      # Literal value (tidak dari .env)
+      - SERVICE_NAME=api
+
+    # Atau gunakan env_file untuk bulk import
+    env_file:
+      - path: ./config/common.env
+        required: true
+      - path: ./config/secrets.env
+        required: false    # Tidak error jika file tidak ada
+</code></pre>
+      </div>
+
+      <h3>Docker Secrets (Swarm Mode)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Docker Secrets</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Untuk Docker Swarm, gunakan secrets
+# Secrets di-mount sebagai file di /run/secrets/
+
+services:
+  api:
+    image: myapp/api
+    secrets:
+      - db_password
+      - jwt_secret
+      - api_key
+    environment:
+      # Baca secret dari file
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - JWT_SECRET_FILE=/run/secrets/jwt_secret
+
+  postgres:
+    image: postgres:16
+    secrets:
+      - db_password
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
+  api_key:
+    external: true    # Sudah ada di Docker Swarm
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan Keamanan</div>
+        <p>Selalu tambahkan <code>.env</code> dan <code>secrets/</code> ke <code>.gitignore</code>. Gunakan <code>.env.example</code> sebagai template. Untuk production, pertimbangkan menggunakan Docker Secrets atau external secrets manager seperti HashiCorp Vault atau AWS Secrets Manager.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Health Checks       -->
+      <!-- ============================== -->
+      <h2 id="health-checks">7. Health Checks &amp; Dependencies</h2>
+
+      <p>Health checks memastikan service benar-benar siap menerima request, bukan hanya sekadar container yang sudah running. Ini sangat penting untuk service dependencies seperti database yang perlu waktu untuk inisialisasi.</p>
+
+      <h3>Health Check Patterns</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Health Checks</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>services:
+  # PostgreSQL — gunakan pg_isready
+  postgres:
+    image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # MySQL — gunakan mysqladmin
+  mysql:
+    image: mysql:8
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # Redis — gunakan redis-cli ping
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # MongoDB — gunakan mongosh
+  mongo:
+    image: mongo:7
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # HTTP API — gunakan curl
+  api:
+    build: ./backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Node.js dengan custom health script
+  node-app:
+    build: ./node-app
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # Elasticsearch
+  elasticsearch:
+    image: elasticsearch:8.10.0
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+</code></pre>
+      </div>
+
+      <h3>Conditional Dependencies</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Service Dependencies</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>services:
+  api:
+    build: ./backend
+    depends_on:
+      # Tunggu sampai postgres benar-benar sehat
+      postgres:
+        condition: service_healthy
+      # Tunggu sampai redis benar-benar sehat
+      redis:
+        condition: service_healthy
+      # Tunggu sampai migrasi selesai (service_started + exit)
+      migrate:
+        condition: service_completed_successfully
+
+  # Database migration (berjalan sekali lalu exit)
+  migrate:
+    build: ./backend
+    command: ["npm", "run", "migrate"]
+    environment:
+      - DATABASE_URL=postgresql://user:${DB_PASSWORD}@postgres:5432/appdb
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - migration
+</code></pre>
+      </div>
+
+      <h3>Monitoring Health Status</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Cek status health semua container
+docker compose ps
+# NAME          STATUS                    PORTS
+# app-api       Up 5 min (healthy)        0.0.0.0:4000->4000/tcp
+# app-db        Up 5 min (healthy)        5432/tcp
+# app-redis     Up 5 min (healthy)        6379/tcp
+
+# Detail health check dari satu container
+docker inspect --format='{{json .State.Health}}' app-api | jq
+
+# Log health check history
+docker inspect --format='{{range .State.Health.Log}}{{.Output}}{{end}}' app-api
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Scaling             -->
+      <!-- ============================== -->
+      <h2 id="scaling">8. Scaling Services</h2>
+
+      <p>Docker Compose memungkinkan Anda menjalankan multiple instance dari satu service untuk menangani beban yang lebih tinggi.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Scaling-Ready Service</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>services:
+  worker:
+    build: ./worker
+    # Jangan hardcode container_name jika ingin scale!
+    # container_name: app-worker   ← JANGAN ini
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - WORKER_CONCURRENCY=4
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Scale worker menjadi 5 instance
+docker compose up -d --scale worker=5
+
+# Scale API menjadi 3 instance
+docker compose up -d --scale api=3
+
+# Perhatikan: port binding akan conflict jika di-scale!
+# Solusi: gunakan range port atau Nginx load balancer
+# ports:
+#   - "4000-4010:4000"    ← assign port otomatis
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Untuk production scaling, pertimbangkan menggunakan Docker Swarm (<code>docker stack deploy</code>) atau Kubernetes. Docker Compose scaling cocok untuk development dan staging, tetapi tidak memiliki fitur load balancing built-in.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Production          -->
+      <!-- ============================== -->
+      <h2 id="production">9. Production-Ready Patterns</h2>
+
+      <h3>Multi-File Compose Override</h3>
+      <p>Gunakan file terpisah untuk konfigurasi berbeda:</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Struktur file:
+# docker-compose.yml          ← Base config
+# docker-compose.override.yml ← Auto-loaded, untuk development
+# docker-compose.prod.yml     ← Production overrides
+# docker-compose.test.yml     ← Testing overrides
+
+# Development (auto-load base + override)
+docker compose up -d
+
+# Production (base + prod override)
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# Testing (base + test override)
+docker compose -f docker-compose.yml -f docker-compose.test.yml up -d
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — docker-compose.prod.yml</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># docker-compose.prod.yml — Production overrides
+services:
+  api:
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=warn
+
+  nginx:
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "5"
+
+  postgres:
+    restart: always
+    command: >
+      postgres
+        -c shared_buffers=256MB
+        -c effective_cache_size=768MB
+        -c maintenance_work_mem=64MB
+        -c work_mem=4MB
+        -c max_connections=200
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+</code></pre>
+      </div>
+
+      <h3>Read-Only Filesystem &amp; Security Hardening</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Security Hardening</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>services:
+  api:
+    build: ./backend
+    # Read-only root filesystem
+    read_only: true
+    # tmpfs untuk directory yang perlu write
+    tmpfs:
+      - /tmp
+      - /app/tmp
+    # Non-root user
+    user: "1000:1000"
+    # Drop capabilities
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE    # Hanya jika perlu bind port < 1024
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    # Batasi PID (mencegah fork bomb)
+    pids_limit: 100
+
+  postgres:
+    image: postgres:16
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run/postgresql
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Troubleshooting    -->
+      <!-- ============================== -->
+      <h2 id="troubleshooting">10. Troubleshooting &amp; Debugging</h2>
+
+      <h3>Perintah Debugging yang Sering Digunakan</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===========================
+# DIAGNOSTICS
+# ===========================
+
+# Cek status semua service
+docker compose ps -a
+
+# Lihat log dengan timestamp
+docker compose logs -f -t api
+
+# Lihat log 100 baris terakhir
+docker compose logs --tail 100 api
+
+# Resource usage (CPU, memory, network)
+docker compose top
+docker stats --no-stream
+
+# Inspect service configuration (resolved)
+docker compose config
+
+# Validasi compose file tanpa menjalankan
+docker compose config --quiet
+
+# ===========================
+# DEBUGGING CONTAINER
+# ===========================
+
+# Masuk ke container yang sedang berjalan
+docker compose exec api /bin/sh
+
+# Jalankan command satu kali
+docker compose exec api env
+
+# Masuk ke container baru (tidak ke yang running)
+docker compose run --rm api /bin/sh
+
+# ===========================
+# NETWORK DEBUGGING
+# ===========================
+
+# List networks
+docker network ls
+
+# Inspect network
+docker network inspect myapp_frontend
+
+# Tes koneksi antar container
+docker compose exec api ping postgres
+docker compose exec api nc -zv postgres 5432
+
+# ===========================
+# CLEANUP
+# ===========================
+
+# Hapus stopped containers
+docker compose rm -f
+
+# Hapus images yang tidak digunakan
+docker image prune -f
+
+# Hapus semua unused resources
+docker system prune -f --volumes
+</code></pre>
+      </div>
+
+      <h3>Common Issues &amp; Solutions</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Masalah</th>
+            <th>Penyebab</th>
+            <th>Solusi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Port already allocated</td>
+            <td>Port sudah digunakan oleh proses lain</td>
+            <td><code>lsof -i :PORT</code> lalu kill proses atau ganti port</td>
+          </tr>
+          <tr>
+            <td>Connection refused</td>
+            <td>Service belum siap atau network salah</td>
+            <td>Tambahkan health check dan depends_on condition</td>
+          </tr>
+          <tr>
+            <td>Volume permission denied</td>
+            <td>User ID di container berbeda dengan host</td>
+            <td>Set <code>user: "UID:GID"</code> atau ubah permission di Dockerfile</td>
+          </tr>
+          <tr>
+            <td>Out of memory</td>
+            <td>Container melebihi memory limit</td>
+            <td>Naikkan <code>deploy.resources.limits.memory</code></td>
+          </tr>
+          <tr>
+            <td>Environment variable tidak terbaca</td>
+            <td>Nama file .env salah atau path berbeda</td>
+            <td>Gunakan <code>docker compose config</code> untuk verifikasi</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- QUIZ                           -->
+      <!-- ============================== -->
+      <h2 id="quiz">11. Quiz Pemahaman</h2>
+      <p>Uji pemahaman Anda tentang Docker Compose Advanced:</p>
+
+      <div class="quiz-container" id="quizDockerCompose01">
+        <div class="quiz-question">
+          <p><strong>1. Apa fungsi dari <code>condition: service_healthy</code> di <code>depends_on</code>?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q1" value="a"> Menghentikan service jika dependency error</label>
+            <label><input type="radio" name="q1" value="b"> Menunggu sampai dependency benar-benar sehat sebelum start</label>
+            <label><input type="radio" name="q1" value="c"> Me-restart dependency secara otomatis</label>
+            <label><input type="radio" name="q1" value="d"> Menghapus dependency yang tidak sehat</label>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <p><strong>2. Apa fungsi <code>internal: true</code> pada network definition?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q2" value="a"> Network hanya bisa diakses dari localhost</label>
+            <label><input type="radio" name="q2" value="b"> Network tidak bisa mengakses internet</label>
+            <label><input type="radio" name="q2" value="c"> Network hanya untuk internal Docker daemon</label>
+            <label><input type="radio" name="q2" value="d"> Network berjalan di port internal</label>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <p><strong>3. Mengapa container_name TIDAK disarankan saat ingin scaling?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q3" value="a"> Menghabiskan lebih banyak memory</label>
+            <label><input type="radio" name="q3" value="b"> Membuat container lebih lambat</label>
+            <label><input type="radio" name="q3" value="c"> Container name harus unik, sehingga tidak bisa di-scale</label>
+            <label><input type="radio" name="q3" value="d"> Tidak ada masalah dengan container_name</label>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <p><strong>4. Apa perbedaan named volume dan bind mount?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q4" value="a"> Named volume lebih cepat, bind mount lebih lambat</label>
+            <label><input type="radio" name="q4" value="b"> Named volume dikelola Docker, bind mount mengarah ke path di host</label>
+            <label><input type="radio" name="q4" value="c"> Named volume untuk data, bind mount untuk config</label>
+            <label><input type="radio" name="q4" value="d"> Tidak ada perbedaan</label>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <p><strong>5. Kapan service dengan <code>profiles</code> dijalankan?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q5" value="a"> Selalu dijalankan secara otomatis</label>
+            <label><input type="radio" name="q5" value="b"> Hanya saat profile-nya diaktifkan secara eksplisit</label>
+            <label><input type="radio" name="q5" value="c"> Hanya di production environment</label>
+            <label><input type="radio" name="q5" value="d"> Hanya saat ada dependency yang membutuhkannya</label>
+          </div>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="submitQuiz('quizDockerCompose01')">Cek Jawaban</button>
+        <div class="quiz-result" id="quizDockerCompose01-result"></div>
+      </div>
+
+      <!-- RELATED ARTICLES -->
+      <div class="related-articles">
+        <h3>Artikel Terkait</h3>
+        <div class="related-grid">
+          <a href="docker-dasar.html" class="related-card">
+            <span class="related-category">DevOps</span>
+            <h4>Docker untuk Developer: Panduan Praktis</h4>
+            <p>Dasar-dasar Docker dari nol</p>
+          </a>
+          <a href="docker-security.html" class="related-card">
+            <span class="related-category">Security</span>
+            <h4>Docker Security Best Practices</h4>
+            <p>Keamanan container yang optimal</p>
+          </a>
+          <a href="gitlab-ci-basics.html" class="related-card">
+            <span class="related-category">CI/CD</span>
+            <h4>GitLab CI/CD: Panduan Dasar</h4>
+            <p>Otomasi pipeline dengan GitLab</p>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== FOOTER ========== -->

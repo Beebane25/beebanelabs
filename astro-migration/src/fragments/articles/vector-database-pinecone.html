@@ -1,0 +1,689 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Database</a>
+        <span class="separator">/</span>
+        <span class="current">Vector Databases: Pinecone</span>
+      </div>
+      <span class="category-tag">Database</span>
+      <h1>Vector Databases: Pinecone — Embeddings, Similarity Search &amp; RAG</h1>
+      <p class="article-subtitle">Pelajari Vector Database dan Pinecone dari dasar — embeddings, semantic search, similarity search, RAG pipeline, dan integrasi dengan LLM untuk aplikasi AI modern</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 20 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Vector Database</a></li>
+          <li><a href="#embeddings">Embeddings — Representasi Data sebagai Vektor</a></li>
+          <li><a href="#pinecone-setup">Setup Pinecone</a></li>
+          <li><a href="#crud">CRUD Operations — Upsert, Query, Delete</a></li>
+          <li><a href="#similarity">Similarity Search &amp; Filtering</a></li>
+          <li><a href="#rag">RAG — Retrieval Augmented Generation</a></li>
+          <li><a href="#use-cases">Use Cases: Semantic Search &amp; Recommendation</a></li>
+          <li><a href="#alternatives">Pinecone vs Alternatives</a></li>
+          <li><a href="#best-practices">Best Practices &amp; Optimasi</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Vector Database</h2>
+
+      <p><strong>Vector Database</strong> adalah database khusus yang menyimpan dan mengelola data dalam bentuk <strong>vektor</strong> (angka berdimensi tinggi). Berbeda dari database tradisional yang mencari data berdasarkan keyword yang persis sama, vector database mencari data berdasarkan <strong>kemiripan makna</strong> (semantic similarity).</p>
+
+      <p>Bayangkan Anda mencari "sepatu olahraga" di database tradisional — hanya menemukan dokumen yang mengandung kata "sepatu olahraga". Di vector database, Anda bisa menemukan dokumen tentang "running shoes", "sneakers untuk jogging", atau "footwear aktivitas fisik" — karena semua ini memiliki <strong>makna yang mirip</strong>.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Vector Database Concept</div>
+<div class="diagram-box">
+        
+<pre class="mermaid">
+flowchart TD
+    N0["VECTOR DATABASE CONCEPT"]
+    N1["Input Text"]
+    N2["Embedding Model"]
+    N3["Vector (angka)"]
+    N4["Simpan di DB"]
+    N5["'sepatu olahraga'"]
+    N6["(0.23, -0.45, 0.87, ..., 0.12)  (384D)"]
+    N7["'running shoes'"]
+    N8["(0.25, -0.42, 0.85, ..., 0.15)  (384D)"]
+    N9["'sneakers joging'"]
+    N10["(0.21, -0.48, 0.82, ..., 0.10)  (384D)"]
+    N11["'mobil sport'"]
+    N12["(-0.67, 0.34, -0.21, ..., 0.78) (384D)"]
+    N13["Semantic Search: 'sepatu lari'"]
+    N14["vector query"]
+    N15["Hasil (by cosine similarity):"]
+    N16["1. 'running shoes'"]
+    N17["0.98 (sangat mirip) ✅"]
+    N18["2. 'sepatu olahraga'"]
+    N19["0.95 (mirip) ✅"]
+    N20["3. 'sneakers joging'"]
+    N21["0.93 (mirip) ✅"]
+    N22["4. 'mobil sport'"]
+    N23["0.12 (tidak mirip) ❌"]
+    N24["Data yang 'bermakna sama' punya vektor yang ber..."]
+    N0 --> N1
+    N1 --> N2
+    N2 --> N3
+    N3 --> N4
+    N4 --> N5
+    N5 --> N6
+    N6 --> N7
+    N7 --> N8
+    N8 --> N9
+    N9 --> N10
+    N10 --> N11
+    N11 --> N12
+    N12 --> N13
+    N13 --> N14
+    N14 --> N15
+    N15 --> N16
+    N16 --> N17
+    N17 --> N18
+    N18 --> N19
+    N19 --> N20
+    N20 --> N21
+    N21 --> N22
+    N22 --> N23
+    N23 --> N24
+</pre>
+    </div>
+      </div>
+
+      <h3>Mengapa Vector Database Penting?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Use Case</th>
+            <th>Contoh Aplikasi</th>
+            <th>Mengapa Butuh Vector DB?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Semantic Search</td><td>Search engine cerdas</td><td>Cari berdasarkan makna, bukan keyword</td></tr>
+          <tr><td>RAG (Retrieval Augmented Generation)</td><td>ChatGPT + knowledge base</td><td>LLM bisa jawab pertanyaan dari data Anda</td></tr>
+          <tr><td>Recommendation</td><td>Produk serupa</td><td>Temukan item dengan embedding mirip</td></tr>
+          <tr><td>Image Search</td><td>Pencarian gambar visual</td><td>Gambar → vektor → cari kemiripan</td></tr>
+          <tr><td>Anomaly Detection</td><td>Deteksi fraud</td><td>Data outlier punya vektor jauh dari cluster</td></tr>
+          <tr><td>Clustering</td><td>Pengelompokan otomatis</td><td>Group data berdasarkan kemiripan semantik</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Apa itu Pinecone?</h3>
+      <p><strong>Pinecone</strong> adalah vector database <strong>managed</strong> (fully hosted) yang paling populer. Keunggulan Pinecone: tidak perlu setup server, skalabilitas otomatis, latensi rendah (&lt;50ms), dan integrasi mudah dengan ekosistem AI/ML seperti OpenAI, LangChain, dan LlamaIndex.</p>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Embeddings           -->
+      <!-- ============================== -->
+      <h2 id="embeddings">2. Embeddings — Representasi Data sebagai Vektor</h2>
+
+      <p><strong>Embedding</strong> adalah proses mengubah data (teks, gambar, audio) menjadi vektor angka berdimensi tinggi. Vektor ini merepresentasikan "makna" atau "fitur" dari data tersebut dalam ruang matematika.</p>
+
+      <h3>Model Embedding Populer</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Dimensi</th>
+            <th>Provider</th>
+            <th>Cocok Untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>text-embedding-3-small</td><td>1536</td><td>OpenAI</td><td>Teks umum, cost-effective</td></tr>
+          <tr><td>text-embedding-3-large</td><td>3072</td><td>OpenAI</td><td>Teks, akurasi tinggi</td></tr>
+          <tr><td>all-MiniLM-L6-v2</td><td>384</td><td>Sentence Transformers</td><td>Gratis, cepat, lokal</td></tr>
+          <tr><td>multilingual-e5-large</td><td>1024</td><td>Microsoft</td><td>Multilingual (termasuk Indonesia)</td></tr>
+          <tr><td>embed-english-v3.0</td><td>1024</td><td>Cohere</td><td>Teks bahasa Inggris</td></tr>
+          <tr><td>gecko</td><td>768</td><td>Google</td><td>Multi-purpose</td></tr>
+        </tbody>
+      </table>
+
+      </div>
+<pre class="mermaid">
+flowchart TD
+    N0["pinecone-rag-project/"]
+    N1["app.py"]
+    N2["embeddings.py"]
+    N3["requirements.txt"]
+    N4[".env"]
+    N0 --> N1
+</pre>
+    </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: CRUD                 -->
+      <!-- ============================== -->
+      <h2 id="crud">4. CRUD Operations — Upsert, Query, Delete</h2>
+
+      </div>
+<pre class="mermaid">
+flowchart TD
+    N0["User Query: 'Berapa harga paket Enterprise Beeb..."]
+    N1["STEP 1: RETRIEVAL Query → Embedding → Vector Se..."]
+    N2["Top-K Results: 'Paket Enterprise: Rp 5jt/bulan...."]
+    N3["STEP 2: AUGMENTATION Gabungkan: System Prompt +..."]
+    N4["→ Prompt lengkap untuk LLM"]
+    N5["STEP 3: GENERATION LLM (GPT-4, Claude, dll) gen..."]
+    N6["'Paket Enterprise: Rp 5jt/bulan...' ✅ Akurat!"]
+    N0 --> N1
+    N1 --> N2
+    N2 --> N3
+    N3 --> N4
+    N4 --> N5
+    N5 --> N6
+</pre>
+    </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Full RAG Pipeline</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# FULL RAG PIPELINE
+# =============================================
+# pip install pinecone openai
+
+import openai
+from pinecone import Pinecone
+
+# Setup
+pc = Pinecone(api_key="YOUR_PINECONE_KEY")
+index = pc.Index("knowledge-base")
+openai_client = openai.OpenAI(api_key="YOUR_OPENAI_KEY")
+
+
+def get_embedding(text, model="text-embedding-3-small"):
+    """Buat embedding dari teks"""
+    response = openai_client.embeddings.create(
+        model=model, input=text
+    )
+    return response.data[0].embedding
+
+
+def retrieve_context(query, top_k=5, namespace=None):
+    """Ambil konteks relevan dari Pinecone"""
+    query_vector = get_embedding(query)
+
+    results = index.query(
+        vector=query_vector,
+        top_k=top_k,
+        include_metadata=True,
+        namespace=namespace
+    )
+
+    contexts = []
+    sources = []
+    for match in results.matches:
+        if match.score > 0.7:  # Threshold kemiripan
+            contexts.append(match.metadata.get("chunk_text", ""))
+            sources.append({
+                "id": match.id,
+                "title": match.metadata.get("title", ""),
+                "score": match.score
+            })
+
+    return contexts, sources
+
+
+def generate_answer(query, contexts, sources):
+    """Generate jawaban menggunakan LLM"""
+    context_text = "\n\n---\n\n".join(contexts)
+
+    system_prompt = """Anda adalah asisten AI yang membantu menjawab
+pertanyaan berdasarkan konteks yang diberikan.
+
+Aturan:
+1. Jawab HANYA berdasarkan konteks yang diberikan
+2. Jika informasi tidak ada di konteks, katakan "Saya tidak menemukan
+   informasi tersebut dalam database kami"
+3. Berikan jawaban yang jelas dan informatif
+4. Sebutkan sumber jika relevan"""
+
+    user_prompt = f"""Konteks dari database:
+---
+{context_text}
+---
+
+Pertanyaan pengguna: {query}
+
+Jawab pertanyaan berdasarkan konteks di atas."""
+
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        temperature=0.3,  # Rendah = lebih faktual
+        max_tokens=1000
+    )
+
+    return response.choices[0].message.content
+
+
+def rag_pipeline(query, namespace=None):
+    """Full RAG pipeline"""
+    # Step 1: Retrieve
+    contexts, sources = retrieve_context(query, namespace=namespace)
+
+    if not contexts:
+        return "Maaf, saya tidak menemukan informasi yang relevan.", []
+
+    # Step 2 + 3: Augment + Generate
+    answer = generate_answer(query, contexts, sources)
+
+    return answer, sources
+
+
+# =============================================
+# CONTOH PENGGUNAAN
+# =============================================
+
+# Pertanyaan tentang data Anda
+query = "Bagaimana cara menginstall Python di Windows?"
+answer, sources = rag_pipeline(query)
+
+print("Jawaban:", answer)
+print("\nSumber:")
+for s in sources:
+    print(f"  - {s['title']} (score: {s['score']:.3f})")
+
+
+# =============================================
+# INGEST DATA: Memasukkan dokumen ke Pinecone
+# =============================================
+
+def ingest_document(doc_id, text, metadata, chunk_size=500):
+    """Pecah dokumen jadi chunks dan masukkan ke Pinecone"""
+    # Step 1: Chunking (pecah teks panjang)
+    words = text.split()
+    chunks = []
+    for i in range(0, len(words), chunk_size):
+        chunk = " ".join(words[i:i + chunk_size])
+        chunks.append(chunk)
+
+    # Step 2: Embedding + Upsert
+    vectors = []
+    for i, chunk in enumerate(chunks):
+        embedding = get_embedding(chunk)
+        chunk_id = f"{doc_id}_chunk_{i}"
+
+        vectors.append({
+            "id": chunk_id,
+            "values": embedding,
+            "metadata": {
+                **metadata,
+                "chunk_text": chunk,
+                "chunk_index": i,
+                "parent_doc_id": doc_id
+            }
+        })
+
+    # Batch upsert (Pinecone max 1000 per batch)
+    batch_size = 100
+    for i in range(0, len(vectors), batch_size):
+        batch = vectors[i:i + batch_size]
+        index.upsert(vectors=batch)
+
+    print(f"Berhasil ingest {len(chunks)} chunks untuk doc {doc_id}")
+
+
+# Contoh ingest:
+ingest_document(
+    doc_id="tutorial_python",
+    text="Python adalah bahasa pemrograman serbaguna yang diciptakan oleh Guido van Rossum...",
+    metadata={
+        "title": "Tutorial Python Lengkap",
+        "category": "programming",
+        "source": "beebanelabs.com"
+    }
+)
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Use Cases            -->
+      <!-- ============================== -->
+      <h2 id="use-cases">7. Use Cases: Semantic Search &amp; Recommendation</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Use Case Implementations</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# USE CASE 1: Semantic Search Engine
+# =============================================
+
+class SemanticSearchEngine:
+    def __init__(self, index_name, embedding_model="text-embedding-3-small"):
+        pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+        self.index = pc.Index(index_name)
+        self.model = embedding_model
+
+    def search(self, query, filters=None, top_k=10):
+        vector = get_embedding(query, self.model)
+        return self.index.query(
+            vector=vector,
+            top_k=top_k,
+            include_metadata=True,
+            filter=filters
+        )
+
+    def search_with_threshold(self, query, threshold=0.75, **kwargs):
+        results = self.search(query, **kwargs)
+        return [m for m in results.matches if m.score >= threshold]
+
+# Usage:
+engine = SemanticSearchEngine("knowledge-base")
+results = engine.search("bagaimana cara deploy aplikasi ke cloud")
+
+
+# =============================================
+# USE CASE 2: Product Recommendation
+# =============================================
+
+def recommend_products(product_id, top_k=5):
+    """Rekomendasikan produk serupa"""
+    # Fetch vektor produk yang sedang dilihat
+    product = index.fetch(ids=[product_id])
+    product_vector = product.vectors[product_id].values
+
+    # Cari produk dengan embedding mirip
+    similar = index.query(
+        vector=product_vector,
+        top_k=top_k + 1,  # +1 karena produk sendiri juga muncul
+        include_metadata=True,
+        filter={"in_stock": {"$eq": True}}
+    )
+
+    # Exclude produk yang sedang dilihat
+    return [m for m in similar.matches if m.id != product_id][:top_k]
+
+
+# =============================================
+# USE CASE 3: Duplicate Detection
+# =============================================
+
+def find_duplicates(texts, threshold=0.95):
+    """Temukan teks yang hampir identik"""
+    embeddings = [get_embedding(t) for t in texts]
+    duplicates = []
+
+    for i in range(len(texts)):
+        results = index.query(
+            vector=embeddings[i],
+            top_k=5,
+            include_metadata=True
+        )
+        for match in results.matches:
+            if match.score >= threshold and match.id != f"doc_{i}":
+                duplicates.append({
+                    "original": texts[i],
+                    "duplicate": match.metadata.get("text", ""),
+                    "score": match.score
+                })
+
+    return duplicates
+
+
+# =============================================
+# USE CASE 4: Image Similarity Search
+# =============================================
+# pip install transformers torch
+# from transformers import CLIPProcessor, CLIPModel
+
+# def image_to_vector(image_path):
+#     model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+#     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+#
+#     image = Image.open(image_path)
+#     inputs = processor(images=image, return_tensors="pt")
+#     vector = model.get_image_features(**inputs)
+#     return vector.detach().numpy().flatten().tolist()
+#
+# def search_similar_images(image_path, top_k=5):
+#     query_vector = image_to_vector(image_path)
+#     return index.query(vector=query_vector, top_k=top_k)
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Alternatives         -->
+      <!-- ============================== -->
+      <h2 id="alternatives">8. Pinecone vs Alternatives</h2>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Database</th>
+            <th>Tipe</th>
+            <th>Kelebihan</th>
+            <th>Kekurangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Pinecone</strong></td><td>Managed cloud</td><td>Mudah, cepat, scalable</td><td>Vendor lock-in, biaya</td></tr>
+          <tr><td><strong>Weaviate</strong></td><td>Open-source / cloud</td><td>Modular, GraphQL API</td><td>Setup lebih kompleks</td></tr>
+          <tr><td><strong>Qdrant</strong></td><td>Open-source / cloud</td><td>Filter canggih, Rust</td><td>Ekosistem lebih kecil</td></tr>
+          <tr><td><strong>Milvus</strong></td><td>Open-source</td><td>Sangat scalable, GPU support</td><td>Butuh infra besar</td></tr>
+          <tr><td><strong>ChromaDB</strong></td><td>Open-source, embedded</td><td>Simple, Python-first</td><td>Belum production-ready</td></tr>
+          <tr><td><strong>pgvector</strong></td><td>PostgreSQL extension</td><td>Reuse PG infrastructure</td><td>Performa lebih rendah</td></tr>
+          <tr><td><strong>FAISS</strong></td><td>Library (bukan DB)</td><td>Sangat cepat, dari Meta</td><td>Tidak punya persistence</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Best Practices       -->
+      <!-- ============================== -->
+      <h2 id="best-practices">9. Best Practices &amp; Optimasi</h2>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Best Practices Vector Database</div>
+        <ul>
+          <li><strong>Chunking yang baik</strong> — pecah dokumen jadi 200-500 token, overlap 50-100 token</li>
+          <li><strong>Konsistensi model</strong> — selalu gunakan model embedding yang SAMA untuk index dan query</li>
+          <li><strong>Metadata filter</strong> — filter metadata sebelum vector search untuk efisiensi</li>
+          <li><strong>Namespace</strong> — pisahkan data per use case (articles, products, users)</li>
+          <li><strong>Batch upsert</strong> — jangan satu per satu, gunakan batch untuk efisiensi</li>
+          <li><strong>Top-K selection</strong> — mulai dengan top_k=10-20, lalu re-rank untuk akurasi</li>
+          <li><strong>Threshold</strong> — tetapkan minimum similarity score (0.7-0.8) untuk filter noise</li>
+          <li><strong>Monitor</strong> — track recall@k dan latency untuk evaluasi performa</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+
+      <div class="quiz-container">
+        <div class="quiz-question" data-correct="2">
+          <p><strong>1. Apa yang disimpan oleh Vector Database?</strong></p>
+          <label><input type="radio" name="q1" value="0"> Teks dan dokumen asli</label>
+          <label><input type="radio" name="q1" value="1"> Query SQL dan hasilnya</label>
+          <label><input type="radio" name="q1" value="2"> Vektor angka berdimensi tinggi beserta metadata</label>
+          <label><input type="radio" name="q1" value="3"> Gambar dan audio dalam format binary</label>
+        </div>
+
+        <div class="quiz-question" data-correct="1">
+          <p><strong>2. Mengapa "sepatu olahraga" dan "running shoes" bisa ditemukan oleh semantic search?</strong></p>
+          <label><input type="radio" name="q2" value="0"> Karena keduanya mengandung kata "sepatu"</label>
+          <label><input type="radio" name="q2" value="1"> Karena embedding model menempatkan keduanya di posisi vektor yang berdekatan (makna mirip)</label>
+          <label><input type="radio" name="q2" value="2"> Karena Pinecone menerjemahkan otomatis</label>
+          <label><input type="radio" name="q2" value="3"> Karena database menyimpan sinonim manual</label>
+        </div>
+
+        <div class="quiz-question" data-correct="3">
+          <p><strong>3. Apa itu RAG?</strong></p>
+          <label><input type="radio" name="q3" value="0"> Teknik training ulang LLM dengan data baru</label>
+          <label><input type="radio" name="q3" value="1"> Framework untuk membuat vector database</label>
+          <label><input type="radio" name="q3" value="2"> Algoritma untuk menghitung similarity score</label>
+          <label><input type="radio" name="q3" value="3"> Teknik mengambil konteks relevan dari vector DB lalu memberikannya ke LLM sebagai context</label>
+        </div>
+
+        <div class="quiz-question" data-correct="0">
+          <p><strong>4. Mengapa chunking diperlukan sebelum menyimpan dokumen ke vector database?</strong></p>
+          <label><input type="radio" name="q4" value="0"> Karena embedding model punya batasan token dan chunk kecil menghasilkan retrieval lebih presisi</label>
+          <label><input type="radio" name="q4" value="1"> Karena Pinecone tidak mendukung teks panjang</label>
+          <label><input type="radio" name="q4" value="2"> Karena chunking membuat embedding lebih cepat</label>
+          <label><input type="radio" name="q4" value="3"> Karena chunking menghapus noise dari data</label>
+        </div>
+
+        <div class="quiz-question" data-correct="2">
+          <p><strong>5. Metric apa yang paling umum digunakan untuk semantic search?</strong></p>
+          <label><input type="radio" name="q5" value="0"> Euclidean distance</label>
+          <label><input type="radio" name="q5" value="1"> Manhattan distance</label>
+          <label><input type="radio" name="q5" value="2"> Cosine similarity</label>
+          <label><input type="radio" name="q5" value="3"> Jaccard similarity</label>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <h3>Rangkuman</h3>
+      <div class="info-box info">
+        <div class="info-box-title">📝 Poin Penting</div>
+        <ul>
+          <li><strong>Vector Database</strong> — menyimpan vektor embedding, mencari berdasarkan kemiripan makna</li>
+          <li><strong>Embeddings</strong> — ubah teks/gambar menjadi vektor angka berdimensi tinggi</li>
+          <li><strong>Cosine similarity</strong> — metric paling umum untuk semantic search</li>
+          <li><strong>Pinecone</strong> — managed vector DB, mudah setup, latensi rendah</li>
+          <li><strong>RAG</strong> — gabungkan retrieval dari vector DB + LLM generation = jawaban akurat dari data Anda</li>
+          <li><strong>Chunking</strong> — pecah dokumen jadi potongan kecil untuk retrieval presisi</li>
+          <li><strong>Konsistensi model</strong> — selalu gunakan model embedding yang sama</li>
+        </ul>
+      </div>
+
+    </div>
+  </article>
+
+  <script src="../js/app.js?v=19.2"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    primaryColor: '#0f2a1f', primaryTextColor: '#e4e4e7',
+    primaryBorderColor: '#3ecf8e', lineColor: '#8b8b8b',
+    secondaryColor: '#0f1d3a', tertiaryColor: '#2a1f0a',
+    background: '#0a0a12', mainBkg: '#0a0a12',
+    nodeBorder: '#3ecf8e', clusterBkg: '#0a0a12',
+    titleColor: '#e4e4e7', edgeLabelBackground: '#0a0a12'
+  },
+  flowchart: { curve: 'basis', padding: 15, htmlLabels: true },
+  sequence: { mirrorActors: false, messageAlign: 'center' }
+});
+</script>

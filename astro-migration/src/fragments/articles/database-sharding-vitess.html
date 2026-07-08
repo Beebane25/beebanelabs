@@ -1,0 +1,694 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Database</a><span class="separator">/</span><span class="current">Vitess</span></div>
+      <span class="category-tag">Database</span>
+      <h1>Database Sharding dengan Vitess</h1>
+      <p class="article-subtitle">Tutorial komprehensif Vitess — database clustering system untuk horizontal scaling MySQL. Pelajari VSchema, shards, reparenting, VTGate routing, resharding online, dan deployment production-grade</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Vitess</a></li>
+          <li><a href="#arsitektur">Arsitektur Komponen</a></li>
+          <li><a href="#setup">Setup &amp; Instalasi</a></li>
+          <li><a href="#vschema">VSchema — Virtual Schema</a></li>
+          <li><a href="#vtgate">VTGate — Query Routing</a></li>
+          <li><a href="#reparenting">Reparenting &amp; High Availability</a></li>
+          <li><a href="#resharding">Online Resharding</a></li>
+          <li><a href="#best-practices">Best Practices &amp; Monitoring</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan Vitess</h2>
+
+      <p><strong>Vitess</strong> adalah database clustering system open-source yang dikembangkan oleh YouTube (Google) untuk melakukan horizontal scaling pada MySQL. Vitess awalnya dibuat untuk menangani miliaran query per hari di YouTube, dan sekarang digunakan oleh Slack, Square, GitHub, dan banyak perusahaan besar lainnya.</p>
+
+      <p>Vitess memecahkan masalah fundamental MySQL: keterbatasan vertical scaling. Dengan Vitess, Anda bisa membagi (shard) database MySQL ke banyak server, sambil tetap menggunakan SQL standar. Vitess bertindak sebagai middleware antara aplikasi dan MySQL — menangani routing query, connection pooling, dan resharding secara transparan.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Arsitektur Vitess</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">📱</div>
+            <div class="arch-label">Application</div>
+            <div class="arch-desc">MySQL client library<br>tanpa perubahan kode</div>
+          </div>
+          <div class="arch-arrow">→ MySQL Protocol →</div>
+          <div class="arch-box info">
+            <div class="arch-icon">🔀</div>
+            <div class="arch-label">VTGate</div>
+            <div class="arch-desc">Query routing,<br>planning, aggregation</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">📊</div>
+            <div class="arch-label">VTTablet</div>
+            <div class="arch-desc">MySQL proxy,<br>connection pooling</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box success">
+            <div class="arch-icon">💾</div>
+            <div class="arch-label">MySQL</div>
+            <div class="arch-desc">Per-shard MySQL<br>instances</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Keunggulan Vitess</h3>
+      <ul>
+        <li><strong>Transparent Sharding:</strong> Aplikasi berbicara MySQL biasa, Vitess menangani routing</li>
+        <li><strong>Online Resharding:</strong> Tambah/hapus shard tanpa downtime</li>
+        <li><strong>Automatic Failover:</strong> Reparenting otomatis saat primary mati</li>
+        <li><strong>Connection Pooling:</strong> Mengurangi beban MySQL dari ribuan connections</li>
+        <li><strong>Query Rewriting:</strong> Mengoptimalkan dan membatasi query yang berbahaya</li>
+        <li><strong>Kubernetes Native:</strong> Deploy mudah di K8s dengan Vitess Operator</li>
+      </ul>
+
+      <h3>1.2 Vitess vs Alternatif</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Aspek</th><th>Vitess</th><th>ProxySQL</th><th>MySQL Cluster</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Sharding</td><td>Otomatis, online resharding</td><td>Manual routing</td><td>Auto-partitioning</td></tr>
+          <tr><td>Failover</td><td>Otomatis reparenting</td><td>Perlu tool tambahan</td><td>Built-in</td></tr>
+          <tr><td>Online DDL</td><td>Ya (gh-ost integration)</td><td>Tidak</td><td>Tidak</td></tr>
+          <tr><td>Complexity</td><td>Sedang-tinggi</td><td>Rendah</td><td>Tinggi</td></tr>
+          <tr><td>MySQL Compatible</td><td>Ya (wire protocol)</td><td>Ya</td><td>Sebagian</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="arsitektur">2. Arsitektur Komponen</h2>
+
+      <h3>2.1 Komponen Utama</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>Komponen</th><th>Fungsi</th><th>Port Default</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>VTGate</strong></td><td>Query router — menerima SQL dari aplikasi, merutekan ke shard yang tepat</td><td>15991 (MySQL), 15001 (gRPC)</td></tr>
+          <tr><td><strong>VTTablet</strong></td><td>Proxy untuk setiap MySQL instance — connection pooling, backup, replication</td><td>15002 (gRPC)</td></tr>
+          <tr><td><strong>VTctld</strong></td><td>Control plane — mengelola topology, shards, dan operasi cluster</td><td>15000 (Web UI)</td></tr>
+          <tr><td><strong>Topology Service</strong></td><td>Penyimpanan metadata cluster (etcd, ZooKeeper, Consul)</td><td>Bervariasi</td></tr>
+          <tr><td><strong>VTOrc</strong></td><td>Monitoring dan automatic reparenting</td><td>-</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.2 Keyspace &amp; Shard</h3>
+
+      <p>Di Vitess, database dikelompokkan dalam <strong>keyspace</strong> (analog dengan database logical). Setiap keyspace bisa dipecah menjadi beberapa <strong>shard</strong>. Setiap shard adalah MySQL instance terpisah yang menyimpan subset data.</p>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Unsharded vs Sharded Keyspace</div>
+        <p>Anda bisa mulai dengan <strong>unsharded keyspace</strong> (satu shard, semua data) dan melakukan <strong>resharding</strong> nanti ketika data sudah besar. Ini memungkinkan Anda memulai dengan Vitess tanpa langsung memikirkan sharding strategy.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 3 -->
+      <h2 id="setup">3. Setup &amp; Instalasi</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Setup Vitess Local</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Download Vitess binary
+VERSION="19.0.0"
+wget https://github.com/vitessio/vitess/releases/download/v${VERSION}/vitess-${VERSION}-linux-amd64.tar.gz
+tar xzf vitess-${VERSION}-linux-amd64.tar.gz
+export PATH="$(pwd)/vitess-${VERSION}/bin:$PATH"
+
+# Verifikasi
+vtgate --version
+vtctldclient --version
+
+# Setup dengan Docker (recomendado untuk testing)
+docker pull vitess/lite:v19.0.0
+
+# Atau menggunakan local examples
+git clone https://github.com/vitessio/vitess.git
+cd vitess/examples/local
+
+# Mulai cluster 2-shard
+./101_initial_cluster.sh
+
+# Ini akan membuat:
+# - etcd (topology service)
+# - 2 shards (each with 1 primary + 1 replica)
+# - vtgate (query router)
+# - vtctld (control plane)
+
+# Verifikasi cluster
+vtctldclient GetTablets
+
+# Koneksi ke vtgate (port 15991)
+mysql -h 127.0.0.1 -P 15991 -u root
+
+# Buat keyspace dan tabel
+# (melalui vtgate, otomatis di-propagate ke semua shard)
+</code></pre>
+      </div>
+
+      <h3>3.1 Kubernetes Deployment</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Vitess Operator for Kubernetes</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Install Vitess Operator
+kubectl apply -f https://github.com/vitessio/vitess/releases/download/v19.0.0/operator.yaml
+
+# VitessCluster CRD
+# vitess-cluster.yaml
+apiVersion: planetscale.com/v2
+kind: VitessCluster
+metadata:
+  name: my-vitess
+spec:
+  images:
+    vtctld: vitess/lite:v19.0.0
+    vtgate: vitess/lite:v19.0.0
+    vttablet: vitess/lite:v19.0.0
+    vtorc: vitess/lite:v19.0.0
+  cells:
+    - name: zone1
+  globalLockserver:
+    external:
+      etcd:
+        hosts:
+          - etcd-client:2379
+  keyspaces:
+    - name: myapp
+      partitionings:
+        - equal:
+            parts: 2  # 2 shards
+            shardTemplate:
+              databaseInitScriptSecret:
+                name: init-script
+              tabletPools:
+                - cell: zone1
+                  type: replica
+                  replicas: 2
+                  mysqld: {}
+                  dataVolumeClaimSpec:
+                    accessModes: ["ReadWriteOnce"]
+                    resources:
+                      requests:
+                        storage: 10Gi
+  vitessDashboard:
+    cells:
+      - zone1
+
+# Apply
+kubectl apply -f vitess-cluster.yaml
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="vschema">4. VSchema — Virtual Schema</h2>
+
+      <p><strong>VSchema</strong> (Virtual Schema) adalah konfigurasi yang memberi tahu Vitess bagaimana data didistribusikan ke shard. VSchema mendefinisikan <strong>sharding key</strong>, <strong>vindex</strong> (virtual index), dan routing rules.</p>
+
+      <h3>4.1 Sharding Key &amp; Vindex</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON — VSchema untuk Sharded Keyspace</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+{
+  "sharded": true,
+  "vindexes": {
+    "hash_user_id": {
+      "type": "hash"
+    },
+    "binary_md5_category": {
+      "type": "binary_md5"
+    },
+    "lookup_email": {
+      "type": "consistent_lookup",
+      "params": {
+        "table": "user_email_idx",
+        "from": "email",
+        "to": "user_id"
+      },
+      "owner": "users"
+    }
+  },
+  "tables": {
+    "users": {
+      "column_vindexes": [
+        {
+          "column": "user_id",
+          "name": "hash_user_id"
+        },
+        {
+          "column": "email",
+          "name": "lookup_email"
+        }
+      ],
+      "auto_increment": {
+        "column": "user_id",
+        "column_sequence": "user_seq"
+      }
+    },
+    "orders": {
+      "column_vindexes": [
+        {
+          "column": "user_id",
+          "name": "hash_user_id"
+        }
+      ]
+    },
+    "products": {
+      "column_vindexes": [
+        {
+          "column": "category",
+          "name": "binary_md5_category"
+        }
+      ]
+    }
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>4.2 Jenis Vindex</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>Vindex Type</th><th>Fungsi</th><th>Cocok Untuk</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>hash</code></td><td>Distribusi merata berdasarkan hash</td><td>Sharding key utama (user_id)</td></tr>
+          <tr><td><code>binary_md5</code></td><td>Distribusi merata berdasarkan MD5</td><td>String sharding key</td></tr>
+          <tr><td><code>consistent_lookup</code></td><td>Lookup table untuk kolom non-sharding</td><td>Unique secondary index (email)</td></tr>
+          <tr><td><code>lookup</code></td><td>Non-unique lookup</td><td>Many-to-one mapping</td></tr>
+          <tr><td><code>numeric</code></td><td>Distribusi berdasarkan range numerik</td><td>Time-based sharding</td></tr>
+          <tr><td><code>region_experimental</code></td><td>Geo-based sharding</td><td>Multi-region deployment</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Mengapply VSchema</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Apply VSchema menggunakan vtctldclient
+vtctldclient ApplyVSchema --vschema-file vschema.json myapp
+
+# Atau dari MySQL shell (vtgate)
+mysql> SHOW VSCHEMA TABLES;
+mysql> SHOW VSCHEMA VINDEXES;
+
+# Membuat tabel melalui vtgate (otomatis di-propagate ke semua shard)
+mysql -h 127.0.0.1 -P 15991 -u root myapp &lt;&lt;EOF
+CREATE TABLE users (
+    user_id BIGINT NOT NULL AUTO_INCREMENT,
+    email VARCHAR(255) NOT NULL,
+    name VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id),
+    UNIQUE KEY idx_email (email)
+) ENGINE=InnoDB;
+
+CREATE TABLE orders (
+    order_id BIGINT NOT NULL AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    total DECIMAL(10,2),
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (order_id),
+    KEY idx_user_id (user_id)
+) ENGINE=InnoDB;
+EOF
+
+# Vitess akan otomatis menjalankan DDL di semua shard
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Cross-Shard Queries</div>
+        <p>Query yang membutuhkan data dari multiple shard (cross-shard join) jauh lebih lambat dari single-shard query. Vitess akan mengirimkan query ke semua shard dan mengagregasi hasilnya. Pastikan query utama Anda bisa di-route ke satu shard berdasarkan sharding key.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 5 -->
+      <h2 id="vtgate">5. VTGate — Query Routing</h2>
+
+      <p><strong>VTGate</strong> adalah komponen yang menerima koneksi MySQL dari aplikasi dan merutekan query ke shard yang tepat. VTGate mendukung hampir semua sintaks MySQL dan bisa mengoptimalkan query untuk sharded environment.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Query Routing di Vitess</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Single-shard query (SANGAT DIREKOMENDASIKAN)
+-- user_id = 1234 di-hash dan di-route ke shard yang tepat
+SELECT * FROM users WHERE user_id = 1234;
+
+-- Query dengan sharding key
+SELECT * FROM orders WHERE user_id = 1234;
+-- Route ke shard yang sama karena user_id adalah sharding key
+
+-- Cross-shard query (Vitess kirim ke SEMUA shard lalu aggregate)
+SELECT COUNT(*) FROM users;
+-- Mengirim COUNT(*) ke semua shard, lalu sum hasilnya
+
+-- Cross-shard join (lambat!)
+SELECT u.name, o.total
+FROM users u JOIN orders o ON u.id = o.user_id
+WHERE u.user_id = 1234;
+-- Route ke satu shard (karena ada filter user_id)
+
+-- TANPA filter sharding key:
+SELECT u.name, o.total
+FROM users u JOIN orders o ON u.id = o.user_id;
+-- SCATTER query: dikirim ke semua shard (LEMBAT!)
+
+-- Transaction dalam satu shard
+BEGIN;
+UPDATE users SET name = 'Budi Updated' WHERE user_id = 1234;
+UPDATE orders SET status = 'completed' WHERE user_id = 1234 AND order_id = 5678;
+COMMIT;
+
+-- Cross-shard transaction (2PC, lebih lambat)
+BEGIN;
+UPDATE users SET name = 'Budi' WHERE user_id = 1234;
+UPDATE orders SET status = 'completed' WHERE user_id = 9999 AND order_id = 5678;
+COMMIT;
+</code></pre>
+      </div>
+
+      <h3>5.1 Query Planner yang Didukung</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — EXPLAIN di Vitess</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Vitess mendukung EXPLAIN untuk melihat query routing
+EXPLAIN SELECT * FROM users WHERE user_id = 1234;
+
+-- Output akan menunjukkan:
+-- 1. Apakah query single-shard atau scatter
+-- 2. Shard mana yang dituju
+-- 3. Estimasi rows
+
+-- Membatasi query berbahaya
+-- Vitess otomatis membatasi:
+-- - FULL SCAN tanpa LIMIT
+-- - CROSS JOIN yang sangat besar
+-- - Query yang terlalu lama (query timeout)
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="reparenting">6. Reparenting &amp; High Availability</h2>
+
+      <p><strong>Reparenting</strong> adalah proses mengubah replica menjadi primary saat primary node mati. Vitess mendukung reparenting otomatis (via VTOrc) dan manual (via PlannedReparentTablet).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Reparenting Operations</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Melihat tablet status
+vtctldclient GetTablets --keyspace myapp --shard "0"
+
+# Planned Reparenting (graceful, zero downtime)
+# Saat maintenance window
+vtctldclient PlannedReparentShard myapp/0 --new-primary zone1-100
+
+# Emergency Reparenting (primary sudah mati)
+vtctldclient EmergencyReparentShard myapp/0 --new-primary zone1-200
+
+# VTOrc: automatic failover
+# VTOrc terus memantau kesehatan primary
+# Jika primary mati > threshold, otomatis reparent ke replica terbaik
+
+# Konfigurasi VTOrc
+# --prevent-cross-cell-failover=true
+# --wait-replicas-timeout=30s
+# --topo-global-server-address=etcd:2379
+
+# Monitoring replication lag
+vtctldclient GetReplicationStatus zone1-100
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 VTOrc vs Orchestrator</div>
+        <p>VTOrc adalah Vitess-native tool untuk automatic failover (menggantikan Orchestrator). VTOrc lebih terintegrasi dengan topology service dan melakukan reparenting yang lebih aman karena aware terhadap VSchema dan shard routing.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 7 -->
+      <h2 id="resharding">7. Online Resharding</h2>
+
+      <p><strong>Online resharding</strong> adalah fitur killer Vitess — Anda bisa memecah (split) atau menggabungkan (merge) shard tanpa downtime aplikasi. Proses ini berjalan secara background, dan Vitess menangani routing perubahan secara otomatis.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Resharding dari 2 ke 4 Shards</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Saat ini: 2 shards (00-80, 80-FF)
+# Target: 4 shards (00-40, 40-80, 80-C0, C0-FF)
+
+# Step 1: Buat shard baru
+vtctldclient CreateKeyspace --keyspace-type=SHARDED myapp
+vtctldclient CreateShard myapp "00-40"
+vtctldclient CreateShard myapp "40-80"
+vtctldclient CreateShard myapp "80-C0"
+vtctldclient CreateShard myapp "C0-FF"
+
+# Step 2: Copy data dari shard lama ke shard baru (vtworker)
+# (Automated via Reshard command)
+vtctldclient Reshard --source-shards="0" --target-shards="-40,40-80,80-c0,c0-" myapp
+
+# Step 3: Verify data konsisten
+vtctldclient VDiff myapp myapp
+
+# Step 4: Cutover (switch traffic ke shard baru)
+# Vitess akan meng-update routing rules secara atomik
+vtctldclient SwitchTraffic --tablet-type=replica myapp "0"
+vtctldclient SwitchTraffic --tablet-type=primary myapp "0"
+
+# Step 5: Cleanup shard lama (setelah yakin)
+vtctldclient DeleteShard myapp "00-80"
+
+# Monitoring selama resharding
+vtctldclient Workflow --keyspace myapp list
+</code></pre>
+      </div>
+
+      <h3>7.1 Merge Shards (Penggabungan)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Merge 4 Shards ke 2</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Merge 4 shards ke 2 shards
+# Dari: 00-40, 40-80, 80-C0, C0-FF
+# Ke: 00-80, 80-FF
+
+# Prosesnya sama seperti split, tapi terbalik:
+vtctldclient Reshard --source-shards="-40,40-80,80-c0,c0-" --target-shards="0,80-" myapp
+vtctldclient VDiff myapp myapp
+vtctldclient SwitchTraffic --tablet-type=primary myapp "-40,40-80,80-c0,c0-"
+vtctldclient DeleteShard myapp "00-40"
+vtctldclient DeleteShard myapp "40-80"
+vtctldclient DeleteShard myapp "80-C0"
+vtctldclient DeleteShard myapp "C0-FF"
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="best-practices">8. Best Practices &amp; Monitoring</h2>
+
+      <h3>8.1 Sharding Key Selection</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>Criteria</th><th>Rekomendasi</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Distribusi merata</td><td>Pilih kolom dengan cardinality tinggi (user_id, order_id)</td></tr>
+          <tr><td>Akses pattern</td><td>Sharding key harus ada di WHERE clause query utama</td></tr>
+          <tr><td>Data co-location</td><td>Relasi yang sering di-join harus di shard yang sama (sama sharding key)</td></tr>
+          <tr><td>Tidak berubah</td><td>Hindari kolom yang sering di-update sebagai sharding key</td></tr>
+          <tr><td>Tidak monotonik</td><td>Hindari auto-increment (tidak merata). Gunakan hash</td></tr>
+        </tbody>
+      </table>
+
+      <h3>8.2 Monitoring</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Monitoring Vitess</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Status semua tablet
+vtctldclient GetTablets
+
+# Replication lag per shard
+vtctldclient GetReplicationStatus zone1-100
+
+# Vitess Dashboard (vtctld web UI)
+# http://localhost:15000
+
+# Metrics endpoint (Prometheus format)
+curl http://localhost:15002/metrics  # vtctld
+curl http://localhost:15991/debug/vars  # vtgate
+
+# Key metrics:
+# - vtgate_*: query routing stats, error rates, latencies
+# - vttablet_*: replication lag, query times, tablet state
+# - MySQL metrics: connections, buffer pool hit rate
+
+# Grafana dashboard
+# Vitess menyediakan Grafana dashboard template di:
+# https://github.com/vitessio/vitess/tree/main/tools/monitoring
+</code></pre>
+      </div>
+
+      <h3>8.3 Checklist Production</h3>
+      <ul>
+        <li>Minimal 2 replicas per shard (primary + 1 replica)</li>
+        <li>VTOrc aktif untuk automatic failover</li>
+        <li>Backup terjadwal ke cloud storage (S3/GCS)</li>
+        <li>Monitoring replication lag dan query latency</li>
+        <li>VDiff sebelum cutover resharding</li>
+        <li>Connection pooling dikonfigurasi (vttablet pool settings)</li>
+        <li>Query timeout diatur (prevent runaway queries)</li>
+        <li>Test failover dan resharding di staging</li>
+      </ul>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 9 -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quiz10">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa fungsi utama VTGate di Vitess?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Menyimpan data MySQL</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Merutekan query dari aplikasi ke shard yang tepat</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Mengelola backup database</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Monitoring replication lag</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa itu VSchema?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Virtual database yang menyimpan cache</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Konfigurasi yang mendefinisikan bagaimana data didistribusikan ke shard</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Schema untuk NoSQL database</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Template untuk membuat tabel baru</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Mengapa cross-shard queries lebih lambat?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Karena data terenkripsi</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Karena query dikirim ke semua shard dan hasilnya diagregasi</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Karena Vitess memblokir cross-shard queries</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Karena MySQL tidak mendukung cross-shard</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa itu reparenting di Vitess?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Mengubah parent-child relationship dalam tabel</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Mengubah replica menjadi primary saat primary mati atau untuk maintenance</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Menambah shard baru</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Menggabungkan beberapa shard</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa keunggulan utama online resharding di Vitess?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Menghapus shard lama secara otomatis</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Bisa menambah atau mengurangi shard tanpa downtime aplikasi</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Mengkompresi data otomatis</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Mengubah MySQL ke PostgreSQL</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="supabase-realtime.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Supabase Realtime Features</span>
+        </a>
+        <a href="cockroachdb-distributed.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">CockroachDB: Distributed SQL</span>
+        </a>
+      </div>
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial Database terbaru langsung di inbox kamu.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

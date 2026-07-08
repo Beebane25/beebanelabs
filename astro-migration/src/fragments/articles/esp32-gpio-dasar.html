@@ -1,0 +1,758 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">ESP32</a>
+        <span class="separator">/</span>
+        <span class="current">GPIO Dasar</span>
+      </div>
+      <span class="category-tag">ESP32 & ESP8266</span>
+      <h1>Panduan GPIO ESP32: Input, Output, PWM &amp; Interrupt</h1>
+      <p class="article-subtitle">Pelajari cara mengontrol pin GPIO ESP32 dari nol — dari menyalakan LED sampai mendeteksi tombol dan menghasilkan sinyal PWM untuk proyek dunia nyata</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 12 menit baca</span>
+        <span class="difficulty pemula">Pemula</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#apa-itu-gpio">Apa Itu GPIO?</a></li>
+          <li><a href="#pin-mapping">Pin Mapping &amp; Kapabilitas ESP32</a></li>
+          <li><a href="#mode-output">Mode Output: Menyalakan LED</a></li>
+          <li><a href="#mode-input">Mode Input: Membaca Tombol</a></li>
+          <li><a href="#pull-up-down">Pull-Up &amp; Pull-Down Resistor</a></li>
+          <li><a href="#interrupt">Interrupt: Deteksi Perubahan Tanpa Polling</a></li>
+          <li><a href="#pwm">PWM: Mengatur Kecerahan &amp; Kecepatan Motor</a></li>
+          <li><a href="#proyek-lampu-lalu-lintas">Proyek: Lampu Lalu Lintas Otomatis</a></li>
+          <li><a href="#tips-peringatan">Tips &amp; Peringatan Penting</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Apa Itu GPIO?       -->
+      <!-- ============================== -->
+      <h2 id="apa-itu-gpio">1. Apa Itu GPIO?</h2>
+
+      <p><strong>GPIO</strong> singkatan dari <em>General-Purpose Input/Output</em>, yaitu pin-pin pada mikrokontroler yang bisa dikonfigurasi secara fleksibel sebagai <strong>input</strong> (menerima sinyal dari luar) atau <strong>output</strong> (mengirim sinyal ke komponen eksternal). GPIO adalah jantung dari hampir semua proyek embedded — dari menyalakan LED sederhana sampai mengendalikan robot kompleks.</p>
+
+      <p>ESP32 memiliki hingga <strong>34 pin GPIO</strong> yang dilabeli dari GPIO 0 sampai GPIO 39. Namun, tidak semua pin bisa digunakan secara bebas. Beberapa pin sudah dialokasikan untuk fungsi internal seperti flash memory, ADC internal, atau bootstrapping. Kita akan membahas detailnya di bagian pin mapping.</p>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Setiap pin GPIO ESP32 beroperasi pada level tegangan <strong>3.3V</strong>. Jangan pernah memberikan tegangan 5V langsung ke pin GPIO — bisa merusak chip! Gunakan voltage divider atau level shifter jika perlu berkomunikasi dengan perangkat 5V.</p>
+      </div>
+
+      <!-- DIAGRAM: Konsep GPIO -->
+      <div class="arch-diagram">
+        <div class="arch-title">Konsep Dasar GPIO</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">📥</div>
+            <div class="arch-label">Input Mode</div>
+            <div class="arch-desc">Membaca sinyal dari tombol, sensor, saklar</div>
+          </div>
+          <div class="arch-box highlight">
+            <div class="arch-icon">📤</div>
+            <div class="arch-label">Output Mode</div>
+            <div class="arch-desc">Menyalakan LED, relay, buzzer, motor</div>
+          </div>
+          <div class="arch-box warn">
+            <div class="arch-icon">⚡</div>
+            <div class="arch-label">PWM Output</div>
+            <div class="arch-desc">Sinyal pulsa untuk kecerahan/servo</div>
+          </div>
+          <div class="arch-box info">
+            <div class="arch-icon">🔔</div>
+            <div class="arch-label">Interrupt</div>
+            <div class="arch-desc">Deteksi perubahan tanpa polling</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Pin Mapping         -->
+      <!-- ============================== -->
+      <h2 id="pin-mapping">2. Pin Mapping &amp; Kapabilitas ESP32</h2>
+
+      <p>Memahami pin mapping adalah langkah pertama sebelum mulai coding. Berikut tabel ringkasan pin GPIO ESP32 beserta kapabilitas dan batasannya:</p>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Pin GPIO</th>
+            <th>Fungsi</th>
+            <th>Catatan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>GPIO 0</td><td>Input/Output</td><td>Bootstrapping — harus LOW saat boot</td></tr>
+          <tr><td>GPIO 1</td><td>TX0 (UART)</td><td>Digunakan untuk serial output</td></tr>
+          <tr><td>GPIO 2</td><td>Input/Output</td><td>LED bawaan pada beberapa board</td></tr>
+          <tr><td>GPIO 3</td><td>RX0 (UART)</td><td>Digunakan untuk serial input</td></tr>
+          <tr><td>GPIO 4–15</td><td>Input/Output</td><td>General purpose, aman digunakan</td></tr>
+          <tr><td>GPIO 6–11</td><td>Flash SPI</td><td>❌ JANGAN DIGUNAKAN — terhubung ke flash internal</td></tr>
+          <tr><td>GPIO 12</td><td>Input/Output</td><td>Bootstrapping — harus LOW saat boot</td></tr>
+          <tr><td>GPIO 13–19</td><td>Input/Output</td><td>General purpose, aman digunakan</td></tr>
+          <tr><td>GPIO 20–23</td><td>Input/Output</td><td>General purpose, aman digunakan</td></tr>
+          <tr><td>GPIO 25–26</td><td>Input/Output + DAC</td><td>DAC1 dan DAC2</td></tr>
+          <tr><td>GPIO 27</td><td>Input/Output</td><td>General purpose</td></tr>
+          <tr><td>GPIO 32–33</td><td>Input Only + ADC</td><td>ADC1_CH4 &amp; ADC1_CH5</td></tr>
+          <tr><td>GPIO 34–39</td><td>Input Only</td><td>⚠️ Tidak bisa dikonfigurasi sebagai output</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p><strong>GPIO 6–11</strong> terhubung ke modul flash SPI internal. Menggunakan pin ini dapat menyebabkan crash atau brick pada ESP32. <strong>GPIO 34–39</strong> hanya bisa sebagai input — tidak memiliki driver output internal. Selalu cek datasheet sebelum memilih pin!</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Mode Output         -->
+      <!-- ============================== -->
+      <h2 id="mode-output">3. Mode Output: Menyalakan LED</h2>
+
+      <p>Mode <strong>OUTPUT</strong> digunakan ketika ESP32 perlu mengontrol komponen eksternal. Cara paling sederhana untuk memahami output adalah dengan menyalakan dan mematikan LED.</p>
+
+      <h3>Konfigurasi Pin sebagai Output</h3>
+
+      <p>Di Arduino framework, kita menggunakan fungsi <code>pinMode()</code> untuk mengatur arah pin, dan <code>digitalWrite()</code> untuk mengatur level HIGH (3.3V) atau LOW (0V):</p>
+
+      <pre><code class="language-cpp">// === Program Blink LED pada ESP32 ===
+// Hubungkan LED ke GPIO 2 dengan resistor 220Ω
+
+#define LED_PIN 2    // GPIO 2 (LED bawaan pada banyak board ESP32)
+
+void setup() {
+  pinMode(LED_PIN, OUTPUT);    // Atur GPIO 2 sebagai OUTPUT
+}
+
+void loop() {
+  digitalWrite(LED_PIN, HIGH); // Nyalakan LED (3.3V)
+  delay(1000);                 // Tunggu 1 detik
+  digitalWrite(LED_PIN, LOW);  // Matikan LED (0V)
+  delay(1000);                 // Tunggu 1 detik
+}</code></pre>
+
+      <h3>Cara Kerja</h3>
+      <ol>
+        <li><code>pinMode(LED_PIN, OUTPUT)</code> — Mengkonfigurasi GPIO 2 sebagai output. Setelah ini, pin bisa mengeluarkan tegangan HIGH atau LOW.</li>
+        <li><code>digitalWrite(LED_PIN, HIGH)</code> — Mengatur pin ke 3.3V, LED menyala.</li>
+        <li><code>digitalWrite(LED_PIN, LOW)</code> — Mengatur pin ke 0V, LED mati.</li>
+        <li><code>delay(1000)</code> — Menunda eksekusi selama 1000 milidetik (1 detik).</li>
+      </ol>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips — Resistor LED</div>
+        <p>Selalu gunakan resistor pembatas arus (220Ω–330Ω) secara seri dengan LED. Tanpa resistor, arus berlebih bisa merusak LED dan pin GPIO ESP32. Rumus: <code>R = (V<sub>supply</sub> - V<sub>LED</sub>) / I<sub>LED</sub></code></p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Mode Input          -->
+      <!-- ============================== -->
+      <h2 id="mode-input">4. Mode Input: Membaca Tombol</h2>
+
+      <p>Mode <strong>INPUT</strong> digunakan untuk membaca status dari komponen eksternal seperti tombol (push button), saklar (switch), atau sensor digital. Saat pin dikonfigurasi sebagai input, ESP32 akan membaca apakah pin tersebut dalam keadaan HIGH (3.3V) atau LOW (0V).</p>
+
+      <h3>Skema Dasar Tombol</h3>
+
+      <pre><code class="language-cpp">// === Membaca Tombol Push Button ===
+// Tombol terhubung ke GPIO 4, LED ke GPIO 2
+
+#define BUTTON_PIN 4
+#define LED_PIN    2
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(BUTTON_PIN, INPUT_PULLUP); // Gunakan pull-up internal
+  pinMode(LED_PIN, OUTPUT);
+}
+
+void loop() {
+  int tombolState = digitalRead(BUTTON_PIN);
+
+  if (tombolState == LOW) {
+    // Tombol ditekan (terhubung ke GND karena pull-up)
+    digitalWrite(LED_PIN, HIGH);
+    Serial.println("Tombol DITEKAN - LED ON");
+  } else {
+    // Tombol tidak ditekan
+    digitalWrite(LED_PIN, LOW);
+    Serial.println("Tombol dilepas - LED OFF");
+  }
+
+  delay(50);  // Debounce sederhana
+}</code></pre>
+
+      <p>Perhatikan penggunaan <code>INPUT_PULLUP</code> di atas — ini mengaktifkan resistor pull-up internal ESP32 sehingga pin secara default berada di HIGH saat tombol tidak ditekan. Saat tombol ditekan, pin terhubung ke GND dan pembacaan menjadi LOW. Ini akan dijelaskan lebih detail di bagian berikutnya.</p>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Pull-Up/Down        -->
+      <!-- ============================== -->
+      <h2 id="pull-up-down">5. Pull-Up &amp; Pull-Down Resistor</h2>
+
+      <p>Saat membaca tombol atau sensor digital, kita perlu memastikan pin GPIO selalu berada dalam keadaan yang <strong>terdefinisi</strong> (HIGH atau LOW), bahkan saat tombol tidak ditekan. Tanpa pull-up atau pull-down resistor, pin bisa mengambang (<em>floating</em>) dan menghasilkan pembacaan yang tidak stabil.</p>
+
+      <h3>Apa Itu Pull-Up Resistor?</h3>
+
+      <p>Pull-up resistor menghubungkan pin ke tegangan <strong>VCC (3.3V)</strong> secara default. Saat tombol tidak ditekan, pin terbaca HIGH. Saat tombol ditekan (terhubung ke GND), pin terbaca LOW.</p>
+
+      <!-- DIAGRAM: Pull-Up -->
+      <div class="arch-diagram">
+        <div class="arch-title">Skema Pull-Up Resistor</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">🔋</div>
+            <div class="arch-label">3.3V (VCC)</div>
+            <div class="arch-desc">Sumber tegangan</div>
+          </div>
+          <div class="arch-arrow down">↓ R (10kΩ)</div>
+          <div class="arch-box warn">
+            <div class="arch-icon">📍</div>
+            <div class="arch-label">Pin GPIO</div>
+            <div class="arch-desc">Membaca HIGH default</div>
+          </div>
+          <div class="arch-arrow down">↓ Tombol</div>
+          <div class="arch-box info">
+            <div class="arch-icon">⬇️</div>
+            <div class="arch-label">GND</div>
+            <div class="arch-desc">LOW saat tombol ditekan</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Apa Itu Pull-Down Resistor?</h3>
+
+      <p>Kebalikan dari pull-up, pull-down resistor menghubungkan pin ke <strong>GND</strong> secara default. Saat tombol tidak ditekan, pin terbaca LOW. Saat tombol ditekan (terhubung ke VCC), pin terbaca HIGH.</p>
+
+      <h3>Pull-Up Internal vs Eksternal</h3>
+
+      <p>ESP32 memiliki resistor pull-up dan pull-down <strong>internal</strong> (sekitar 45kΩ) yang bisa diaktifkan melalui software. Ini sangat nyaman karena tidak perlu menambahkan resistor fisik:</p>
+
+      <pre><code class="language-cpp">// Mengaktifkan pull-up internal
+pinMode(pin, INPUT_PULLUP);
+
+// Mengaktifkan pull-down internal
+pinMode(pin, INPUT_PULLDOWN);
+
+// Input biasa (tanpa pull-up/pull-down, perlu resistor eksternal)
+pinMode(pin, INPUT);</code></pre>
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Perbandingan Mode Input</div>
+        <table class="spec-table">
+          <thead>
+            <tr>
+              <th>Mode</th>
+              <th>Resistor</th>
+              <th>Default State</th>
+              <th>Kapan Digunakan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>INPUT</td><td>Tidak ada</td><td>Floating</td><td>Sudah ada resistor eksternal</td></tr>
+            <tr><td>INPUT_PULLUP</td><td>~45kΩ ke VCC</td><td>HIGH</td><td>Tombol aktif LOW (ke GND)</td></tr>
+            <tr><td>INPUT_PULLDOWN</td><td>~45kΩ ke GND</td><td>LOW</td><td>Tombol aktif HIGH (ke VCC)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Interrupt           -->
+      <!-- ============================== -->
+      <h2 id="interrupt">6. Interrupt: Deteksi Perubahan Tanpa Polling</h2>
+
+      <p>Dalam program biasa, kita terus-menerus membaca pin GPIO di dalam <code>loop()</code> (disebut <strong>polling</strong>). Ini sederhana tapi boros CPU. <strong>Interrupt</strong> memungkinkan ESP32 bereaksi terhadap perubahan pada pin GPIO secara <em>instan</em> tanpa harus mengecek pin terus-menerus.</p>
+
+      <h3>Kapan Menggunakan Interrupt?</h3>
+      <ul>
+        <li>Tombol yang harus dideteksi secepat mungkin</li>
+        <li>Encoder rotary yang menghasilkan pulsa cepat</li>
+        <li>Sensor gerak (PIR) yang memberikan sinyal singkat</li>
+        <li>Sistem keamanan yang harus responsif 24/7</li>
+      </ul>
+
+      <h3>Macam-Macam Trigger Interrupt</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Trigger</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>RISING</code></td><td>Saat sinyal berubah dari LOW ke HIGH</td></tr>
+          <tr><td><code>FALLING</code></td><td>Saat sinyal berubah dari HIGH ke LOW</td></tr>
+          <tr><td><code>CHANGE</code></td><td>Saat sinyal berubah apapun (LOW→HIGH atau HIGH→LOW)</td></tr>
+          <tr><td><code>LOW</code></td><td>Selama sinyal dalam keadaan LOW</td></tr>
+          <tr><td><code>HIGH</code></td><td>Selama sinyal dalam keadaan HIGH</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Contoh: Interrupt pada Tombol</h3>
+
+      <pre><code class="language-cpp">// === Interrupt untuk mendeteksi tombol ===
+#define BUTTON_PIN 4
+#define LED_PIN    2
+
+volatile bool tombolPressed = false;  // volatile karena diubah di ISR
+
+// ISR (Interrupt Service Routine) - harus sesingkat mungkin
+void IRAM_ATTR onButtonPress() {
+  tombolPressed = true;  // Hanya set flag, jangan Serial.print di sini!
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  // Pasang interrupt pada FALLING edge (saat tombol ditekan)
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN),
+                  onButtonPress,
+                  FALLING);
+
+  Serial.println("Interrupt siap. Tekan tombol!");
+}
+
+void loop() {
+  if (tombolPressed) {
+    tombolPressed = false;  // Reset flag
+    digitalWrite(LED_PIN, !digitalRead(LED_PIN)); // Toggle LED
+    Serial.println("Tombol ditekan! LED ditoggle.");
+  }
+
+  // Program lain bisa jalan di sini tanpa terganggu polling
+  delay(10);
+}</code></pre>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Aturan ISR</div>
+        <p>ISR (Interrupt Service Routine) harus <strong>sesingkat mungkin</strong>. Jangan gunakan <code>Serial.print()</code>, <code>delay()</code>, atau operasi berat lainnya di dalam ISR. Cukup set flag boolean dan proses di <code>loop()</code>. Gunakan keyword <code>volatile</code> untuk variabel yang diakses dari ISR. Gunakan <code>IRAM_ATTR</code> agar ISR ditempatkan di RAM untuk akses cepat.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: PWM                 -->
+      <!-- ============================== -->
+      <h2 id="pwm">7. PWM: Mengatur Kecerahan &amp; Kecepatan Motor</h2>
+
+      <p><strong>PWM (Pulse Width Modulation)</strong> adalah teknik untuk meniru sinyal analog menggunakan sinyal digital. Dengan mengatur lebar pulsa (duty cycle), kita bisa mengontrol kecerahan LED, kecepatan motor, posisi servo, dan banyak lagi.</p>
+
+      <p>ESP32 memiliki peripheral <strong>LEDC (LED Control)</strong> yang sangat fleksibel dengan 16 channel PWM (0–15), frekuensi dan resolusi yang bisa diatur.</p>
+
+      <h3>Cara Kerja PWM</h3>
+
+      <!-- DIAGRAM: PWM -->
+      <div class="arch-diagram">
+        <div class="arch-title">Ilustrasi Duty Cycle PWM</div>
+        <div class="arch-row">
+          <div class="arch-box info">
+            <div class="arch-icon">◻️◻️◻️◻️◻️</div>
+            <div class="arch-label">25% Duty Cycle</div>
+            <div class="arch-desc">LED redup / Motor lambat</div>
+          </div>
+          <div class="arch-box warn">
+            <div class="arch-icon">◼️◼️◻️◻️◻️</div>
+            <div class="arch-label">50% Duty Cycle</div>
+            <div class="arch-desc">LED setengah terang</div>
+          </div>
+          <div class="arch-box highlight">
+            <div class="arch-icon">◼️◼️◼️◼️◻️</div>
+            <div class="arch-label">75% Duty Cycle</div>
+            <div class="arch-desc">LED terang</div>
+          </div>
+          <div class="arch-box highlight">
+            <div class="arch-icon">◼️◼️◼️◼️◼️</div>
+            <div class="arch-label">100% Duty Cycle</div>
+            <div class="arch-desc">LED penuh / MAX</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Kode PWM Sederhana</h3>
+
+      <pre><code class="language-cpp">// === Mengatur Kecerahan LED dengan PWM ===
+#define LED_PIN 2
+#define PWM_CHANNEL 0
+#define PWM_FREQ 5000     // Frekuensi 5 kHz
+#define PWM_RESOLUTION 8  // Resolusi 8-bit (0-255)
+
+void setup() {
+  // Konfigurasi channel PWM
+  ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
+
+  // Hubungkan channel PWM ke pin GPIO
+  ledcAttachPin(LED_PIN, PWM_CHANNEL);
+}
+
+void loop() {
+  // Nyalakan LED secara bertahap (fade in)
+  for (int duty = 0; duty <= 255; duty++) {
+    ledcWrite(PWM_CHANNEL, duty);
+    delay(10);
+  }
+
+  // Matikan LED secara bertahap (fade out)
+  for (int duty = 255; duty >= 0; duty--) {
+    ledcWrite(PWM_CHANNEL, duty);
+    delay(10);
+  }
+}</code></pre>
+
+      <h3>Parameter PWM ESP32</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Nilai</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Channel</td><td>0 – 15</td><td>16 channel tersedia, bisa dipetakan ke pin manapun</td></tr>
+          <tr><td>Frekuensi</td><td>1 Hz – 40 MHz</td><td>Servo: 50Hz, LED: 1-5kHz, Motor: 20kHz+</td></tr>
+          <tr><td>Resolusi</td><td>1 – 16 bit</td><td>8-bit = 0-255, 10-bit = 0-1023, 16-bit = 0-65535</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Proyek              -->
+      <!-- ============================== -->
+      <h2 id="proyek-lampu-lalu-lintas">8. Proyek: Lampu Lalu Lintas Otomatis</h2>
+
+      <p>Sekarang kita gabungkan semua materi di atas ke dalam satu proyek nyata: <strong>simulasi lampu lalu linta</strong> dengan 3 LED (merah, kuning, hijau), tombol untuk mode manual, dan buzzer untuk pejalan kaki.</p>
+
+      <h3>Skema Rangkaian</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Komponen</th>
+            <th>Pin GPIO</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>LED Merah</td><td>GPIO 25</td><td>Dengan resistor 220Ω</td></tr>
+          <tr><td>LED Kuning</td><td>GPIO 26</td><td>Dengan resistor 220Ω</td></tr>
+          <tr><td>LED Hijau</td><td>GPIO 27</td><td>Dengan resistor 220Ω</td></tr>
+          <tr><td>Tombol Pejalan Kaki</td><td>GPIO 4</td><td>INPUT_PULLUP (aktif LOW)</td></tr>
+          <tr><td>Buzzer</td><td>GPIO 32</td><td>PWM output untuk nada</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Kode Program Lengkap</h3>
+
+      <pre><code class="language-cpp">// ============================================
+// PROYEK: Lampu Lalu Lintas Otomatis ESP32
+// Fitur:
+//   - 3 LED (merah, kuning, hijau) siklus otomatis
+//   - Tombol pejalan kaki dengan interrupt
+//   - Buzzer berbunyi saat hijau (pejalan kaki boleh jalan)
+//   - Kode bersih dan terstruktur
+// ============================================
+
+// === PIN DEFINITIONS ===
+#define LED_MERAH   25
+#define LED_KUNING  26
+#define LED_HIJAU   27
+#define BTN_PEJALAN 4
+#define BUZZER_PIN  32
+
+// === PWM UNTUK BUZZER ===
+#define BUZZER_CHANNEL 0
+#define BUZZER_FREQ    1000  // 1 kHz
+#define BUZZER_RES     8
+
+// === DURASI DALAM MILIDETIK ===
+#define WAKTU_HIJAU    5000   // 5 detik hijau
+#define WAKTU_KUNING   2000   // 2 detik kuning
+#define WAKTU_MERAH    5000   // 5 detik merah
+#define WAKTU_BUZZER   500    // 0.5 detik buzzer
+
+// === GLOBAL VARIABLES ===
+volatile bool mintaPejalanKaki = false;
+unsigned long lastDebounce = 0;
+
+// === ISR: Tombol Pejalan Kaki ===
+void IRAM_ATTR onPejalanPress() {
+  unsigned long now = millis();
+  if (now - lastDebounce > 300) {  // Debounce 300ms
+    mintaPejalanKaki = true;
+    lastDebounce = now;
+  }
+}
+
+// === FUNGSI HELPER ===
+void setLampu(bool merah, bool kuning, bool hijau) {
+  digitalWrite(LED_MERAH, merah ? HIGH : LOW);
+  digitalWrite(LED_KUNING, kuning ? HIGH : LOW);
+  digitalWrite(LED_HIJAU, hijau ? HIGH : LOW);
+}
+
+void bunyibuzzer(int durasi, int freq) {
+  ledcWriteTone(BUZZER_CHANNEL, freq);
+  delay(durasi);
+  ledcWriteTone(BUZZER_CHANNEL, 0);  // Matikan buzzer
+}
+
+void prosesPejalanKaki() {
+  // Kedipkan LED merah dan bunyikan buzzer
+  for (int i = 0; i < 3; i++) {
+    setLampu(true, false, false);
+    bunyibuzzer(WAKTU_BUZZER, 1500);
+    setLampu(false, false, false);
+    delay(300);
+  }
+  mintaPejalanKaki = false;  // Reset flag
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  // Setup LED sebagai output
+  pinMode(LED_MERAH, OUTPUT);
+  pinMode(LED_KUNING, OUTPUT);
+  pinMode(LED_HIJAU, OUTPUT);
+
+  // Setup tombol dengan pull-up internal
+  pinMode(BTN_PEJALAN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(BTN_PEJALAN),
+                  onPejalanPress, FALLING);
+
+  // Setup buzzer PWM
+  ledcSetup(BUZZER_CHANNEL, BUZZER_FREQ, BUZZER_RES);
+  ledcAttachPin(BUZZER_PIN, BUZZER_CHANNEL);
+
+  Serial.println("=== Sistem Lampu Lalu Lintas Aktif ===");
+  Serial.println("Tekan tombol untuk mode pejalan kaki.");
+}
+
+void loop() {
+  // FASE 1: HIJAU (kendaraan jalan)
+  Serial.println("🟢 HIJAU - Kendaraan jalan");
+  setLampu(false, false, true);
+  unsigned long startHijau = millis();
+  while (millis() - startHijau < WAKTU_HIJAU) {
+    if (mintaPejalanKaki) {
+      Serial.println("🚶 Pejalan kaki menekan tombol!");
+      prosesPejalanKaki();
+      break;  // Langsung ke fase kuning
+    }
+    delay(10);
+  }
+
+  // FASE 2: KUNING (bersiap berhenti)
+  Serial.println("🟡 KUNING - Bersiap berhenti");
+  setLampu(false, true, false);
+  delay(WAKTU_KUNING);
+
+  // FASE 3: MERAH (kendaraan berhenti)
+  Serial.println("🔴 MERAH - Kendaraan berhenti");
+  setLampu(true, false, false);
+  delay(WAKTU_MERAH);
+}</code></pre>
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Penjelasan Kode</div>
+        <p>Program ini menggunakan <strong>interrupt</strong> pada tombol pejalan kaki agar responsif kapan saja. Fungsi <code>IRAM_ATTR</code> memastikan ISR ada di RAM. Flag <code>volatile bool</code> menandakan tombol ditekan, kemudian diproses di <code>loop()</code>. PWM digunakan untuk menghasilkan nada buzzer. Siklus lampu berjalan otomatis dan bisa diinterupsi oleh tombol.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Tips & Peringatan   -->
+      <!-- ============================== -->
+      <h2 id="tips-peringatan">9. Tips &amp; Peringatan Penting</h2>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Tips / Peringatan</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>⚠️ Jangan pakai GPIO 6-11</td>
+            <td>Pin ini terhubung ke flash SPI internal. Menggunakannya bisa crash atau brick ESP32.</td>
+          </tr>
+          <tr>
+            <td>⚠️ GPIO 34-39 input only</td>
+            <td>Tidak bisa dikonfigurasi sebagai output, tidak punya pull-up/pull-down internal.</td>
+          </tr>
+          <tr>
+            <td>💡 Gunakan LEDC untuk PWM</td>
+            <td>Jangan gunakan <code>analogWrite()</code> — ESP32 tidak mendukungnya. Gunakan fungsi <code>ledcSetup()</code> dan <code>ledcWrite()</code>.</td>
+          </tr>
+          <tr>
+            <td>💡 Debounce tombol</td>
+            <td>Tombol fisik menghasilkan noise saat ditekan. Selalu gunakan debounce (software atau hardware) untuk pembacaan yang stabil.</td>
+          </tr>
+          <tr>
+            <td>⚠️ Arus maksimum GPIO</td>
+            <td>Setiap pin GPIO ESP32 maksimum mendorong <strong>12mA</strong> (rekomendasi 6mA). Untuk mengendalikan motor atau LED strip, gunakan transistor atau MOSFET.</td>
+          </tr>
+          <tr>
+            <td>💡 Serial Monitor</td>
+            <td>Gunakan <code>Serial.begin(115200)</code> untuk debug. Ini sangat membantu saat troubleshooting masalah GPIO.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz               -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang GPIO ESP32:</p>
+
+      <div class="quiz-container" id="quiz01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Berapa jumlah pin GPIO yang dimiliki ESP32?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) 20 pin</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) 34 pin</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) 40 pin</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) 26 pin</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Pin GPIO mana yang TIDAK BOLEH digunakan karena terhubung ke flash internal?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) GPIO 0–5</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) GPIO 6–11</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) GPIO 32–33</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) GPIO 34–39</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi keyword <code>volatile</code> pada variabel yang diakses dari ISR?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Menghapus variabel dari memori</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Mencegah compiler mengoptimasi akses ke variabel tersebut</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Mengatur ulang variabel ke nol otomatis</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Mengubah tipe data variabel menjadi integer</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Fungsi apa yang digunakan untuk mengatur PWM pada ESP32 dengan Arduino framework?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) analogWrite()</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) pwmWrite()</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) ledcWrite()</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) digitalWrite()</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Saat menggunakan <code>INPUT_PULLUP</code>, apa state default dari pin saat tombol tidak ditekan?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) LOW (0V)</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) HIGH (3.3V)</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Floating (tidak tentu)</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) 1.65V (setengah tegangan)</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="esp32-fundamentals.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Panduan Lengkap ESP32</span>
+        </a>
+        <a href="../index.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Artikel Lainnya</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

@@ -1,0 +1,1163 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">Dataclasses</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>Python Dataclasses: Data Classes</h1>
+      <p class="article-subtitle">Pelajari @dataclass decorator, field options, inheritance, validation, frozen dataclasses, slots, dan praktik terbaik untuk membuat class yang bersih dan efisien</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Dataclasses</a></li>
+          <li><a href="#dasar">Sintaks Dasar @dataclass</a></li>
+          <li><a href="#field">Field Options</a></li>
+          <li><a href="#post-init">Post-Init Processing</a></li>
+          <li><a href="#frozen">Frozen Dataclasses</a></li>
+          <li><a href="#inheritance">Inheritance</a></li>
+          <li><a href="#slots">Slots &amp; Performa</a></li>
+          <li><a href="#comparison">Perbandingan dengan NamedTuple &amp; Pydantic</a></li>
+          <li><a href="#praktik">Studi Kasus Praktis</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Dataclasses</h2>
+
+      <p><strong>dataclasses</strong> adalah modul Python yang diperkenalkan di Python 3.7 (PEP 557) yang menyediakan decorator dan fungsi untuk membuat class yang terutama digunakan untuk menyimpan data. Dengan <code>@dataclass</code>, Python secara otomatis menghasilkan method seperti <code>__init__</code>, <code>__repr__</code>, <code>__eq__</code>, dan lainnya berdasarkan field yang dideklarasikan.</p>
+
+      <p>Tanpa dataclass, Anda harus menulis banyak boilerplate code untuk method <code>__init__</code>, <code>__repr__</code>, dan <code>__eq__</code> secara manual. Dataclass menghilangkan kerumitan ini dan menghasilkan kode yang lebih bersih, lebih singkat, dan lebih mudah dipelihara.</p>
+
+      <h3>Mengapa Dataclasses?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Kurang Boilerplate</td><td>Tidak perlu tulis __init__, __repr__, __eq__ secara manual</td></tr>
+          <tr><td>Type Hints</td><td>Didesain untuk digunakan dengan type annotations</td></tr>
+          <tr><td>Immutability</td><td>Opsional: buat dataclass frozen (tidak bisa diubah)</td></tr>
+          <tr><td>Field Options</td><td>Kontrol default value, factory, comparison, hashing</td></tr>
+          <tr><td>Inheritance</td><td>Bisa diwarisi dan dikombinasikan</td></tr>
+          <tr><td>Slots</td><td>Optimasi memori dengan __slots__</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Dataclass vs Regular Class</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Perbandingan</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === Regular Class (manual, banyak boilerplate) ===
+class PenggunaManual:
+    def __init__(self, nama: str, umur: int, email: str):
+        self.nama = nama
+        self.umur = umur
+        self.email = email
+
+    def __repr__(self):
+        return f"PenggunaManual(nama='{self.nama}', umur={self.umur}, email='{self.email}')"
+
+    def __eq__(self, other):
+        if not isinstance(other, PenggunaManual):
+            return NotImplemented
+        return (self.nama == other.nama and
+                self.umur == other.umur and
+                self.email == other.email)
+
+    def __hash__(self):
+        return hash((self.nama, self.umur, self.email))
+
+# === Dataclass (singkat, otomatis!) ===
+from dataclasses import dataclass
+
+@dataclass
+class Pengguna:
+    nama: str
+    umur: int
+    email: str
+
+# Keduanya menghasilkan perilaku yang sama!
+p1 = Pengguna("Budi", 25, "budi@mail.com")
+p2 = Pengguna("Budi", 25, "budi@mail.com")
+
+print(p1)            # Pengguna(nama='Budi', umur=25, email='budi@mail.com')
+print(p1 == p2)      # True
+print(repr(p1))      # Pengguna(nama='Budi', umur=25, email='budi@mail.com')
+
+# Dataclass menghemat ~15 baris kode per class!
+</code></pre>
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Method yang Di-generate Otomatis</div>
+<pre><code>@dataclass AUTO-GENERATED METHODS
+Deklarasi: Method yang dihasilkan:
+@dataclass ✅ __init__()
+class Foo:► ✅ __repr__()
+x: int ✅ __eq__()
+y: str ❌ __hash__()
+❌ __lt__(), dll
+order=True → ✅ __lt__, __le__, __gt__, __ge__
+frozen=True → ❌ __setattr__, __delattr__
+eq=False → ❌ __eq__ (pakai default id)
+unsafe_hash=True → ✅ __hash__ (meskipun mutable)</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Sintaks Dasar       -->
+      <!-- ============================== -->
+      <h2 id="dasar">2. Sintaks Dasar @dataclass</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — @dataclass Dasar</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from dataclasses import dataclass, field
+
+# === Dataclass paling sederhana ===
+@dataclass
+class Titik:
+    x: float
+    y: float
+
+t = Titik(3.0, 4.0)
+print(t)            # Titik(x=3.0, y=4.0)
+print(t.x, t.y)    # 3.0 4.0
+
+# === Dataclass dengan default values ===
+@dataclass
+class Produk:
+    nama: str
+    harga: float
+    stok: int = 0               # Default 0
+    aktif: bool = True           # Default True
+    kategori: str = "umum"      # Default "umum"
+
+p1 = Produk("Laptop", 15000000)
+p2 = Produk("Mouse", 150000, stok=50, kategori="aksesoris")
+
+print(p1)  # Produk(nama='Laptop', harga=15000000, stok=0, aktif=True, kategori='umum')
+print(p2)  # Produk(nama='Mouse', harga=150000, stok=50, aktif=True, kategori='aksesoris')
+
+# === Dataclass dengan berbagai tipe ===
+from typing import Optional
+
+@dataclass
+class Mahasiswa:
+    nama: str
+    nim: str
+    jurusan: str
+    semester: int = 1
+    ipk: Optional[float] = None
+    aktif: bool = True
+
+mhs = Mahasiswa("Budi Santoso", "2024001", "Teknik Informatika")
+print(mhs)
+# Mahasiswa(nama='Budi Santoso', nim='2024001', jurusan='Teknik Informatika',
+#           semester=1, ipk=None, aktif=True)
+
+# === Dataclass dengan method tambahan ===
+@dataclass
+class Lingkaran:
+    jari_jari: float
+
+    @property
+    def luas(self) -> float:
+        import math
+        return math.pi * self.jari_jari ** 2
+
+    @property
+    def keliling(self) -> float:
+        import math
+        return 2 * math.pi * self.jari_jari
+
+    def scale(self, faktor: float) -> 'Lingkaran':
+        return Lingkaran(self.jari_jari * faktor)
+
+l = Lingkaran(5)
+print(f"Luas: {l.luas:.2f}")       # Luas: 78.54
+print(f"Keliling: {l.keliling:.2f}")  # Keliling: 31.42
+print(l.scale(2))                    # Lingkaran(jari_jari=10)
+</code></pre>
+      </div>
+
+      <h3>Decorator Parameters</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Decorator Parameters</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from dataclasses import dataclass
+
+# @dataclass bisa menerima parameter:
+# init=True     → generate __init__ (default)
+# repr=True     → generate __repr__ (default)
+# eq=True       → generate __eq__ (default)
+# order=False   → generate __lt__, __le__, __gt__, __ge__
+# frozen=False  → buat immutable
+# unsafe_hash=False → generate __hash__
+
+# Tanpa __init__ (manual)
+@dataclass(init=False)
+class CustomInit:
+    x: int
+    y: int
+
+    def __init__(self, x: int, y: int = 0):
+        self.x = x
+        self.y = y + 10  # Custom logic
+
+c = CustomInit(5)
+print(c)  # CustomInit(x=5, y=10)
+
+# Dengan ordering
+@dataclass(order=True)
+class Siswa:
+    nama: str
+    nilai: float
+
+siswa_list = [
+    Siswa("Budi", 85),
+    Siswa("Ani", 92),
+    Siswa("Dimas", 78),
+]
+
+# Bisa di-sort langsung!
+siswa_list.sort(reverse=True)
+for s in siswa_list:
+    print(f"  {s.nama}: {s.nilai}")
+# Ani: 92
+# Budi: 85
+# Dimas: 78
+
+# Tanpa __eq__ (gunakan default identity comparison)
+@dataclass(eq=False)
+class NoEquality:
+    id: int
+    nama: str
+
+a = NoEquality(1, "test")
+b = NoEquality(1, "test")
+print(a == b)  # False — berbeda objek, eq=False
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Field Options        -->
+      <!-- ============================== -->
+      <h2 id="field">3. Field Options</h2>
+
+      <p>Fungsi <code>field()</code> memberikan kontrol lebih detail pada setiap field, seperti default value yang mutable, factory, visibility, dan opsi comparison.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Field Options</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from dataclasses import dataclass, field
+
+# === Default factory untuk mutable defaults ===
+# ❌ SALAH — mutable default akan di-share antar instance!
+# @dataclass
+# class Config:
+#     tags: list[str] = []  ← ERROR: ValueError!
+
+# ✅ BENAR — gunakan field(default_factory=...)
+@dataclass
+class Config:
+    tags: list[str] = field(default_factory=list)
+    metadata: dict = field(default_factory=dict)
+    warnings: list[str] = field(default_factory=list)
+
+c1 = Config()
+c2 = Config()
+
+c1.tags.append("python")
+print(c1.tags)  # ['python']
+print(c2.tags)  # [] — tidak terpengaruh!
+
+# === field() parameters ===
+# default          → nilai default
+# default_factory  → callable untuk default mutable
+# repr             → tampilkan di __repr__?
+# compare          → gunakan di __eq__?
+# hash             → gunakan di __hash__?
+# init             → sertakan di __init__?
+# metadata         → dict metadata tambahan
+
+@dataclass
+class User:
+    nama: str
+    email: str
+    password_hash: str = field(repr=False)       # Sembunyikan dari repr
+    api_key: str = field(compare=False)           # Abaikan saat perbandingan
+    login_count: int = field(default=0, init=False)  # Tidak di __init__
+    _internal: str = field(default="secret", repr=False, compare=False, hash=False)
+
+u = User("Budi", "budi@mail.com", "hashed_pw_123")
+print(u)
+# User(nama='Budi', email='budi@mail.com') — password tidak tampil!
+
+# === field dengan metadata ===
+@dataclass
+class ValidatedField:
+    nama: str = field(metadata={"max_length": 50, "pattern": r"^[a-zA-Z ]+$"})
+    umur: int = field(metadata={"min": 0, "max": 150})
+    email: str = field(metadata={"format": "email"})
+
+# Metadata bisa diakses via fields()
+from dataclasses import fields
+
+for f in fields(ValidatedField):
+    print(f"{f.name}: {f.metadata}")
+# nama: {'max_length': 50, 'pattern': '^[a-zA-Z ]+$'}
+# umur: {'min': 0, 'max': 150}
+# email: {'format': 'email'}
+</code></pre>
+      </div>
+
+      <h3>Default Values dan Required Fields</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Required vs Optional</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from dataclasses import dataclass, field
+
+# Aturan: field tanpa default HARUS ada SEBELUM field dengan default
+# ❌ SALAH
+# @dataclass
+# class Bad:
+#     nama: str = "default"
+#     umur: int        ← ERROR! Non-default after default
+
+# ✅ BENAR
+@dataclass
+class Good:
+    umur: int              # Required (tanpa default)
+    nama: str              # Required (tanpa default)
+    kota: str = "Jakarta"  # Optional (dengan default)
+    aktif: bool = True     # Optional (dengan default)
+
+# Membuat field "required" meskipun ada default_factory
+# dengan menggunakan sentinel pattern
+_MISSING = object()
+
+@dataclass
+class FlexibleConfig:
+    host: str
+    port: int = field(default=8080)
+    debug: bool = field(default=False)
+    custom_header: str = field(default_factory=lambda: _MISSING)
+
+    def __post_init__(self):
+        if self.custom_header is _MISSING:
+            self.custom_header = f"Server-{self.host}"
+
+c = FlexibleConfig("localhost")
+print(c.custom_header)  # Server-localhost
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Post-Init            -->
+      <!-- ============================== -->
+      <h2 id="post-init">4. Post-Init Processing (__post_init__)</h2>
+
+      <p>Method <code>__post_init__</code> dipanggil setelah <code>__init__</code> selesai. Ini sangat berguna untuk validasi data, menghitung derived fields, atau operasi setup tambahan.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — __post_init__</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from dataclasses import dataclass, field
+
+# === Validasi data ===
+@dataclass
+class UserProfile:
+    nama: str
+    umur: int
+    email: str
+
+    def __post_init__(self):
+        # Validasi nama
+        if not self.nama or len(self.nama.strip()) == 0:
+            raise ValueError("Nama tidak boleh kosong!")
+        self.nama = self.nama.strip().title()
+
+        # Validasi umur
+        if self.umur < 0 or self.umur > 150:
+            raise ValueError(f"Umur tidak valid: {self.umur}")
+
+        # Validasi email
+        if "@" not in self.email:
+            raise ValueError(f"Email tidak valid: {self.email}")
+        self.email = self.email.lower()
+
+# Test validasi
+user = UserProfile("  budi santoso ", 25, "BUDI@Mail.com")
+print(user)
+# UserProfile(nama='Budi Santoso', umur=25, email='budi@mail.com')
+
+# UserProfile("", 25, "test@mail.com")  ← ValueError!
+# UserProfile("Budi", -5, "test@mail.com")  ← ValueError!
+
+# === Derived/Computed fields ===
+@dataclass
+class Rectangle:
+    width: float
+    height: float
+    area: float = field(init=False)        # Tidak di __init__, dihitung otomatis
+    perimeter: float = field(init=False)   # Sama
+
+    def __post_init__(self):
+        self.area = self.width * self.height
+        self.perimeter = 2 * (self.width + self.height)
+
+r = Rectangle(10, 5)
+print(f"Luas: {r.area}")       # Luas: 50
+print(f"Keliling: {r.perimeter}")  # Keliling: 30
+
+# === InitVar — variable khusus untuk __post_init__ ===
+from dataclasses import dataclass, field, InitVar
+
+@dataclass
+class User:
+    nama: str
+    email: str
+    password: InitVar[str] = None       # Hanya di __post_init__, bukan field
+    confirm_password: InitVar[str] = None
+    password_hash: str = field(init=False, repr=False)
+
+    def __post_init__(self, password: str, confirm_password: str):
+        if password != confirm_password:
+            raise ValueError("Password tidak cocok!")
+        self.password_hash = f"hashed_{password}"
+
+u = User("Budi", "budi@mail.com", "rahasia123", "rahasia123")
+print(u)           # User(nama='Budi', email='budi@mail.com')
+print(u.password_hash)  # hashed_rahasia123
+# 'password' bukan attribute — hanya digunakan saat init!
+
+# === Validasi dengan kombinasi field ===
+@dataclass
+class DateRange:
+    start: str
+    end: str
+
+    def __post_init__(self):
+        from datetime import datetime
+        fmt = "%Y-%m-%d"
+        d_start = datetime.strptime(self.start, fmt)
+        d_end = datetime.strptime(self.end, fmt)
+        if d_end < d_start:
+            raise ValueError(f"End date ({self.end}) sebelum start date ({self.start})")
+
+dr = DateRange("2026-01-01", "2026-12-31")  # ✅ OK
+# DateRange("2026-12-31", "2026-01-01")  ← ValueError!
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Frozen               -->
+      <!-- ============================== -->
+      <h2 id="frozen">5. Frozen Dataclasses</h2>
+
+      <p>Frozen dataclass adalah dataclass yang immutable — setelah dibuat, field-nya tidak bisa diubah. Ini sangat berguna untuk data konfigurasi, constants, dan data yang perlu menjadi hashable.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Frozen Dataclass</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from dataclasses import dataclass, field
+
+# === Frozen dataclass — immutable ===
+@dataclass(frozen=True)
+class Color:
+    r: int
+    g: int
+    b: int
+
+merah = Color(255, 0, 0)
+hijau = Color(0, 255, 0)
+
+print(merah)  # Color(r=255, g=0, b=0)
+
+# ❌ Tidak bisa diubah!
+# merah.r = 128  ← FrozenInstanceError!
+
+# ✅ Bisa jadi key dictionary (karena hashable)
+color_names = {
+    merah: "Merah",
+    hijau: "Hijau",
+}
+print(color_names[merah])  # Merah
+
+# ✅ Bisa jadi elemen set
+warna_set = {merah, hijau, Color(0, 0, 255)}
+
+# === Frozen dengan field yang perlu mutable ===
+@dataclass(frozen=True)
+class Config:
+    host: str
+    port: int = 8080
+    # Gunakan tuple, bukan list (karena frozen)
+    allowed_origins: tuple[str, ...] = ("https://example.com",)
+
+config = Config("localhost", 3000, ("http://localhost:3000",))
+print(config)
+# Config(host='localhost', port=3000, allowed_origins=('http://localhost:3000',))
+
+# === Membuat "copy" dengan perubahan (replace) ===
+from dataclasses import replace
+
+config_baru = replace(config, port=8080, host="0.0.0.0")
+print(config_baru)
+# Config(host='0.0.0.0', port=8080, allowed_origins=('http://localhost:3000',))
+print(config)  # Tetap tidak berubah!
+
+# === Konstanta dengan frozen dataclass ===
+@dataclass(frozen=True)
+class APIConfig:
+    BASE_URL: str = "https://api.example.com"
+    VERSION: str = "v2"
+    TIMEOUT: int = 30
+    MAX_RETRIES: int = 3
+
+    @property
+    def full_url(self) -> str:
+        return f"{self.BASE_URL}/{self.VERSION}"
+
+api = APIConfig()
+print(api.full_url)  # https://api.example.com/v2
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Gunakan <code>frozen=True</code> untuk data yang sehariknya tidak berubah — konfigurasi, constants, data dari API response, atau sebagai key dictionary. Ini membantu mencegah bugs akibat perubahan data yang tidak disengaja.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Inheritance          -->
+      <!-- ============================== -->
+      <h2 id="inheritance">6. Inheritance</h2>
+
+      <p>Dataclass mendukung inheritance dengan baik, termasuk kombinasi default values dan field dari parent class.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Inheritance</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from dataclasses import dataclass, field
+
+# === Basic inheritance ===
+@dataclass
+class Hewan:
+    nama: str
+    umur: int
+    spesies: str
+
+@dataclass
+class HewanPeliharaan(Hewan):
+    nama_pemilik: str
+    sudah_vaksin: bool = False
+
+kucing = HewanPeliharaan("Kitty", 3, "Kucing", "Budi", True)
+print(kucing)
+# HewanPeliharaan(nama='Kitty', umur=3, spesies='Kucing',
+#                  nama_pemilik='Budi', sudah_vaksin=True)
+
+# Akses field dari parent
+print(f"{kucing.nama} ({kucing.spesies})")  # Kitty (Kucing)
+
+# === Multi-level inheritance ===
+@dataclass
+class Base:
+    id: int
+    created_at: str = "2026-01-01"
+
+@dataclass
+class Middle(Base):
+    name: str
+    status: str = "active"
+
+@dataclass
+class Leaf(Middle):
+    extra: float = 0.0
+
+obj = Leaf(id=1, name="test", status="pending", extra=3.14)
+print(obj)
+# Leaf(id=1, created_at='2026-01-01', name='test', status='pending', extra=3.14)
+
+# === Inheritance dengan override ===
+@dataclass
+class Shape:
+    name: str
+    color: str = "hitam"
+
+    def describe(self) -> str:
+        return f"{self.color} {self.name}"
+
+@dataclass
+class Circle(Shape):
+    radius: float = 1.0
+    name: str = "Lingkaran"  # Override default dari parent
+
+    @property
+    def area(self) -> float:
+        import math
+        return math.pi * self.radius ** 2
+
+c = Circle(radius=5)
+print(c.describe())  # hitam Lingkaran
+print(f"Luas: {c.area:.2f}")  # Luas: 78.54
+
+# === Abstract base dengan dataclass ===
+from abc import ABC, abstractmethod
+
+@dataclass
+class BaseEntity(ABC):
+    id: int
+    nama: str
+
+    @abstractmethod
+    def validate(self) -> bool:
+        pass
+
+@dataclass
+class Product(BaseEntity):
+    harga: float
+    stok: int = 0
+
+    def validate(self) -> bool:
+        return self.harga > 0 and self.stok >= 0
+
+@dataclass
+class Service(BaseEntity):
+    durasi_menit: int
+    harga_per_menit: float
+
+    def validate(self) -> bool:
+        return self.durasi_menit > 0
+
+    @property
+    def total_harga(self) -> float:
+        return self.durasi_menit * self.harga_per_menit
+
+p = Product(1, "Laptop", 15000000, 10)
+s = Service(2, "Konsultasi", 60, 50000)
+
+print(f"{p.nama}: Rp {p.harga:,.0f} (valid={p.validate()})")
+print(f"{s.nama}: Rp {s.total_harga:,.0f} (valid={s.validate()})")
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Aturan Inheritance</div>
+        <p>Dalam dataclass inheritance, field tanpa default di child class harus ditempatkan setelah field dengan default dari parent. Jika tidak, Python akan raise <code>TypeError</code>. Ini berbeda dari regular class karena dataclass generate <code>__init__</code> secara otomatis.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Slots & Performa     -->
+      <!-- ============================== -->
+      <h2 id="slots">7. Slots &amp; Performa</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Slots</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from dataclasses import dataclass
+import sys
+
+# === Tanpa slots (default) ===
+@dataclass
+class TanpaSlots:
+    x: int
+    y: int
+    z: int
+
+# === Dengan slots (Python 3.10+) ===
+@dataclass(slots=True)
+class DenganSlots:
+    x: int
+    y: int
+    z: int
+
+a = TanpaSlots(1, 2, 3)
+b = DenganSlots(1, 2, 3)
+
+# Slots menghemat memori
+print(f"Tanpa slots: {sys.getsizeof(a)} bytes")   # ~48 bytes
+print(f"Dengan slots: {sys.getsizeof(b)} bytes")  # ~40 bytes
+
+# Slots juga mempercepat akses attribute
+import timeit
+
+t1 = timeit.timeit(lambda: a.x, number=1000000)
+t2 = timeit.timeit(lambda: b.x, number=1000000)
+print(f"Tanpa slots: {t1:.4f}s")
+print(f"Dengan slots: {t2:.4f}s")
+# Slots biasanya ~20-30% lebih cepat!
+
+# === Perbedaan behavior ===
+# Tanpa slots — bisa tambah attribute baru
+a.w = 99  # ✅ OK
+
+# Dengan slots — tidak bisa tambah attribute baru
+# b.w = 99  ← AttributeError!
+
+# === Slots + Frozen ===
+@dataclass(frozen=True, slots=True)
+class ImmutablePoint:
+    x: float
+    y: float
+
+    def distance_to(self, other: 'ImmutablePoint') -> float:
+        return ((self.x - other.x)**2 + (self.y - other.y)**2) ** 0.5
+
+p1 = ImmutablePoint(0, 0)
+p2 = ImmutablePoint(3, 4)
+print(f"Jarak: {p1.distance_to(p2)}")  # Jarak: 5.0
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Perbandingan         -->
+      <!-- ============================== -->
+      <h2 id="comparison">8. Perbandingan dengan Alternatif</h2>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>@dataclass</th>
+            <th>NamedTuple</th>
+            <th>Pydantic</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Mutable</td><td>✅ Ya (opsional frozen)</td><td>❌ Immutable</td><td>✅ Ya</td></tr>
+          <tr><td>Auto __init__</td><td>✅</td><td>✅</td><td>✅</td></tr>
+          <tr><td>Auto __repr__</td><td>✅</td><td>✅</td><td>✅</td></tr>
+          <tr><td>Auto __eq__</td><td>✅</td><td>✅</td><td>✅</td></tr>
+          <tr><td>Validation</td><td>❌ Manual</td><td>❌ Manual</td><td>✅ Built-in</td></tr>
+          <tr><td>Serialization</td><td>❌ Manual</td><td>❌ Manual</td><td>✅ JSON, dict</td></tr>
+          <tr><td>Inheritance</td><td>✅</td><td>⚠️ Terbatas</td><td>✅</td></tr>
+          <tr><td>Slots</td><td>✅ (3.10+)</td><td>✅ Default</td><td>✅ (2.0+)</td></tr>
+          <tr><td>Library</td><td>stdlib</td><td>stdlib</td><td>pip install</td></tr>
+          <tr><td>Performa</td><td>🟢 Cepat</td><td>🟢 Cepat</td><td>🟡 Sedang</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Perbandingan Kode</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === NamedTuple ===
+from typing import NamedTuple
+
+class PointNT(NamedTuple):
+    x: float
+    y: float
+
+p = PointNT(3.0, 4.0)
+# p.x = 5.0  ← Error! Immutable
+
+# === Dict-like dataclass (TypedDict) ===
+from typing import TypedDict
+
+class PointDict(TypedDict):
+    x: float
+    y: float
+
+d: PointDict = {"x": 3.0, "y": 4.0}
+
+# === Kapan pakai yang mana? ===
+#
+# @dataclass:
+#   ✅ Data yang bisa berubah (mutable)
+#   ✅ Perlu method tambahan
+#   ✅ Inheritance kompleks
+#   ✅ Domain model, service objects
+#
+# NamedTuple:
+#   ✅ Data ringkas dan immutable
+#   ✅ Bisa jadi tuple (unpacking, indexing)
+#   ✅ Return value dari fungsi
+#
+# Pydantic:
+#   ✅ Perlu validasi otomatis
+#   ✅ API request/response models
+#   ✅ Serialization (JSON) built-in
+#   ✅ Data dari sumber eksternal
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Studi Kasus          -->
+      <!-- ============================== -->
+      <h2 id="praktik">9. Studi Kasus Praktis</h2>
+
+      <h3>E-Commerce Models</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — E-Commerce Models</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Optional
+from enum import Enum
+
+class OrderStatus(Enum):
+    PENDING = "pending"
+    PAID = "paid"
+    SHIPPED = "shipped"
+    DELIVERED = "delivered"
+    CANCELLED = "cancelled"
+
+@dataclass
+class Product:
+    id: int
+    nama: str
+    harga: float
+    stok: int = 0
+    kategori: str = "umum"
+
+    def __post_init__(self):
+        if self.harga < 0:
+            raise ValueError(f"Harga tidak boleh negatif: {self.harga}")
+        if self.stok < 0:
+            raise ValueError(f"Stok tidak boleh negatif: {self.stok}")
+
+    def is_available(self, jumlah: int = 1) -> bool:
+        return self.stok >= jumlah
+
+    def reduce_stock(self, jumlah: int) -> None:
+        if not self.is_available(jumlah):
+            raise ValueError(f"Stok tidak cukup: {self.stok} < {jumlah}")
+        self.stok -= jumlah
+
+@dataclass
+class OrderItem:
+    produk: Product
+    jumlah: int
+    harga_satuan: float = field(init=False)
+
+    def __post_init__(self):
+        self.harga_satuan = self.produk.harga
+
+    @property
+    def subtotal(self) -> float:
+        return self.harga_satuan * self.jumlah
+
+@dataclass
+class Order:
+    id: str
+    items: list[OrderItem] = field(default_factory=list)
+    status: OrderStatus = OrderStatus.PENDING
+    created_at: datetime = field(default_factory=datetime.now)
+    catatan: Optional[str] = None
+
+    @property
+    def total(self) -> float:
+        return sum(item.subtotal for item in self.items)
+
+    @property
+    def jumlah_item(self) -> int:
+        return sum(item.jumlah for item in self.items)
+
+    def add_item(self, produk: Product, jumlah: int) -> None:
+        if not produk.is_available(jumlah):
+            raise ValueError(f"Stok {produk.nama} tidak cukup!")
+        self.items.append(OrderItem(produk, jumlah))
+
+    def checkout(self) -> float:
+        if not self.items:
+            raise ValueError("Order kosong!")
+        for item in self.items:
+            item.produk.reduce_stock(item.jumlah)
+        self.status = OrderStatus.PAID
+        return self.total
+
+# === Penggunaan ===
+laptop = Product(1, "Laptop Gaming", 15000000, stok=10)
+mouse = Product(2, "Mouse Wireless", 150000, stok=50)
+keyboard = Product(3, "Mechanical Keyboard", 350000, stok=30)
+
+order = Order("ORD-001")
+order.add_item(laptop, 1)
+order.add_item(mouse, 2)
+order.add_item(keyboard, 1)
+
+print(f"Order: {order.id}")
+print(f"Jumlah item: {order.jumlah_item}")
+for item in order.items:
+    print(f"  - {item.produk.nama} x{item.jumlah} = Rp {item.subtotal:,.0f}")
+print(f"Total: Rp {order.total:,.0f}")
+print(f"Status: {order.status.value}")
+
+total = order.checkout()
+print(f"\n✅ Checkout berhasil! Total: Rp {total:,.0f}")
+print(f"Laptop stok tersisa: {laptop.stok}")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Dataclasses:</p>
+
+      <div class="quiz-container" id="quizDataclasses01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Method apa yang TIDAK di-generate otomatis oleh <code>@dataclass</code> secara default?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) <code>__init__</code></div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) <code>__repr__</code></div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) <code>__hash__</code></div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) <code>__eq__</code></div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Bagaimana cara menangani mutable default values di dataclass?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) <code>tags: list = []</code></div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) <code>tags: list = field(default_factory=list)</code></div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) <code>tags: list = None</code></div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Tidak bisa menggunakan list sebagai field</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa yang dilakukan parameter <code>frozen=True</code> pada <code>@dataclass</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Membuat class menjadi tidak bisa diinstansiasi</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Membuat field tidak bisa diubah setelah inisialisasi</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Menghapus semua method</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Menyimpan data ke file</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari <code>__post_init__</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Mengganti <code>__init__</code> yang di-generate</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Dipanggil setelah <code>__init__</code> untuk validasi atau perhitungan tambahan</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Menghapus instance dari memori</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Membuat salinan instance</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa keuntungan menggunakan <code>@dataclass(slots=True)</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Membuat dataclass thread-safe</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Menghemat memori dan mempercepat akses attribute</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Mengaktifkan automatic validation</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Membuat dataclass menjadi serializable</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="python-type-hints.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Python Type Hints</span>
+        </a>
+        <a href="python-pemula.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Python untuk Pemula</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

@@ -1,0 +1,1319 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">DevOps & Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">Docker Security</span>
+      </div>
+      <span class="category-tag">DevOps & Cloud</span>
+      <h1>Docker Security Best Practices: Rootless, Scanning, Secrets &amp; Hardening</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Panduan komprehensif keamanan Docker — rootless mode, image vulnerability scanning, secrets management, container hardening, network security, dan compliance untuk production environment</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Docker Security</a></li>
+          <li><a href="#threat-model">Threat Model Container</a></li>
+          <li><a href="#rootless">Rootless Docker Mode</a></li>
+          <li><a href="#image-scanning">Image Vulnerability Scanning</a></li>
+          <li><a href="#secrets">Secrets Management</a></li>
+          <li><a href="#hardening">Container Hardening</a></li>
+          <li><a href="#network-security">Network Security</a></li>
+          <li><a href="#runtime-security">Runtime Security &amp; Monitoring</a></li>
+          <li><a href="#compliance">Compliance &amp; Benchmarking</a></li>
+          <li><a href="#ci-cd">Security di CI/CD Pipeline</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Docker Security</h2>
+
+      <p>Container Docker menawarkan isolasi yang lebih ringan dibanding VM, tetapi tetap memiliki permukaan serangan (attack surface) yang perlu dijaga. Keamanan container bukan hanya tentang mengamankan aplikasi di dalamnya, tetapi juga tentang mengamankan seluruh supply chain — dari base image, build process, runtime, hingga orchestration.</p>
+
+      <p>Dalam tutorial <a href="docker-dasar.html">Docker Dasar</a> dan <a href="docker-compose-advanced.html">Docker Compose Advanced</a>, kita telah mempelajari cara membuat dan mengelola container. Kali ini kita fokus pada aspek keamanan yang kritis untuk production deployment.</p>
+
+      <h3>Defense in Depth</h3>
+      <p>Konsep <strong>defense in depth</strong> berarti menerapkan beberapa lapisan keamanan, sehingga jika satu lapisan gagal, lapisan lain tetap melindungi sistem:</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Docker Security Layers</div>
+<pre><code class="language-dockerfile">DOCKER SECURITY LAYERS
+LAYER 1: Host Security
+- OS hardening, kernel updates, firewall
+LAYER 2: Docker Daemon Security
+- Rootless mode, TLS, audit logging
+LAYER 3: Image Security
+- Trusted base, scanning, minimal images
+LAYER 4: Container Runtime Security
+- Non-root, capabilities, read-only
+LAYER 5: Application Security
+- Secrets, env vars, auth</code></pre>
+      </div>
+
+      <h3>Anatomy of a Container Attack</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Vektor Serangan</th>
+            <th>Risiko</th>
+            <th>Mitigasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Vulnerable base image</td><td>CVE exploit dari library lama</td><td>Image scanning, update berkala</td></tr>
+          <tr><td>Container running as root</td><td>Privilege escalation ke host</td><td>Non-root user, rootless Docker</td></tr>
+          <tr><td>Secrets in environment vars</td><td>Bocor via inspect/logs</td><td>Docker secrets, external vault</td></tr>
+          <tr><td>Privileged container</td><td>Full access ke host kernel</td><td>Hindari --privileged, drop capabilities</td></tr>
+          <tr><td>Unrestricted network</td><td>Container bisa ke mana saja</td><td>Network policies, internal networks</td></tr>
+          <tr><td>Mutable filesystem</td><td>Malware bisa menulis ke disk</td><td>Read-only root filesystem</td></tr>
+          <tr><td>Docker socket exposure</td><td>Full control atas Docker daemon</td><td>Jangan mount socket, gunakan proxy</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Docker socket (<code>/var/run/docker.sock</code>) adalah root access ke host. Jangan pernah mount socket ke dalam container kecuali benar-benar diperlukan (misalnya monitoring agent). Siapapun yang bisa mengakses socket memiliki kontrol penuh atas semua container dan host.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Threat Model        -->
+      <!-- ============================== -->
+      <h2 id="threat-model">2. Threat Model Container</h2>
+
+      <p>Sebelum menerapkan keamanan, kita perlu memahami apa yang perlu dilindungi. Docker container memiliki beberapa komponen yang masing-masing memiliki risiko keamanan tersendiri.</p>
+
+      <h3>Komponen Keamanan Docker</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Text</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===========================
+# DOCKER ATTACK SURFACE
+# ===========================
+
+# 1. DOCKER DAEMON (dockerd)
+#    - Berjalan sebagai root secara default
+#    - Mengelola semua container, images, networks
+#    - Akses ke Docker daemon = akses ke semua container
+
+# 2. DOCKER IMAGES
+#    - Base image bisa mengandung vulnerabilities
+#    - Malicious images dari untrusted registry
+#    - Supply chain attack via compromised dependencies
+
+# 3. DOCKER CONTAINERS
+#    - Running as root = root di host (jika escape)
+#    - Shared kernel = kernel exploit berdampak semua container
+#    - Excessive capabilities
+
+# 4. DOCKER NETWORK
+#    - Default bridge: semua container bisa saling akses
+#    - Exposed ports ke host
+#    - Unencrypted communication antar container
+
+# 5. DOCKER SECRETS & CONFIG
+#    - Secrets di environment variables terlihat di docker inspect
+#    - Config files bisa bocor via image layers
+#    - Hardcoded credentials di Dockerfile
+
+# 6. HOST INTERACTION
+#    - Volume mounts = akses ke host filesystem
+#    - Docker socket = full host control
+#    - Host networking = bypass isolation
+</code></pre>
+      </div>
+
+      <h3>Security Checklist Awal</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Checklist</th>
+            <th>Prioritas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Images</td><td>Gunakan official images, scan vulnerabilities, pin versi</td><td>🔴 Kritis</td></tr>
+          <tr><td>Runtime</td><td>Non-root user, drop capabilities, read-only FS</td><td>🔴 Kritis</td></tr>
+          <tr><td>Secrets</td><td>Jangan pakai ENV, gunakan Docker secrets atau vault</td><td>🔴 Kritis</td></tr>
+          <tr><td>Network</td><td>Internal networks, firewall rules, encrypted traffic</td><td>🟡 Tinggi</td></tr>
+          <tr><td>Resources</td><td>Limit CPU, memory, PID, ulimit</td><td>🟡 Tinggi</td></tr>
+          <tr><td>Logging</td><td>Audit logging, centralized logs, alert</td><td>🟡 Tinggi</td></tr>
+          <tr><td>Updates</td><td>Patch OS, Docker engine, dan base images berkala</td><td>🟡 Tinggi</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Rootless Mode       -->
+      <!-- ============================== -->
+      <h2 id="rootless">3. Rootless Docker Mode</h2>
+
+      <p>Secara default, Docker daemon (<code>dockerd</code>) berjalan sebagai root. Ini berarti jika ada vulnerability di Docker daemon atau container runtime, attacker bisa mendapatkan akses root ke host. <strong>Rootless mode</strong> menjalankan Docker daemon sebagai user biasa, sehingga bahkan jika terjadi container escape, attacker hanya mendapatkan akses sebagai user tersebut.</p>
+
+      <h3>Perbandingan Root vs Rootless</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Root Mode (Default)</th>
+            <th>Rootless Mode</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Daemon User</td><td>🔴 root</td><td>🟢 regular user</td></tr>
+          <tr><td>Container Escape Impact</td><td>🔴 Full root access</td><td>🟢 Limited user access</td></tr>
+          <tr><td>Port Binding (&lt;1024)</td><td>🟢 Langsung bisa</td><td>🟡 Butuh sysctl atau port mapping</td></tr>
+          <tr><td>Cgroup Management</td><td>🟢 Penuh</td><td>🟡 Terbatas (butuh cgroup v2)</td></tr>
+          <tr><td>Overlay Network</td><td>🟢 Penuh</td><td>🟡 Terbatas</td></tr>
+          <tr><td>AppArmor/SELinux</td><td>🟢 Didukung</td><td>🟡 Terbatas</td></tr>
+          <tr><td>Performance</td><td>🟢 Native</td><td>🟡 Slight overhead</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Instalasi Rootless Docker</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===========================
+# INSTALL ROOTLESS DOCKER
+# ===========================
+
+# 1. Install dependencies
+sudo apt-get install -y uidmap dbus-user-session fuse-overlayfs slirp4netns
+
+# 2. Pastikan user memiliki subuid/subgid mapping
+grep $(whoami) /etc/subuid || sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $(whoami)
+
+# 3. Install rootless Docker (sebagai user, BUKAN root)
+dockerd-rootless-setuptool.sh install
+
+# 4. Set environment variables (tambahkan ke ~/.bashrc)
+export PATH=/home/$(whoami)/bin:$PATH
+export DOCKER_HOST=unix:///run/user/$(id -u)/docker.sock
+
+# 5. Verifikasi
+docker info | grep -i "root dir"
+# Output: Docker Root Dir: /home/user/.local/share/docker
+
+# 6. Cek Docker daemon berjalan sebagai user
+ps aux | grep dockerd
+# Output: user  12345  dockerd --rootless
+
+# 7. Test container
+docker run --rm hello-world
+</code></pre>
+      </div>
+
+      <h3>User Namespace Remapping</h3>
+      <p>Alternatif lain adalah menggunakan user namespace remapping pada Docker daemon biasa:</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — /etc/docker/daemon.json</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># /etc/docker/daemon.json
+{
+  "userns-remap": "default",
+  "storage-driver": "overlay2",
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+
+# Setelah edit, restart Docker daemon
+sudo systemctl restart docker
+
+# Verifikasi user namespace remapping
+docker run --rm alpine cat /proc/1/uid_map
+# Output: 0     100000      65536
+# Artinya: root(0) di container = UID 100000 di host
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Rootless mode memerlukan beberapa konfigurasi tambahan untuk fitur tertentu seperti AppArmor dan port di bawah 1024. Untuk production, kombinasikan rootless mode dengan user namespace remapping untuk keamanan berlapis.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Image Scanning      -->
+      <!-- ============================== -->
+      <h2 id="image-scanning">4. Image Vulnerability Scanning</h2>
+
+      <p>Image scanning adalah proses menganalisis Docker image untuk menemukan known vulnerabilities (CVE) pada packages dan library yang digunakan. Ini adalah langkah pertama dalam mengamankan supply chain container.</p>
+
+      <h3>Tools Image Scanning</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Tipe</th>
+            <th>Kelebihan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Trivy</code></td><td>Open-source CLI</td><td>Cepat, mudah, scan image/filesystem/repo</td></tr>
+          <tr><td><code>Grype</code></td><td>Open-source CLI</td><td>Ringan, integrasi SBOM dengan Syft</td></tr>
+          <tr><td><code>Docker Scout</code></td><td>Integrated (Docker)</td><td>Terintegrasi langsung di Docker Desktop/CLI</td></tr>
+          <tr><td><code>Snyk Container</code></td><td>Commercial + Free tier</td><td>Fix suggestions, CI/CD integration</td></tr>
+          <tr><td><code>Clair</code></td><td>Open-source server</td><td>Registry integration, API-based</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Menggunakan Trivy</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===========================
+# INSTALL TRIVY
+# ===========================
+
+# Ubuntu/Debian
+sudo apt-get install -y wget apt-transport-https gnupg
+wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee /etc/apt/sources.list.d/trivy.list
+sudo apt-get update && sudo apt-get install trivy
+
+# macOS
+brew install trivy
+
+# ===========================
+# SCAN DOCKER IMAGES
+# ===========================
+
+# Scan image untuk vulnerabilities
+trivy image node:20-alpine
+# Output: tabel vulnerabilities dengan severity (CRITICAL, HIGH, MEDIUM, LOW)
+
+# Scan dengan severity filter
+trivy image --severity CRITICAL,HIGH nginx:latest
+
+# Scan dan output JSON (untuk CI/CD)
+trivy image --format json --output result.json node:20-alpine
+
+# Scan image lokal yang baru di-build
+trivy image myapp:v1.0
+
+# Scan dengan exit code (CI/CD pipeline)
+# Exit code 1 jika ditemukan CRITICAL vulnerability
+trivy image --exit-code 1 --severity CRITICAL myapp:v1.0
+
+# Scan Dockerfile untuk best practices
+trivy config --policy-bundle-repository ghcr.io/aquasecurity/trivy-policies Dockerfile
+
+# Scan filesystem (dependencies)
+trivy fs --scanners vuln ./my-project/
+</code></pre>
+      </div>
+
+      <h3>Docker Scout</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Docker Scout (terintegrasi di Docker CLI)
+
+# Login ke Docker Scout
+docker scout login
+
+# Quick view vulnerabilities
+docker scout quickview node:20-alpine
+
+# Detail CVE list
+docker scout cves node:20-alpine
+
+# Hanya CVE yang bisa di-fix
+docker scout cves --only-fixed node:20-alpine
+
+# Rekomendasi base image yang lebih aman
+docker scout recommendations node:20-alpine
+
+# Compare image versions
+docker scout compare --to node:18-alpine node:20-alpine
+</code></pre>
+      </div>
+
+      <h3>Secure Dockerfile Patterns</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dockerfile — Secure Base Images</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===========================
+# SECURE DOCKERFILE BEST PRACTICES
+# ===========================
+
+# 1. Gunakan specific version tags (BUKAN latest)
+FROM node:20.11-alpine3.19
+
+# 2. Gunakan slim/distroless images untuk mengurangi attack surface
+FROM gcr.io/distroless/nodejs20-debian12
+
+# 3. Multi-stage build untuk mengurangi ukuran image
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+
+FROM gcr.io/distroless/nodejs20-debian12
+COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/node_modules /app/node_modules
+WORKDIR /app
+CMD ["dist/server.js"]
+
+# 4. Buat user non-root
+RUN addgroup -g 1001 appgroup && \
+    adduser -u 1001 -G appgroup -s /bin/sh -D appuser
+USER appuser
+
+# 5. Copy file dengan permission yang tepat
+COPY --chown=appuser:appgroup . .
+
+# 6. Jangan install package yang tidak perlu
+RUN apk add --no-cache curl && \
+    rm -rf /var/cache/apk/*
+
+# 7. Scan image setelah build
+# trivy image --exit-code 1 --severity CRITICAL myapp:v1.0
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Secrets Management  -->
+      <!-- ============================== -->
+      <h2 id="secrets">5. Secrets Management</h2>
+
+      <p>Secrets seperti password, API keys, dan certificates harus dikelola dengan aman. Docker menyediakan beberapa mekanisme untuk ini, masing-masing cocok untuk skenario berbeda.</p>
+
+      <h3>❌ Cara yang SALAH (Jangan Lakukan)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dockerfile — JANGAN INI!</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ❌ JANGAN hardcode secrets di Dockerfile
+ENV DB_PASSWORD=supersecret123
+ENV API_KEY=ak_1234567890abcdef
+
+# ❌ JANGAN copy file secrets ke image
+COPY .env /app/.env
+COPY secrets/ /app/secrets/
+
+# ❌ JANGAN kirim secrets via build args (masih terlihat di history)
+ARG DB_PASSWORD
+RUN echo "Setting up with $DB_PASSWORD"
+</code></pre>
+      </div>
+
+      <h3>✅ Docker Secrets (Swarm Mode)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Docker Secrets</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># docker-compose.yml dengan secrets
+# Secrets di-mount sebagai file di /run/secrets/
+
+services:
+  api:
+    image: myapp/api
+    secrets:
+      - db_password
+      - jwt_secret
+      - tls_cert
+      - tls_key
+    environment:
+      # Baca secret dari file (bukan dari ENV langsung)
+      - DB_PASSWORD_FILE=/run/s...rd
+      - JWT_SECRET_FILE=/run/secrets/jwt_secret
+    volumes:
+      - tls-cert:/tls:ro
+
+  postgres:
+    image: postgres:16
+    secrets:
+      - db_password
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+
+secrets:
+  # Dari file di host
+  db_password:
+    file: ./secrets/db_password.txt
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
+  # External (sudah ada di Swarm)
+  tls_cert:
+    external: true
+  tls_key:
+    external: true
+</code></pre>
+      </div>
+
+      <h3>✅ Build-Time Secrets dengan BuildKit</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dockerfile — BuildKit Secrets</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Dockerfile — BuildKit secrets (TIDAK tersimpan di image)
+# Secrets hanya tersedia selama build, hilang setelahnya
+
+# Install private dependencies
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
+    npm ci --only=production
+
+# Clone dari private repo
+RUN --mount=type=secret,id=ssh_key,target=/root/.ssh/id_rsa \
+    git clone git@github.com:private/repo.git /app
+
+# Set certificate
+RUN --mount=type=secret,id=ca_cert,target=/usr/local/share/ca-certificates/custom.crt \
+    update-ca-certificates
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Build dengan BuildKit Secrets</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Build dengan BuildKit secrets
+DOCKER_BUILDKIT=1 docker build \
+  --secret id=npmrc,src=$HOME/.npmrc \
+  --secret id=ssh_key,src=$HOME/.ssh/id_rsa \
+  -t myapp:v1.0 .
+
+# Pastikan .dockerignore exclude secrets
+echo "secrets/" >> .dockerignore
+echo ".env" >> .dockerignore
+echo ".npmrc" >> .dockerignore
+echo "*.pem" >> .dockerignore
+echo "*.key" >> .dockerignore
+</code></pre>
+      </div>
+
+      <h3>✅ External Secrets Manager</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Text — Secrets Manager Integration</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===========================
+# SECRETS MANAGEMENT OPTIONS
+# ===========================
+
+# 1. Docker Swarm Secrets (built-in)
+#    - Cocok untuk Docker Swarm deployment
+#    - Encrypted at rest and in transit
+#    - Mounted sebagai file di /run/secrets/
+
+# 2. HashiCorp Vault
+#    - Enterprise-grade secrets management
+#    - Dynamic secrets (rotating credentials)
+#    - Audit logging lengkap
+#    - Integration dengan Kubernetes, Docker, CI/CD
+
+# 3. AWS Secrets Manager / SSM Parameter Store
+#    - Managed service, tidak perlu operasi infrastruktur
+#    - Automatic rotation
+#    - IAM-based access control
+
+# 4. Azure Key Vault / Google Secret Manager
+#    - Cloud-native solutions
+#    - Integration dengan respective CI/CD tools
+
+# 5. SOPS (Secrets OPerationS) oleh Mozilla
+#    - Encrypted files yang aman untuk git
+#    - Support AWS KMS, GCP KMS, Azure Key Vault
+#    - Bisa di-decrypt saat CI/CD pipeline
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Hindari mengirim secrets melalui <code>docker run -e SECRET=value</code> karena secret akan terlihat di <code>docker inspect</code>, <code>ps aux</code>, dan process listing. Gunakan Docker secrets atau external vault untuk production.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Hardening           -->
+      <!-- ============================== -->
+      <h2 id="hardening">6. Container Hardening</h2>
+
+      <p>Container hardening berarti membatasi apa yang bisa dilakukan container di runtime. Semakin sedikit akses yang dimiliki container, semakin kecil dampak jika terjadi kompromi.</p>
+
+      <h3>Complete Security-Hardened Dockerfile</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dockerfile — Production Hardened</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===========================
+# SECURITY-HARDENED DOCKERFILE
+# BeebaneLabs Production Template
+# ===========================
+
+# Multi-stage build untuk minimal image
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Final stage - distroless-like
+FROM node:20-alpine AS production
+
+# Install security updates
+RUN apk update && apk upgrade && apk add --no-cache \
+    dumb-init \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup -s /sbin/nologin
+
+WORKDIR /app
+
+# Copy only production dependencies
+COPY --from=deps --chown=appuser:appgroup /app/node_modules ./node_modules
+COPY --from=build --chown=appuser:appgroup /app/dist ./dist
+COPY --from=build --chown=appuser:appgroup /app/package.json ./
+
+# Set environment
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Expose port
+EXPOSE 3000
+
+# Switch to non-root user
+USER 1001:1001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) })"
+
+# Use dumb-init as PID 1 (proper signal handling)
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/server.js"]
+</code></pre>
+      </div>
+
+      <h3>Docker Compose Security Hardening</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Hardened docker-compose.yml</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>services:
+  api:
+    build: ./backend
+    # Non-root user
+    user: "1001:1001"
+    # Read-only root filesystem
+    read_only: true
+    # tmpfs untuk directory yang perlu write
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /app/.cache:noexec,nosuid,size=50m
+    # Drop ALL capabilities, add only what's needed
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE    # Hanya jika bind port < 1024
+    # Prevent privilege escalation
+    security_opt:
+      - no-new-privileges:true
+    # Limit PIDs (prevent fork bomb)
+    pids_limit: 100
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    # Logging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    user: "70:70"    # postgres user in alpine
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid
+      - /run/postgresql:noexec,nosuid
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 100
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+    # JANGAN expose port ke host di production
+    # ports:
+    #   - "5432:5432"    ← JANGAN
+    expose:
+      - "5432"           ← Hanya internal network
+    networks:
+      - data
+</code></pre>
+      </div>
+
+      <h3>Kernel Security Parameters</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Host Kernel Hardening</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># /etc/sysctl.d/99-docker-security.conf
+# Terapkan di host untuk meningkatkan keamanan container
+
+# Prevent IP spoofing
+net.ipv4.conf.all.rp_filter = 1
+
+# Disable IP forwarding (kecuali diperlukan)
+net.ipv4.ip_forward = 0
+
+# Disable ICMP redirects
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+
+# Enable SYN cookies (protect against SYN flood)
+net.ipv4.tcp_syncookies = 1
+
+# Limit kernel pointer exposure
+kernel.kptr_restrict = 2
+
+# Disable core dumps
+fs.suid_dumpable = 0
+
+# Apply
+sudo sysctl --system
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Network Security    -->
+      <!-- ============================== -->
+      <h2 id="network-security">7. Network Security</h2>
+
+      <p>Network security di Docker melibatkan segmentasi traffic, pembatasan akses, dan enkripsi komunikasi antar container.</p>
+
+      <h3>Network Security Best Practices</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Network Security</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>services:
+  api:
+    networks:
+      frontend:        # Hanya frontend dan backend
+      backend:
+    # JANGAN gunakan host networking
+    # network_mode: host    ← JANGAN
+
+  postgres:
+    networks:
+      data:            # Hanya data network
+    # JANGAN expose port ke host
+    expose:
+      - "5432"         # Internal only
+
+  redis:
+    networks:
+      data:
+    expose:
+      - "6379"
+    # Password-protect Redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+
+networks:
+  # Frontend network - bisa akses internet
+  frontend:
+    driver: bridge
+    internal: false
+
+  # Backend network - internal only
+  backend:
+    driver: bridge
+    internal: true
+
+  # Data network - paling terisolasi
+  data:
+    driver: bridge
+    internal: true    # Tidak bisa akses internet
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "false"
+</code></pre>
+      </div>
+
+      <h3>TLS untuk Docker Daemon</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Docker Daemon TLS</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Generate CA certificate
+openssl genrsa -aes256 -out ca-key.pem 4096
+openssl req -new -x509 -days 365 -key ca-key.pem -sha256 -out ca.pem
+
+# Generate server certificate
+openssl genrsa -out server-key.pem 4096
+openssl req -subj "/CN=docker-host" -sha256 -new -key server-key.pem -out server.csr
+echo "subjectAltName=DNS:docker-host,IP:192.168.1.10,IP:127.0.0.1" > extfile.cnf
+echo "extendedKeyUsage = serverAuth" >> extfile.cnf
+openssl x509 -req -days 365 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem \
+  -CAcreateserial -out server-cert.pem -extfile extfile.cnf
+
+# Configure Docker daemon untuk TLS
+cat > /etc/docker/daemon.json &lt;&lt;'EOF'
+{
+  "tls": true,
+  "tlscacert": "/etc/docker/certs/ca.pem",
+  "tlscert": "/etc/docker/certs/server-cert.pem",
+  "tlskey": "/etc/docker/certs/server-key.pem",
+  "tlsverify": true
+}
+EOF
+
+sudo systemctl restart docker
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Runtime Security    -->
+      <!-- ============================== -->
+      <h2 id="runtime-security">8. Runtime Security &amp; Monitoring</h2>
+
+      <p>Setelah container berjalan, kita perlu memonitor aktivitas yang mencurigakan dan mendeteksi anomali.</p>
+
+      <h3>Runtime Security Tools</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Fungsi</th>
+            <th>Tipe</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Falco</code></td><td>Runtime threat detection berdasarkan system calls</td><td>Open-source</td></tr>
+          <tr><td><code>sysdig</code></td><td>System exploration dan troubleshooting</td><td>Open-source</td></tr>
+          <tr><td><code>Aqua Security</code></td><td>Full lifecycle container security</td><td>Commercial</td></tr>
+          <tr><td><code>Twistlock/Prisma</code></td><td>Container security platform</td><td>Commercial</td></tr>
+          <tr><td><code>Docker Bench</code></td><td>CIS Docker Benchmark compliance checker</td><td>Open-source</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Docker Bench for Security</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Jalankan Docker Bench Security (CIS Benchmark)
+docker run --rm --net host --pid host --userns host --cap-add audit_control \
+    -e DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST \
+    -v /var/lib:/var/lib:ro \
+    -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    -v /usr/lib/systemd:/usr/lib/systemd:ro \
+    -v /etc:/etc:ro \
+    --label docker_bench_security \
+    docker/docker-bench-security
+
+# Output berisi rekomendasi terorganisir:
+# [WARN] 1.1.1 - Ensure Docker is up to date
+# [PASS] 1.1.2 - Ensure only trusted users are in docker group
+# [WARN] 2.1 - Ensure network traffic is restricted between containers
+# ...
+</code></pre>
+      </div>
+
+      <h3>Falco Runtime Monitoring</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Falco Installation</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Install Falco di host
+curl -fsSL https://falco.org/repo/falcosecurity-packages.asc | sudo gpg --dearmor -o /usr/share/keyrings/falco-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/falco-archive-keyring.gpg] https://download.falco.org/packages/deb stable main" | sudo tee /etc/apt/sources.list.d/falcosecurity.list
+sudo apt-get update && sudo apt-get install -y falco
+
+# Jalankan Falco
+sudo systemctl start falco
+
+# Contoh rules yang terdeteksi:
+# - Container melakukan shell exec
+# - File sensitive diakses (/etc/shadow, /etc/passwd)
+# - Network connection ke suspicious IP
+# - K8s API call dari container
+# - Binary baru dijalankan di container
+</code></pre>
+      </div>
+
+      <h3>Audit Logging</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Docker Audit Logging</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Enable Docker daemon audit logging
+# /etc/docker/daemon.json
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "5",
+    "labels": "service,environment",
+    "tag": "{{.ImageName}}/{{.Name}}/{{.ID}}"
+  }
+}
+
+# Linux audit rules untuk Docker
+sudo auditctl -w /usr/bin/docker -p rwxa -k docker
+sudo auditctl -w /var/lib/docker -p rwxa -k docker
+sudo auditctl -w /etc/docker -p rwxa -k docker
+sudo auditctl -w /var/run/docker.sock -p rwxa -k docker
+sudo auditctl -w /usr/bin/dockerd -p rwxa -k docker
+
+# Cek audit logs
+sudo ausearch -k docker --interpret
+
+# Docker events untuk monitoring real-time
+docker events --since '1h' --filter 'type=container'
+docker events --filter 'event=start' --filter 'event=stop'
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Compliance          -->
+      <!-- ============================== -->
+      <h2 id="compliance">9. Compliance &amp; Benchmarking</h2>
+
+      <p>CIS Docker Benchmark adalah standar keamanan yang diakui secara luas untuk Docker deployment. Benchmark ini mencakup 6 bagian utama:</p>
+
+      <h3>CIS Docker Benchmark Overview</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Section</th>
+            <th>Topik</th>
+            <th>Contoh Rekomendasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1. Host Configuration</td><td>Keamanan host OS</td><td>Partisi terpisah, update OS, audit logging</td></tr>
+          <tr><td>2. Docker Daemon</td><td>Konfigurasi daemon</td><td>TLS, userns-remap, content trust</td></tr>
+          <tr><td>3. Docker Files</td><td>Dockerfile best practices</td><td>Non-root user, minimal packages, HEALTHCHECK</td></tr>
+          <tr><td>4. Container Images</td><td>Image security</td><td>Trusted base, scan vulnerabilities, pin version</td></tr>
+          <tr><td>5. Container Runtime</td><td>Runtime hardening</td><td>Read-only FS, no-privileged, resource limits</td></tr>
+          <tr><td>6. Security Operations</td><td>Operational security</td><td>Image signing, content trust, audit</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Automated Compliance Check</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Docker Content Trust (image signing)
+export DOCKER_CONTENT_TRUST=1
+
+# Pull hanya signed images
+docker pull nginx:latest  # Akan verifikasi signature
+
+# Docker Scout compliance
+docker scout recommendations myapp:v1.0
+
+# Manual security checklist
+echo "=== Docker Security Audit ==="
+
+# 1. Cek Docker daemon running as root?
+ps -eo user,comm | grep dockerd
+
+# 2. Cek containers running as root?
+docker ps --format '{{.Names}}' | while read name; do
+    echo -n "$name: running as "
+    docker exec $name whoami 2>/dev/null || echo "N/A"
+done
+
+# 3. Cek containers dengan --privileged?
+docker inspect --format='{{.HostConfig.Privileged}}' $(docker ps -q)
+
+# 4. Cek containers dengan host network?
+docker inspect --format='{{.HostConfig.NetworkMode}}' $(docker ps -q)
+
+# 5. Cek exposed ports
+docker ps --format "table {{.Names}}\t{{.Ports}}"
+
+# 6. Cek volume mounts dari host
+docker inspect --format='{{.Mounts}}' $(docker ps -q)
+
+# 7. Cek resource limits
+docker inspect --format='{{.HostConfig.Memory}} {{.HostConfig.CpuQuota}}' $(docker ps -q)
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Security di CI/CD  -->
+      <!-- ============================== -->
+      <h2 id="ci-cd">10. Security di CI/CD Pipeline</h2>
+
+      <p>Integrasikan security scanning ke dalam CI/CD pipeline untuk mendeteksi vulnerabilities sebelum deployment. Lihat juga tutorial <a href="gitlab-ci-basics.html">GitLab CI/CD</a> dan <a href="jenkins-basics.html">Jenkins</a> untuk panduan CI/CD lengkap.</p>
+
+      <h3>GitLab CI Security Stage</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — .gitlab-ci.yml Security</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># .gitlab-ci.yml - Security scanning stages
+stages:
+  - build
+  - test
+  - security
+  - deploy
+
+build-image:
+  stage: build
+  script:
+    - docker build -t myapp:$CI_COMMIT_SHA .
+
+image-scan:
+  stage: security
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  script:
+    # Scan image untuk vulnerabilities
+    - trivy image --exit-code 1 --severity CRITICAL,HIGH myapp:$CI_COMMIT_SHA
+    # Generate report
+    - trivy image --format json --output trivy-report.json myapp:$CI_COMMIT_SHA
+  artifacts:
+    paths:
+      - trivy-report.json
+    when: always
+
+dockerfile-lint:
+  stage: security
+  image:
+    name: hadolint/hadolint:latest-debian
+    entrypoint: [""]
+  script:
+    - hadolint Dockerfile --strict
+
+dependency-check:
+  stage: security
+  script:
+    - npm audit --audit-level=high
+    - trivy fs --exit-code 1 --severity CRITICAL ./node_modules/
+</code></pre>
+      </div>
+
+      <h3>Security Pipeline Checklist</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Text</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===========================
+# CI/CD SECURITY PIPELINE
+# ===========================
+
+# PRE-BUILD:
+# ✓ Lint Dockerfile (hadolint)
+# ✓ Scan dependencies (npm audit, trivy fs)
+# ✓ Check for secrets in code (gitleaks, trufflehog)
+
+# BUILD:
+# ✓ Use multi-stage build
+# ✓ Don't include secrets in build context
+# ✓ Use BuildKit secret mounts
+# ✓ Pin base image versions
+
+# POST-BUILD:
+# ✓ Scan image for CVEs (trivy, grype)
+# ✓ Sign image (cosign, Docker Content Trust)
+# ✓ Push to secure registry
+
+# PRE-DEPLOY:
+# ✓ Verify image signature
+# ✓ Check compliance (CIS benchmark)
+# ✓ Run integration tests
+
+# POST-DEPLOY:
+# ✓ Runtime monitoring (Falco)
+# ✓ Audit logging
+# ✓ Periodic re-scan of running containers
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- QUIZ                           -->
+      <!-- ============================== -->
+      <h2 id="quiz">11. Quiz Pemahaman</h2>
+      <p>Uji pemahaman Anda tentang Docker Security:</p>
+
+      <div class="quiz-container" id="quizDockerSecurity01">
+        <div class="quiz-question">
+          <p><strong>1. Mengapa menjalankan container sebagai root berbahaya?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q1" value="a"> Container akan lebih lambat</label>
+            <label><input type="radio" name="q1" value="b"> Jika container escape, attacker mendapat root access ke host</label>
+            <label><input type="radio" name="q1" value="c"> Root container tidak bisa mengakses jaringan</label>
+            <label><input type="radio" name="q1" value="d"> Root container menghabiskan lebih banyak memory</label>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <p><strong>2. Apa fungsi <code>cap_drop: ALL</code> di Docker Compose?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q2" value="a"> Menghapus semua environment variables</label>
+            <label><input type="radio" name="q2" value="b"> Menghapus semua Linux capabilities dari container</label>
+            <label><input type="radio" name="q2" value="c"> Menghapus semua volume yang tidak digunakan</label>
+            <label><input type="radio" name="q2" value="d"> Menghapus semua network connections</label>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <p><strong>3. Mengapa Docker socket tidak boleh di-mount ke container?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q3" value="a"> Mengurangi performa container</label>
+            <label><input type="radio" name="q3" value="b"> Memberikan kontrol penuh atas Docker daemon dan semua container</label>
+            <label><input type="radio" name="q3" value="c"> Membuat container tidak bisa restart</label>
+            <label><input type="radio" name="q3" value="d"> Socket tidak kompatibel dengan Alpine Linux</label>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <p><strong>4. Apa keuntungan multi-stage build dari sisi keamanan?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q4" value="a"> Build lebih cepat</label>
+            <label><input type="radio" name="q4" value="b"> Mengurangi attack surface dengan hanya menyertakan runtime dependencies</label>
+            <label><input type="radio" name="q4" value="c"> Image lebih mudah di-upload ke Docker Hub</label>
+            <label><input type="radio" name="q4" value="d"> Tidak ada keuntungan keamanan</label>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <p><strong>5. Apa itu Docker Content Trust?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q5" value="a"> Encrypt container traffic</label>
+            <label><input type="radio" name="q5" value="b"> Verifikasi bahwa image ditandatangani oleh publisher tepercaya</label>
+            <label><input type="radio" name="q5" value="c"> Backup otomatis untuk Docker volumes</label>
+            <label><input type="radio" name="q5" value="d"> Firewall untuk Docker networks</label>
+          </div>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="submitQuiz('quizDockerSecurity01')">Cek Jawaban</button>
+        <div class="quiz-result" id="quizDockerSecurity01-result"></div>
+      </div>
+
+      <!-- RELATED ARTICLES -->
+      <div class="related-articles">
+        <h3>Artikel Terkait</h3>
+        <div class="related-grid">
+          <a href="docker-dasar.html" class="related-card">
+            <span class="related-category">DevOps</span>
+            <h4>Docker untuk Developer: Panduan Praktis</h4>
+            <p>Dasar-dasar Docker dari nol</p>
+          </a>
+          <a href="docker-compose-advanced.html" class="related-card">
+            <span class="related-category">DevOps</span>
+            <h4>Docker Compose Advanced</h4>
+            <p>Multi-service, networks, volumes, profiles</p>
+          </a>
+          <a href="gitlab-ci-basics.html" class="related-card">
+            <span class="related-category">CI/CD</span>
+            <h4>GitLab CI/CD: Panduan Dasar</h4>
+            <p>Otomasi pipeline dengan GitLab</p>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== FOOTER ========== -->

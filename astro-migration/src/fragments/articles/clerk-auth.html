@@ -1,0 +1,1252 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a><span class="separator">/</span>
+        <a href="../index.html#categories">Web Development</a><span class="separator">/</span>
+        <span class="current">Clerk</span>
+      </div>
+      <span class="category-tag">Web Development</span>
+      <h1>Clerk: Authentication Platform</h1>
+      <p class="article-subtitle">Tutorial lengkap Clerk Authentication dari nol — setup, komponen UI, user management, webhooks, organizations, dan integrasi dengan Next.js</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Clerk</a></li>
+          <li><a href="#setup">Setup dan Instalasi</a></li>
+          <li><a href="#komponen">Komponen UI Clerk</a></li>
+          <li><a href="#user-management">User Management</a></li>
+          <li><a href="#middleware">Middleware dan Proteksi Route</a></li>
+          <li><a href="#webhooks">Webhooks</a></li>
+          <li><a href="#organizations">Organizations</a></li>
+          <li><a href="#customization">Kustomisasi dan Theming</a></li>
+          <li><a href="#database">Integrasi Database</a></li>
+          <li><a href="#deployment">Deployment</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan Clerk</h2>
+      <p><strong>Clerk</strong> adalah platform autentikasi dan user management yang menyediakan solusi lengkap untuk login, registrasi, manajemen profil, dan kontrol akses — tanpa perlu membangun semuanya dari nol. Clerk memberikan komponen UI siap pakai, SDK yang kaya, dan dashboard admin yang powerful.</p>
+
+      <p>Clerk mendukung berbagai metode autentikasi: email/password, social login (Google, GitHub, Apple, dll.), passwordless (magic link, OTP), multi-factor authentication (MFA), dan SSO (SAML).</p>
+
+      <h3>Mengapa Menggunakan Clerk?</h3>
+      <table class="net-table">
+        <thead><tr><th>Keunggulan</th><th>Penjelasan</th></tr></thead>
+        <tbody>
+          <tr><td>Drop-in UI Components</td><td>Komponen login, signup, profil siap pakai — tinggal render</td></tr>
+          <tr><td>Multi-Framework</td><td>Next.js, React, Remix, Astro, Express, dan banyak lagi</td></tr>
+          <tr><td>Social Login</td><td>Google, GitHub, Apple, Facebook, Microsoft, dan 20+ lainnya</td></tr>
+          <tr><td>Organizations</td><td>Multi-tenancy, team management, role-based access control</td></tr>
+          <tr><td>Webhooks</td><td>Real-time events untuk sinkronisasi dengan database Anda</td></tr>
+          <tr><td>User Management</td><td>Dashboard admin untuk mengelola semua user</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Clerk vs Alternatif Lain</h3>
+      <table class="net-table">
+        <thead><tr><th>Aspek</th><th>Clerk</th><th>NextAuth.js</th><th>Firebase Auth</th><th>Auth0</th></tr></thead>
+        <tbody>
+          <tr><td>UI Components</td><td>✅ Built-in</td><td>❌ Manual</td><td>🟡 Widget</td><td>🟡 Universal Login</td></tr>
+          <tr><td>Setup Time</td><td>⚡ 5 menit</td><td>🟡 30 menit</td><td>🟡 15 menit</td><td>🔴 1 jam</td></tr>
+          <tr><td>Organizations</td><td>✅ Built-in</td><td>❌ Manual</td><td>❌ Tidak ada</td><td>✅ Built-in</td></tr>
+          <tr><td>Free Tier</td><td>10.000 MAU</td><td>Gratis (self-host)</td><td>50.000 MAU</td><td>7.500 MAU</td></tr>
+          <tr><td>Self-hosted</td><td>❌ Tidak</td><td>✅ Ya</td><td>❌ Tidak</td><td>❌ Tidak</td></tr>
+          <tr><td>Learning Curve</td><td>🟢 Mudah</td><td>🟡 Sedang</td><td>🟢 Mudah</td><td>🔴 Curam</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Arsitektur Clerk Authentication</div>
+<pre class="mermaid">
+flowchart TD
+    N0["Your Application ▼ UI Components SignIn / SignU..."]
+    N1["Clerk Dashboard (clerk.com) • App Settings • Us..."]
+    N2[Clerk Provider Clerk Provider]
+    N0 --> N1
+    N1 --> N2
+</pre>
+    </div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="setup">2. Setup dan Instalasi</h2>
+
+      <h3>Langkah 1: Buat Akun Clerk</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Setup</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>1. Buka https://clerk.com dan daftar akun (bisa pakai GitHub)
+2. Buat aplikasi baru di dashboard
+3. Pilih metode autentikasi yang diinginkan:
+   - Email / Password
+   - Google Sign-In
+   - GitHub Sign-In
+   - Magic Link (passwordless)
+4. Catat API Keys yang diberikan:
+   - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+   - CLERK_SECRET_KEY=sk_test_...
+</code></pre>
+      </div>
+
+      <h3>Langkah 2: Install Package</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Untuk Next.js App Router
+npm install @clerk/nextjs
+
+# Untuk React (standalone)
+npm install @clerk/react
+
+# Untuk Remix
+npm install @clerk/remix
+
+# Untuk Express/Node.js backend
+npm install @clerk/express
+
+# Untuk Astro
+npm install @clerk/astro
+</code></pre>
+      </div>
+
+      <h3>Langkah 3: Environment Variables</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.env.local</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># .env.local — JANGAN commit ke git!
+# Ambil dari Clerk Dashboard → API Keys
+
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_aWQtZm9v...
+CLERK_SECRET_KEY=sk_test_abc123xyz...
+
+# URL configuration
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
+
+# Webhook secret (untuk verifikasi webhook)
+CLERK_WEBHOOK_SECRET=whsec_...
+</code></pre>
+      </div>
+
+      <h3>Langkah 4: ClerkProvider</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">app/layout.tsx (Next.js App Router)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// app/layout.tsx — Root Layout dengan ClerkProvider
+import { ClerkProvider } from '@clerk/nextjs';
+import { Inter } from 'next/font/google';
+import './globals.css';
+
+const inter = Inter({ subsets: ['latin'] });
+
+export const metadata = {
+  title: 'BeebaneLabs',
+  description: 'Tutorial web development modern'
+};
+
+export default function RootLayout({
+  children
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    &lt;ClerkProvider&gt;
+      &lt;html lang="id"&gt;
+        &lt;body className={inter.className}&gt;
+          {children}
+        &lt;/body&gt;
+      &lt;/html&gt;
+    &lt;/ClerkProvider&gt;
+  );
+}
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>ClerkProvider harus membungkus seluruh aplikasi. Di Next.js App Router, taruh di <code>app/layout.tsx</code>. Di Pages Router, taruh di <code>pages/_app.tsx</code>. Pastikan environment variables diawali dengan <code>NEXT_PUBLIC_</code> untuk yang bisa diakses di client-side.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 3 -->
+      <h2 id="komponen">3. Komponen UI Clerk</h2>
+      <p>Clerk menyediakan komponen UI siap pakai yang bisa langsung digunakan. Komponen-komponen ini sudah mendukung dark mode, responsive, dan bisa dikustomisasi.</p>
+
+      <h3>SignIn dan SignUp</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">app/sign-in/[[...sign-in]]/page.tsx</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// app/sign-in/[[...sign-in]]/page.tsx
+// Catch-all route untuk Clerk sign-in flow
+import { SignIn } from '@clerk/nextjs';
+
+export default function SignInPage() {
+  return (
+    &lt;div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh'
+    }}&gt;
+      &lt;SignIn
+        path="/sign-in"
+        routing="path"
+        signUpUrl="/sign-up"
+        appearance={{
+          elements: {
+            rootBox: 'mx-auto',
+            card: 'shadow-xl rounded-2xl'
+          }
+        }}
+      /&gt;
+    &lt;/div&gt;
+  );
+}
+
+// app/sign-up/[[...sign-up]]/page.tsx
+import { SignUp } from '@clerk/nextjs';
+
+export default function SignUpPage() {
+  return (
+    &lt;div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh'
+    }}&gt;
+      &lt;SignUp
+        path="/sign-up"
+        routing="path"
+        signInUrl="/sign-in"
+      /&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      </div>
+
+      <h3>UserButton — Profil Dropdown</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">components/Header.tsx</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// components/Header.tsx
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton
+} from '@clerk/nextjs';
+
+export default function Header() {
+  return (
+    &lt;header className="header"&gt;
+      &lt;nav&gt;
+        &lt;a href="/"&gt;BeebaneLabs&lt;/a&gt;
+
+        &lt;div className="nav-right"&gt;
+          {/*
+            SignedIn: hanya render saat user sudah login
+            SignedOut: hanya render saat user belum login
+          */}
+          &lt;SignedOut&gt;
+            &lt;SignInButton mode="modal"&gt;
+              &lt;button className="btn-secondary"&gt;Masuk&lt;/button&gt;
+            &lt;/SignInButton&gt;
+            &lt;SignUpButton mode="modal"&gt;
+              &lt;button className="btn-primary"&gt;Daftar&lt;/button&gt;
+            &lt;/SignUpButton&gt;
+          &lt;/SignedOut&gt;
+
+          &lt;SignedIn&gt;
+            &lt;UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  avatarBox: 'w-10 h-10'
+                }
+              }}
+            /&gt;
+          &lt;/SignedIn&gt;
+        &lt;/div&gt;
+      &lt;/nav&gt;
+    &lt;/header&gt;
+  );
+}
+</code></pre>
+      </div>
+
+      <h3>Semua Komponen UI Clerk</h3>
+      <table class="net-table">
+        <thead><tr><th>Komponen</th><th>Fungsi</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;SignIn /&gt;</code></td><td>Halaman login lengkap (email, social, passwordless)</td></tr>
+          <tr><td><code>&lt;SignUp /&gt;</code></td><td>Halaman registrasi lengkap</td></tr>
+          <tr><td><code>&lt;UserButton /&gt;</code></td><td>Avatar profil dengan dropdown menu</td></tr>
+          <tr><td><code>&lt;UserProfile /&gt;</code></td><td>Halaman pengaturan profil lengkap</td></tr>
+          <tr><td><code>&lt;OrganizationSwitcher /&gt;</code></td><td>Switch antar organization</td></tr>
+          <tr><td><code>&lt;OrganizationList /&gt;</code></td><td>Daftar organizations</td></tr>
+          <tr><td><code>&lt;OrganizationProfile /&gt;</code></td><td>Profil dan settings organization</td></tr>
+          <tr><td><code>&lt;CreateOrganization /&gt;</code></td><td>Form buat organization baru</td></tr>
+          <tr><td><code>&lt;SignInButton /&gt;</code></td><td>Tombol trigger sign-in (modal/redirect)</td></tr>
+          <tr><td><code>&lt;SignUpButton /&gt;</code></td><td>Tombol trigger sign-up</td></tr>
+          <tr><td><code>&lt;SignOutButton /&gt;</code></td><td>Tombol sign-out</td></tr>
+          <tr><td><code>&lt;SignedIn /&gt;</code></td><td>Wrapper — render hanya saat authenticated</td></tr>
+          <tr><td><code>&lt;SignedOut /&gt;</code></td><td>Wrapper — render hanya saat unauthenticated</td></tr>
+          <tr><td><code>&lt;Protect /&gt;</code></td><td>Render berdasarkan permission/role</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="user-management">4. User Management</h2>
+
+      <h3>Mengakses User Data di Client</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">components/UserProfile.tsx</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// components/UserProfile.tsx
+'use client';
+import { useUser, useAuth } from '@clerk/nextjs';
+
+export default function UserProfile() {
+  const { user, isLoaded, isSignedIn } = useUser();
+  const { userId, sessionId, getToken } = useAuth();
+
+  // Loading state
+  if (!isLoaded) {
+    return &lt;div&gt;Loading...&lt;/div&gt;;
+  }
+
+  // Not signed in
+  if (!isSignedIn) {
+    return &lt;div&gt;Silakan login terlebih dahulu&lt;/div&gt;;
+  }
+
+  return (
+    &lt;div className="profile-card"&gt;
+      {/* Avatar */}
+      &lt;img
+        src={user.imageUrl}
+        alt={user.fullName || 'User'}
+        className="avatar"
+      /&gt;
+
+      {/* Informasi dasar */}
+      &lt;h2&gt;{user.fullName}&lt;/h2&gt;
+      &lt;p&gt;{user.primaryEmailAddress?.emailAddress}&lt;/p&gt;
+
+      {/* Metadata */}
+      &lt;div className="meta"&gt;
+        &lt;span&gt;ID: {user.id}&lt;/span&gt;
+        &lt;span&gt;Session: {sessionId}&lt;/span&gt;
+        &lt;span&gt;
+          Bergabung: {user.createdAt?.toLocaleDateString('id-ID')}
+        &lt;/span&gt;
+      &lt;/div&gt;
+
+      {/* Verifikasi email */}
+      &lt;div className="verifications"&gt;
+        {user.emailAddresses.map((email) =&gt; (
+          &lt;div key={email.id}&gt;
+            {email.emailAddress}
+            {email.verification?.status === 'verified'
+              ? ' ✅'
+              : ' ❌ Belum verifikasi'}
+          &lt;/div&gt;
+        ))}
+      &lt;/div&gt;
+
+      {/* Public metadata */}
+      &lt;div className="metadata"&gt;
+        &lt;p&gt;Role: {user.publicMetadata.role as string || 'user'}&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      </div>
+
+      <h3>Mengakses User Data di Server</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">app/dashboard/page.tsx</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// app/dashboard/page.tsx — Server Component
+import { auth, currentUser } from '@clerk/nextjs/server';
+import { redirect } from 'next/navigation';
+
+export default async function DashboardPage() {
+  // auth() — mendapatkan userId dan sessionId di server
+  const { userId, sessionId } = auth();
+
+  // Redirect jika belum login
+  if (!userId) {
+    redirect('/sign-in');
+  }
+
+  // currentUser() — mendapatkan data lengkap user
+  const user = await currentUser();
+
+  return (
+    &lt;div className="dashboard"&gt;
+      &lt;h1&gt;Dashboard&lt;/h1&gt;
+      &lt;p&gt;Selamat datang, {user?.firstName}!&lt;/p&gt;
+
+      &lt;div className="stats"&gt;
+        &lt;div className="stat"&gt;
+          &lt;span className="label"&gt;User ID&lt;/span&gt;
+          &lt;span className="value"&gt;{userId}&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div className="stat"&gt;
+          &lt;span className="label"&gt;Email&lt;/span&gt;
+          &lt;span className="value"&gt;
+            {user?.primaryEmailAddress?.emailAddress}
+          &lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div className="stat"&gt;
+          &lt;span className="label"&gt;Role&lt;/span&gt;
+          &lt;span className="value"&gt;
+            {(user?.publicMetadata?.role as string) || 'user'}
+          &lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      </div>
+
+      <h3>Updating User Metadata</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">app/api/set-role/route.ts</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// app/api/set-role/route.ts
+import { auth, clerkClient } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+
+export async function POST(request: Request) {
+  const { userId } = auth();
+
+  if (!userId) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
+  const { role } = await request.json();
+
+  // Update public metadata (bisa diakses di client)
+  await clerkClient.users.updateUserMetadata(userId, {
+    publicMetadata: {
+      role: role,  // 'admin', 'editor', 'user'
+    }
+  });
+
+  return NextResponse.json({ success: true, role });
+}
+
+// Tipe metadata:
+// publicMetadata    → bisa diakses di client (useUser)
+// privateMetadata   → hanya di server (clerkClient)
+// unsafeMetadata    → user bisa update sendiri
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 5 -->
+      <h2 id="middleware">5. Middleware dan Proteksi Route</h2>
+
+      <h3>Clerk Middleware</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">middleware.ts</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// middleware.ts — di root proyek (bukan di app/)
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+
+// Definisikan route yang membutuhkan autentikasi
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',     // Semua route di /dashboard
+  '/settings(.*)',      // Semua route di /settings
+  '/api/protected(.*)', // API routes yang dilindungi
+]);
+
+// Definisikan route yang hanya untuk admin
+const isAdminRoute = createRouteMatcher([
+  '/admin(.*)',
+]);
+
+export default clerkMiddleware((auth, req) => {
+  // Proteksi route yang membutuhkan login
+  if (isProtectedRoute(req)) {
+    auth().protect();
+  }
+
+  // Proteksi route admin — butuh role 'admin'
+  if (isAdminRoute(req)) {
+    auth().protect({
+      unauthorizedUrl: '/sign-in',
+      forbiddenUrl: '/not-authorized'
+    });
+  }
+});
+
+export const config = {
+  // Matcher: route mana yang diproses middleware
+  matcher: [
+    // Skip internal Next.js dan static files
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Selalu jalankan untuk API routes
+    '/(api|trpc)(.*)',
+  ],
+};
+</code></pre>
+      </div>
+
+      <h3>Route Protection dengan Protect Component</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">app/admin/page.tsx</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// app/admin/page.tsx — Protect berdasarkan role
+import { Protect } from '@clerk/nextjs';
+
+export default function AdminPage() {
+  return (
+    &lt;div&gt;
+      &lt;h1&gt;Admin Panel&lt;/h1&gt;
+
+      {/*
+        Protect component — render berdasarkan permission/role
+        Jika user tidak punya role 'admin', tampilkan fallback
+      */}
+      &lt;Protect
+        role="admin"
+        fallback={
+          &lt;div className="error"&gt;
+            &lt;h2&gt;Akses Ditolak&lt;/h2&gt;
+            &lt;p&gt;Anda tidak memiliki izin untuk mengakses halaman ini.&lt;/p&gt;
+          &lt;/div&gt;
+        }
+      &gt;
+        &lt;div className="admin-content"&gt;
+          &lt;h2&gt;Manajemen User&lt;/h2&gt;
+          &lt;p&gt;Konten khusus admin yang hanya bisa dilihat oleh admin.&lt;/p&gt;
+          {/* Admin content here */}
+        &lt;/div&gt;
+      &lt;/Protect&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="webhooks">6. Webhooks</h2>
+      <p>Clerk mengirim webhook events setiap kali terjadi perubahan pada user, organization, atau session. Ini sangat penting untuk sinkronisasi data dengan database Anda sendiri.</p>
+
+      <h3>Setup Webhook di Clerk Dashboard</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Setup</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>1. Buka Clerk Dashboard → Webhooks
+2. Klik "Add Endpoint"
+3. Masukkan URL endpoint Anda:
+   https://your-domain.com/api/webhooks/clerk
+4. Pilih events yang ingin di-subscribe:
+   ✅ user.created
+   ✅ user.updated
+   ✅ user.deleted
+   ✅ organization.created
+   ✅ organizationMembership.created
+5. Simpan — catat "Signing Secret" (whsec_...)
+6. Tambahkan ke .env.local:
+   CLERK_WEBHOOK_SECRET=whsec_...
+</code></pre>
+      </div>
+
+      <h3>Webhook Handler</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">app/api/webhooks/clerk/route.ts</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// app/api/webhooks/clerk/route.ts
+import { Webhook } from 'svix';
+import { headers } from 'next/headers';
+import { WebhookEvent } from '@clerk/nextjs/server';
+import { db } from '@/lib/db';
+
+export async function POST(request: Request) {
+  // 1. Verifikasi webhook signature
+  const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
+  if (!WEBHOOK_SECRET) {
+    throw new Error('CLERK_WEBHOOK_SECRET not set');
+  }
+
+  const headerPayload = headers();
+  const svixId = headerPayload.get('svix-id');
+  const svixTimestamp = headerPayload.get('svix-timestamp');
+  const svixSignature = headerPayload.get('svix-signature');
+
+  if (!svixId || !svixTimestamp || !svixSignature) {
+    return new Response('Missing svix headers', { status: 400 });
+  }
+
+  const payload = await request.json();
+  const body = JSON.stringify(payload);
+
+  const wh = new Webhook(WEBHOOK_SECRET);
+  let evt: WebhookEvent;
+
+  try {
+    evt = wh.verify(body, {
+      'svix-id': svixId,
+      'svix-timestamp': svixTimestamp,
+      'svix-signature': svixSignature,
+    }) as WebhookEvent;
+  } catch (err) {
+    console.error('Webhook verification failed:', err);
+    return new Response('Verification failed', { status: 400 });
+  }
+
+  // 2. Handle berbagai event types
+  const eventType = evt.type;
+
+  switch (eventType) {
+    case 'user.created': {
+      const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+      console.log('User created:', id);
+
+      // Simpan user ke database lokal
+      await db.user.create({
+        data: {
+          clerkId: id,
+          email: email_addresses[0]?.email_address || '',
+          name: `${first_name || ''} ${last_name || ''}`.trim(),
+          avatar: image_url,
+          createdAt: new Date()
+        }
+      });
+      break;
+    }
+
+    case 'user.updated': {
+      const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+      console.log('User updated:', id);
+
+      await db.user.update({
+        where: { clerkId: id },
+        data: {
+          email: email_addresses[0]?.email_address || '',
+          name: `${first_name || ''} ${last_name || ''}`.trim(),
+          avatar: image_url,
+        }
+      });
+      break;
+    }
+
+    case 'user.deleted': {
+      const { id } = evt.data;
+      console.log('User deleted:', id);
+
+      await db.user.delete({
+        where: { clerkId: id! }
+      });
+      break;
+    }
+
+    default:
+      console.log('Unhandled event type:', eventType);
+  }
+
+  return new Response('Webhook processed', { status: 200 });
+}
+</code></pre>
+      </div>
+
+      <h3>Webhook Events yang Tersedia</h3>
+      <table class="net-table">
+        <thead><tr><th>Event</th><th>Trigger</th></tr></thead>
+        <tbody>
+          <tr><td><code>user.created</code></td><td>User baru mendaftar</td></tr>
+          <tr><td><code>user.updated</code></td><td>User mengupdate profil</td></tr>
+          <tr><td><code>user.deleted</code></td><td>User dihapus dari Clerk</td></tr>
+          <tr><td><code>session.created</code></td><td>User login (session baru)</td></tr>
+          <tr><td><code>session.ended</code></td><td>User logout</td></tr>
+          <tr><td><code>organization.created</code></td><td>Organization baru dibuat</td></tr>
+          <tr><td><code>organization.updated</code></td><td>Organization diupdate</td></tr>
+          <tr><td><code>organizationMembership.created</code></td><td>User ditambahkan ke org</td></tr>
+          <tr><td><code>organizationMembership.deleted</code></td><td>User dihapus dari org</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Keamanan Webhook</div>
+        <p>Selalu verifikasi signature webhook menggunakan <code>svix</code> library! Tanpa verifikasi, siapapun bisa mengirim fake webhook ke endpoint Anda. Tanda tangan digital memastikan webhook benar-benar berasal dari Clerk.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 7 -->
+      <h2 id="organizations">7. Organizations</h2>
+      <p><strong>Organizations</strong> memungkinkan Anda membuat fitur multi-tenancy — satu user bisa menjadi anggota beberapa organization, masing-masing dengan role dan permission berbeda.</p>
+
+      <h3>Organization Components</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">app/organizations/page.tsx</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// app/organizations/page.tsx
+import {
+  OrganizationSwitcher,
+  OrganizationList,
+  CreateOrganization
+} from '@clerk/nextjs';
+
+export default function OrganizationsPage() {
+  return (
+    &lt;div className="org-page"&gt;
+      &lt;h1&gt;Organizations&lt;/h1&gt;
+
+      {/*
+        OrganizationSwitcher — dropdown untuk switch org
+        Menampilkan org saat ini dan memungkinkan switch
+      */}
+      &lt;OrganizationSwitcher
+        afterCreateOrganizationUrl="/organization/:slug"
+        afterSelectOrganizationUrl="/organization/:slug"
+        appearance={{
+          elements: {
+            rootBox: 'mb-8'
+          }
+        }}
+      /&gt;
+
+      {/*
+        OrganizationList — daftar semua org yang user ikuti
+        Plus tombol untuk membuat org baru
+      */}
+      &lt;OrganizationList
+        hidePersonal={false}
+        afterSelectOrganizationUrl="/organization/:slug"
+        afterCreateOrganizationUrl="/organization/:slug"
+      /&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+      </div>
+
+      <h3>Organization Roles dan Permissions</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">app/api/organizations/[orgId]/route.ts</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// app/api/organizations/[orgId]/route.ts
+import { auth, clerkClient } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+
+export async function GET(
+  request: Request,
+  { params }: { params: { orgId: string } }
+) {
+  const { userId, orgId } = auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Mendapatkan data organization
+  const organization = await clerkClient.organizations.getOrganization({
+    organizationId: params.orgId
+  });
+
+  // Mendapatkan daftar member
+  const members = await clerkClient.organizations.getOrganizationMembershipList({
+    organizationId: params.orgId
+  });
+
+  return NextResponse.json({
+    organization,
+    members: members.data.map(m => ({
+      id: m.id,
+      role: m.role,
+      user: {
+        id: m.publicUserData?.userId,
+        name: m.publicUserData?.firstName + ' ' + m.publicUserData?.lastName,
+        avatar: m.publicUserData?.imageUrl
+      }
+    }))
+  });
+}
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="customization">8. Kustomisasi dan Theming</h2>
+
+      <h3>Appearance API</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">app/layout.tsx — Kustomisasi Global</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// app/layout.tsx — Kustomisasi global Clerk
+import { ClerkProvider } from '@clerk/nextjs';
+
+// Definisikan tema global
+const clerkAppearance = {
+  variables: {
+    // Warna
+    colorPrimary: '#3b82f6',
+    colorBackground: '#0f172a',
+    colorInputBackground: '#1e293b',
+    colorInputText: '#e2e8f0',
+    colorText: '#e2e8f0',
+    colorTextSecondary: '#94a3b8',
+    colorDanger: '#ef4444',
+    colorSuccess: '#22c55e',
+
+    // Typography
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSize: '0.875rem',
+    fontWeight: {
+      normal: 400,
+      medium: 500,
+      bold: 700
+    },
+
+    // Border
+    borderRadius: '0.75rem',
+
+    // Spacing
+    spacingUnit: '1rem'
+  },
+  elements: {
+    // Card styling
+    card: {
+      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+    },
+
+    // Button styling
+    formButtonPrimary: {
+      backgroundColor: '#3b82f6',
+      '&:hover': {
+        backgroundColor: '#2563eb'
+      }
+    },
+
+    // Input styling
+    formFieldInput: {
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      '&:focus': {
+        borderColor: '#3b82f6',
+        boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.3)'
+      }
+    },
+
+    // Avatar
+    avatarBox: {
+      width: '3rem',
+      height: '3rem'
+    },
+
+    // Footer
+    footerActionLink: {
+      color: '#3b82f6',
+      '&:hover': {
+        color: '#60a5fa'
+      }
+    }
+  }
+};
+
+export default function RootLayout({
+  children
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    &lt;ClerkProvider appearance={clerkAppearance}&gt;
+      &lt;html lang="id"&gt;
+        &lt;body&gt;{children}&lt;/body&gt;
+      &lt;/html&gt;
+    &lt;/ClerkProvider&gt;
+  );
+}
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h3>Path Aliases</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">tsconfig.json + next.config.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// tsconfig.json — TypeScript path aliases
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@styles/*": ["./src/styles/*"],
+      "@types/*": ["./src/types/*"]
+    }
+  }
+}
+
+// next.config.js — Turbopack aliases (opsional)
+// Turbopack bisa membaca langsung dari tsconfig.json
+module.exports = {
+  turbopack: {
+    resolveAlias: {
+      // Tambahkan alias yang tidak ada di tsconfig
+      '@lib': './src/lib',
+      '@config': './config'
+    }
+  }
+};
+
+// Penggunaan di kode:
+import Button from '@components/Button';
+import { formatRupiah } from '@utils/format';
+import useAuth from '@hooks/useAuth';
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="css">8. CSS dan Asset Handling</h2>
+
+      <h3>CSS Modules</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">components/Button.module.css</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>/* components/Button.module.css */
+/* CSS Modules — class names di-scope secara otomatis */
+.button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primary {
+  background: #3b82f6;
+  color: white;
+  border: none;
+}
+
+.primary:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.secondary {
+  background: transparent;
+  color: #3b82f6;
+  border: 2px solid #3b82f6;
+}
+
+.secondary:hover {
+  background: #3b82f6;
+  color: white;
+}
+
+/* Output: class names menjadi unik */
+/* .Button_button__x7d2k { ... } */
+/* .Button_primary__a3f9m { ... } */
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">components/Button.tsx</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// components/Button.tsx
+import styles from './Button.module.css';
+
+interface ButtonProps {
+  variant?: 'primary' | 'secondary';
+  children: React.ReactNode;
+  onClick?: () => void;
+}
+
+export default function Button({
+  variant = 'primary',
+  children,
+  onClick
+}: ButtonProps) {
+  return (
+    &lt;button
+      className={`${styles.button} ${styles[variant]}`}
+      onClick={onClick}
+    &gt;
+      {children}
+    &lt;/button&gt;
+  );
+}
+
+// Penggunaan:
+// &lt;Button variant="primary"&gt;Simpan&lt;/Button&gt;
+// &lt;Button variant="secondary"&gt;Batal&lt;/Button&gt;
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 9 -->
+      <h2 id="komparasi">9. Komparasi dengan Bundler Lain</h2>
+
+      <h3>Turbopack vs Webpack vs Vite vs esbuild</h3>
+      <table class="net-table">
+        <thead><tr><th>Aspek</th><th>Turbopack</th><th>Webpack</th><th>Vite</th><th>esbuild</th></tr></thead>
+        <tbody>
+          <tr><td>Bahasa</td><td>Rust</td><td>JavaScript</td><td>JS + esbuild</td><td>Go</td></tr>
+          <tr><td>Dev Speed</td><td>⚡ Tercepat</td><td>🐌 Lambat</td><td>🚀 Cepat</td><td>🚀 Cepat</td></tr>
+          <tr><td>HMR</td><td>⚡ &lt;100ms</td><td>1-10s</td><td>50-200ms</td><td>N/A (no HMR)</td></tr>
+          <tr><td>Prod Build</td><td>🟡 Berkembang</td><td>✅ Mature</td><td>✅ (Rollup)</td><td>⚡ Tercepat</td></tr>
+          <tr><td>Code Splitting</td><td>✅ Automatic</td><td>✅ Manual/Optimal</td><td>✅ (Rollup)</td><td>🟡 Basic</td></tr>
+          <tr><td>CSS Support</td><td>✅ Full</td><td>✅ Full</td><td>✅ Full</td><td>🟡 Basic</td></tr>
+          <tr><td>Ekosistem</td><td>🟡 Growing</td><td>✅ Massive</td><td>✅ Large</td><td>🟡 Growing</td></tr>
+          <tr><td>Framework</td><td>Next.js</td><td>Semua</td><td>Semua</td><td>Semua</td></tr>
+          <tr><td>Best For</td><td>Next.js apps</td><td>Legacy/Large</td><td>Modern SPA</td><td>Libraries</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Kapan Harus Menggunakan Turbopack?</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Decision Guide</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>✅ GUNAKAN Turbopack jika:
+   - Anda menggunakan Next.js 15+
+   - Proyek sangat besar (10.000+ files)
+   - HMR lambat dengan bundler saat ini
+   - Development speed adalah prioritas utama
+   - Proyek baru yang belum punya custom build config
+
+❌ JANGAN GUNAKAN Turbopack jika:
+   - Menggunakan framework selain Next.js (misal: Nuxt, SvelteKit)
+   - Membutuhkan plugin Webpack yang kompleks
+   - Membutuhkan production build optimization (belum matang)
+   - Proyek sangat bergantung pada custom webpack config
+   - Stabilitas lebih penting daripada speed (gunakan Webpack/Vite)
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 10 -->
+      <h2 id="masa-depan">10. Masa Depan Turbopack</h2>
+
+      <p>Turbopack masih dalam pengembangan aktif. Berikut roadmap yang diumumkan oleh tim Vercel:</p>
+
+      <h3>Roadmap Turbopack</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Roadmap</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>2024 (SELESAI):
+✅ Turbopack Dev — stable di Next.js 15
+✅ CSS Modules, PostCSS, Tailwind support
+✅ HMR yang sangat cepat
+✅ Server Components support
+
+2025-2026 (DALAM PENGEMBANGAN):
+🔄 Turbopack Build — production bundling
+🔄 Improved caching (persistent disk cache)
+🔄 Module Federation support
+🔄 Broader framework support (beyond Next.js)
+
+FUTURE (PLANNED):
+📋 Turbopack as standalone tool
+📋 Custom plugin API
+📋 Better bundle analysis tools
+📋 Parallel compilation improvements
+📋 Support untuk library bundling
+
+GOAL AKHIR:
+→ Turbopack menjadi bundler default untuk semua proyek
+→ Menggantikan Webpack di ekosistem JavaScript
+→ Menggabungkan kecepatan esbuild + fitur Webpack
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Saat ini Turbopack paling optimal digunakan untuk <strong>development</strong> di Next.js. Untuk <strong>production build</strong>, Next.js masih menggunakan Webpack/Rollup secara default. Namun seiring Turbopack Build stabil, ini akan berubah.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 11: Quiz -->
+      <h2 id="quiz">11. Quiz Pemahaman</h2>
+
+      <div class="quiz-section">
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1. Bahasa apa yang digunakan untuk membangun Turbopack?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q1" value="a"> Go</label>
+            <label><input type="radio" name="q1" value="b"> Rust</label>
+            <label><input type="radio" name="q1" value="c"> C++</label>
+            <label><input type="radio" name="q1" value="d"> JavaScript</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2. Apa konsep kunci yang membuat Turbopack sangat cepat?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q2" value="a"> Virtual DOM</label>
+            <label><input type="radio" name="q2" value="b"> Tree Shaking</label>
+            <label><input type="radio" name="q2" value="c"> Incremental Computation</label>
+            <label><input type="radio" name="q2" value="d"> Code Splitting</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Bagaimana cara mengaktifkan Turbopack di Next.js?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q3" value="a"> npx next dev --turbopack</label>
+            <label><input type="radio" name="q3" value="b"> npm install turbopack</label>
+            <label><input type="radio" name="q3" value="c"> turbo init</label>
+            <label><input type="radio" name="q3" value="d"> Mengubah package.json</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4. Siapa yang mengembangkan Turbopack?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q4" value="a"> Google Chrome Team</label>
+            <label><input type="radio" name="q4" value="b"> Meta (Facebook)</label>
+            <label><input type="radio" name="q4" value="c"> Evan You (Vite)</label>
+            <label><input type="radio" name="q4" value="d"> Tobias Koppers &amp; Vercel</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>5. Apa status Turbopack untuk production build saat ini?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q5" value="a"> Sudah stable dan siap pakai</label>
+            <label><input type="radio" name="q5" value="b"> Masih dalam pengembangan</label>
+            <label><input type="radio" name="q5" value="c"> Tidak direncanakan</label>
+            <label><input type="radio" name="q5" value="d"> Hanya untuk static sites</label>
+          </div>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz()">Periksa Jawaban</button>
+        <div class="quiz-result" id="quizResult"></div>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">📝 Ringkasan</div>
+        <p>Dalam tutorial ini, Anda telah mempelajari:</p>
+        <ul>
+          <li>Pengenalan Turbopack dan motivasi pembuatannya</li>
+          <li>Arsitektur incremental computation dengan Turbo Engine</li>
+          <li>Performa dan benchmark dibanding Webpack dan Vite</li>
+          <li>Integrasi dengan Next.js dan cara mengaktifkannya</li>
+          <li>Konfigurasi loaders, aliases, dan environment variables</li>
+          <li>Migrasi dari Webpack ke Turbopack</li>
+          <li>CSS Modules dan asset handling</li>
+          <li>Komparasi dengan bundler lain</li>
+          <li>Roadmap dan masa depan Turbopack</li>
+        </ul>
+      </div>
+
+      <div class="related-articles">
+        <h3>Artikel Terkait</h3>
+        <div class="related-grid">
+          <a href="react-dasar.html" class="related-card">
+            <span class="related-tag">React</span><h4>React.js untuk Pemula</h4>
+            <p>Belajar JSX, komponen, props, state, dan hooks</p>
+          </a>
+          <a href="postcss-basics.html" class="related-card">
+            <span class="related-tag">PostCSS</span><h4>PostCSS: CSS Transformation</h4>
+            <p>Plugin system, autoprefixer, nesting, dan workflow</p>
+          </a>
+          <a href="nuxt-js.html" class="related-card">
+            <span class="related-tag">Nuxt.js</span><h4>Nuxt.js: Vue Full-Stack Framework</h4>
+            <p>SSR, SSG, auto-imports, modules, dan server API</p>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </article>

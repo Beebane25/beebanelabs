@@ -1,0 +1,1527 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">Virtual Environments</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>Python Virtual Environments</h1>
+      <p class="article-subtitle">Tutorial lengkap Python virtual environments — venv, conda, pip-tools, poetry, dependency management, dan best practices untuk mengelola proyek Python secara profesional</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Mengapa Virtual Environment?</a></li>
+          <li><a href="#venv">venv — Built-in Virtual Env</a></li>
+          <li><a href="#pip">pip dan requirements.txt</a></li>
+          <li><a href="#pip-tools">pip-tools — Dependency Pinning</a></li>
+          <li><a href="#poetry">Poetry — Modern Package Manager</a></li>
+          <li><a href="#conda">Conda — Data Science Environment</a></li>
+          <li><a href="#uv">uv — Ultra-fast Package Manager</a></li>
+          <li><a href="#pyproject-toml">pyproject.toml — Modern Config</a></li>
+          <li><a href="#workflow">Workflow Sehari-hari</a></li>
+          <li><a href="#docker">Virtual Env + Docker</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Mengapa Virtual Environment?</h2>
+
+      <p>Bayangkan kamu mengerjakan dua proyek: Proyek A memerlukan <code>requests==2.28</code> sedangkan Proyek B memerlukan <code>requests==2.31</code>. Jika kamu menginstal keduanya secara global, akan terjadi konflik versi. <strong>Virtual environment</strong> menyelesaikan masalah ini.</p>
+
+      <h3>Masalah Tanpa Virtual Environment</h3>
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Masalah Dependency Hell</div>
+        <p>Tanpa virtual environment, semua package terinstal di satu tempat global. Jika Proyek A butuh <code>Django 4.2</code> dan Proyek B butuh <code>Django 3.2</code>, kamu tidak bisa keduanya terinstal bersamaan. Satu-satunya solusi adalah meng-uninstall dan install ulang setiap kali ganti proyek — sangat merepotkan dan rentan error.</p>
+      </div>
+
+      <h3>Apa Itu Virtual Environment?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Definisi</td><td>Environment Python terisolasi dengan package dan dependency sendiri</td></tr>
+          <tr><td>Isolasi</td><td>Setiap venv memiliki folder <code>site-packages</code> sendiri</td></tr>
+          <tr><td>Python Version</td><td>Bisa menggunakan versi Python yang berbeda per proyek</td></tr>
+          <tr><td>No Conflict</td><td>Package di satu proyek tidak mempengaruhi proyek lain</td></tr>
+          <tr><td>Reproducible</td><td>Bisa di-share via <code>requirements.txt</code> untuk replikasi</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Virtual Environment Architecture</div>
+<pre class="mermaid">
+flowchart TD
+    N0["python3.11 pip (global)"]
+    N1[bin/python3.11 bin/pip site-packages/ django==4...]
+    N2[bin/python3.11 bin/pip site-packages/ django==3...]
+    N0 --> N1
+    N1 --> N2
+</pre>
+    </div>
+      </div>
+
+      <h3>Perbandingan Tools</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Type</th>
+            <th>Keunggulan</th>
+            <th>Cocok Untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>venv</code></td><td>Built-in</td><td>Sederhana, tidak perlu install</td><td>Proyek sederhana</td></tr>
+          <tr><td><code>pip</code></td><td>Built-in</td><td>Package installer standar</td><td>Package management dasar</td></tr>
+          <tr><td><code>pip-tools</code></td><td>Third-party</td><td>Dependency pinning, reproducible</td><td>Proyek production</td></tr>
+          <tr><td><code>Poetry</code></td><td>Third-party</td><td>All-in-one (env + package + build + publish)</td><td>Library/app development</td></tr>
+          <tr><td><code>Conda</code></td><td>Third-party</td><td>Multi-language, binary packages</td><td>Data science, ML</td></tr>
+          <tr><td><code>uv</code></td><td>Third-party</td><td>Sangat cepat (Rust-based)</td><td>Semua proyek (modern)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: venv                 -->
+      <!-- ============================== -->
+      <h2 id="venv">2. venv — Built-in Virtual Environment</h2>
+
+      <p><code>venv</code> adalah modul standar Python untuk membuat virtual environment. Sudah included sejak Python 3.3, tidak perlu instalasi tambahan.</p>
+
+      <h3>Membuat Virtual Environment</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — venv Basics</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Membuat virtual environment =====
+
+# Nama konvensi: .venv atau venv
+python3 -m venv .venv
+
+# Dengan Python versi spesifik
+python3.11 -m venv .venv
+python3.12 -m venv .venv
+
+# Dengan pip versi terbaru
+python3 -m venv --upgrade-deps .venv
+
+# Tanpa pip (hemat space)
+python3 -m venv --without-pip .venv
+
+# ===== Mengaktifkan virtual environment =====
+
+# Linux / macOS:
+source .venv/bin/activate
+
+# Windows (Command Prompt):
+.venv\Scripts\activate.bat
+
+# Windows (PowerShell):
+.venv\Scripts\Activate.ps1
+
+# Windows (Git Bash):
+source .venv/Scripts/activate
+
+# ===== Setelah aktif, prompt berubah =====
+# (.venv) user@machine:~/project$
+
+# ===== Verifikasi =====
+which python    # → /home/user/project/.venv/bin/python
+which pip       # → /home/user/project/.venv/bin/pip
+python --version
+
+# ===== Deactivate =====
+deactivate
+
+# ===== Menghapus virtual environment =====
+rm -rf .venv         # Linux/Mac
+rmdir /s /q .venv    # Windows
+</code></pre>
+      </div>
+
+      <h3>Struktur Virtual Environment</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — venv Structure</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+</div>
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: # Struktur folder venv (Linux/macOS):</div>
+<pre><code>/&quot;No. Struktur folder venv (Linux/macOS):&quot;/
+bin/
+/&quot;activate&quot;/
+/&quot;activate.csh&quot;/
+/&quot;activate.fish&quot;/
+python
+python3
+pip
+/&quot;include/&quot;/
+lib/
+/&quot;python3.11/&quot;/
+/&quot;site-packages/  No.&quot;/
+pip/
+/&quot;setuptools/&quot;/
+...
+/&quot;pyvenv.cfg&quot;/
+share/
+/&quot;Scripts/&quot;/
+/&quot;activate.bat&quot;/
+/&quot;activate.ps1&quot;/
+/&quot;python.exe&quot;/
+pip.exe
+Lib/
+/&quot;site-packages/&quot;/
+/&quot;Include/&quot;/
+/&quot;pyvenv.cfg&quot;/
+tcl/</code></pre>
+    </div>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Tambahkan <code>.venv/</code> ke <code>.gitignore</code> agar virtual environment tidak masuk ke repository. Setiap developer bisa membuat venv sendiri dari <code>requirements.txt</code>.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: pip                  -->
+      <!-- ============================== -->
+      <h2 id="pip">3. pip dan requirements.txt</h2>
+
+      <p><code>pip</code> adalah package installer standar untuk Python. Digunakan bersama <code>requirements.txt</code> untuk mengelola dependency.</p>
+
+      <h3>pip Commands</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — pip Commands</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Instalasi packages =====
+
+# Instal package terbaru
+pip install requests
+
+# Instal versi spesifik
+pip install requests==2.31.0
+
+# Instal dengan batasan versi
+pip install "requests>=2.28,<3.0"
+pip install "django~=4.2"      # Compatible release (>=4.2, ==4.*)
+pip install "flask>=3.0"       # Minimum version
+
+# Instal dari git
+pip install git+https://github.com/user/repo.git
+pip install git+https://github.com/user/repo.git@branch-name
+pip install git+https://github.com/user/repo.git@v1.0.0
+
+# Instal dari local directory
+pip install ./my-package/
+pip install -e ./my-package/   # Editable mode (development)
+
+# Instal beberapa packages sekaligus
+pip install requests flask sqlalchemy
+
+# ===== Upgrade dan Uninstall =====
+
+# Upgrade package
+pip install --upgrade requests
+pip install -U requests
+
+# Upgrade pip itu sendiri
+pip install --upgrade pip
+
+# Uninstall
+pip uninstall requests
+
+# ===== List dan Info =====
+
+# List semua package terinstal
+pip list
+
+# List dengan format columns
+pip list --format=columns
+
+# List outdated packages
+pip list --outdated
+
+# Info tentang package
+pip show requests
+
+# ===== Requirements File =====
+
+# Generate requirements.txt dari environment saat ini
+pip freeze > requirements.txt
+
+# Instal dari requirements.txt
+pip install -r requirements.txt
+
+# Instal dari requirements.txt dengan upgrade
+pip install -r requirements.txt --upgrade
+
+# ===== Cache =====
+
+# Lihat cache
+pip cache info
+
+# Hapus cache
+pip cache purge
+</code></pre>
+      </div>
+
+      <h3>requirements.txt Best Practices</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Text — requirements.txt</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># requirements.txt — Production (pinned versions)
+# Untuk reproducible builds
+
+# Web framework
+django==4.2.13
+djangorestframework==3.15.2
+
+# Database
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.31
+
+# HTTP
+requests==2.32.3
+httpx==0.27.0
+
+# Task queue
+celery==5.4.0
+redis==5.0.7
+
+# Testing
+pytest==8.2.2
+pytest-django==4.8.0
+pytest-cov==5.0.0
+
+# Development
+ruff==0.5.0
+mypy==1.10.0
+ipython==8.25.0
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Text — requirements.in (unpinned)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># requirements.in — Base requirements (unpinned)
+# Digunakan dengan pip-tools untuk generate pinned requirements.txt
+
+django>=4.2,<5.0
+djangorestframework>=3.15
+psycopg2-binary>=2.9
+sqlalchemy>=2.0
+requests>=2.28
+httpx>=0.27
+celery>=5.4
+redis>=5.0
+
+# Dev dependencies (opsional, pisahkan ke requirements-dev.in)
+pytest
+pytest-django
+ruff
+mypy
+</code></pre>
+      </div>
+
+      <h3>Constraints dan Layering</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Requirements Layers</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Pisahkan dependency berdasarkan environment:
+
+# requirements-base.txt    — shared dependencies
+# requirements.txt         — production (includes base)
+# requirements-dev.txt     — development (includes base + testing tools)
+# requirements-test.txt    — testing only
+
+# Contoh requirements-dev.txt:
+# -r requirements.txt
+pytest>=8.0
+pytest-cov>=5.0
+ruff>=0.5
+mypy>=1.10
+ipython>=8.0
+debugpy>=1.8
+
+# Menggunakan constraint file
+# constraints.txt: membatasi versi tanpa menginstall
+# django==4.2.13
+# sqlalchemy==2.0.31
+
+pip install -r requirements.txt -c constraints.txt
+
+# Instal requirements-dev
+pip install -r requirements-dev.txt
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: pip-tools            -->
+      <!-- ============================== -->
+      <h2 id="pip-tools">4. pip-tools — Dependency Pinning</h2>
+
+      <p><code>pip-tools</code> menyediakan workflow yang lebih baik untuk mengelola dependency dengan memisahkan antara requirement yang diinginkan (unpinned) dan requirement yang di-resolve (pinned).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — pip-tools</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Instalasi pip-tools =====
+pip install pip-tools
+
+# ===== Workflow pip-tools =====
+
+# 1. Buat requirements.in (input — apa yang kamu butuhkan)
+# requirements.in:
+# django>=4.2
+# requests>=2.28
+# sqlalchemy>=2.0
+
+# 2. Compile ke requirements.txt (output — resolved, pinned)
+pip-compile requirements.in
+# Menghasilkan requirements.txt dengan versi exact + hash
+# django==4.2.13 (via django>=4.2)
+# requests==2.32.3 (via requests>=2.28)
+# sqlalchemy==2.0.31 (via sqlalchemy>=2.0)
+# ... beserta semua transitive dependencies
+
+# 3. Sync environment dengan requirements.txt
+pip-sync requirements.txt
+# Menginstall yang kurang, menghapus yang tidak perlu
+
+# ===== Advanced pip-tools =====
+
+# Compile dengan upgrade semua
+pip-compile --upgrade requirements.in
+
+# Compile dengan upgrade package tertentu
+pip-compile --upgrade-package django requirements.in
+
+# Output ke file berbeda
+pip-compile requirements.in -o requirements.txt
+
+# Dev dependencies
+pip-compile requirements-dev.in -o requirements-dev.txt
+
+# Generate dengan hashes (untuk security)
+pip-compile --generate-hashes requirements.in
+
+# Sync dari multiple requirements files
+pip-sync requirements.txt requirements-dev.txt
+
+# ===== pip-tools Configuration (pyproject.toml) =====
+# [tool.pip-tools]
+# generate-hashes = true
+# allow-unsafe = false
+# strip-extras = true
+</code></pre>
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: pip-tools Workflow</div>
+<pre><code>pip-sync
+(install +
+uninstall)
+.venv/
+(ter-sync)
+PIP-TOOLS WORKFLOW
+requirements.in requirements.txt
+django&gt;=4.2 compile→ django==4.2.13
+requests&gt;=2 requests==2.32.3
+sqlalchemy&gt;2 sqlalchemy==2.0.31
+certifi==2024.6.2
+(apa yang kamu mau) urllib3==2.2.2
+... (20+ transitive)
+▼
+▼</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Poetry               -->
+      <!-- ============================== -->
+      <h2 id="poetry">5. Poetry — Modern Package Manager</h2>
+
+      <p><strong>Poetry</strong> adalah all-in-one tool untuk dependency management, virtual environment, building, dan publishing Python packages. Ini menjadi standar de facto untuk proyek Python modern.</p>
+
+      <h3>Instalasi dan Setup</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Poetry Install</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Instalasi Poetry =====
+
+# Linux / macOS / WSL
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Windows (PowerShell)
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+
+# Atau via pip (kurang recommended)
+pip install poetry
+
+# Verifikasi
+poetry --version
+
+# ===== Konfigurasi =====
+# Membuat venv di dalam project folder (recommended)
+poetry config virtualenvs.in-project true
+
+# Lihat semua konfigurasi
+poetry config --list
+
+# ===== Membuat Project Baru =====
+poetry new my-project
+# Menghasilkan:
+# my-project/
+# ├── pyproject.toml
+# ├── README.md
+# ├── my_project/
+# │   └── __init__.py
+# └── tests/
+#     └── __init__.py
+
+# Inisialisasi di project yang sudah ada
+cd existing-project
+poetry init
+</code></pre>
+      </div>
+
+      <h3>Dependency Management dengan Poetry</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Poetry Dependencies</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Menambah dependencies =====
+
+# Add production dependency
+poetry add requests
+poetry add "django>=4.2,<5.0"
+poetry add sqlalchemy@^2.0
+
+# Add dev dependency
+poetry add --group dev pytest ruff mypy
+poetry add -G dev pytest
+
+# Add optional dependency
+poetry add --group optional redis
+
+# ===== Menghapus dependencies =====
+poetry remove requests
+poetry remove --group dev pytest
+
+# ===== Install semua dependencies =====
+poetry install
+
+# Install tanpa dev dependencies
+poetry install --only main
+
+# Install hanya dev
+poetry install --only dev
+
+# ===== Update dependencies =====
+# Update semua
+poetry update
+
+# Update package tertentu
+poetry update requests
+
+# ===== Lock file =====
+# poetry.lock otomatis dibuat/diupdate
+# SELALU commit poetry.lock ke git!
+
+# Re-resolve semua dependencies
+poetry lock
+
+# Lock tanpa update
+poetry lock --no-update
+
+# ===== List dependencies =====
+poetry show
+poetry show --tree        # Dengan dependency tree
+poetry show --outdated    # Package yang bisa diupdate
+
+# ===== Export ke requirements.txt =====
+poetry export -f requirements.txt --output requirements.txt
+poetry export -f requirements.txt --without-hashes -o requirements.txt
+</code></pre>
+      </div>
+
+      <h3>pyproject.toml dengan Poetry</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TOML — pyproject.toml</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>[tool.poetry]
+name = "my-awesome-project"
+version = "1.0.0"
+description = "Deskripsi project kamu"
+authors = ["Budi Santoso &lt;budi@email.com&gt;"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/user/my-project"
+keywords = ["python", "tutorial"]
+packages = [{include = "my_project"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^4.2"
+djangorestframework = "^3.15"
+requests = "^2.31"
+sqlalchemy = "^2.0"
+celery = {version = "^5.4", extras = ["redis"]}
+redis = "^5.0"
+gunicorn = {version = "^22.0", optional = true}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2"
+pytest-cov = "^5.0"
+pytest-django = "^4.8"
+ruff = "^0.5"
+mypy = "^1.10"
+ipython = "^8.25"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^7.3"
+sphinx-rtd-theme = "^2.0"
+
+[tool.poetry.scripts]
+myproject = "my_project.cli:main"
+
+[tool.poetry.plugins."my_project.plugins"]
+myplugin = "my_project.plugins:MyPlugin"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+</code></pre>
+      </div>
+
+      <h3>Poetry Commands Lengkap</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Poetry Commands</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Virtual Environment =====
+poetry env info              # Info tentang venv
+poetry env list              # List semua venv
+poetry env use python3.11    # Ganti Python version
+poetry env remove .venv      # Hapus venv
+
+# ===== Running =====
+poetry run python script.py  # Jalankan script di venv
+poetry run pytest            # Jalankan pytest di venv
+poetry run python -m mymodule
+
+# Shell di dalam venv
+poetry shell
+# Sekarang semua command berjalan di venv
+exit  # Keluar dari shell
+
+# ===== Building dan Publishing =====
+# Build package
+poetry build
+# Menghasilkan dist/my_project-1.0.0.tar.gz dan .whl
+
+# Publish ke PyPI
+poetry publish
+
+# Build + Publish
+poetry publish --build
+
+# Publish ke private repository
+poetry config repositories.private https://private.pypi.org/simple/
+poetry publish -r private
+
+# ===== Check dan Versioning =====
+poetry check                  # Validasi pyproject.toml
+poetry version                # Lihat versi
+poetry version patch          # 1.0.0 → 1.0.1
+poetry version minor          # 1.0.0 → 1.1.0
+poetry version major          # 1.0.0 → 2.0.0
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Conda                -->
+      <!-- ============================== -->
+      <h2 id="conda">6. Conda — Data Science Environment</h2>
+
+      <p><strong>Conda</strong> adalah package dan environment manager yang sangat populer di kalangan data scientist. Berbeda dengan pip yang hanya mengelola Python packages, Conda bisa mengelola packages dari berbagai bahasa (C, C++, R, dll).</p>
+
+      <h3>Instalasi Miniconda</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Conda Install</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Instalasi Miniconda (recommended, lebih ringan dari Anaconda) =====
+
+# Linux
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+
+# macOS
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh
+bash Miniconda3-latest-MacOSX-arm64.sh
+
+# Windows: Download installer dari https://docs.conda.io/en/latest/miniconda.html
+
+# Verifikasi
+conda --version
+conda info
+
+# ===== Konfigurasi =====
+# Auto-activate base environment (optional)
+conda config --set auto_activate_base false
+
+# Tambah channel
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+</code></pre>
+      </div>
+
+      <h3>Conda Environment Management</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Conda Environments</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Membuat Environment =====
+
+# Buat env dengan Python versi spesifik
+conda create -n myproject python=3.11
+
+# Buat env dengan beberapa packages
+conda create -n datascience python=3.11 numpy pandas scikit-learn jupyter
+
+# Buat env dari file
+conda env create -f environment.yml
+
+# Buat env di folder spesifik
+conda create --prefix ./envs python=3.11
+
+# ===== Mengaktifkan / Deactivate =====
+conda activate myproject
+conda deactivate
+
+# ===== List Environments =====
+conda env list
+# atau
+conda info --envs
+
+# ===== Install / Update / Remove Packages =====
+# Install
+conda install numpy pandas matplotlib
+conda install -c conda-forge scikit-learn
+conda install "numpy>=1.24,<2.0"
+
+# Update
+conda update numpy
+conda update --all
+
+# Remove
+conda remove numpy
+
+# ===== Export / Import Environment =====
+# Export ke YAML
+conda env export > environment.yml
+conda env export --no-builds > environment.yml  # Tanpa build numbers
+
+# Export hanya packages yang diinstall secara eksplisit
+conda env export --from-history > environment.yml
+
+# Import dari YAML
+conda env create -f environment.yml
+
+# Update existing env dari YAML
+conda env update -f environment.yml --prune
+
+# ===== YAML File =====
+# environment.yml:
+# name: myproject
+# channels:
+#   - conda-forge
+#   - defaults
+# dependencies:
+#   - python=3.11
+#   - numpy>=1.24
+#   - pandas>=2.0
+#   - scikit-learn>=1.3
+#   - pip:
+#     - some-pip-package>=1.0
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: uv                   -->
+      <!-- ============================== -->
+      <h2 id="uv">7. uv — Ultra-fast Package Manager</h2>
+
+      <p><strong>uv</strong> adalah package manager baru yang ditulis dalam Rust, menawarkan kecepatan 10-100x lebih cepat dari pip. Dikembangkan oleh tim Astral (pembuat Ruff).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — uv</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Instalasi uv =====
+# Linux / macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Atau via pip
+pip install uv
+
+# Verifikasi
+uv --version
+
+# ===== Virtual Environment =====
+# Buat venv dengan uv (sangat cepat!)
+uv venv
+uv venv --python 3.11
+uv venv .venv --python 3.12
+
+# ===== Install Packages =====
+# Install packages (10-100x lebih cepat dari pip!)
+uv pip install requests
+uv pip install "django>=4.2" sqlalchemy
+
+# Install dari requirements.txt
+uv pip install -r requirements.txt
+
+# Compile requirements
+uv pip compile requirements.in -o requirements.txt
+
+# Sync environment
+uv pip sync requirements.txt
+
+# ===== uv sebagai Python Manager =====
+# Install Python versions
+uv python install 3.11 3.12 3.13
+uv python list
+
+# ===== uv Project Management (v0.4+) =====
+# Inisialisasi project
+uv init my-project
+cd my-project
+
+# Tambah dependency
+uv add requests
+uv add "django>=4.2"
+uv add --dev pytest ruff
+
+# Remove dependency
+uv remove requests
+
+# Run command
+uv run python script.py
+uv run pytest
+
+# Lock dependencies
+uv lock
+
+# Sync environment
+uv sync
+
+# ===== Benchmark =====
+# pip install (dengan cache): ~10 detik
+# uv pip install (dengan cache): ~0.3 detik
+# Perbedaan sangat signifikan untuk CI/CD!
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Mengapa uv?</div>
+        <p>uv ditulis dalam Rust dan menggunakan parallel downloading + caching yang sangat efisien. Untuk CI/CD pipeline yang perlu menginstal dependencies berkali-kali, uv bisa menghemat waktu build secara drastis. uv juga bisa menggantikan <code>pip</code>, <code>pip-tools</code>, dan bahkan <code>virtualenv</code>.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: pyproject.toml       -->
+      <!-- ============================== -->
+      <h2 id="pyproject-toml">8. pyproject.toml — Modern Configuration</h2>
+
+      <p><code>pyproject.toml</code> adalah file konfigurasi standar modern untuk proyek Python (PEP 518, PEP 621). Menggantikan <code>setup.py</code>, <code>setup.cfg</code>, <code>requirements.txt</code> untuk banyak kasus.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TOML — pyproject.toml Lengkap</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># pyproject.toml — Standalone (tanpa Poetry)
+[project]
+name = "my-project"
+version = "1.0.0"
+description = "Deskripsi project"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [
+    {name = "Budi Santoso", email = "budi@email.com"},
+]
+keywords = ["python", "web", "api"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+# Dependencies
+dependencies = [
+    "django>=4.2,<5.0",
+    "djangorestframework>=3.15",
+    "requests>=2.28",
+    "sqlalchemy>=2.0",
+]
+
+# Optional dependencies
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+    "mypy>=1.10",
+]
+docs = [
+    "sphinx>=7.3",
+    "sphinx-rtd-theme>=2.0",
+]
+all = [
+    "my-project[dev,docs]",
+]
+
+# Entry points / CLI
+[project.scripts]
+myproject = "my_project.cli:main"
+
+# URLs
+[project.urls]
+Homepage = "https://github.com/user/my-project"
+Documentation = "https://my-project.readthedocs.io"
+Repository = "https://github.com/user/my-project"
+Issues = "https://github.com/user/my-project/issues"
+
+# ===== Build System =====
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+# ===== Tool Configurations =====
+
+# Ruff (linter + formatter)
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "A", "SIM"]
+
+# Pytest
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+addopts = "-v --tb=short --cov=my_project"
+
+# MyPy
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+# Coverage
+[tool.coverage.run]
+source = ["my_project"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.",
+]
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Workflow             -->
+      <!-- ============================== -->
+      <h2 id="workflow">9. Workflow Sehari-hari</h2>
+
+      <h3>Workflow Standar dengan venv + pip</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Daily Workflow</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Setup Awal Project =====
+mkdir my-project && cd my-project
+git init
+
+# Buat virtual environment
+python3 -m venv .venv
+source .venv/bin/activate   # Linux/Mac
+# .venv\Scripts\activate    # Windows
+
+# Buat file standar
+touch README.md
+echo ".venv/" >> .gitignore
+echo "__pycache__/" >> .gitignore
+echo "*.pyc" >> .gitignore
+
+# Install dependencies
+pip install django pytest ruff
+pip freeze > requirements.txt
+
+# ===== Daily Development =====
+# Aktivasi (setiap buka terminal baru)
+source .venv/bin/activate
+
+# Install package baru
+pip install new-package
+pip freeze > requirements.txt  # Update requirements!
+git add requirements.txt
+git commit -m "Add new-package dependency"
+
+# ===== Join Project yang Sudah Ada =====
+git clone https://github.com/user/project.git
+cd project
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# ===== Deployment Preparation =====
+pip install -r requirements.txt
+python manage.py test          # Jalankan test
+ruff check .                   # Lint check
+python manage.py collectstatic # Django specific
+</code></pre>
+      </div>
+
+      <h3>Workflow dengan Poetry</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Poetry Workflow</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Setup Awal =====
+poetry new my-project
+cd my-project
+git init
+
+# Tambah dependencies
+poetry add django requests sqlalchemy
+poetry add --group dev pytest ruff mypy
+
+# ===== Daily Development =====
+# Tidak perlu aktivasi manual — poetry handle semuanya!
+poetry run python manage.py runserver
+poetry run pytest
+poetry run ruff check .
+
+# Atau masuk ke shell
+poetry shell
+python manage.py runserver
+pytest
+exit
+
+# Tambah dependency baru
+poetry add httpx
+# Poetry otomatis update pyproject.toml dan poetry.lock!
+
+# Commit ke git
+git add pyproject.toml poetry.lock
+git commit -m "Add httpx dependency"
+
+# ===== Join Project =====
+git clone https://github.com/user/project.git
+cd project
+poetry install
+# Poetry baca pyproject.toml + poetry.lock, install semua!
+
+# ===== Update Dependencies =====
+poetry update              # Update semua
+poetry update requests     # Update satu package
+poetry show --outdated     # Cek yang bisa diupdate
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Docker              -->
+      <!-- ============================== -->
+      <h2 id="docker">10. Virtual Env + Docker</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dockerfile — Docker + venv</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Dockerfile dengan venv =====
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Buat virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application
+COPY . .
+
+# Run
+CMD ["python", "app.py"]
+
+# ===== Dockerfile dengan Poetry =====
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install Poetry
+RUN pip install poetry && \
+    poetry config virtualenvs.in-project true
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock ./
+
+# Install dependencies (tanpa dev)
+RUN poetry install --only main --no-interaction
+
+# Copy application
+COPY . .
+
+# Activate venv
+ENV PATH="/app/.venv/bin:$PATH"
+
+CMD ["python", "app.py"]
+
+# ===== Multi-stage build (lebih kecil) =====
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+FROM python:3.11-slim AS runtime
+
+WORKDIR /app
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY . .
+CMD ["python", "app.py"]
+
+# ===== docker-compose.yml =====
+# version: "3.8"
+# services:
+#   app:
+#     build: .
+#     volumes:
+#       - .:/app
+#     ports:
+#       - "8000:8000"
+#     environment:
+#       - DATABASE_URL=postgresql://user:pass@db:5432/mydb
+#   db:
+#     image: postgres:15
+#     environment:
+#       - POSTGRES_PASSWORD=pass
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Best Practices      -->
+      <!-- ============================== -->
+      <h2 id="best-practices">11. Best Practices</h2>
+
+      <h3>Golden Rules</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Rule</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>🔥 SELALU gunakan venv</td><td>Jangan pernah install package ke system Python secara global</td></tr>
+          <tr><td>📌 Pin versi di production</td><td>Gunakan exact versions (<code>==</code>) di requirements.txt</td></tr>
+          <tr><td>🔒 Commit lock files</td><td><code>poetry.lock</code> dan <code>requirements.txt</code> harus masuk git</td></tr>
+          <tr><td>🚫 Jangan commit venv</td><td>Selalu tambahkan <code>.venv/</code> ke <code>.gitignore</code></td></tr>
+          <tr><td>📋 Pisahkan deps</td><td>Pisahkan production deps dan dev deps</td></tr>
+          <tr><td>🔄 Update berkala</td><td>Jalankan <code>pip-audit</code> atau <code>pip list --outdated</code> secara berkala</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Text — .gitignore</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># .gitignore — Python project
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# Coverage
+.coverage
+htmlcov/
+
+# Mypy
+.mypy_cache/
+
+# Ruff
+.ruff_cache/
+
+# Pytest
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+</code></pre>
+      </div>
+
+      <h3>Kapan Menggunakan Tool Apa?</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Decision Guide</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ===== Decision Tree =====
+#
+# Kamu membuat apa?
+# │
+# ├── 📚 Library yang akan di-publish ke PyPI?
+# │   └── → Poetry atau Hatchling
+# │
+# ├── 🌐 Web application / API?
+# │   └── → venv + pip-tools (atau Poetry)
+# │
+# ├── 📊 Data Science / Machine Learning?
+# │   └── → Conda (atau mamba)
+# │
+# ├── 🤖 Script / Automation?
+# │   └── → venv + pip (simplest)
+# │
+# ├── ⚡ Performance-critical CI/CD?
+# │   └── → uv (sangat cepat)
+# │
+# └── 🏢 Enterprise / Tim besar?
+#     └── → Poetry (atau PDM) + Docker
+#
+# ===== Quick Reference =====
+#
+# Tool       │ Buat Venv │ Install │ Lock │ Build │ Publish
+# ───────────┼───────────┼─────────┼──────┼───────┼────────
+# venv+pip   │ ✅        │ ✅      │ ❌    │ ❌     │ ❌
+# pip-tools  │ ❌        │ ✅      │ ✅    │ ❌     │ ❌
+# Poetry     │ ✅        │ ✅      │ ✅    │ ✅     │ ✅
+# Conda      │ ✅        │ ✅      │ ❌    │ ❌     │ ❌
+# uv         │ ✅        │ ✅      │ ✅    │ ✅     │ ❌
+# PDM        │ ✅        │ ✅      │ ✅    │ ✅     │ ✅
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">12. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quizVenv01">
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Perintah apa yang digunakan untuk membuat virtual environment di Python 3?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) <code>python3 -m virtualenv .venv</code></div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) <code>python3 -m venv .venv</code></div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) <code>python3 create-env .venv</code></div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) <code>pip install venv .venv</code></div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Mengapa virtual environment penting?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Membuat program Python berjalan lebih cepat</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Mengisolasi dependency per proyek agar tidak konflik</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Meng-compile Python code menjadi binary</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Mengenkripsi source code</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa perbedaan <code>pip freeze</code> dan <code>pip-compile</code> (pip-tools)?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Tidak ada perbedaan</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) <code>pip freeze</code> output semua terinstal, <code>pip-compile</code> resolve dari input dan include transitive deps</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) <code>pip-compile</code> lebih lambat</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) <code>pip freeze</code> hanya untuk Poetry</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: File apa yang HARUS di-commit ke Git dalam proyek yang menggunakan Poetry?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) <code>.venv/</code> dan <code>pyproject.toml</code></div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) <code>pyproject.toml</code> dan <code>poetry.lock</code></div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) <code>.venv/</code> saja</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) <code>requirements.txt</code> saja</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Tool apa yang paling cepat untuk menginstal Python packages?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) <code>pip</code></div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) <code>Poetry</code></div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) <code>conda</code></div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) <code>uv</code></div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="python-json-processing.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Python JSON Processing</span>
+        </a>
+        <a href="python-pemula.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Python untuk Pemula</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

@@ -1,0 +1,960 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Web Development</a>
+        <span class="separator">/</span>
+        <span class="current">Service Workers</span>
+      </div>
+      <span class="category-tag">Web Development</span>
+      <h1>Service Workers: Offline &amp; PWA</h1>
+      <p class="article-subtitle">Buat web app yang berfungsi offline dengan lifecycle management, caching strategies, push notifications, dan Progressive Web Apps</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="ad-slot ad-slot-wide"></div>
+  </div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-sw">Pengenalan Service Workers</a></li>
+          <li><a href="#lifecycle">Lifecycle Service Worker</a></li>
+          <li><a href="#registrasi">Registrasi &amp; Instalasi</a></li>
+          <li><a href="#fetch-event">Fetch Event &amp; Intersep</a></li>
+          <li><a href="#caching">Caching Strategies</a></li>
+          <li><a href="#cache-first">Cache-First &amp; Network-First</a></li>
+          <li><a href="#push-notification">Push Notifications</a></li>
+          <li><a href="#background-sync">Background Sync</a></li>
+          <li><a href="#pwa">Membangun PWA Lengkap</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-sw">1. Pengenalan Service Workers</h2>
+
+      <p><strong>Service Worker</strong> adalah script JavaScript yang berjalan di background, terpisah dari halaman web. Service Worker bertindak sebagai <strong>proxy</strong> antara browser, jaringan, dan cache. Ini memungkinkan web app Anda berfungsi <strong>offline</strong>, mengirim <strong>push notifications</strong>, dan menjadi <strong>Progressive Web App (PWA)</strong>.</p>
+
+      <h3>Service Worker vs Web Worker</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Web Worker</th>
+            <th>Service Worker</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Lifecycle</td><td>Hidup selama tab aktif</td><td>Independen dari tab (hidup terus)</td></tr>
+          <tr><td>Scope</td><td>Satu halaman</td><td>Seluruh origin (semua halaman)</td></tr>
+          <tr><td>Proxy Network</td><td>Tidak</td><td>Ya — bisa intercept semua fetch</td></tr>
+          <tr><td>Push Notification</td><td>Tidak</td><td>Ya</td></tr>
+          <tr><td>Cache API</td><td>Bisa akses</td><td>Bisa akses dan kontrol</td></tr>
+          <tr><td>Akses DOM</td><td>Tidak</td><td>Tidak</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Service Worker sebagai Proxy</div>
+<div class="diagram-box">
+        
+<pre class="mermaid">
+flowchart TD
+    N0["Browser (Tab)"]
+    N1["Service Worker"]
+    N2["Network"]
+    N3["Cache"]
+    N4["Response"]
+    N5["Alur normal:"]
+    N6["1. Browser meminta resource (halaman, gambar, API)"]
+    N7["2. Service Worker menangkap request (fetch event)"]
+    N8["3. Service Worker memutuskan:"]
+    N9["- Kirim dari cache? (cepat, offline)"]
+    N10["- Kirim dari network? (data terbaru)"]
+    N11["- Gabungan keduanya? (stale-while-revalidate)"]
+    N12["4. Response dikembalikan ke browser"]
+    N0 --> N1
+    N1 --> N2
+    N2 --> N3
+    N3 --> N4
+    N4 --> N5
+    N5 --> N6
+    N6 --> N7
+    N7 --> N8
+    N8 --> N9
+    N9 --> N10
+    N10 --> N11
+    N11 --> N12
+</pre>
+    </div>
+      </div>
+
+      <h3>Syarat Service Worker</h3>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Syarat Wajib</div>
+        <p><strong>HTTPS</strong> — Service Worker hanya berfungsi di HTTPS (atau localhost untuk development). File service worker harus berada di <strong>root</strong> domain agar scope-nya mencakup seluruh halaman. Service Worker <strong>tidak bisa mengakses DOM</strong>.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Lifecycle            -->
+      <!-- ============================== -->
+      <h2 id="lifecycle">2. Lifecycle Service Worker</h2>
+
+      <p>Service Worker memiliki lifecycle yang unik dan terdiri dari 3 tahap utama: <strong>Register → Install → Activate</strong>.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Lifecycle Service Worker</div>
+<pre><code>Register ► Install ► Waiting ► Activate
+(jika ada SW
+navigator Pre-cache lama aktif) Cleanup
+.service assets cache lama
+Worker
+.register skipWaiting clients Controlling
+.claim() semua tab
+▼
+Fetch Event
+Activate Event
+(idle/terminated)</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Lifecycle Events</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== sw.js — Service Worker File =====
+
+// EVENT 1: INSTALL — Dipanggil saat pertama kali diinstal
+self.addEventListener('install', (event) => {
+    console.log('[SW] Installing...');
+
+    // event.waitUntil() — tunggu sampai promise selesai
+    // Jika gagal, install dianggap gagal
+    event.waitUntil(
+        caches.open('v1-cache').then((cache) => {
+            console.log('[SW] Pre-caching assets...');
+            // Pre-cache file-file penting
+            return cache.addAll([
+                '/',
+                '/index.html',
+                '/css/style.css',
+                '/js/app.js',
+                '/images/logo.png',
+                '/offline.html'
+            ]);
+        })
+    );
+
+    // skipWaiting() — langsung aktif tanpa menunggu tab ditutup
+    self.skipWaiting();
+});
+
+// EVENT 2: ACTIVATE — Dipanggil setelah install, sebelum fetch
+self.addEventListener('activate', (event) => {
+    console.log('[SW] Activating...');
+
+    event.waitUntil(
+        // Hapus cache lama yang tidak digunakan
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames
+                    .filter(name => name !== 'v1-cache')
+                    .map(name => {
+                        console.log('[SW] Menghapus cache lama:', name);
+                        return caches.delete(name);
+                    })
+            );
+        })
+    );
+
+    // Klaim semua klien (tab) yang sudah terbuka
+    self.clients.claim();
+});
+
+// EVENT 3: FETCH — Menangkap semua network request
+self.addEventListener('fetch', (event) => {
+    console.log('[SW] Fetch:', event.request.url);
+
+    // Intercept request dan kirim response custom
+    event.respondWith(
+        fetch(event.request).catch(() => {
+            // Jika offline, kirim halaman offline
+            return caches.match('/offline.html');
+        })
+    );
+});</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Registrasi           -->
+      <!-- ============================== -->
+      <h2 id="registrasi">3. Registrasi &amp; Instalasi</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Registrasi Service Worker</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== app.js — Registrasi di halaman web =====
+
+// Feature detection
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+        try {
+            const registration = await navigator.serviceWorker.register('/sw.js', {
+                scope: '/'  // Scope: area yang dicakup SW
+            });
+
+            console.log('SW registered:', registration.scope);
+
+            // Cek update
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('SW update ditemukan!');
+
+                newWorker.addEventListener('statechange', () => {
+                    console.log('SW state:', newWorker.state);
+                    // states: installing → installed → activating → activated
+
+                    if (newWorker.state === 'activated') {
+                        // Tampilkan notifikasi "Update tersedia"
+                        showUpdateNotification();
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('SW registration failed:', error);
+        }
+    });
+}
+
+// Cek apakah ada update service worker
+async function checkForUpdates() {
+    if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+            await reg.update();
+        }
+    }
+}
+
+// Cek update setiap 1 jam
+setInterval(checkForUpdates, 60 * 60 * 1000);</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Update Service Worker</div>
+        <p>Saat Anda mengubah file <code>sw.js</code>, browser akan mendeteksi perubahan dan menginstal versi baru. Namun, versi baru tidak langsung aktif — ia masuk ke status <strong>waiting</strong>. Gunakan <code>self.skipWaiting()</code> untuk langsung mengaktifkan, atau biarkan user memilih untuk "Refresh untuk update".</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Fetch Event          -->
+      <!-- ============================== -->
+      <h2 id="fetch-event">4. Fetch Event &amp; Intersep</h2>
+
+      <p>Event <code>fetch</code> di-trigger setiap kali halaman meminta resource — HTML, CSS, JS, gambar, API call, semuanya. Anda bisa menangkap request ini dan memutuskan bagaimana meresponsnya.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Fetch Event Intercept</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== Berbagai cara menangani fetch event =====
+
+// 1. Passthrough — biarkan request ke network (default)
+self.addEventListener('fetch', (event) => {
+    // Tidak melakukan apa-apa → request ke network biasa
+});
+
+// 2. Custom Response — buat response sendiri
+self.addEventListener('fetch', (event) => {
+    if (event.request.url.includes('/api/time')) {
+        event.respondWith(
+            new Response(
+                JSON.stringify({ time: new Date().toISOString() }),
+                {
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            )
+        );
+    }
+});
+
+// 3. Redirect — arahkan ke URL lain
+self.addEventListener('fetch', (event) => {
+    if (event.request.url.endsWith('/old-page')) {
+        event.respondWith(
+            Response.redirect('/new-page', 301)
+        );
+    }
+});
+
+// 4. Modify Response — ubah response dari network
+self.addEventListener('fetch', (event) => {
+    if (event.request.url.includes('/api/')) {
+        event.respondWith(
+            fetch(event.request).then(async (response) => {
+                // Clone response (karena response hanya bisa dibaca sekali)
+                const clone = response.clone();
+                const data = await clone.json();
+
+                // Tambahkan metadata
+                data._cached = false;
+                data._timestamp = Date.now();
+
+                return new Response(JSON.stringify(data), {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                });
+            })
+        );
+    }
+});</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Caching Strategies    -->
+      <!-- ============================== -->
+      <h2 id="caching">5. Caching Strategies</h2>
+
+      <p>Caching strategy menentukan bagaimana Service Worker menangani request: apakah mengambil dari cache, network, atau kombinasi keduanya.</p>
+
+      <h3>Cache API</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Cache API Dasar</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== Cache API =====
+// Cache API tersedia di Service Worker dan window context
+
+// Buka cache bernama 'v1'
+const cache = await caches.open('v1');
+
+// Tambahkan satu item
+await cache.add('/page/about.html');
+
+// Tambahkan banyak item sekaligus
+await cache.addAll([
+    '/css/style.css',
+    '/js/app.js',
+    '/images/logo.png'
+]);
+
+// Simpan request-response pair
+const response = await fetch('/api/data');
+await cache.put('/api/data', response.clone());
+
+// Ambil dari cache
+const cachedResponse = await cache.match('/css/style.css');
+if (cachedResponse) {
+    console.log('Ditemukan di cache!');
+}
+
+// Hapus item dari cache
+await cache.delete('/old-file.js');
+
+// List semua cache names
+const cacheNames = await caches.keys();
+console.log('Semua cache:', cacheNames);
+
+// Hapus cache tertentu
+await caches.delete('v1');
+
+// Cek apakah request ada di cache
+const request = new Request('/page/about.html');
+const matched = await caches.match(request); // Cek semua cache
+console.log(matched ? 'Ada!' : 'Tidak ada');</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Cache-First dll      -->
+      <!-- ============================== -->
+      <h2 id="cache-first">6. Cache-First &amp; Network-First</h2>
+
+      <h3>Strategy 1: Cache-Only</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Cache-Only</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== Cache-Only: Selalu dari cache, tidak ada network =====
+// Cocok untuk: pre-cached assets yang tidak berubah
+self.addEventListener('fetch', (event) => {
+    event.respondWith(caches.match(event.request));
+});</code></pre>
+      </div>
+
+      <h3>Strategy 2: Network-Only</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Network-Only</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== Network-Only: Selalu dari network =====
+// Cocok untuk: POST requests, realtime data
+self.addEventListener('fetch', (event) => {
+    event.respondWith(fetch(event.request));
+});</code></pre>
+      </div>
+
+      <h3>Strategy 3: Cache-First (with Network Fallback)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Cache-First</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== Cache-First: Cek cache dulu, kalau tidak ada ke network =====
+// Cocok untuk: static assets (gambar, CSS, JS, font)
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        caches.match(event.request).then((cachedResponse) => {
+            if (cachedResponse) {
+                return cachedResponse; // ✅ Dari cache
+            }
+
+            // Tidak ada di cache → fetch dari network
+            return fetch(event.request).then((networkResponse) => {
+                // Simpan ke cache untuk next time
+                const responseClone = networkResponse.clone();
+                caches.open('v1').then((cache) => {
+                    cache.put(event.request, responseClone);
+                });
+                return networkResponse;
+            });
+        })
+    );
+});</code></pre>
+      </div>
+
+      <h3>Strategy 4: Network-First (with Cache Fallback)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Network-First</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== Network-First: Coba network dulu, fallback ke cache =====
+// Cocok untuk: halaman HTML, data yang sering berubah
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        fetch(event.request)
+            .then((networkResponse) => {
+                // Update cache dengan data terbaru
+                const responseClone = networkResponse.clone();
+                caches.open('v1').then((cache) => {
+                    cache.put(event.request, responseClone);
+                });
+                return networkResponse;
+            })
+            .catch(() => {
+                // Network gagal → ambil dari cache
+                return caches.match(event.request);
+            })
+    );
+});</code></pre>
+      </div>
+
+      <h3>Strategy 5: Stale-While-Revalidate</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Stale-While-Revalidate</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== Stale-While-Revalidate: Cache dulu, update di background =====
+// Cocok untuk: API data yang perlu cepat tapi juga terbaru
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        caches.open('v1').then((cache) => {
+            return cache.match(event.request).then((cachedResponse) => {
+                // Fetch dari network SELALU (untuk update cache)
+                const fetchPromise = fetch(event.request).then((networkResponse) => {
+                    cache.put(event.request, networkResponse.clone());
+                    return networkResponse;
+                });
+
+                // Kembalikan cache langsung jika ada, atau tunggu network
+                return cachedResponse || fetchPromise;
+            });
+        })
+    );
+});</code></pre>
+      </div>
+
+      <h3>Ringkasan Strategi</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr><th>Strategy</th><th>Cepat?</th><th>Fresh?</th><th>Offline?</th><th>Cocok untuk</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Cache-Only</td><td>✅</td><td>❌</td><td>✅</td><td>Pre-cached static</td></tr>
+          <tr><td>Network-Only</td><td>❌</td><td>✅</td><td>❌</td><td>POST, realtime</td></tr>
+          <tr><td>Cache-First</td><td>✅</td><td>❌</td><td>✅</td><td>Static assets</td></tr>
+          <tr><td>Network-First</td><td>❌</td><td>✅</td><td>✅</td><td>HTML, API data</td></tr>
+          <tr><td>Stale-While-Revalidate</td><td>✅</td><td>✅*</td><td>✅</td><td>API data, feed</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Push Notifications   -->
+      <!-- ============================== -->
+      <h2 id="push-notification">7. Push Notifications</h2>
+
+      <p>Service Worker memungkinkan web app mengirim <strong>push notifications</strong> bahkan ketika browser ditutup. Ini sangat mirip dengan notifikasi dari aplikasi native.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Push Notification</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== 1. Minta Izin Notifikasi =====
+async function requestNotificationPermission() {
+    // Cek support
+    if (!('Notification' in window)) {
+        console.log('Browser tidak support notifikasi');
+        return false;
+    }
+
+    // Cek permission
+    if (Notification.permission === 'granted') {
+        return true;
+    }
+
+    if (Notification.permission !== 'denied') {
+        const permission = await Notification.requestPermission();
+        return permission === 'granted';
+    }
+
+    return false;
+}
+
+// ===== 2. Subscribe ke Push =====
+async function subscribeToPush() {
+    const registration = await navigator.serviceWorker.ready;
+
+    // VAPID key — di-generate dari server
+    const vapidPublicKey = 'BEl62iUYgUivxIkv69yVi...';
+
+    const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+    });
+
+    console.log('Push subscription:', JSON.stringify(subscription));
+
+    // Kirim subscription ke server
+    await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription)
+    });
+}
+
+// Helper: convert VAPID key
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+}
+
+// ===== 3. Handle Push Event di Service Worker =====
+self.addEventListener('push', (event) => {
+    let data = { title: 'Notifikasi Baru', body: 'Ada info baru!' };
+
+    if (event.data) {
+        data = event.data.json();
+    }
+
+    const options = {
+        body: data.body,
+        icon: '/images/icon-192.png',
+        badge: '/images/badge-72.png',
+        image: data.image,
+        vibrate: [100, 50, 100],
+        data: { url: data.url || '/' },
+        actions: [
+            { action: 'open', title: 'Buka', icon: '/images/open.png' },
+            { action: 'close', title: 'Tutup', icon: '/images/close.png' }
+        ]
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(data.title, options)
+    );
+});
+
+// ===== 4. Handle Notification Click =====
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const action = event.action;
+    const url = event.notification.data.url;
+
+    if (action === 'close') return;
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window' }).then((windowClients) => {
+            // Cek apakah sudah ada window yang terbuka
+            for (const client of windowClients) {
+                if (client.url === url && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // Buka window baru
+            return clients.openWindow(url);
+        })
+    );
+});</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Background Sync      -->
+      <!-- ============================== -->
+      <h2 id="background-sync">8. Background Sync</h2>
+
+      <p><strong>Background Sync</strong> memungkinkan Anda menunda operasi (seperti mengirim form) sampai koneksi internet tersedia kembali — bahkan jika user menutup tab!</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Background Sync</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== Background Sync =====
+
+// 1. Di halaman web — daftarkan sync
+async function submitForm(data) {
+    try {
+        // Coba kirim langsung
+        await fetch('/api/submit', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+        showSuccess('Data berhasil dikirim!');
+    } catch (error) {
+        // Gagal (offline?) — simpan ke IndexedDB dan daftarkan sync
+        await saveToIndexedDB('pending-submissions', data);
+
+        const registration = await navigator.serviceWorker.ready;
+        await registration.sync.register('sync-submissions');
+
+        showInfo('Data akan dikirim saat online kembali');
+    }
+}
+
+// 2. Di Service Worker — handle sync event
+self.addEventListener('sync', (event) => {
+    if (event.tag === 'sync-submissions') {
+        event.waitUntil(syncSubmissions());
+    }
+});
+
+async function syncSubmissions() {
+    const db = await openDB();
+    const submissions = await db.getAll('pending-submissions');
+
+    for (const submission of submissions) {
+        try {
+            await fetch('/api/submit', {
+                method: 'POST',
+                body: JSON.stringify(submission)
+            });
+
+            // Hapus dari IndexedDB setelah berhasil
+            await db.delete('pending-submissions', submission.id);
+            console.log('[SW] Sync berhasil:', submission.id);
+        } catch (error) {
+            console.log('[SW] Sync gagal, akan dicoba lagi:', error);
+            throw error; // Throw agar sync dicoba lagi nanti
+        }
+    }
+}
+
+// Periodic Background Sync (Chrome only)
+self.addEventListener('periodicsync', (event) => {
+    if (event.tag === 'update-content') {
+        event.waitUntil(updateContentFromServer());
+    }
+});
+
+async function updateContentFromServer() {
+    const cache = await caches.open('v1');
+    const response = await fetch('/api/latest-content');
+    await cache.put('/api/latest-content', response);
+    console.log('[SW] Content updated via periodic sync');
+}</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: PWA Lengkap          -->
+      <!-- ============================== -->
+      <h2 id="pwa">9. Membangun PWA Lengkap</h2>
+
+      <p>Progressive Web App (PWA) membutuhkan 3 komponen: <strong>Service Worker</strong>, <strong>Web App Manifest</strong>, dan <strong>HTTPS</strong>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON — manifest.json</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>{
+    "name": "BeebaneLabs Tutorial",
+    "short_name": "Beebane",
+    "description": "Portal tutorial teknologi Indonesia",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#08090a",
+    "theme_color": "#08090a",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/images/icon-72.png",
+            "sizes": "72x72",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/icon-96.png",
+            "sizes": "96x96",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/icon-128.png",
+            "sizes": "128x128",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["education", "technology"],
+    "lang": "id",
+    "dir": "ltr"
+}</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">HTML — Tambahkan di &lt;head&gt;</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>&lt;!-- Tambahkan di &lt;head&gt; halaman Anda --&gt;
+&lt;link rel="manifest" href="/manifest.json"&gt;
+
+&lt;!-- Theme color untuk browser chrome --&gt;
+&lt;meta name="theme-color" content="#08090a"&gt;
+
+&lt;!-- iOS support --&gt;
+&lt;link rel="apple-touch-icon" href="/images/icon-192.png"&gt;
+&lt;meta name="apple-mobile-web-app-capable" content="yes"&gt;
+&lt;meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"&gt;
+&lt;meta name="apple-mobile-web-app-title" content="BeebaneLabs"&gt;
+
+&lt;!-- Windows --&gt;
+&lt;meta name="msapplication-TileColor" content="#08090a"&gt;
+&lt;meta name="msapplication-TileImage" content="/images/icon-144.png"&gt;</code></pre>
+      </div>
+
+      <h3>Install Prompt (Add to Home Screen)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Install Prompt</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ===== Handle Install Prompt =====
+let deferredPrompt;
+
+// Tangkap event 'beforeinstallprompt'
+window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault(); // Cegah auto-prompt
+    deferredPrompt = event;
+
+    // Tampilkan tombol "Install" custom
+    const installBtn = document.getElementById('installBtn');
+    installBtn.style.display = 'block';
+
+    installBtn.addEventListener('click', async () => {
+        installBtn.style.display = 'none';
+        deferredPrompt.prompt();
+
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('User choice:', outcome); // 'accepted' atau 'dismissed'
+        deferredPrompt = null;
+    });
+});
+
+// Deteksi saat app berhasil di-install
+window.addEventListener('appinstalled', () => {
+    console.log('PWA berhasil di-install!');
+    deferredPrompt = null;
+});
+
+// Deteksi apakah app sedang berjalan sebagai PWA
+function isRunningAsPWA() {
+    return window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+}</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quiz22">
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa syarat wajib agar Service Worker bisa berfungsi?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) HTTP saja cukup</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) HTTPS (atau localhost)</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Domain .com</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Port 443 saja</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa urutan lifecycle Service Worker yang benar?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Activate → Install → Register</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Register → Activate → Install</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Register → Install → Activate</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Install → Register → Activate</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Strategi caching mana yang cocok untuk static assets (gambar, CSS, JS)?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Network-Only</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Cache-Only</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Cache-First</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Network-First</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari <code>self.skipWaiting()</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Melewati registrasi</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Melewati tahap install</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Langsung mengaktifkan SW baru tanpa menunggu</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Menghapus cache lama</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa nama file manifest yang dibutuhkan PWA?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) pwa.json</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) app.json</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) manifest.json</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) config.json</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="javascript-workers-web.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Web Workers: Multithreading di JavaScript</span>
+        </a>
+        <a href="javascript-fetch-api.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Fetch API: HTTP Requests Modern</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

@@ -1,0 +1,720 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">AI &amp; Data Science</a>
+        <span class="separator">/</span>
+        <span class="current">YOLO Object Detection</span>
+      </div>
+      <span class="category-tag">AI &amp; Data Science</span>
+      <h1>YOLO Object Detection: v8 hingga v11 — Training, Inference, Custom Dataset &amp; Deployment</h1>
+      <p class="article-subtitle">Tutorial lengkap YOLO Object Detection — dari konsep dasar, persiapan dataset, training custom model, inference, hingga deployment ke produksi dengan Ultralytics</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide"><!-- AdSense --></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan YOLO &amp; Object Detection</a></li>
+          <li><a href="#evolusi">Evolusi YOLO: v1 hingga v11</a></li>
+          <li><a href="#setup">Setup &amp; Instalasi</a></li>
+          <li><a href="#pretrained">Inference dengan Pre-trained Model</a></li>
+          <li><a href="#dataset">Persiapan Custom Dataset</a></li>
+          <li><a href="#training">Training Custom Model</a></li>
+          <li><a href="#evaluation">Evaluasi &amp; Visualisasi</a></li>
+          <li><a href="#tasks">Segmentation, Classification &amp; Pose</a></li>
+          <li><a href="#deployment">Deployment ke Produksi</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan YOLO &amp; Object Detection</h2>
+
+      <p><strong>YOLO (You Only Look Once)</strong> adalah arsitektur deep learning untuk <strong>object detection</strong> yang sangat cepat dan akurat. Berbeda dari pendekatan tradisional yang memproses gambar secara bertahap, YOLO memproses seluruh gambar dalam <strong>satu kali pass</strong> saja.</p>
+
+      <p>Object detection adalah tugas mengidentifikasi <strong>apa</strong> objek dalam gambar dan <strong>di mana</strong> lokasinya (bounding box). Ini berbeda dari image classification yang hanya menjawab "apa ini gambar apa".</p>
+
+      
+
+      <h3>Mengapa YOLO Populer?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Keunggulan</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Real-time speed</td><td>30-100+ FPS bahkan di perangkat edge</td></tr>
+          <tr><td>High accuracy</td><td>mAP50 mencapai 50-55%+ di COCO dataset</td></tr>
+          <tr><td>End-to-end</td><td>Satu model untuk deteksi, segmentasi, pose</td></tr>
+          <tr><td>Easy to use</td><td>API sederhana dengan Ultralytics</td></tr>
+          <tr><td>Well-documented</td><td>Komunitas besar, banyak tutorial</td></tr>
+          <tr><td>Multi-platform</td><td>Deploy di GPU, CPU, mobile, edge devices</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"><!-- AdSense --></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="evolusi">2. Evolusi YOLO: v1 hingga v11</h2>
+
+      <h3>Timeline Evolusi YOLO</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Versi</th>
+            <th>Tahun</th>
+            <th>Penulis</th>
+            <th>Inovasi Utama</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>YOLOv1</td><td>2016</td><td>Joseph Redmon</td><td>Deteksi real-time pertama, single-pass</td></tr>
+          <tr><td>YOLOv2</td><td>2017</td><td>Joseph Redmon</td><td>Batch normalization, anchor boxes, multi-scale</td></tr>
+          <tr><td>YOLOv3</td><td>2018</td><td>Joseph Redmon</td><td>FPN, multi-scale detection, Darknet-53</td></tr>
+          <tr><td>YOLOv4</td><td>2020</td><td>Alexey Bochkovskiy</td><td>CSPDarknet53, SPP, PANet</td></tr>
+          <tr><td>YOLOv5</td><td>2020</td><td>Ultralytics</td><td>PyTorch native, auto-anchor, easy training</td></tr>
+          <tr><td>YOLOv8</td><td>2023</td><td>Ultralytics</td><td>Anchor-free, C2f module, unified API</td></tr>
+          <tr><td>YOLOv9</td><td>2024</td><td>Chien-Yao Wang</td><td>GELAN, PGI, programmable gradient info</td></tr>
+          <tr><td>YOLOv10</td><td>2024</td><td>Tsinghua University</td><td>NMS-free, consistent dual assignments</td></tr>
+          <tr><td>YOLOv11</td><td>2025</td><td>Ultralytics</td><td>C3k2 block, SPPF enhancement, efficiency</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Memilih Versi YOLO</div>
+        <ul>
+          <li><strong>Pemula / Produksi</strong> → YOLOv8 atau YOLOv11 (API mudah, dokumentasi lengkap)</li>
+          <li><strong>Edge/Mobile</strong> → YOLOv8n atau YOLOv11n (nano, sangat ringan)</li>
+          <li><strong>Akurasi maksimal</strong> → YOLOv9 atau YOLOv11x (extra-large)</li>
+          <li><strong>Real-time tanpa NMS</strong> → YOLOv10</li>
+        </ul>
+      </div>
+
+      <!-- SECTION 3 -->
+      <h2 id="setup">3. Setup &amp; Instalasi</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Instalasi Ultralytics</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# Instalasi YOLO (Ultralytics)
+# =============================================
+
+# Install ultralytics (mencakup YOLOv8 - v11)
+pip install ultralytics
+
+# Verifikasi instalasi
+python -c "from ultralytics import YOLO; print('YOLO siap!')"
+
+# Untuk GPU (CUDA)
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+
+# Untuk export ke ONNX/TensorRT
+pip install onnx onnxruntime-gpu
+pip install tensorrt  # Butuh NVIDIA GPU
+
+# Check GPU
+python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}, Device: {torch.cuda.get_device_name(0)}')"</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"><!-- AdSense --></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="pretrained">4. Inference dengan Pre-trained Model</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — YOLO Inference Dasar</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# Inference dengan Pre-trained YOLO
+# =============================================
+from ultralytics import YOLO
+import cv2
+
+# Load pre-trained model (COCO dataset - 80 kelas)
+# Model sizes: n(nano), s(small), m(medium), l(large), x(extra-large)
+model = YOLO("yolo11n.pt")  # YOLOv11 Nano
+
+# ----- 1. Deteksi pada gambar -----
+results = model("gambar/street.jpg")
+
+# Analisis hasil
+for result in results:
+    boxes = result.boxes          # Bounding boxes
+    print(f"Jumlah objek terdeteksi: {len(boxes)}")
+    
+    for box in boxes:
+        # Koordinat bounding box
+        x1, y1, x2, y2 = box.xyxy[0].tolist()
+        confidence = box.conf[0].item()
+        class_id = int(box.cls[0].item())
+        class_name = model.names[class_id]
+        
+        print(f"  {class_name}: {confidence:.2f} "
+              f"[{x1:.0f}, {y1:.0f}, {x2:.0f}, {y2:.0f}]")
+    
+    # Simpan gambar dengan bounding box
+    result.save(filename="hasil_deteksi.jpg")
+
+# ----- 2. Deteksi pada video -----
+results = model("video/jalan.mp4", stream=True, conf=0.5)
+
+for frame_result in results:
+    # Setiap frame diproses
+    frame_result.save(filename=None)  # Simpan ke default
+    
+    # Atau proses manual
+    annotated_frame = frame_result.plot()  # Gambar dengan bbox
+    cv2.imshow("YOLO Detection", annotated_frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# ----- 3. Deteksi dari webcam -----
+results = model(source=0, stream=True, conf=0.5)  # source=0 = webcam
+
+for result in results:
+    annotated = result.plot()
+    cv2.imshow("Webcam YOLO", annotated)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cv2.destroyAllWindows()
+
+# ----- 4. Batch processing -----
+image_paths = ["img1.jpg", "img2.jpg", "img3.jpg"]
+results = model(image_paths, batch=8)  # Proses 8 gambar sekaligus
+
+# ----- 5. Konfigurasi inference -----
+results = model(
+    "gambar.jpg",
+    conf=0.5,       # Minimum confidence threshold
+    iou=0.45,       # NMS IoU threshold
+    max_det=100,    # Maksimal deteksi per gambar
+    classes=[0, 2], # Hanya person dan car (COCO class IDs)
+    imgsz=640,      # Input image size
+    half=True,      # FP16 inference (lebih cepat)
+)</code></pre>
+      </div>
+
+      <h3>Model Sizes &amp; Performa</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Parameters</th>
+            <th>mAP50-95</th>
+            <th>FPS (GPU)</th>
+            <th>Ukuran File</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>YOLO11n</td><td>2.6M</td><td>39.5</td><td>~500</td><td>~5 MB</td></tr>
+          <tr><td>YOLO11s</td><td>9.4M</td><td>47.0</td><td>~350</td><td>~19 MB</td></tr>
+          <tr><td>YOLO11m</td><td>20.1M</td><td>51.5</td><td>~200</td><td>~40 MB</td></tr>
+          <tr><td>YOLO11l</td><td>25.3M</td><td>53.4</td><td>~150</td><td>~50 MB</td></tr>
+          <tr><td>YOLO11x</td><td>56.9M</td><td>54.7</td><td>~100</td><td>~114 MB</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 5 -->
+      <h2 id="dataset">5. Persiapan Custom Dataset</h2>
+
+      <p>Untuk melatih YOLO pada objek custom, Anda perlu menyiapkan dataset dalam format YOLO: gambar + label teks dengan koordinat bounding box.</p>
+
+      
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: Directory structure:</div>
+<pre><code>/&quot;data.yaml&quot;/
+/&quot;train/&quot;/
+images/
+/&quot;img001.jpg&quot;/
+/&quot;img002.jpg&quot;/
+/&quot;...&quot;/
+labels/
+/&quot;img001.txt&quot;/
+/&quot;img002.txt&quot;/
+/&quot;...&quot;/
+/&quot;val/&quot;/
+images/
+labels/</code></pre>
+    </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Persiapan Dataset</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# Persiapan Dataset YOLO
+# =============================================
+
+# ----- 1. data.yaml -----
+# Simpan sebagai dataset/data.yaml
+yaml_content = """
+# Dataset Configuration
+path: /path/to/dataset   # Root directory
+train: train/images      # Training images path
+val: val/images          # Validation images path
+
+# Class names
+names:
+  0: helm
+  1: rompi_safety
+  2: orang
+  3: kendaraan
+  4: alat_berat
+"""
+
+# ----- 2. Anotasi dengan Roboflow (Recommended) -----
+# 1. Buka roboflow.com, buat project baru
+# 2. Upload gambar
+# 3. Anotasi bounding box
+# 4. Export dalam format "YOLOv8"
+# 5. Download dataset.zip
+
+# ----- 3. Convert dari format lain -----
+# COCO → YOLO format
+from ultralytics.data.converter import convert_coco
+
+convert_coco(
+    labels_dir="coco_annotations/",
+    save_dir="dataset_yolo/",
+    use_segments=False,  # True untuk segmentation
+    use_keypoints=False
+)
+
+# ----- 4. Split dataset -----
+import os
+import shutil
+import random
+
+def split_dataset(image_dir, label_dir, train_ratio=0.8):
+    """Split dataset ke train dan val."""
+    images = [f for f in os.listdir(image_dir) if f.endswith(('.jpg', '.png', '.jpeg'))]
+    random.shuffle(images)
+    
+    split_idx = int(len(images) * train_ratio)
+    train_imgs = images[:split_idx]
+    val_imgs = images[split_idx:]
+    
+    for split, img_list in [("train", train_imgs), ("val", val_imgs)]:
+        os.makedirs(f"dataset/{split}/images", exist_ok=True)
+        os.makedirs(f"dataset/{split}/labels", exist_ok=True)
+        
+        for img in img_list:
+            # Copy image
+            shutil.copy2(f"{image_dir}/{img}", f"dataset/{split}/images/{img}")
+            # Copy label
+            label = img.rsplit(".", 1)[0] + ".txt"
+            label_path = f"{label_dir}/{label}"
+            if os.path.exists(label_path):
+                shutil.copy2(label_path, f"dataset/{split}/labels/{label}")
+
+split_dataset("raw/images", "raw/labels")
+print("Dataset berhasil di-split!")</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"><!-- AdSense --></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="training">6. Training Custom Model</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Training YOLO</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# Training Custom YOLO Model
+# =============================================
+from ultralytics import YOLO
+
+# Load pre-trained model (transfer learning)
+model = YOLO("yolo11n.pt")
+
+# Training
+results = model.train(
+    data="dataset/data.yaml",    # Path ke data.yaml
+    epochs=100,                   # Jumlah epoch
+    imgsz=640,                    # Image size
+    batch=16,                     # Batch size (sesuaikan VRAM)
+    name="helm_detector",         # Nama experiment
+    
+    # Hyperparameters
+    lr0=0.01,                     # Initial learning rate
+    lrf=0.01,                     # Final LR (lr0 * lrf)
+    momentum=0.937,               # SGD momentum
+    weight_decay=0.0005,          # L2 regularization
+    warmup_epochs=3,              # Warmup epochs
+    warmup_momentum=0.8,          # Warmup momentum
+    
+    # Augmentasi
+    hsv_h=0.015,                  # HSV-Hue augmentation
+    hsv_s=0.7,                    # HSV-Saturation
+    hsv_v=0.4,                    # HSV-Value
+    degrees=0.0,                  # Rotasi (+/- derajat)
+    translate=0.1,                # Translasi
+    scale=0.5,                    # Skala
+    flipud=0.0,                   # Flip vertikal prob
+    fliplr=0.5,                   # Flip horizontal prob
+    mosaic=1.0,                   # Mosaic augmentation
+    mixup=0.0,                    # MixUp augmentation
+    
+    # Hardware
+    device=0,                     # GPU device (0, 1, "cpu")
+    workers=8,                    # Data loader workers
+    
+    # Other
+    patience=50,                  # Early stopping patience
+    resume=False,                 # Resume training
+    amp=True,                     # Automatic Mixed Precision
+)
+
+# Hasil training tersimpan di:
+# runs/detect/helm_detector/
+# ├── weights/
+# │   ├── best.pt      ← Model terbaik
+# │   └── last.pt      ← Model epoch terakhir
+# ├── results.csv      ← Metrics per epoch
+# ├── confusion_matrix.png
+# ├── results.png
+# └── ...</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Resume &amp; Fine-tune Training</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# Resume Training (jika terputus)
+# =============================================
+model = YOLO("runs/detect/helm_detector/weights/last.pt")
+model.train(resume=True)
+
+# =============================================
+# Fine-tune dari custom model
+# =============================================
+# Fine-tune model yang sudah di-train pada dataset baru
+model = YOLO("runs/detect/helm_detector/weights/best.pt")
+model.train(
+    data="dataset_new/data.yaml",
+    epochs=50,
+    lr0=0.001,   # Lebih kecil untuk fine-tune
+    freeze=10,   # Freeze 10 layer pertama
+)</code></pre>
+      </div>
+
+      <!-- SECTION 7 -->
+      <h2 id="evaluation">7. Evaluasi &amp; Visualisasi</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Evaluasi Model</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# Evaluasi Model YOLO
+# =============================================
+from ultralytics import YOLO
+
+# Load trained model
+model = YOLO("runs/detect/helm_detector/weights/best.pt")
+
+# Evaluasi pada validation set
+metrics = model.val(data="dataset/data.yaml")
+
+# Print metrics
+print(f"mAP50:     {metrics.box.map50:.4f}")      # mAP @ IoU=0.50
+print(f"mAP50-95:  {metrics.box.map:.4f}")         # mAP @ IoU=0.50:0.95
+print(f"Precision: {metrics.box.mp:.4f}")           # Mean precision
+print(f"Recall:    {metrics.box.mr:.4f}")           # Mean recall
+
+# Per-class metrics
+for i, name in enumerate(metrics.names):
+    print(f"  {name}: mAP50={metrics.box.maps[i]:.4f}")
+
+# Confusion Matrix
+# Otomatis tersimpan di runs/detect/val/confusion_matrix.png
+
+# =============================================
+# Inference dengan trained model
+# =============================================
+model = YOLO("runs/detect/helm_detector/weights/best.pt")
+
+# Deteksi pada gambar baru
+results = model("test_gambar.jpg", conf=0.5)
+
+for r in results:
+    # Visualisasi
+    annotated = r.plot()
+    
+    # Simpan
+    r.save(filename="hasil_custom_deteksi.jpg")
+    
+    # Export ke dictionary
+    detections = []
+    for box in r.boxes:
+        detections.append({
+            "class": model.names[int(box.cls)],
+            "confidence": float(box.conf),
+            "bbox": box.xyxy[0].tolist()
+        })
+    print(f"Deteksi: {detections}")</code></pre>
+      </div>
+
+      <h3>Memahami Metrics</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Penjelasan</th>
+            <th>Nilai Ideal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>mAP50</td><td>Mean Average Precision @ IoU=0.50</td><td>&gt; 0.7</td></tr>
+          <tr><td>mAP50-95</td><td>Rata-rata mAP pada IoU 0.50-0.95</td><td>&gt; 0.5</td></tr>
+          <tr><td>Precision</td><td>Dari semua deteksi, berapa % yang benar</td><td>&gt; 0.8</td></tr>
+          <tr><td>Recall</td><td>Dari semua objek, berapa % yang terdeteksi</td><td>&gt; 0.7</td></tr>
+          <tr><td>F1-Score</td><td>Harmonic mean precision &amp; recall</td><td>&gt; 0.75</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"><!-- AdSense --></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="tasks">8. Segmentation, Classification &amp; Pose</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — YOLO Tasks Lainnya</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# YOLO untuk Berbagai Tasks
+# =============================================
+from ultralytics import YOLO
+
+# ----- 1. Instance Segmentation -----
+seg_model = YOLO("yolo11n-seg.pt")
+results = seg_model("gambar.jpg")
+for r in results:
+    r.save()  # Simpan dengan mask
+    # Access masks
+    if r.masks is not None:
+        masks = r.masks.data  # Tensor mask
+        print(f"Jumlah mask: {len(masks)}")
+
+# ----- 2. Image Classification -----
+cls_model = YOLO("yolo11n-cls.pt")
+results = cls_model("gambar.jpg")
+for r in results:
+    probs = r.probs
+    print(f"Top-1: {r.names[probs.top1]} ({probs.top1conf:.2f})")
+    print(f"Top-5: {[r.names[i] for i in probs.top5]}")
+
+# ----- 3. Pose Estimation -----
+pose_model = YOLO("yolo11n-pose.pt")
+results = pose_model("orang.jpg")
+for r in results:
+    if r.keypoints is not None:
+        keypoints = r.keypoints.xy  # 17 keypoints (COCO format)
+        print(f"Keypoints shape: {keypoints.shape}")
+
+# ----- 4. Oriented Bounding Box (OBB) -----
+obb_model = YOLO("yolo11n-obb.pt")
+results = obb_model("satellite.jpg")
+# Untuk deteksi objek dengan rotasi (drone, satellite imagery)</code></pre>
+      </div>
+
+      <!-- SECTION 9 -->
+      <h2 id="deployment">9. Deployment ke Produksi</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Export &amp; Deploy YOLO</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># =============================================
+# Export Model ke Format Produksi
+# =============================================
+from ultralytics import YOLO
+
+model = YOLO("runs/detect/helm_detector/weights/best.pt")
+
+# Export ke berbagai format
+model.export(format="onnx", imgsz=640, simplify=True)    # ONNX
+model.export(format="torchscript")                         # TorchScript
+model.export(format="engine", half=True)                   # TensorRT (NVIDIA)
+model.export(format="coreml")                              # CoreML (Apple)
+model.export(format="tflite")                              # TFLite (Mobile)
+model.export(format="ncnn")                                # NCNN (Mobile)
+
+# =============================================
+# Deploy sebagai API dengan FastAPI
+# =============================================
+from fastapi import FastAPI, UploadFile
+from ultralytics import YOLO
+import io
+from PIL import Image
+
+app = FastAPI()
+model = YOLO("best.pt")
+
+@app.post("/detect")
+async def detect(file: UploadFile):
+    image_bytes = await file.read()
+    image = Image.open(io.BytesIO(image_bytes))
+    
+    results = model(image, conf=0.5)
+    
+    detections = []
+    for r in results:
+        for box in r.boxes:
+            detections.append({
+                "class": model.names[int(box.cls)],
+                "confidence": round(float(box.conf), 3),
+                "bbox": [round(x, 1) for x in box.xyxy[0].tolist()]
+            })
+    
+    return {"detections": detections, "count": len(detections)}
+
+# Run: uvicorn app:app --host 0.0.0.0 --port 8000
+
+# =============================================
+# Deploy dengan Streamlit (UI)
+# =============================================
+# pip install streamlit
+# file: app_streamlit.py
+"""
+import streamlit as st
+from ultralytics import YOLO
+from PIL import Image
+
+model = YOLO("best.pt")
+st.title("🔍 YOLO Object Detection")
+uploaded = st.file_uploader("Upload gambar", type=["jpg", "png", "jpeg"])
+
+if uploaded:
+    image = Image.open(uploaded)
+    st.image(image, caption="Gambar asli")
+    
+    results = model(image)
+    st.image(results[0].plot(), caption="Hasil deteksi")
+    
+    for box in results[0].boxes:
+        st.write(f"- {model.names[int(box.cls)]}: {float(box.conf):.1%}")
+"""</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"><!-- AdSense --></div>
+
+      <!-- SECTION 10: Quiz -->
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+
+      <div class="quiz-container">
+        <div class="quiz-question" data-correct="1">
+          <p><strong>1. Apa keunggulan utama YOLO dibanding object detector lain?</strong></p>
+          <label><input type="radio" name="q1" value="0"> Menggunakan banyak GPU sekaligus</label>
+          <label><input type="radio" name="q1" value="1"> Memproses seluruh gambar dalam satu kali pass, sehingga sangat cepat</label>
+          <label><input type="radio" name="q1" value="2"> Hanya bisa mendeteksi 1 objek per gambar</label>
+          <label><input type="radio" name="q1" value="3"> Tidak memerlukan training</label>
+        </div>
+
+        <div class="quiz-question" data-correct="3">
+          <p><strong>2. Format label YOLO berisi apa?</strong></p>
+          <label><input type="radio" name="q2" value="0"> Koordinat pixel absolut (x1, y1, x2, y2)</label>
+          <label><input type="radio" name="q2" value="1"> Gambar bounding box dalam format PNG</label>
+          <label><input type="radio" name="q2" value="2"> Anotasi dalam format XML</label>
+          <label><input type="radio" name="q2" value="3"> class_id dan koordinat yang dinormalisasi (0-1): x_center, y_center, width, height</label>
+        </div>
+
+        <div class="quiz-question" data-correct="0">
+          <p><strong>3. Apa fungsi dari data.yaml dalam training YOLO?</strong></p>
+          <label><input type="radio" name="q3" value="0"> Konfigurasi dataset: path gambar, path label, dan nama kelas</label>
+          <label><input type="radio" name="q3" value="1"> Menyimpan bobot model yang sudah di-train</label>
+          <label><input type="radio" name="q3" value="2"> Mengatur hyperparameter training</label>
+          <label><input type="radio" name="q3" value="3"> Menyimpan hasil evaluasi</label>
+        </div>
+
+        <div class="quiz-question" data-correct="2">
+          <p><strong>4. Apa perbedaan model YOLO dengan suffix -n, -s, -m, -l, -x?</strong></p>
+          <label><input type="radio" name="q4" value="0"> Jenis tugas (detection, segmentation, dll)</label>
+          <label><input type="radio" name="q4" value="1"> Dataset training yang digunakan</label>
+          <label><input type="radio" name="q4" value="2"> Ukuran model — dari nano (terkecil/tercepat) hingga extra-large (terbesar/paling akurat)</label>
+          <label><input type="radio" name="q4" value="3"> Versi framework yang digunakan</label>
+        </div>
+
+        <div class="quiz-question" data-correct="1">
+          <p><strong>5. Mengapa augmentasi penting dalam training YOLO?</strong></p>
+          <label><input type="radio" name="q5" value="0"> Untuk memperbesar ukuran gambar</label>
+          <label><input type="radio" name="q5" value="1"> Untuk meningkatkan variasi data training sehingga model lebih robust</label>
+          <label><input type="radio" name="q5" value="2"> Untuk mengurangi waktu training</label>
+          <label><input type="radio" name="q5" value="3"> Untuk mengonversi gambar ke format yang benar</label>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <h3>Rangkuman</h3>
+      <div class="info-box info">
+        <div class="info-box-title">📝 Poin Penting</div>
+        <ul>
+          <li><strong>YOLO</strong> — object detection real-time, satu pass untuk deteksi semua objek</li>
+          <li><strong>Ultralytics</strong> — framework unified untuk YOLOv8-v11, API sederhana</li>
+          <li><strong>Custom dataset</strong> — format YOLO (class x_center y_center width height, normalized)</li>
+          <li><strong>Training</strong> — gunakan transfer learning dari pre-trained model</li>
+          <li><strong>Metrics</strong> — mAP50, mAP50-95, precision, recall</li>
+          <li><strong>Multi-task</strong> — YOLO bisa detection, segmentation, classification, pose, OBB</li>
+          <li><strong>Deployment</strong> — export ke ONNX/TensorRT, deploy dengan FastAPI/Streamlit</li>
+        </ul>
+      </div>
+
+    </div>
+  </article>
+
+  <script src="../js/app.js?v=19.2"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+</script>

@@ -1,0 +1,522 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">IoT</a><span class="separator">/</span><span class="current">Raspberry Pi Kubernetes</span></div>
+      <span class="category-tag">IoT</span>
+      <h1>Raspberry Pi Kubernetes Cluster: k3s Multi-Node dengan Persistent Storage &amp; Ingress</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Bangun cluster Kubernetes mini menggunakan Raspberry Pi dan k3s — lengkap dengan MetalLB load balancer, Ingress controller, dan persistent storage</p>
+      <div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 16 menit baca</span><span class="difficulty lanjut">Lanjut</span></div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#overview">Mengapa Kubernetes di RPi?</a></li>
+          <li><a href="#hardware">Hardware yang Dibutuhkan</a></li>
+          <li><a href="#os-setup">Setup OS Raspberry Pi</a></li>
+          <li><a href="#k3s-install">Install k3s Cluster</a></li>
+          <li><a href="#multi-node">Multi-Node: Worker Nodes</a></li>
+          <li><a href="#metallb">MetalLB Load Balancer</a></li>
+          <li><a href="#ingress">Ingress Controller (Nginx)</a></li>
+          <li><a href="#persistent-storage">Persistent Storage dengan NFS</a></li>
+          <li><a href="#deploy-iot">Deploy Aplikasi IoT</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="overview">1. Mengapa Kubernetes di Raspberry Pi?</h2>
+
+      <p>Kubernetes di Raspberry Pi bukan hanya untuk belajar — ini adalah cara yang sangat efektif untuk mengelola <strong>edge computing</strong>, <strong>IoT gateway</strong>, dan <strong>microservices</strong> di lingkungan resource-limited. Dengan <strong>k3s</strong> (lightweight Kubernetes dari Rancher/SUSE), kita bisa menjalankan cluster production-grade di hardware yang hemat listrik.</p>
+
+      <h3>k3s vs K8s vs MicroK8s</h3>
+
+      <table class="spec-table">
+        <thead><tr><th>Fitur</th><th>k3s</th><th>Full K8s</th><th>MicroK8s</th></tr></thead>
+        <tbody>
+          <tr><td>Memory</td><td>~512 MB</td><td>~2 GB</td><td>~1 GB</td></tr>
+          <tr><td>Disk</td><td>~100 MB</td><td>~1 GB</td><td>~300 MB</td></tr>
+          <tr><td>Binary</td><td>Single binary</td><td>Multiple</td><td>Snap package</td></tr>
+          <tr><td>ARM Support</td><td>Native</td><td>Manual</td><td>Native</td></tr>
+          <tr><td>HA Cluster</td><td>Ya (embedded etcd)</td><td>Ya (etcd)</td><td>Ya (dqlite)</td></tr>
+          <tr><td>Install</td><td>1 command</td><td>kubeadm (kompleks)</td><td>snap install</td></tr>
+          <tr><td>Cocok untuk</td><td>Edge, IoT, Homelab</td><td>Production cloud</td><td>Development</td></tr>
+        </tbody>
+      </table>
+
+      <div class="compare-grid cols-2">
+        <div class="compare-card" style="--card-color: #00e5ff">
+          <div class="cc-icon">🟢</div>
+          <div class="cc-title">k3s</div>
+          <div class="cc-subtitle">Lightweight K8s</div>
+          <ul class="cc-features">
+            <li><span class="check">✅</span> Single binary ~100MB</li>
+            <li><span class="check">✅</span> SQLite atau embedded etcd</li>
+            <li><span class="check">✅</span> Built-in Traefik ingress</li>
+            <li><span class="check">✅</span> CNCF certified</li>
+            <li><span class="check">✅</span> Install 1 command</li>
+          </ul>
+        </div>
+        <div class="compare-card" style="--card-color: #ffeb00">
+          <div class="cc-icon">🔵</div>
+          <div class="cc-title">Use Cases</div>
+          <div class="cc-subtitle">Deploy di RPi Cluster</div>
+          <ul class="cc-features">
+            <li><span class="check">✅</span> IoT edge computing</li>
+            <li><span class="check">✅</span> Home automation</li>
+            <li><span class="check">✅</span> CI/CD homelab</li>
+            <li><span class="check">✅</span> Microservices learning</li>
+            <li><span class="check">✅</span> Low-power server</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="hardware">2. Hardware yang Dibutuhkan</h2>
+
+      <table class="spec-table">
+        <thead><tr><th>Komponen</th><th>Rekomendasi</th><th>Estimasi Harga</th></tr></thead>
+        <tbody>
+          <tr><td>Raspberry Pi 4 (x3-4)</td><td>4GB RAM per unit</td><td>Rp 800rb × 4</td></tr>
+          <tr><td>MicroSD Card</td><td>32GB Class 10 / A2 per unit</td><td>Rp 80rb × 4</td></tr>
+          <tr><td>Power Supply</td><td>USB-C 5V/3A per unit</td><td>Rp 80rb × 4</td></tr>
+          <tr><td>Ethernet Switch</td><td>Gigabit 5-8 port</td><td>Rp 150rb</td></tr>
+          <tr><td>Ethernet Cable</td><td>Cat5e/Cat6</td><td>Rp 20rb × 4</td></tr>
+          <tr><td>Case + Fan (opsional)</td><td>Cluster case 3D-printed</td><td>Rp 200rb</td></tr>
+          <tr><td>NAS/USB HDD (opsional)</td><td>Untuk persistent storage</td><td>Rp 300rb</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Minimum Setup</div>
+        <p>Untuk belajar, <strong>2 unit Raspberry Pi 4 (2GB)</strong> sudah cukup — 1 server + 1 worker. Tapi untuk cluster yang lebih robust, 3-4 unit (4GB) direkomendasikan.</p>
+      </div>
+
+      <!-- SECTION 3 -->
+      <h2 id="os-setup">3. Setup OS Raspberry Pi</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code># 1. Download Raspberry Pi OS Lite (64-bit)
+#    dari https://www.raspberrypi.com/software/
+#    Pilih "Raspberry Pi OS Lite (64-bit)"
+
+# 2. Flash ke SD card menggunakan Raspberry Pi Imager
+#    Atau gunakan dd:
+sudo dd if=rpios-lite-arm64.img of=/dev/sdX bs=4M status=progress
+
+# 3. Sebelum eject, aktifkan SSH dan set hostname
+#    Mount boot partition lalu buat file:
+touch /media/$USER/boot/ssh
+
+# 4. Set hostname unik untuk setiap node
+echo "k3s-master" > /media/$USER/etc/hostname
+# Atau gunakan Raspberry Pi Imager untuk advanced settings
+
+# 5. Boot Pi dan SSH masuk
+ssh pi@raspberrypi.local
+
+# 6. Update sistem
+sudo apt update &amp;&amp; sudo apt upgrade -y
+
+# 7. Install essentials
+sudo apt install -y curl git vim net-tools
+
+# 8. Set static IP (opsional tapi recommended)
+# Edit /etc/dhcpcd.conf:
+sudo tee -a /etc/dhcpcd.conf &lt;&lt;'EOF'
+interface eth0
+static ip_address=192.168.1.10/24
+static routers=192.168.1.1
+static domain_name_servers=8.8.8.8 1.1.1.1
+EOF
+
+# 9. Disable swap (required untuk Kubernetes)
+sudo dphys-swapfile swapoff
+sudo dphys-swapfile uninstall
+sudo systemctl disable dphys-swapfile
+
+# 10. Enable cgroup memory (required untuk k3s)
+# Edit /boot/firmware/cmdline.txt, tambahkan:
+# cgroup_memory=1 cgroup_enable=memory
+echo " cgroup_memory=1 cgroup_enable=memory" | sudo tee -a /boot/firmware/cmdline.txt
+
+# 11. Reboot
+sudo reboot</code></pre>
+      </div>
+
+      <!-- SECTION 4 -->
+      <h2 id="k3s-install">4. Install k3s Cluster</h2>
+
+      <p>k3s terkenal karena kemudahan install-nya — cukup satu command!</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Master Node (k3s-master)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code># Install k3s server (master node)
+# --disable servicelb: kita pakai MetalLB sebagai gantinya
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable servicelb --write-kubeconfig-mode 644" sh -
+
+# Cek status
+sudo systemctl status k3s
+kubectl get nodes
+kubectl get pods -A
+
+# Dapatkan node token (untuk join worker)
+sudo cat /var/lib/rancher/k3s/server/node-token
+
+# Export kubeconfig untuk remote access
+# (jalankan di laptop kamu, bukan di Pi)
+mkdir -p ~/.kube
+scp pi@192.168.1.10:/etc/rancher/k3s/k3s.yaml ~/.kube/config
+
+# Edit server URL di kubeconfig
+sed -i 's/127.0.0.1/192.168.1.10/g' ~/.kube/config
+
+# Verifikasi dari laptop
+kubectl get nodes
+kubectl cluster-info</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 5 -->
+      <h2 id="multi-node">5. Multi-Node: Worker Nodes</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Worker Nodes</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code># Di setiap worker node (k3s-worker1, k3s-worker2, dll):
+
+# Install k3s agent dan join ke cluster
+# Ganti SERVER_IP dan TOKEN sesuai master
+curl -sfL https://get.k3s.io | K3S_URL="https://192.168.1.10:6443" K3S_TOKEN="TOKEN_DARI_MASTER" sh -
+
+# Verifikasi dari master node
+kubectl get nodes
+# Harusnya terlihat:
+# NAME          STATUS   ROLES                  AGE   VERSION
+# k3s-master    Ready    control-plane,master   5m    v1.30+k3s1
+# k3s-worker1   Ready    &lt;none&gt;                 2m    v1.30+k3s1
+# k3s-worker2   Ready    &lt;none&gt;                 1m    v1.30+k3s1
+
+# Label worker nodes
+kubectl label node k3s-worker1 node-role.kubernetes.io/worker=worker
+kubectl label node k3s-worker2 node-role.kubernetes.io/worker=worker
+
+# Cek semua pods berjalan
+kubectl get pods -A -o wide</code></pre>
+      </div>
+
+      <!-- SECTION 6 -->
+      <h2 id="metallb">6. MetalLB Load Balancer</h2>
+
+      <p>k3s default menggunakan ServiceLB yang terbatas. MetalLB menyediakan LoadBalancer service yang proper dengan IP address pool dari jaringan lokal kita.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Install MetalLB</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code># Install MetalLB
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.5/config/manifests/metallb-native.yaml
+
+# Tunggu hingga pods ready
+kubectl wait --namespace metallb-system --for=condition=ready pod --selector=app=metallb --timeout=120s
+
+# Buat IP address pool
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.168.1.200-192.168.1.250
+
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - default-pool
+EOF
+
+# Verifikasi
+kubectl get ipaddresspool -n metallb-system
+# MetalLB akan assign IP dari pool ini ke LoadBalancer services</code></pre>
+      </div>
+
+      <!-- SECTION 7 -->
+      <h2 id="ingress">7. Ingress Controller (Nginx)</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Install Nginx Ingress</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code># Install Nginx Ingress Controller
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/baremetal/deploy.yaml
+
+# Tunggu hingga ready
+kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=120s
+
+# Cek External IP (dari MetalLB)
+kubectl get svc -n ingress-nginx
+# NAME                       TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)
+# ingress-nginx-controller   LoadBalancer   10.43.x.x      192.168.1.200   80:xxxxx/TCP,443:xxxxx/TCP
+
+# Contoh Ingress rule
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: grafana.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000
+EOF
+
+# Tambahkan DNS di laptop: /etc/hosts
+# 192.168.1.200 grafana.local</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="persistent-storage">8. Persistent Storage dengan NFS</h2>
+
+      <p>Persistent storage sangat penting untuk database dan stateful applications. Di RPi cluster, NFS server adalah solusi yang paling praktis.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Setup NFS Server di Master</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code># Install NFS server di master node
+sudo apt install -y nfs-kernel-server
+
+# Buat shared directory
+sudo mkdir -p /srv/nfs/k3s
+sudo chown nobody:nogroup /srv/nfs/k3s
+
+# Configure exports
+echo "/srv/nfs/k3s 192.168.1.0/24(rw,sync,no_subtree_check,no_root_squash)" | sudo tee /etc/exports
+sudo exportfs -ra
+
+# Restart NFS
+sudo systemctl restart nfs-kernel-server
+sudo systemctl enable nfs-kernel-server
+
+# Install NFS CSI driver di k3s
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-storage
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: 192.168.1.10
+  share: /srv/nfs/k3s
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+mountOptions:
+  - nfsvers=4.1
+EOF
+
+# Contoh PersistentVolumeClaim
+cat &lt;&lt;'EOF' | kubectl apply -f -
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pvc
+spec:
+  storageClassName: nfs-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+EOF</code></pre>
+      </div>
+
+      <!-- SECTION 9 -->
+      <h2 id="deploy-iot">9. Deploy Aplikasi IoT</h2>
+
+      <p>Deploy aplikasi monitoring IoT menggunakan MQTT broker (Mosquitto), Grafana, dan InfluxDB di cluster.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Mosquitto MQTT Broker</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+      - name: mosquitto
+        image: eclipse-mosquitto:2
+        ports:
+        - containerPort: 1883
+          name: mqtt
+        - containerPort: 9001
+          name: websocket
+        volumeMounts:
+        - name: config
+          mountPath: /mosquitto/config
+        - name: data
+          mountPath: /mosquitto/data
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+      volumes:
+      - name: config
+        configMap:
+          name: mosquitto-config
+      - name: data
+        persistentVolumeClaim:
+          claimName: mosquitto-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto
+spec:
+  type: LoadBalancer
+  selector:
+    app: mosquitto
+  ports:
+  - port: 1883
+    targetPort: 1883
+    name: mqtt
+  - port: 9001
+    targetPort: 9001
+    name: websocket</code></pre>
+      </div>
+
+      <!-- SECTION 10 -->
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quiz01">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Mengapa k3s lebih cocok dari K8s full untuk Raspberry Pi?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) k3s lebih cepat dari K8s</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) k3s ringan (~512MB RAM) dan single binary</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) k3s gratis, K8s berbayar</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) k3s tidak support ARM</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa fungsi MetalLB di k3s cluster?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Mengelola storage</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Mengatur jaringan cluster</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Menyediakan LoadBalancer IP dari pool lokal</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Monitoring cluster</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Mengapa swap harus dimatikan untuk Kubernetes?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Menghemat disk space</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Kubernetes membutuhkan penjadwalan yang prediktable; swap menyebabkan OOM unpredictable</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Swap tidak kompatibel dengan Linux</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Untuk meningkatkan kecepatan CPU</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi Ingress Controller?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Mengelola database</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Routing HTTP/HTTPS traffic ke services berdasarkan domain/path</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Mengatur storage</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Monitoring CPU usage</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Perintah untuk join worker node ke k3s cluster?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) kubectl join --token=xxx</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) k3s join --server=xxx</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) curl -sfL https://get.k3s.io | K3S_URL=... K3S_TOKEN=... sh -</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) kubeadm join</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="arduino-libraries.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">Arduino Library</span></a>
+        <a href="stm32-bare-metal.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">STM32 Bare Metal</span></a>
+      </div>
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form>
+      </div>
+    </div>
+  </section>

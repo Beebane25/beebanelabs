@@ -1,0 +1,1466 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">DevOps &amp; Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">GitHub Actions Advanced</span>
+      </div>
+      <span class="category-tag">DevOps &amp; Cloud</span>
+      <h1>GitHub Actions Advanced Workflows</h1>
+      <span class="access-badge free">TOKEN</span>
+      <p class="article-subtitle">Kuasai GitHub Actions tingkat lanjut — matrix builds, reusable workflows, composite actions, caching strategies, dan concurrency control untuk pipeline CI/CD profesional</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#arsitektur">Arsitektur GitHub Actions</a></li>
+          <li><a href="#matrix-builds">Matrix Builds</a></li>
+          <li><a href="#reusable-workflows">Reusable Workflows</a></li>
+          <li><a href="#composite-actions">Composite Actions</a></li>
+          <li><a href="#caching">Caching Strategies</a></li>
+          <li><a href="#concurrency">Concurrency Control</a></li>
+          <li><a href="#advanced-patterns">Advanced Patterns &amp; Best Practices</a></li>
+          <li><a href="#security">Security &amp; Secrets Management</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Arsitektur           -->
+      <!-- ============================== -->
+      <h2 id="arsitektur">1. Arsitektur GitHub Actions</h2>
+
+      <p><strong>GitHub Actions</strong> adalah platform CI/CD yang terintegrasi langsung dengan GitHub. Dengan GitHub Actions, Anda dapat mengotomasi build, test, deployment, dan workflow lainnya langsung dari repository. Pada tutorial tingkat lanjut ini, kita akan membahas fitur-fitur canggih yang digunakan oleh tim engineering profesional.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Arsitektur GitHub Actions Advanced</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">📝</div>
+            <div class="arch-label">Trigger</div>
+            <div class="arch-desc">push, pull_request,<br>workflow_dispatch,<br>schedule, workflow_call</div>
+          </div>
+          <div class="arch-arrow">→ Event →</div>
+          <div class="arch-box info">
+            <div class="arch-icon">⚙️</div>
+            <div class="arch-label">Workflow</div>
+            <div class="arch-desc">.github/workflows/<br>YAML definition<br>Jobs &amp; Steps</div>
+          </div>
+          <div class="arch-arrow">→ Execute →</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">🏃</div>
+            <div class="arch-label">Runner</div>
+            <div class="arch-desc">GitHub-hosted atau<br>Self-hosted runners<br>Matrix execution</div>
+          </div>
+          <div class="arch-arrow">→ Output →</div>
+          <div class="arch-box success">
+            <div class="arch-icon">📦</div>
+            <div class="arch-label">Artifacts</div>
+            <div class="arch-desc">Build output,<br>test reports,<br>deployment packages</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Struktur Workflow File</h3>
+      <p>Setiap workflow didefinisikan dalam file YAML yang berada di direktori <code>.github/workflows/</code>. Berikut adalah struktur lengkap workflow tingkat lanjut:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.github/workflows/advanced-ci.yml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Workflow tingkat lanjut dengan semua fitur utama
+name: Advanced CI/CD Pipeline
+
+# Trigger configuration
+on:
+  push:
+    branches: [main, develop, 'release/**']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      dry_run:
+        description: 'Dry run mode'
+        type: boolean
+        default: false
+  schedule:
+    - cron: '0 2 * * 1'  # Setiap Senin jam 2 pagi
+
+# Environment variables yang bisa diakses semua jobs
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  NODE_VERSION: '20'
+  CACHE_KEY_PREFIX: v2
+
+# Permissions granular
+permissions:
+  contents: read
+  packages: write
+  issues: write
+  pull-requests: write
+  id-token: write  # Untuk OIDC
+
+# Concurrency - hindari duplikasi run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Job pertama: Validasi
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.deploy }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history untuk analisis
+
+      - name: Check for deploy-worthy changes
+        id: check
+        run: |
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          if echo "$CHANGED_FILES" | grep -q "^src/"; then
+            echo "deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "deploy=false" >> $GITHUB_OUTPUT
+          fi
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips: Permissions Granular</div>
+        <p>Gunakan <code>permissions</code> di level workflow untuk membatasi akses <code>GITHUB_TOKEN</code>. Ini adalah prinsip <em>least privilege</em> yang meningkatkan keamanan pipeline Anda. Hanya izinkan permission yang benar-benar dibutuhkan oleh workflow.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Matrix Builds        -->
+      <!-- ============================== -->
+      <h2 id="matrix-builds">2. Matrix Builds</h2>
+
+      <p><strong>Matrix builds</strong> memungkinkan Anda menjalankan job yang sama dengan kombinasi parameter yang berbeda secara paralel. Ini sangat berguna untuk testing di multiple OS, versi bahasa, atau konfigurasi yang berbeda.</p>
+
+      <h3>2.1 Basic Matrix Configuration</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.github/workflows/matrix-basic.yml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+name: Matrix Build - Basic
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # fail-fast: false agar semua kombinasi tetap jalan
+      # meskipun ada yang gagal
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [18, 20, 22]
+        # Exclude kombinasi tertentu
+        exclude:
+          - os: windows-latest
+            node-version: 18
+        # Include item tambahan
+        include:
+          - os: ubuntu-latest
+            node-version: 22
+            experimental: true
+
+    # Continue-on-error untuk kombinasi experimental
+    continue-on-error: ${{ matrix.experimental || false }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run lint
+
+      - name: Upload coverage
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.node-version }}
+          path: coverage/
+</code></pre>
+      </div>
+
+      <h3>2.2 Dynamic Matrix dari JSON</h3>
+      <p>Anda bisa membuat matrix secara dinamis dari output job sebelumnya — sangat berguna untuk skenario di mana konfigurasi matrix ditentukan oleh kode atau config file:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.github/workflows/dynamic-matrix.yml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+name: Dynamic Matrix Build
+
+on: [push]
+
+jobs:
+  # Job pertama: generate matrix dari config
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate matrix from config
+        id: set-matrix
+        run: |
+          # Baca matrix dari file JSON di repository
+          MATRIX=$(cat .github/matrix-config.json)
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
+          # Alternatif: generate matrix dinamis
+          # Berdasarkan perubahan file
+          CHANGED=$(git diff --name-only HEAD~1 HEAD | \
+            grep -oP 'services/\K[^/]+' | sort -u)
+          SERVICES=$(echo "$CHANGED" | jq -R -s -c \
+            'split("\n") | map(select(length > 0))')
+          echo "services=$SERVICES" >> $GITHUB_OUTPUT
+
+  # Job kedua: gunakan matrix
+  build:
+    needs: generate-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build ${{ matrix.service }}
+        run: |
+          echo "Building service: ${{ matrix.service }}"
+          cd services/${{ matrix.service }}
+          docker build -t ${{ matrix.service }}:${{ github.sha }} .
+
+  # Matrix dengan multiple dimensi dan conditional
+  deploy:
+    needs: [generate-matrix, build]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 2  # Batasi paralelisme
+      matrix:
+        region: [us-east-1, eu-west-1, ap-southeast-1]
+        tier: [web, api, worker]
+        exclude:
+          - region: ap-southeast-1
+            tier: worker
+    steps:
+      - name: Deploy ${{ matrix.tier }} to ${{ matrix.region }}
+        run: |
+          echo "Deploying ${{ matrix.tier }} in ${{ matrix.region }}"
+          # Deploy logic here
+</code></pre>
+      </div>
+
+      <h3>2.3 Matrix dengan Output dan Summary</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.github/workflows/matrix-summary.yml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+name: Matrix with Job Summary
+
+on: [push]
+
+jobs:
+  test-matrix:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        id: test
+        run: |
+          python -m pytest --junitxml=results.xml \
+            --tb=short -q 2>&1 | tee test-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
+      - name: Generate Job Summary
+        if: always()
+        run: |
+          echo "## Test Results: ${{ matrix.os }} Python ${{ matrix.python-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.test.outputs.exit_code }}" == "0" ]; then
+            echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some tests failed" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat test-output.txt | tail -20 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: results.xml
+          retention-days: 7
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Matrix Build Billing</div>
+        <p>Setiap kombinasi matrix menghabiskan menit billing GitHub Actions. Jika Anda memiliki 3 OS × 3 versi = 9 job. Gunakan <code>exclude</code> dan <code>max-parallel</code> dengan bijak untuk mengontrol cost. Untuk open-source, GitHub Actions gratis tanpa batas.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Reusable Workflows   -->
+      <!-- ============================== -->
+      <h2 id="reusable-workflows">3. Reusable Workflows</h2>
+
+      <p><strong>Reusable workflows</strong> memungkinkan Anda mendefinisikan workflow sekali dan memanggilnya dari banyak repository atau workflow. Ini mengurangi duplikasi dan memudahkan maintenance pipeline CI/CD di seluruh organisasi.</p>
+
+      <h3>3.1 Membuat Reusable Workflow</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.github/workflows/reusable-build.yml (di repo shared)</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Reusable workflow untuk build &amp; test
+# File ini dipanggil dari workflow lain
+name: Reusable Build &amp; Test
+
+# 'workflow_call' adalah trigger khusus untuk reusable workflow
+on:
+  workflow_call:
+    # Definisikan inputs yang bisa dikirim oleh caller
+    inputs:
+      node-version:
+        description: 'Node.js version'
+        type: string
+        default: '20'
+      run-e2e:
+        description: 'Run E2E tests'
+        type: boolean
+        default: false
+      package-manager:
+        description: 'Package manager (npm, yarn, pnpm)'
+        type: string
+        default: 'npm'
+      working-directory:
+        description: 'Working directory'
+        type: string
+        default: '.'
+    # Definisikan secrets yang dibutuhkan
+    secrets:
+      NPM_TOKEN:
+        required: false
+      CODECOV_TOKEN:
+        required: false
+    # Outputs yang bisa diakses caller
+    outputs:
+      coverage-percent:
+        description: 'Code coverage percentage'
+        value: ${{ jobs.build-and-test.outputs.coverage }}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    outputs:
+      coverage: ${{ steps.coverage.outputs.percent }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ inputs.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: ${{ inputs.package-manager }}
+          cache-dependency-path: ${{ inputs.working-directory }}
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          case "${{ inputs.package-manager }}" in
+            npm)   npm ci ;;
+            yarn)  yarn install --frozen-lockfile ;;
+            pnpm)  pnpm install --frozen-lockfile ;;
+          esac
+
+      - name: Run linting
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          case "${{ inputs.package-manager }}" in
+            npm)   npm run lint ;;
+            yarn)  yarn lint ;;
+            pnpm)  pnpm lint ;;
+          esac
+
+      - name: Run unit tests
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          case "${{ inputs.package-manager }}" in
+            npm)   npm test -- --coverage ;;
+            yarn)  yarn test --coverage ;;
+            pnpm)  pnpm test --coverage ;;
+          esac
+
+      - name: Extract coverage
+        id: coverage
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            PERCENT=$(cat coverage/coverage-summary.json | \
+              jq '.total.lines.pct')
+            echo "percent=$PERCENT" >> $GITHUB_OUTPUT
+          else
+            echo "percent=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run E2E tests
+        if: inputs.run-e2e
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          case "${{ inputs.package-manager }}" in
+            npm)   npm run test:e2e ;;
+            yarn)  yarn test:e2e ;;
+            pnpm)  pnpm test:e2e ;;
+          esac
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            coverage/
+            test-results/
+          retention-days: 7
+</code></pre>
+      </div>
+
+      <h3>3.2 Memanggil Reusable Workflow</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.github/workflows/ci.yml (di repo utama)</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+name: CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  # Panggil reusable workflow dari repo yang sama
+  build:
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      node-version: '20'
+      run-e2e: ${{ github.ref == 'refs/heads/main' }}
+      package-manager: 'pnpm'
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  # Panggil reusable workflow dari repo lain di org
+  security-scan:
+    uses: my-org/shared-workflows/.github/workflows/security-scan.yml@main
+    with:
+      scan-type: 'full'
+      severity-threshold: 'high'
+    secrets: inherit  # Teruskan semua secrets dari caller
+
+  # Gunakan output dari reusable workflow
+  notify:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report coverage
+        run: |
+          echo "Coverage: ${{ needs.build.outputs.coverage-percent }}%"
+</code></pre>
+      </div>
+
+      <h3>3.3 Reusable Workflow Nesting</h3>
+      <p>Reusable workflow bisa memanggil reusable workflow lain (nesting), hingga maksimal 4 level kedalaman. Ini memungkinkan Anda membangun hierarki workflow yang terstruktur:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nesting pattern</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Level 0: Caller workflow (di setiap repo)
+#   ↓ memanggil
+# Level 1: reusable-ci.yml (shared CI pipeline)
+#   ↓ memanggil
+# Level 2: reusable-lint.yml, reusable-test.yml
+#   ↓ memanggil
+# Level 3: reusable-security.yml, reusable-coverage.yml
+
+# Contoh: Level 1 memanggil Level 2
+name: Shared CI Pipeline
+on:
+  workflow_call:
+    inputs:
+      language:
+        type: string
+
+jobs:
+  lint:
+    uses: ./.github/workflows/reusable-lint.yml
+    with:
+      language: ${{ inputs.language }}
+
+  test:
+    needs: lint
+    uses: ./.github/workflows/reusable-test.yml
+    with:
+      language: ${{ inputs.language }}
+
+  security:
+    needs: lint
+    uses: ./.github/workflows/reusable-security.yml
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Composite Actions    -->
+      <!-- ============================== -->
+      <h2 id="composite-actions">4. Composite Actions</h2>
+
+      <p><strong>Composite actions</strong> memungkinkan Anda menggabungkan beberapa langkah (steps) menjadi satu action yang reusable. Berbeda dengan reusable workflows yang berupa file YAML di level workflow, composite actions berupa file <code>action.yml</code> yang bisa dipanggil sebagai satu step.</p>
+
+      <h3>4.1 Membuat Composite Action</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.github/actions/setup-project/action.yml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Composite action untuk setup project lengkap
+name: 'Setup Project'
+description: 'Setup environment, install dependencies, dan konfigurasi tools'
+branding:
+  icon: 'settings'
+  color: 'blue'
+
+inputs:
+  node-version:
+    description: 'Node.js version'
+    required: false
+    default: '20'
+  install-java:
+    description: 'Install JDK untuk Android build'
+    required: false
+    default: 'false'
+  java-version:
+    description: 'JDK version'
+    required: false
+    default: '17'
+  cache-dependency-path:
+    description: 'Path untuk cache key'
+    required: false
+    default: 'package-lock.json'
+
+outputs:
+  node-version:
+    description: 'Installed Node.js version'
+    value: ${{ steps.setup-node.outputs.node-version }}
+  cache-hit:
+    description: 'Whether dependencies were cached'
+    value: ${{ steps.setup-node.outputs.cache-hit }}
+
+runs:
+  using: 'composite'
+  steps:
+    # Step 1: Setup Node.js
+    - name: Setup Node.js ${{ inputs.node-version }}
+      id: setup-node
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+
+    # Step 2: Setup Java (opsional)
+    - name: Setup JDK ${{ inputs.java-version }}
+      if: inputs.install-java == 'true'
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: ${{ inputs.java-version }}
+
+    # Step 3: Install dependencies
+    - name: Install npm dependencies
+      shell: bash
+      run: |
+        echo "::group::Installing dependencies"
+        npm ci --prefer-offline
+        echo "::endgroup::"
+
+    # Step 4: Setup environment
+    - name: Setup environment
+      shell: bash
+      run: |
+        if [ -f .env.example ] && [ ! -f .env ]; then
+          cp .env.example .env
+          echo "Created .env from .env.example"
+        fi
+
+    # Step 5: Verify setup
+    - name: Verify setup
+      shell: bash
+      run: |
+        echo "Node.js: $(node --version)"
+        echo "npm: $(npm --version)"
+        if [ "${{ inputs.install-java }}" == "true" ]; then
+          echo "Java: $(java --version 2>&1 | head -1)"
+        fi
+        echo "✅ Project setup complete"
+</code></pre>
+      </div>
+
+      <h3>4.2 Composite Action untuk Docker</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.github/actions/docker-build-push/action.yml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+name: 'Docker Build &amp; Push'
+description: 'Build, tag, dan push Docker image ke registry'
+
+inputs:
+  registry:
+    description: 'Container registry'
+    required: false
+    default: 'ghcr.io'
+  image-name:
+    description: 'Image name'
+    required: true
+  dockerfile:
+    description: 'Dockerfile path'
+    required: false
+    default: './Dockerfile'
+  context:
+    description: 'Build context'
+    required: false
+    default: '.'
+  push:
+    description: 'Push image setelah build'
+    required: false
+    default: 'true'
+  tags:
+    description: 'Custom tags (newline separated)'
+    required: false
+    default: ''
+  build-args:
+    description: 'Build arguments'
+    required: false
+    default: ''
+  platforms:
+    description: 'Target platforms untuk multi-arch build'
+    required: false
+    default: 'linux/amd64'
+
+outputs:
+  image-digest:
+    description: 'Image digest'
+    value: ${{ steps.build.outputs.digest }}
+  image-ref:
+    description: 'Full image reference'
+    value: ${{ steps.meta.outputs.tags }}
+
+runs:
+  using: 'composite'
+  steps:
+    # Setup QEMU untuk multi-arch build
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v3
+
+    # Setup Buildx
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # Login ke registry
+    - name: Login to ${{ inputs.registry }}
+      if: inputs.push == 'true'
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+
+    # Generate metadata tags
+    - name: Docker metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ inputs.registry }}/${{ inputs.image-name }}
+        tags: |
+          type=sha,prefix=
+          type=ref,event=branch
+          type=ref,event=tag
+          type=semver,pattern={{version}}
+          type=raw,value=latest,enable={{is_default_branch}}
+          ${{ inputs.tags }}
+
+    # Build dan push
+    - name: Build &amp; Push
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.dockerfile }}
+        push: ${{ inputs.push }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        platforms: ${{ inputs.platforms }}
+        build-args: ${{ inputs.build-args }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Caching              -->
+      <!-- ============================== -->
+      <h2 id="caching">5. Caching Strategies</h2>
+
+      <p>Caching yang tepat dapat mempercepat workflow hingga <strong>50-80%</strong>. GitHub Actions menyediakan <code>actions/cache</code> dan caching built-in pada beberapa setup actions.</p>
+
+      <h3>5.1 Built-in Cache pada Setup Actions</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Built-in caching examples</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Node.js — cache npm/yarn/pnpm otomatis
+- uses: actions/setup-node@v4
+  with:
+    node-version: '20'
+    cache: 'npm'  # Atau 'yarn', 'pnpm'
+    # Cache key berdasarkan lockfile
+
+# Python — cache pip
+- uses: actions/setup-python@v5
+  with:
+    python-version: '3.12'
+    cache: 'pip'
+
+# Java — cache Maven/Gradle
+- uses: actions/setup-java@v4
+  with:
+    distribution: 'temurin'
+    java-version: '17'
+    cache: 'gradle'
+
+# Go — cache modules
+- uses: actions/setup-go@v5
+  with:
+    go-version: '1.22'
+    cache: true
+</code></pre>
+      </div>
+
+      <h3>5.2 Advanced Cache dengan actions/cache</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Advanced caching strategies</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Cache untuk Docker layer
+- name: Cache Docker layers
+  uses: actions/cache@v4
+  with:
+    path: /tmp/.buildx-cache
+    key: ${{ runner.os }}-buildx-${{ github.sha }}
+    restore-keys: |
+      ${{ runner.os }}-buildx-
+
+# Cache untuk custom artifacts
+- name: Cache build output
+  uses: actions/cache@v4
+  with:
+    path: |
+      ~/.cache/go-build
+      ~/go/pkg/mod
+    key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+    restore-keys: |
+      ${{ runner.os }}-go-
+
+# Cache dengan save-always (tetap simpan meski job gagal)
+- name: Cache dependencies
+  uses: actions/cache/save@v4
+  if: always()  # Save meski step sebelumnya gagal
+  with:
+    path: node_modules
+    key: deps-${{ hashFiles('package-lock.json') }}
+
+# Restore cache di job berikutnya
+- name: Restore dependencies
+  uses: actions/cache/restore@v4
+  id: cache-deps
+  with:
+    path: node_modules
+    key: deps-${{ hashFiles('package-lock.json') }}
+
+# Conditional install jika cache miss
+- name: Install dependencies
+  if: steps.cache-deps.outputs.cache-hit != 'true'
+  run: npm ci
+
+# Cross-job cache dengan cache-hit output
+- name: Cache TypeScript build
+  uses: actions/cache@v4
+  id: tsc-cache
+  with:
+    path: dist/
+    key: tsc-${{ hashFiles('tsconfig.json') }}-${{ hashFiles('src/**') }}
+    restore-keys: |
+      tsc-${{ hashFiles('tsconfig.json') }}-
+
+- name: Build TypeScript
+  if: steps.tsc-cache.outputs.cache-hit != 'true'
+  run: npx tsc --build
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Cache Size Limit</div>
+        <p>GitHub Actions memiliki limit cache <strong>10 GB per repository</strong>. Cache yang tidak diakses dalam 7 hari akan dihapus. Gunakan <code>actions/cache</code> dengan <code>restore-keys</code> yang fleksibel untuk fallback ke cache terdekat jika exact match tidak ditemukan.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Concurrency          -->
+      <!-- ============================== -->
+      <h2 id="concurrency">6. Concurrency Control</h2>
+
+      <p><strong>Concurrency</strong> memungkinkan Anda mengontrol bagaimana workflow yang berjalan bersamaan saling berinteraksi. Ini sangat penting untuk mencegah duplikasi deployment dan menghemat resource.</p>
+
+      <h3>6.1 Concurrency Groups</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Concurrency patterns</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Pattern 1: Cancel in-progress run untuk branch yang sama
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Pattern 2: Queue (jangan cancel) untuk deployment production
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false  # Tunggu hingga yang sebelumnya selesai
+
+# Pattern 3: Concurrency per environment
+concurrency:
+  group: deploy-${{ github.event.inputs.environment || 'staging' }}
+  cancel-in-progress: ${{ github.event.inputs.environment != 'production' }}
+
+# Pattern 4: Concurrency di level job
+jobs:
+  deploy-staging:
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Deploy to staging"
+
+  deploy-production:
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false  # Jangan pernah cancel deploy prod
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Deploy to production"
+</code></pre>
+      </div>
+
+      <h3>6.2 Environment Protection Rules</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.github/workflows/deploy.yml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+name: Deploy with Environment Protection
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [staging, production]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Environment dengan protection rules di GitHub Settings
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy
+        id: deploy
+        run: |
+          echo "Deploying to ${{ inputs.environment }}"
+          # Gunakan environment secrets
+          echo "API_KEY=${{ secrets.API_KEY }}"
+          echo "url=https://${{ inputs.environment }}.example.com" >> $GITHUB_OUTPUT
+
+      # Wait timer — tunggu N menit sebelum proceed
+      # (dikonfigurasi di GitHub Environment settings)
+      # - Required reviewers
+      # - Wait timer (misalnya 15 menit)
+      # - Branch policies (hanya dari main)
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Advanced Patterns    -->
+      <!-- ============================== -->
+      <h2 id="advanced-patterns">7. Advanced Patterns &amp; Best Practices</h2>
+
+      <h3>7.1 Conditional Deploy dengan Path Filtering</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.github/workflows/monorepo-ci.yml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+name: Monorepo CI/CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  # Detect perubahan di setiap service
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+      infra: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'apps/frontend/**'
+              - 'packages/ui/**'
+            backend:
+              - 'apps/backend/**'
+              - 'packages/shared/**'
+            infra:
+              - 'infra/**'
+              - '.github/**'
+
+  # Hanya build &amp; deploy service yang berubah
+  deploy-frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Building frontend..."
+
+  deploy-backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Building backend..."
+
+  update-infra:
+    needs: changes
+    if: needs.changes.outputs.infra == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Updating infrastructure..."
+</code></pre>
+      </div>
+
+      <h3>7.2 OIDC Authentication (Tanpa Long-lived Secrets)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.github/workflows/deploy-aws-oidc.yml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+name: Deploy to AWS with OIDC
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write   # Diperlukan untuk OIDC
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Authenticate ke AWS tanpa long-lived credentials
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsRole
+          aws-region: ap-southeast-1
+          # audience bisa dikustomisasi
+          role-duration-seconds: 3600
+
+      # Deploy menggunakan temporary credentials
+      - name: Deploy to S3
+        run: |
+          aws s3 sync ./dist s3://my-app-bucket --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E1234567890 \
+            --paths "/*"
+</code></pre>
+      </div>
+
+      <h3>7.3 Artifact Upload/Download antar Jobs</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Artifact patterns</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run build
+
+      # Upload artifact dengan multiple files
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            dist/
+            public/
+          retention-days: 5
+          compression-level: 9  # 0-9, default 6
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # Download artifact
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: ./artifacts
+
+      # Atau download semua artifacts
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./all-artifacts
+          merge-multiple: true  # Gabungkan semua artifact ke satu direktori
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Security             -->
+      <!-- ============================== -->
+      <h2 id="security">8. Security &amp; Secrets Management</h2>
+
+      <h3>8.1 Secrets Scanning &amp; Prevention</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.github/workflows/security.yml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+name: Security Scanning
+
+on: [push, pull_request]
+
+jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Scan untuk leaked secrets
+      - name: TruffleHog secret scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
+
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Semgrep
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: >-
+            p/owasp-top-ten
+            p/security-audit
+            p/secrets
+
+  # Supply chain security
+  provenance:
+    needs: [secret-scan, sast]
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      actions: read
+      id-token: write
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate SLSA provenance
+        uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.0.0
+        with:
+          image: ghcr.io/${{ github.repository }}
+          digest: ${{ needs.build.outputs.digest }}
+          registry-username: ${{ github.actor }}
+        secrets:
+          registry-password: ${{ secrets.GITHUB_TOKEN }}
+</code></pre>
+      </div>
+
+      <h3>8.2 Best Practices Summary</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Best Practice</th>
+            <th>Deskripsi</th>
+            <th>Contoh</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>permissions</code></td><td>Batasi akses token</td><td><code>permissions: contents: read</code></td></tr>
+          <tr><td><code>secrets: inherit</code></td><td>Teruskan secrets ke reusable workflow</td><td>Tanpa mendefinisikan ulang</td></tr>
+          <tr><td>OIDC</td><td>Gunakan short-lived tokens</td><td><code>id-token: write</code></td></tr>
+          <tr><td>Pin action versions</td><td>Gunakan SHA, bukan tag</td><td><code>uses: actions/checkout@abc123</code></td></tr>
+          <tr><td>Environment protection</td><td>Require approval untuk deploy</td><td>GitHub Environment rules</td></tr>
+          <tr><td>Dependabot</td><td>Update action versions otomatis</td><td><code>.github/dependabot.yml</code></td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                 -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang GitHub Actions Advanced:</p>
+
+      <div class="quiz-container" id="quiz1">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa fungsi utama dari <code>concurrency</code> di GitHub Actions?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Meningkatkan kecepatan eksekusi workflow</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Mengontrol bagaimana workflow yang berjalan bersamaan saling berinteraksi, misalnya membatalkan run sebelumnya</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Membagi satu job menjadi beberapa paralel</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Menghubungkan GitHub Actions dengan CI/CD lain</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa perbedaan antara <code>reusable workflow</code> dan <code>composite action</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Tidak ada perbedaan, keduanya sama</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Reusable workflow adalah file workflow lengkap yang dipanggil dengan <code>uses</code>, sedangkan composite action adalah kumpulan steps yang digabung menjadi satu action</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Composite action hanya bisa untuk Docker</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Reusable workflow hanya bisa dipanggil dari repo yang sama</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Mengapa menggunakan <code>restore-keys</code> pada cache lebih baik daripada hanya <code>key</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Karena <code>restore-keys</code> lebih cepat</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Karena <code>restore-keys</code> memungkinkan fallback ke cache terdekat jika exact match tidak ditemukan, menghemat waktu install</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Karena <code>key</code> sudah deprecated</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Karena <code>restore-keys</code> mengenkripsi cache</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa keuntungan menggunakan OIDC dibandingkan long-lived AWS credentials di GitHub Actions?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) OIDC lebih cepat dari credentials biasa</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) OIDC menggunakan token berjangka pendek yang otomatis di-generate, sehingga tidak perlu menyimpan credentials di secrets</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) OIDC hanya bisa digunakan dengan AWS</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) OIDC menghapus kebutuhan untuk GitHub Actions</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa fungsi <code>fail-fast: false</code> pada matrix strategy?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Membuat semua job gagal sekaligus</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Menghentikan semua job lain jika satu job gagal</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Membiarkan semua kombinasi matrix tetap berjalan meskipun ada yang gagal, sehingga Anda bisa melihat semua kegagalan sekaligus</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Meningkatkan kecepatan matrix build</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="gitlab-ci-advanced.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">GitLab CI/CD Advanced Pipeline</span>
+        </a>
+        <a href="argocd-gitops.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">ArgoCD: GitOps for Kubernetes</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial DevOps terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

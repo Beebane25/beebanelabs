@@ -1,0 +1,607 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">AI & Data Science</a>
+        <span class="separator">/</span>
+        <span class="current">CNN: Convolutional Neural Networks</span>
+      </div>
+      <span class="category-tag">AI & Data Science</span>
+      <h1>CNN: Convolutional Neural Networks</h1>
+      <span class="access-badge token">TOKEN</span> <span class="difficulty menengah">Menengah</span>
+      <p class="article-subtitle">Tutorial lengkap CNN — convolution layers, pooling, padding & stride, arsitektur populer (LeNet, AlexNet, VGG, ResNet), image classification, dan implementasi dengan PyTorch</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 22 menit baca</span>
+        <span class="difficulty menengah-atas">Menengah-Atas</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan CNN</a></li>
+          <li><a href="#convolution-layer">Convolution Layer</a></li>
+          <li><a href="#padding-stride">Padding, Stride &amp; Output Size</a></li>
+          <li><a href="#pooling-layer">Pooling Layer</a></li>
+          <li><a href="#arsitektur-cnn">Arsitektur CNN Lengkap</a></li>
+          <li><a href="#arsitektur-populer">Arsitektur Populer</a></li>
+          <li><a href="#implementasi-pytorch">Implementasi CNN dengan PyTorch</a></li>
+          <li><a href="#transfer-learning">Transfer Learning</a></li>
+          <li><a href="#tips-praktis">Tips &amp; Trik Praktis</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan CNN</h2>
+
+      <p><strong>Convolutional Neural Network (CNN)</strong> adalah jenis neural network yang dirancang khusus untuk memproses data berbentuk <strong>grid</strong>, terutama gambar (2D grid pixel). CNN merevolusi bidang Computer Vision dan menjadi fondasi dari hampir semua sistem pengenalan gambar modern.</p>
+
+      <h3>Mengapa CNN, Bukan Neural Network Biasa?</h3>
+      <p>Bayangkan kita menggunakan neural network biasa (Fully Connected / Dense) untuk gambar 224×224 piksel dengan 3 channel (RGB). Input layer saja akan memiliki <strong>224 × 224 × 3 = 150.528</strong> neuron. Jika hidden layer pertama memiliki 1000 neuron, maka hanya layer pertama saja sudah membutuhkan <strong>150 juta</strong> parameter! Ini tidak praktis.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Mengapa CNN Lebih Efisien</div>
+<pre class="mermaid">
+flowchart TD
+    subgraph mlp["MLP (Dense)"]
+        direction TB
+    end
+    subgraph cnn["CNN (Convolutional)"]
+        direction TB
+    end
+        M1["Input 224×224×3\n= 150,528 params"]
+        M2["Hidden Layer\n10,000 neurons"]
+        M3["Output: 1000 classes"]
+        C1["Input 224×224×3"]
+        C2["Conv Layer\n3×3 kernel = 9 params\n(shared weights)"]
+        C3["Output: 1000 classes"]
+
+    M1 --> M2
+    M2 --> M3
+    M3 --> C1
+    C1 --> C2
+    C2 --> C3
+    style mlp fill:#2a0f0f,stroke:#ef4444,stroke-width:2px
+    style cnn fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+</pre>
+      <h3>Aplikasi CNN</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aplikasi</th>
+            <th>Contoh</th>
+            <th>Kenapa CNN?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Image Classification</td><td>Label foto (kucing/anjing/mobil)</td><td>Deteksi pola visual hierarkis</td></tr>
+          <tr><td>Object Detection</td><td>YOLO, Faster R-CNN</td><td>Deteksi + lokalisasi objek dalam gambar</td></tr>
+          <tr><td>Semantic Segmentation</td><td>U-Net (medical imaging)</td><td>Klasifikasi setiap pixel</td></tr>
+          <tr><td>Face Recognition</td><td>FaceNet, DeepFace</td><td>Feature extraction wajah</td></tr>
+          <tr><td>Self-driving Cars</td><td>Tesla, Waymo</td><td>Deteksi rambu, pejalan kaki, jalur</td></tr>
+          <tr><td>Medical Imaging</td><td>Deteksi tumor, kanker</td><td>Pola abnormal pada X-ray/MRI</td></tr>
+          <tr><td>Text Classification</td><td>Sentiment analysis</td><td>1D CNN untuk text</td></tr>
+          <tr><td>Video Analysis</td><td>Action recognition</td><td>3D CNN untuk video frames</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Convolution Layer    -->
+      <!-- ============================== -->
+      <h2 id="convolution-layer">2. Convolution Layer</h2>
+
+      <p><strong>Convolution layer</strong> adalah blok utama dari CNN. Layer ini menggunakan <strong>filter</strong> (juga disebut <strong>kernel</strong> atau <strong>weight</strong>) yang "bergeser" melintasi input gambar untuk mendeteksi fitur-fitur tertentu.</p>
+
+      <h3>Bagaimana Convolution Bekerja</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Operasi Convolution 3×3</div>
+<pre class="mermaid">
+flowchart TB
+    Input["📷 Input Image\n(5×5)"] --> Conv["🔧 3×3 Kernel\n(Weight Sharing)"]
+    Conv --> Feature["📊 Feature Map\n(3×3)"]
+    Feature --> Pool["📉 Pooling\n(downsample)"]
+    Pool --> Out["📤 Output"]
+
+    style Input fill:#2a0f1e,stroke:#f472b6
+    style Conv fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+    style Feature fill:#0f2a1f,stroke:#3ecf8e
+    style Pool fill:#0f1d3a,stroke:#60a5fa
+    style Out fill:#1a0f2e,stroke:#a78bfa
+</pre>
+      <h3>Jenis Filter/Kernel</h3>
+      <p>CNN secara otomatis <strong>belajar</strong> filter apa yang paling berguna. Tapi untuk pemahaman, berikut beberapa filter manual yang dikenal:</p>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Filter</th>
+            <th>Kernel</th>
+            <th>Fungsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Vertical Edge</td><td><code>[[-1,0,1],[-1,0,1],[-1,0,1]]</code></td><td>Deteksi tepi vertikal</td></tr>
+          <tr><td>Horizontal Edge</td><td><code>[[-1,-1,-1],[0,0,0],[1,1,1]]</code></td><td>Deteksi tepi horizontal</td></tr>
+          <tr><td>Sharpen</td><td><code>[[0,-1,0],[-1,5,-1],[0,-1,0]]</code></td><td>Memperjelas gambar</td></tr>
+          <tr><td>Blur (Gaussian)</td><td><code>[[1,2,1],[2,4,2],[1,2,1]]/16</code></td><td>Memblur gambar (mengurangi noise)</td></tr>
+          <tr><td>Embassy</td><td><code>[[-2,-1,0],[-1,1,1],[0,1,2]]</code></td><td>Memberi efek 3D</td></tr>
+        </tbody>
+      </table>
+
+      </div>
+<pre class="mermaid">
+flowchart TD
+    In["Input\n(5×5)"] --> Pad["Padding\n(+1 each side)"]
+    Pad --> Out["Padded\n(7×7)"]
+    Out --> Conv["3×3 Conv"]
+    Conv --> Result["Output\n(5×5)"]
+
+    style In fill:#0f2a1f,stroke:#3ecf8e
+    style Pad fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+    style Out fill:#0f1d3a,stroke:#60a5fa
+    style Conv fill:#1a0f2e,stroke:#a78bfa
+    style Result fill:#0a2a1f,stroke:#34d399
+</pre>
+      <h3>Stride</h3>
+      <p><strong>Stride</strong> menentukan berapa langkah filter bergeser pada setiap operasi. Stride 1 = geser satu pixel. Stride 2 = geser dua pixel (output lebih kecil).</p>
+
+      <h3>Rumus Output Size</h3>
+      <div class="info-box info">
+        <div class="info-box-title">📐 Rumus Kalkulasi Output Size</div>
+        <p><code>Output Size = (Input Size - Kernel Size + 2 × Padding) / Stride + 1</code></p>
+        <p>Contoh: Input 32×32, Kernel 5×5, Padding 2, Stride 1:</p>
+        <p><code>Output = (32 - 5 + 2×2) / 1 + 1 = 32</code> → Output 32×32 (sama!) — ini disebut "same" padding</p>
+      </div>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Kombinasi</th>
+            <th>Input</th>
+            <th>Kernel</th>
+            <th>Padding</th>
+            <th>Stride</th>
+            <th>Output</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Valid (no padding)</td><td>32×32</td><td>3×3</td><td>0</td><td>1</td><td>30×30</td></tr>
+          <tr><td>Same padding</td><td>32×32</td><td>3×3</td><td>1</td><td>1</td><td>32×32</td></tr>
+          <tr><td>Downsample 2×</td><td>32×32</td><td>3×3</td><td>1</td><td>2</td><td>16×16</td></tr>
+          <tr><td>Large kernel</td><td>28×28</td><td>5×5</td><td>0</td><td>1</td><td>24×24</td></tr>
+          <tr><td>Same large kernel</td><td>28×28</td><td>5×5</td><td>2</td><td>1</td><td>28×28</td></tr>
+        </tbody>
+      </table>
+
+      </div>
+<pre class="mermaid">
+flowchart TD
+    subgraph maxpool["MAX POOLING"]
+        MP["4 2\n6 1"] --> MR["Max: 6"]
+    end
+    
+    subgraph avgpool["AVERAGE POOLING"]
+        AP["4 2\n6 1"] --> AR["Avg: 3.25"]
+    end
+    
+    style maxpool fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+    style avgpool fill:#0f1d3a,stroke:#60a5fa,stroke-width:2px
+</pre>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Jenis Pooling</th>
+            <th>Operasi</th>
+            <th>Kelebihan</th>
+            <th>Penggunaan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Max Pooling</td><td>Ambil nilai maksimum per region</td><td>Pertahankan fitur kuat</td><td>Paling umum (default)</td></tr>
+          <tr><td>Average Pooling</td><td>Ambil rata-rata per region</td><td>Smooth, tidak kehilangan info</td><td>Global Average Pooling (akhir jaringan)</td></tr>
+          <tr><td>Global Average Pooling</td><td>Rata-rata SELURUH feature map → 1 nilai per channel</td><td>Sangat mengurangi parameter</td><td>Akhir CNN sebelum classifier</td></tr>
+          <tr><td>Stochastic Pooling</td><td>Random sampling sesuai distribusi</td><td>Regularisasi</td><td>Jarang digunakan</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Arsitektur CNN       -->
+      <!-- ============================== -->
+      <h2 id="arsitektur-cnn">5. Arsitektur CNN Lengkap</h2>
+
+      <p>Sebuah arsitektur CNN lengkap terdiri dari beberapa komponen yang bekerja bersama:</p>
+
+      <h3>Struktur Umum CNN</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Arsitektur CNN Lengkap</div>
+<pre class="mermaid">
+flowchart TD
+    Input["📷 Image\n224×224"] --> Conv1["Conv1\n(32 filters)"]
+    Conv1 --> Pool1["Pool1"]
+    Pool1 --> Conv2["Conv2\n(64 filters)"]
+    Conv2 --> Pool2["Pool2"]
+    Pool2 --> Conv3["Conv3\n(128 filters)"]
+    Conv3 --> Pool3["Pool3"]
+    Pool3 --> Flat["Flatten"]
+    Flat --> FC["Dense\n(256)"]
+    FC --> Out["Output\n(10 classes)"]
+
+    style Input fill:#2a0f1e,stroke:#f472b6
+    style Conv1 fill:#0f2a1f,stroke:#3ecf8e
+    style Conv2 fill:#0f1d3a,stroke:#60a5fa
+    style Conv3 fill:#1a0f2e,stroke:#a78bfa
+    style FC fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+    style Out fill:#0a2a1f,stroke:#34d399
+</pre>
+      <h3>Aktivasi: ReLU</h3>
+      <p><strong>ReLU (Rectified Linear Unit)</strong> adalah fungsi aktivasi yang paling umum digunakan di CNN. Formula: <code>f(x) = max(0, x)</code>. ReLU menghilangkan nilai negatif (mengubahnya jadi 0) dan mempertahankan nilai positif.</p>
+
+      </div>
+<pre class="mermaid">
+flowchart TD
+    L1998["1998: LeNet-5\n(LeCun)\n60K params"] --> A2012["2012: AlexNet\n(Krizhevsky)\n60M params"]
+    A2012 --> V2014["2014: VGGNet\n(Simonyan)\n138M params"]
+    V2014 --> G2014["2014: GoogLeNet\n(Szegedy)\n6.8M params"]
+    G2014 --> R2015["2015: ResNet\n(He)\n25.6M params"]
+    R2015 --> E2019["2019: EfficientNet\n(Tan)\n5.3M params"]
+
+    style L1998 fill:#0f2a1f,stroke:#3ecf8e
+    style A2012 fill:#0f1d3a,stroke:#60a5fa
+    style V2014 fill:#2a1f0a,stroke:#f59e0b
+    style G2014 fill:#1a0f2e,stroke:#a78bfa
+    style R2015 fill:#2a0f1e,stroke:#f472b6,stroke-width:2px
+    style E2019 fill:#0a2a1f,stroke:#34d399,stroke-width:2px
+</pre>
+      <h3>Perbandingan Arsitektur</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Arsitektur</th>
+            <th>Tahun</th>
+            <th>Layers</th>
+            <th>Parameters</th>
+            <th>Top-5 Acc (ImageNet)</th>
+            <th>Key Innovation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>LeNet-5</td><td>1998</td><td>5</td><td>60K</td><td>—</td><td>CNN pertama yang sukses</td></tr>
+          <tr><td>AlexNet</td><td>2012</td><td>8</td><td>60M</td><td>84.7%</td><td>ReLU, Dropout, GPU</td></tr>
+          <tr><td>VGG-16</td><td>2014</td><td>16</td><td>138M</td><td>92.7%</td><td>3×3 kernels, simplicity</td></tr>
+          <tr><td>GoogLeNet</td><td>2014</td><td>22</td><td>6.8M</td><td>93.3%</td><td>Inception module</td></tr>
+          <tr><td>ResNet-50</td><td>2015</td><td>50</td><td>25.6M</td><td>96.4%</td><td>Skip connections</td></tr>
+          <tr><td>EfficientNet-B0</td><td>2019</td><td>—</td><td>5.3M</td><td>97.1%</td><td>Compound scaling</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Implementasi         -->
+      <!-- ============================== -->
+      <h2 id="implementasi-pytorch">7. Implementasi CNN dengan PyTorch</h2>
+
+      <p>Sekawaran kita implementasi CNN lengkap untuk klasifikasi gambar menggunakan <strong>PyTorch</strong> pada dataset <strong>CIFAR-10</strong> (10 kelas: airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck).</p>
+
+      </div>
+<pre class="mermaid">
+flowchart TB
+    Pretrained["🧠 Pre-trained Model\n(ImageNet, ResNet50)"]
+    
+    Pretrained --> S1["Strategy 1: Feature Extractor\n• Freeze all layers\n• Train only classifier\n• Small dataset"]
+    Pretrained --> S2["Strategy 2: Fine-tuning\n• Unfreeze top layers\n• Low learning rate\n• Medium dataset"]
+    Pretrained --> S3["Strategy 3: Full Training\n• Train from scratch\n• Large dataset needed"]
+    
+    style Pretrained fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+    style S1 fill:#0f2a1f,stroke:#3ecf8e,stroke-width:1.5px
+    style S2 fill:#0f1d3a,stroke:#60a5fa,stroke-width:1.5px
+    style S3 fill:#2a0f1e,stroke:#f472b6,stroke-width:1.5px
+</pre>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Transfer Learning dengan ResNet</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import torch
+import torch.nn as nn
+import torchvision.models as models
+
+# =============================================
+# TRANSFER LEARNING: Pre-trained ResNet-18
+# =============================================
+
+# Load pre-trained ResNet-18
+model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+
+print("=== Original ResNet-18 ===")
+print(f"Total params: {sum(p.numel() for p in model.parameters()):,}")
+
+# =============================================
+# STRATEGY 1: Feature Extraction
+# =============================================
+# Freeze ALL convolution layers
+for param in model.parameters():
+    param.requires_grad = False
+
+# Replace classifier (final FC layer)
+# ResNet-18 final layer: model.fc (512 → 1000)
+model.fc = nn.Sequential(
+    nn.Linear(512, 256),
+    nn.ReLU(),
+    nn.Dropout(0.3),
+    nn.Linear(256, 10)  # 10 classes for CIFAR-10
+)
+
+trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+total_params = sum(p.numel() for p in model.parameters())
+print(f"\n=== After Feature Extraction ===")
+print(f"Total params: {total_params:,}")
+print(f"Trainable params: {trainable_params:,}")
+print(f"Frozen params: {total_params - trainable_params:,}")
+
+# =============================================
+# STRATEGY 2: Fine-Tuning
+# =============================================
+model_ft = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+
+# Freeze early layers (layer1, layer2)
+for name, param in model_ft.named_parameters():
+    if 'layer1' in name or 'layer2' in name:
+        param.requires_grad = False
+
+# Unfreeze later layers (layer3, layer4) + FC
+for name, param in model_ft.named_parameters():
+    if 'layer3' in name or 'layer4' in name:
+        param.requires_grad = True
+
+# Replace FC
+model_ft.fc = nn.Sequential(
+    nn.Linear(512, 256),
+    nn.ReLU(),
+    nn.Dropout(0.3),
+    nn.Linear(256, 10)
+)
+
+trainable_ft = sum(p.numel() for p in model_ft.parameters() if p.requires_grad)
+print(f"\n=== After Fine-Tuning ===")
+print(f"Trainable params: {trainable_ft:,}")
+print(f"Frozen early layers: layer1, layer2")
+print(f"Unfrozen: layer3, layer4, fc")
+
+# =============================================
+# DIFFERENT LEARNING RATES (LR Discriminative)
+# =============================================
+# Berikan learning rate berbeda per layer group
+param_groups = [
+    {'params': [p for n, p in model_ft.named_parameters()
+                if 'layer1' in n or 'layer2' in n],
+     'lr': 1e-5},          # Frozen layer: very small LR (if any)
+    {'params': [p for n, p in model_ft.named_parameters()
+                if 'layer3' in n or 'layer4' in n],
+     'lr': 1e-4},          # Middle layers: small LR
+    {'params': model_ft.fc.parameters(),
+     'lr': 1e-3}           # New layers: larger LR
+]
+
+optimizer_ft = torch.optim.Adam(param_groups, weight_decay=1e-4)
+print("\n=== Discriminative Learning Rates ===")
+print("  Early layers: 1e-5")
+print("  Middle layers: 1e-4")
+print("  FC layer:     1e-3")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Tips Praktis         -->
+      <!-- ============================== -->
+      <h2 id="tips-praktis">9. Tips &amp; Trik Praktis</h2>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Terbaik untuk CNN</div>
+        <ul>
+          <li><strong>Data Augmentation wajib!</strong> — Random flip, rotation, crop, color jitter. Ini meningkatkan generalisasi secara signifikan</li>
+          <li><strong>Gunakan Batch Normalization</strong> — Setelah setiap conv layer. Mempercepat training dan bertindak sebagai regularizer</li>
+          <li><strong>Mulai dengan Transfer Learning</strong> — Jangan bangun dari nol kecuali dataset sangat unik (misalnya medical imaging)</li>
+          <li><strong>Learning Rate Finder</strong> — Mulai dari LR kecil, naikkan hingga loss meledak. Ambil LR 10× lebih kecil dari yang "meledak"</li>
+          <li><strong>Cosine Annealing</strong> — LR scheduler yang menurunkan LR secara kosinus. Lebih baik dari step decay</li>
+          <li><strong>Global Average Pooling</strong> — Ganti FC layers di akhir dengan GAP. Mengurangi parameter secara drastis</li>
+          <li><strong>Monitor overfitting</strong> — Jika train acc naik tapi test acc stagnan → terlalu sedikit data atau model terlalu kompleks</li>
+          <li><strong>Mixed Precision Training</strong> — Gunakan float16 untuk mempercepat training di GPU (2-3× speedup)</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang CNN:</p>
+
+      <div class="quiz-container" id="quiz12">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Mengapa CNN lebih efisien dari Fully Connected Network untuk memproses gambar?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) CNN menggunakan GPU yang lebih cepat</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) CNN menggunakan parameter sharing dan local connectivity</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) CNN menghapus semua informasi dari gambar</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) CNN tidak perlu training</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa fungsi utama dari Pooling Layer?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Menambah parameter pada model</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Mengurangi ukuran spatial dan membuat fitur lebih robust</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Menambah channel pada feature map</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Menggabungkan fitur dari layer berbeda</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Jika input 32×32, kernel 3×3, padding 1, stride 2, berapa ukuran output?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) 32×32</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) 30×30</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) 16×16</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) 15×15</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Inovasi utama ResNet adalah...</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Menggunakan filter yang lebih besar (7×7)</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Menghapus semua pooling layers</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Residual (skip) connections yang mengatasi vanishing gradient</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Menggunakan Sigmoid sebagai aktivasi</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Transfer Learning paling cocok digunakan ketika...</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Dataset sangat besar (jutaan gambar)</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Dataset kecil dan tugas mirip dengan pre-training task</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Model harus sangat cepat untuk inference</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Tidak tersedia GPU untuk training</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="ml-svm.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Support Vector Machine (SVM)</span>
+        </a>
+        <a href="dl-transformer-attention.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Transformer &amp; Attention Mechanism</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

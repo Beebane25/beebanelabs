@@ -1,0 +1,1083 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Database</a>
+        <span class="separator">/</span>
+        <span class="current">CockroachDB</span>
+      </div>
+      <span class="category-tag">Database</span>
+      <h1>CockroachDB: Distributed SQL untuk Aplikasi Skala Global</h1>
+      <p class="article-subtitle">Tutorial komprehensif CockroachDB dari arsitektur distributed, serializability, ranges, locality-based configuration, changefeeds, hingga multi-region deployment untuk aplikasi skala global</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan CockroachDB</a></li>
+          <li><a href="#instalasi">Instalasi & Setup Cluster</a></li>
+          <li><a href="#serializability">Serializability & Konsistensi</a></li>
+          <li><a href="#ranges">Ranges & Data Distribution</a></li>
+          <li><a href="#locality">Locality & Zone Configuration</a></li>
+          <li><a href="#changefeeds">Changefeeds (CDC)</a></li>
+          <li><a href="#multi-region">Multi-Region Deployment</a></li>
+          <li><a href="#optimasi">Optimasi & Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan CockroachDB</h2>
+
+      <p><strong>CockroachDB</strong> (sering disingkat CRDB) adalah distributed SQL database yang dirancang untuk menyediakan skalabilitas horizontal, konsistensi kuat (strong consistency), dan toleransi terhadap kegagalan (survivability). CockroachDB dibangun di atas konsep yang mirip dengan Google Spanner — menggabungkan kekuatan SQL relasional dengan arsitektur distributed yang resilien.</p>
+
+      <p>Nama "Cockroach" diinspirasi dari kecoa yang dikenal sangat sulit dibunuh — filosofi yang sama diterapkan pada database ini. CockroachDB bisa bertahan dari kegagalan node, bahkan kegagalan seluruh data center, tanpa kehilangan data atau ketersediaan.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Arsitektur CockroachDB Cluster</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">🖥️</div>
+            <div class="arch-label">SQL Layer</div>
+            <div class="arch-desc">Parsing SQL, query planning,<br>execution engine</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box info">
+            <div class="arch-icon">📦</div>
+            <div class="arch-label">Transaction Layer</div>
+            <div class="arch-desc">MVCC, serializable<br>isolation, timestamps</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">💿</div>
+            <div class="arch-label">Distribution Layer</div>
+            <div class="arch-desc">Ranges, Raft consensus,<br>leaseholder routing</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box success">
+            <div class="arch-icon">💾</div>
+            <div class="arch-label">Storage Layer</div>
+            <div class="arch-desc">Pebble (LSM engine),<br>on-disk format</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Keunggulan Utama CockroachDB</h3>
+      <ul>
+        <li><strong>Distributed SQL:</strong> Menulis SQL standar PostgreSQL sambil mendapat skalabilitas distributed database</li>
+        <li><strong>Serializable Isolation:</strong> Level isolasi tertinggi — menjamin konsistensi data tanpa anomali</li>
+        <li><strong>Automatic Sharding:</strong> Data otomatis di-split menjadi ranges dan didistribusikan ke seluruh node</li>
+        <li><strong>Multi-Active Availability:</strong> Bisa membaca dan menulis bahkan saat sebagian node mati</li>
+        <li><strong>Geo-Partitioning:</strong> Data bisa ditempatkan di region tertentu untuk performa dan compliance</li>
+        <li><strong>PostgreSQL Compatible Wire Protocol:</strong> Menggunakan driver PostgreSQL yang sudah ada</li>
+      </ul>
+
+      <h3>1.2 Kapan Menggunakan CockroachDB?</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Gunakan CockroachDB</th><th>Pertimbangkan Alternatif</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Aplikasi multi-region global</td><td>Single region, skala kecil</td></tr>
+          <tr><td>Butuh strong consistency</td><td>Cukup eventual consistency</td></tr>
+          <tr><td>High availability kritis</td><td>Bisa toleransi downtime singkat</td></tr>
+          <tr><td>Transaksi ACID kompleks</td><td>Data model key-value sederhana</td></tr>
+          <tr><td>Skalabilitas horizontal otomatis</td><td>Vertical scaling cukup</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Instalasi             -->
+      <!-- ============================== -->
+      <h2 id="instalasi">2. Instalasi &amp; Setup Cluster</h2>
+
+      <p>CockroachDB bisa dijalankan dalam mode <strong>single-node</strong> untuk development atau <strong>multi-node cluster</strong> untuk production. Setiap node berjalan sebagai satu binary yang sama — tidak ada perbedaan antara master dan worker.</p>
+
+      <h3>2.1 Instalasi CockroachDB</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Linux — Instalasi CockroachDB</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Download CockroachDB binary terbaru
+wget -qO- https://binaries.cockroachdb.com/cockroach-v24.1.0.linux-amd64.tgz | tar xvz
+
+# Pindahkan ke PATH
+sudo cp -i cockroach-v24.1.0.linux-amd64/cockroach /usr/local/bin/
+
+# Verifikasi instalasi
+cockroach version
+
+# Instal client library (opsional, untuk bahasa tertentu)
+# Python:
+pip install psycopg2-binary sqlalchemy
+
+# Node.js:
+npm install pg
+</code></pre>
+      </div>
+
+      <h3>2.2 Memulai Single-Node Cluster</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Single-Node Development Cluster</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Buat direktori untuk data
+mkdir -p ~/cockroach-data
+
+# Mulai single-node cluster (insecure mode untuk development)
+cockroach start-single-node \
+  --insecure \
+  --store=~/cockroach-data \
+  --listen-addr=localhost:26257 \
+  --http-addr=localhost:8080 \
+  --background
+
+# Buka SQL shell
+cockroach sql --insecure --host=localhost:26257
+
+# Di dalam SQL shell, buat database dan tabel:
+CREATE DATABASE mydb;
+USE mydb;
+
+CREATE TABLE users (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name STRING NOT NULL,
+    email STRING UNIQUE NOT NULL,
+    region STRING DEFAULT 'us-east1',
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+INSERT INTO users (name, email, region) VALUES
+    ('Budi', 'budi@example.com', 'ap-southeast-1'),
+    ('Andi', 'andi@example.com', 'eu-west-1'),
+    ('Sari', 'sari@example.com', 'us-east1');
+
+SELECT * FROM users;
+</code></pre>
+      </div>
+
+      <h3>2.3 Multi-Node Cluster Lokal</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — 3-Node Cluster untuk Development</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Node 1
+cockroach start \
+  --insecure \
+  --store=node1 \
+  --listen-addr=localhost:26257 \
+  --http-addr=localhost:8080 \
+  --join=localhost:26257,localhost:26258,localhost:26259 \
+  --background
+
+# Node 2
+cockroach start \
+  --insecure \
+  --store=node2 \
+  --listen-addr=localhost:26258 \
+  --http-addr=localhost:8081 \
+  --join=localhost:26257,localhost:26258,localhost:26259 \
+  --background
+
+# Node 3
+cockroach start \
+  --insecure \
+  --store=node3 \
+  --listen-addr=localhost:26259 \
+  --http-addr=localhost:8082 \
+  --join=localhost:26257,localhost:26258,localhost:26259 \
+  --background
+
+# Initialize cluster (hanya sekali)
+cockroach init --insecure --host=localhost:26257
+
+# Cek status cluster
+cockroach node status --insecure --host=localhost:26257
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 CockroachDB Cloud (Serverless)</div>
+        <p>CockroachDB juga menyediakan layanan cloud di <strong>cockroachlabs.cloud</strong> dengan tier serverless yang gratis hingga 10 GiB storage dan 50M Request Units/bulan. Ini sangat cocok untuk development dan prototyping tanpa perlu setup cluster sendiri.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Serializability       -->
+      <!-- ============================== -->
+      <h2 id="serializability">3. Serializability &amp; Konsistensi</h2>
+
+      <p>CockroachDB menjamin <strong>serializable isolation</strong> — level isolasi transaksi terturut yang memastikan hasil eksekusi transaksi concurrent sama dengan eksekusi sekuensial tertentu. Ini artinya tidak ada <em>dirty reads</em>, <em>non-repeatable reads</em>, maupun <em>phantom reads</em>.</p>
+
+      <h3>3.1 Bagaimana Serializability Bekerja</h3>
+      <p>CockroachDB menggunakan kombinasi dari:</p>
+      <ul>
+        <li><strong>Multi-Version Concurrency Control (MVCC):</strong> Setiap write membuat versi baru dengan timestamp, bukan mengoverwrite data lama</li>
+        <li><strong>Hybrid Logical Clock (HLC):</strong> Kombinasi wall clock dan logical counter untuk ordering yang konsisten di seluruh cluster</li>
+        <li><strong>Write Intentions:</strong> Write pertama-tama membuat "intent" yang berfungsi sebagai lock optimistic</li>
+        <li><strong>Read Refreshes:</strong> Read yang menemukan data lebih baru akan me-refresh timestamp-nya</li>
+      </ul>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Demonstrasi Serializability</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- CockroachDB SELALU dalam serializable isolation
+-- Tidak perlu SET TRANSACTION ISOLATION LEVEL
+
+-- Contoh: Transfer saldo dengan jaminan konsistensi
+-- Sesi 1:
+BEGIN;
+  SELECT balance FROM accounts WHERE id = 'acc-1'; -- 1000
+  SELECT balance FROM accounts WHERE id = 'acc-2'; -- 500
+  UPDATE accounts SET balance = balance - 100 WHERE id = 'acc-1';
+  UPDATE accounts SET balance = balance + 100 WHERE id = 'acc-2';
+COMMIT;
+
+-- Jika ada Sesi 2 yang mencoba update data yang sama
+-- di saat bersamaan, salah satu akan mengalami
+-- serialization conflict dan otomatis di-retry
+
+-- Mengecek isolation level (selalu SERIALIZABLE):
+SHOW TRANSACTION ISOLATION LEVEL;
+
+-- Retry logic di aplikasi (penting!)
+-- CockroachDB mengembalikan error 40001 (serialization failure)
+-- ketika transaksi perlu di-retry
+</code></pre>
+      </div>
+
+      <h3>3.2 Transaction Contention & Retry</h3>
+
+      <p>Karena serializability, transaksi yang berkompetisi untuk data yang sama bisa mengalami <em>contention</em>. CockroachDB menyediakan mekanisme retry otomatis di beberapa driver, tetapi umumnya developer perlu mengimplementasikan retry logic sendiri.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Transaction Retry Logic</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import psycopg2
+from psycopg2 import errors
+import time
+
+def execute_with_retry(conn, func, max_retries=5):
+    """Execute function dalam transaction dengan retry logic."""
+    for attempt in range(max_retries):
+        try:
+            with conn:
+                with conn.cursor() as cur:
+                    result = func(cur)
+            return result
+        except errors.SerializationFailure:
+            conn.rollback()
+            wait = 0.1 * (2 ** attempt)  # exponential backoff
+            print(f"Retry attempt {attempt + 1}, waiting {wait}s...")
+            time.sleep(wait)
+    raise Exception("Transaction failed after max retries")
+
+# Contoh penggunaan
+conn = psycopg2.connect("postgresql://root@localhost:26257/mydb")
+
+def transfer_balance(cur):
+    cur.execute("""
+        UPDATE accounts SET balance = balance - 100
+        WHERE id = 'acc-1'
+    """)
+    cur.execute("""
+        UPDATE accounts SET balance = balance + 100
+        WHERE id = 'acc-2'
+    """)
+    return True
+
+execute_with_retry(conn, transfer_balance)
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Mengurangi Contention</div>
+        <p>Untuk mengurangi contention, hindari transaksi yang mengupdate baris yang sama secara bersamaan. Gunakan teknik seperti: mengurutkan akses ke tabel secara konsisten, menggunakan <code>SELECT FOR UPDATE</code>, membagi hot rows, atau mengubah data model untuk menghindari bottleneck.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Ranges                -->
+      <!-- ============================== -->
+      <h2 id="ranges">4. Ranges &amp; Data Distribution</h2>
+
+      <p>CockroachDB membagi semua data menjadi <strong>ranges</strong> — potongan-potongan data dari key space yang berurutan. Setiap range berukuran default <strong>512 MiB</strong> dan direplikasi (default 3 replika) menggunakan <strong>Raft consensus</strong> untuk memastikan konsistensi.</p>
+
+      <h3>4.1 Bagaimana Ranges Bekerja</h3>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Distribusi Data dalam Ranges</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">📊</div>
+            <div class="arch-label">Range 1</div>
+            <div class="arch-desc">Key A-F<br>Replika di Node 1, 2, 3</div>
+          </div>
+          <div class="arch-box info">
+            <div class="arch-icon">📊</div>
+            <div class="arch-label">Range 2</div>
+            <div class="arch-desc">Key G-M<br>Replika di Node 2, 3, 1</div>
+          </div>
+          <div class="arch-box purple">
+            <div class="arch-icon">📊</div>
+            <div class="arch-label">Range 3</div>
+            <div class="arch-desc">Key N-Z<br>Replika di Node 3, 1, 2</div>
+          </div>
+        </div>
+      </div>
+
+      <ul>
+        <li><strong>Leaseholder:</strong> Setiap range memiliki satu node yang menjadi leaseholder — menerima semua read dan write untuk range tersebut</li>
+        <li><strong>Raft Leader:</strong> Bertanggung jawab untuk mereplikasi write ke follower replicas</li>
+        <li><strong>Auto-Rebalancing:</strong> CockroachDB otomatis memindahkan range ketika node ditambah/dihapus</li>
+        <li><strong>Range Splitting:</strong> Range otomatis di-split jika terlalu besar atau terlalu aktif</li>
+      </ul>
+
+      <h3>4.2 Mengelola Ranges</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Mengelola dan Memantau Ranges</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Melihat informasi ranges
+SHOW RANGES FROM TABLE users;
+
+-- Melihat distribusi ranges di seluruh node
+SELECT
+    range_id,
+    start_key,
+    end_key,
+    lease_holder,
+    replicas
+FROM crdb_internal.ranges
+ORDER BY range_id;
+
+-- Melihat statistik ranges
+SELECT
+    range_id,
+    key_bytes,
+    val_bytes,
+    live_bytes,
+    lease_holder
+FROM crdb_internal.range_stats
+LIMIT 20;
+
+-- Mengubah ukuran range (untuk testing/scenario tertentu)
+ALTER TABLE users CONFIGURE ZONE USING
+    range_min_bytes = 134217728,  -- 128 MiB
+    range_max_bytes = 536870912;  -- 512 MiB
+
+-- Manual split (biasanya tidak perlu karena otomatis)
+ALTER TABLE users SPLIT AT VALUES ('M');
+
+-- Manual merge (menggabungkan range kecil)
+ALTER TABLE users UNSPLIT AT VALUES ('M');
+
+-- Melihat hot ranges
+SELECT
+    range_id,
+    lease_holder,
+    reads_per_second,
+    writes_per_second
+FROM crdb_internal.ranges_no_leases r
+JOIN crdb_internal.node_metrics m ON r.lease_holder = m.node_id
+ORDER BY reads_per_second DESC
+LIMIT 10;
+</code></pre>
+      </div>
+
+      <h3>4.3 Index & Range Interaction</h3>
+      <p>Setiap tabel dan index di CockroachDB dipecah menjadi range terpisah. Pemilihan primary key sangat mempengaruhi distribusi data:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Primary Key untuk Distribusi Optimal</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- HINDARI: Auto-increment ID bisa menyebabkan hot spot
+-- Semua write masuk ke range terakhir
+CREATE TABLE bad_example (
+    id SERIAL PRIMARY KEY,
+    data STRING
+);
+
+-- LEBIH BAIK: Hash-sharded primary key
+CREATE TABLE orders (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    customer_id INT NOT NULL,
+    total DECIMAL(10,2),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- ATAU: Gunakan hash-sharded index untuk kolom sequential
+CREATE INDEX idx_orders_created ON orders (created_at)
+    USING HASH;
+
+-- Untuk tabel besar, pertimbangkan composite key dengan locality
+CREATE TABLE events (
+    region STRING,
+    created_at TIMESTAMPTZ,
+    event_id UUID DEFAULT gen_random_uuid(),
+    payload JSONB,
+    PRIMARY KEY (region, created_at, event_id)
+);
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Locality              -->
+      <!-- ============================== -->
+      <h2 id="locality">5. Locality &amp; Zone Configuration</h2>
+
+      <p><strong>Locality</strong> memungkinkan Anda memberi tahu CockroachDB tentang topologi fisik cluster — region mana setiap node berada. Informasi ini digunakan untuk menempatkan replika data secara strategis, mengoptimalkan latensi baca, dan memenuhi persyaratan kepatuhan data (data residency).</p>
+
+      <h3>5.1 Menentukan Locality Saat Startup</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Memulai Node dengan Locality</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Node di US East
+cockroach start \
+  --insecure \
+  --store=node-us-east \
+  --listen-addr=us-east.cockroach.internal:26257 \
+  --join=node-us-east:26257,node-eu-west:26257,node-ap-south:26257 \
+  --locality=region=us-east,zone=us-east-1a \
+  --background
+
+# Node di EU West
+cockroach start \
+  --insecure \
+  --store=node-eu-west \
+  --listen-addr=eu-west.cockroach.internal:26257 \
+  --join=node-us-east:26257,node-eu-west:26257,node-ap-south:26257 \
+  --locality=region=eu-west,zone=eu-west-1a \
+  --background
+
+# Node di AP South
+cockroach start \
+  --insecure \
+  --store=node-ap-south \
+  --listen-addr=ap-south.cockroach.internal:26257 \
+  --join=node-us-east:26257,node-eu-west:26257,node-ap-south:26257 \
+  --locality=region=ap-south,zone=ap-south-1a \
+  --background
+
+# Initialize cluster
+cockroach init --insecure --host=node-us-east:26257
+</code></pre>
+      </div>
+
+      <h3>5.2 Zone Configuration</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Zone Configuration untuk Locality</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Konfigurasi zona untuk tabel: replika di setiap region
+ALTER TABLE users CONFIGURE ZONE USING
+    num_replicas = 3,
+    constraints = '{+region=us-east: 1, +region=eu-west: 1, +region=ap-south: 1}',
+    lease_preferences = '[[+region=us-east]]';
+
+-- Konfigurasi database-level
+ALTER DATABASE mydb CONFIGURE ZONE USING
+    num_replicas = 3,
+    constraints = '{+region=us-east: 1, +region=eu-west: 1}';
+
+-- Melihat zone configuration
+SHOW ZONE CONFIGURATION FOR TABLE users;
+SHOW ZONE CONFIGURATION FOR DATABASE mydb;
+
+-- Partitioning berdasarkan region
+ALTER TABLE users PARTITION BY LIST (region) (
+    PARTITION us_east VALUES IN ('us-east'),
+    PARTITION eu_west VALUES IN ('eu-west'),
+    PARTITION ap_south VALUES IN ('ap-south')
+);
+
+-- Setelah partition, atur placement setiap partisi
+ALTER PARTITION us_east OF TABLE users CONFIGURE ZONE USING
+    constraints = '{+region=us-east: 2}',
+    lease_preferences = '[[+region=us-east]]';
+
+ALTER PARTITION eu_west OF TABLE users CONFIGURE ZONE USING
+    constraints = '{+region=eu-west: 2}',
+    lease_preferences = '[[+region=eu-west]]';
+
+ALTER PARTITION ap_south OF TABLE users CONFIGURE ZONE USING
+    constraints = '{+region=ap-south: 2}',
+    lease_preferences = '[[+region=ap-south]]';
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Locality-Optimized Search</div>
+        <p>CockroachDB bisa menggunakan <strong>locality-optimized search</strong> untuk mengurangi latensi cross-region reads. Dengan mengatur <code>ALTER DATABASE ... SET LOCALITY REGIONAL BY ROW</code>, read untuk baris tertentu akan di-route ke node terdekat terlebih dahulu.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Changefeeds            -->
+      <!-- ============================== -->
+      <h2 id="changefeeds">6. Changefeeds (Change Data Capture)</h2>
+
+      <p><strong>Changefeeds</strong> memungkinkan Anda memantau dan mengirimkan perubahan data secara real-time ke sistem eksternal seperti Kafka, cloud storage, atau webhook. Ini sangat berguna untuk event sourcing, data replication, cache invalidation, dan analytics pipeline.</p>
+
+      <h3>6.1 Membuat Changefeed</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Changefeed ke Kafka dan Cloud Storage</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Aktifkan rangefeed di cluster
+SET CLUSTER SETTING kv.rangefeed.enabled = true;
+
+-- Changefeed ke Kafka
+CREATE CHANGEFEED FOR TABLE users, orders
+INTO 'kafka://kafka-broker:9092?topic_prefix=cdc_'
+WITH updated, resolved, envelope = 'wrapped';
+
+-- Changefeed ke cloud storage (S3, GCS, Azure)
+CREATE CHANGEFEED FOR TABLE users
+INTO 's3://my-bucket/cdc/users?AWS_ACCESS_KEY_ID={key}&AWS_SECRET_ACCESS_KEY={secret}'
+WITH format = 'parquet', compression = 'gzip';
+
+-- Changefeed ke webhook
+CREATE CHANGEFEED FOR TABLE orders
+INTO 'webhook-https://my-api.com/cdc-webhook?insecure_tls_skip_verify=true'
+WITH webhook_auth_header = 'Bearer my-secret-token',
+     webhook_client_timeout = '5s',
+     envelope = 'wrapped';
+
+-- Changefeed dengan filter dan transformasi
+CREATE CHANGEFEED FOR TABLE orders
+INTO 'kafka://kafka-broker:9092'
+WITH updated, envelope = 'wrapped',
+     format = 'json',
+     key_in_value;
+
+-- Changefeed hanya untuk kolom tertentu (cdc_prev berguna untuk audit)
+CREATE CHANGEFEED FOR TABLE orders (id, status, total)
+INTO 'kafka://kafka-broker:9022?topic_prefix=order_changes'
+WITH updated, resolved;
+</code></pre>
+      </div>
+
+      <h3>6.2 Memantau &amp; Mengelola Changefeeds</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Mengelola Changefeed Jobs</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Melihat semua changefeed jobs
+SHOW JOBS WHEN COMPLETE SELECT * FROM [SHOW CHANGEFEED JOBS];
+
+-- Melihat status changefeed
+SELECT job_id, status, created, description
+FROM [SHOW CHANGEFEED JOBS];
+
+-- Pause changefeed
+PAUSE JOB 12345;
+
+-- Resume changefeed
+RESUME JOB 12345;
+
+-- Cancel changefeed
+CANCEL JOB 12345;
+
+-- Melihat changefeed yang sedang aktif
+SELECT
+    job_id,
+    job_type,
+    status,
+    fraction_completed,
+    high_water_timestamp
+FROM crdb_internal.jobs
+WHERE job_type = 'CHANGEFEED';
+
+-- Mengubah sink URI changefeed
+ALTER CHANGEFEED 12345 SET sink_uri = 'kafka://new-broker:9092';
+
+-- Menambah tabel ke changefeed
+ALTER CHANGEFEED 12345 ADD TABLE new_table;
+</code></pre>
+      </div>
+
+      <h3>6.3 Format Output Changefeed</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Format</th><th>Deskripsi</th><th>Cocok Untuk</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>json</code></td><td>JSON standar, mudah dibaca</td><td>Webhook, debugging</td></tr>
+          <tr><td><code>avro</code></td><td>Binary format dengan schema registry</td><td>Kafka, analytics</td></tr>
+          <tr><td><code>csv</code></td><td>Comma-separated values</td><td>Export, reporting</td></tr>
+          <tr><td><code>parquet</code></td><td>Columnar format</td><td>Data warehouse, S3</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Multi-Region          -->
+      <!-- ============================== -->
+      <h2 id="multi-region">7. Multi-Region Deployment</h2>
+
+      <p>CockroachDB menyediakan fitur multi-region yang powerful melalui <strong>survival goals</strong> dan <strong>table localities</strong>. Ini memungkinkan Anda menentukan bagaimana data direplikasi antar region dan seberapa resilien terhadap kegagalan region.</p>
+
+      <h3>7.1 Mengatur Database Multi-Region</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Multi-Region Database Setup</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Pastikan node sudah diberi locality saat startup
+-- Set database sebagai multi-region
+ALTER DATABASE mydb SET PRIMARY REGION "us-east1";
+ALTER DATABASE mydb ADD REGION "eu-west1";
+ALTER DATABASE mydb ADD REGION "ap-southeast-1";
+
+-- Set survival goal: survive region failure
+ALTER DATABASE mydb SURVIVE REGION FAILURE;
+
+-- Melihat region yang terdaftar
+SHOW REGIONS FROM DATABASE mydb;
+
+-- Tabel global: dibaca cepat dari semua region, ditulis dari region utama
+CREATE TABLE products (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name STRING NOT NULL,
+    price DECIMAL(10,2)
+) LOCALITY GLOBAL;
+
+-- Tabel regional by row: setiap baris dikaitkan dengan region tertentu
+CREATE TABLE user_accounts (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    email STRING NOT NULL,
+    crdb_region crdb_internal_region NOT NULL DEFAULT gateway_region(),
+    name STRING NOT NULL
+) LOCALITY REGIONAL BY ROW;
+
+-- Baris akan otomatis disimpan di region yang sesuai
+INSERT INTO user_accounts (email, name) VALUES ('budi@id.com', 'Budi');
+-- Data ini akan disimpan di region AP (jika koneksi dari sana)
+
+-- Membaca dari region spesifik
+SELECT * FROM user_accounts
+WHERE crdb_region = 'ap-southeast-1';
+
+-- Tabel regional by table: semua data di satu region
+CREATE TABLE local_configs (
+    key STRING PRIMARY KEY,
+    value STRING
+) LOCALITY REGIONAL BY TABLE IN REGION "us-east1";
+</code></pre>
+      </div>
+
+      <h3>7.2 Memahami Survival Goals</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>Survival Goal</th><th>Replika Minimum</th><th>Toleransi</th><th>Write Latency</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>ZONE FAILURE</code> (default)</td><td>3</td><td>1 zone mati</td><td>Rendah</td></tr>
+          <tr><td><code>REGION FAILURE</code></td><td>5 (across 3+ regions)</td><td>1 region mati</td><td>Lebih tinggi</td></tr>
+        </tbody>
+      </table>
+
+      <h3>7.3 Multi-Region Best Practices</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Optimasi Multi-Region Queries</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Gunakan gateway_region() untuk otomatis mengaitkan baris
+-- dengan region dari koneksi
+INSERT INTO user_accounts (email, name, crdb_region)
+VALUES ('user@local.com', 'Local User', gateway_region());
+
+-- Cross-region join tetap bisa dilakukan
+-- tapi coba hindari untuk latensi rendah
+SELECT
+    u.name,
+    u.crdb_region,
+    o.total
+FROM user_accounts u
+JOIN orders o ON u.id = o.user_id
+WHERE u.crdb_region = gateway_region();
+
+-- Gunakan GLOBAL table untuk data yang jarang berubah
+-- dan dibutuhkan di semua region (lookup table)
+CREATE TABLE countries (
+    code STRING PRIMARY KEY,
+    name STRING NOT NULL
+) LOCALITY GLOBAL;
+
+-- Statistik untuk monitoring cross-region
+SELECT
+    u.crdb_region,
+    COUNT(*) as user_count,
+    AVG(o.total) as avg_order
+FROM user_accounts u
+JOIN orders o ON u.id = o.user_id
+GROUP BY u.crdb_region;
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Optimasi              -->
+      <!-- ============================== -->
+      <h2 id="optimasi">8. Optimasi &amp; Best Practices</h2>
+
+      <h3>8.1 Query Performance</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — EXPLAIN dan Query Optimasi</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Analisis query plan
+EXPLAIN SELECT * FROM users WHERE region = 'us-east';
+
+-- EXPLAIN dengan detail
+EXPLAIN (VERBOSE, TYPES)
+    SELECT u.name, COUNT(o.id)
+    FROM users u JOIN orders o ON u.id = o.user_id
+    GROUP BY u.name;
+
+-- EXPLAIN ANALYZE (mengeksekusi query dan menampilkan statistik)
+EXPLAIN ANALYZE
+    SELECT * FROM orders WHERE total > 100 ORDER BY created_at DESC;
+
+-- Melihat statistik tabel
+SHOW STATISTICS FOR TABLE users;
+
+-- Mengumpulkan statistik manual
+ANALYZE users;
+
+-- Melihat index usage
+SELECT
+    ti.index_name,
+    ti.index_type,
+    ts.total_reads,
+    ts.last_read
+FROM crdb_internal.table_indexes ti
+JOIN crdb_internal.index_usage_statistics ts
+    ON ti.index_id = ts.index_id AND ti.table_id = ts.table_id
+WHERE ti.descriptor_name = 'users';
+</code></pre>
+      </div>
+
+      <h3>8.2 Cluster Monitoring</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Monitoring Cluster Health</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Node liveness
+SELECT node_id, address, is_live
+FROM crdb_internal.gossip_nodes;
+
+-- Replication status
+SELECT
+    store_id,
+    node_id,
+    range_count,
+    lease_count,
+    total_bytes
+FROM crdb_internal.kv_store_status;
+
+-- Cluster settings yang berguna
+SET CLUSTER SETTING server.time_until_store_dead = '10m';
+SET CLUSTER SETTING kv.snapshot_rebalance.max_rate = '64 MiB';
+SET CLUSTER SETTING kv.rangefeed.enabled = true;
+
+-- SQL activity monitoring
+SELECT
+    query,
+    count,
+    service_lat_avg,
+    service_lat_p99
+FROM crdb_internal.node_statement_statistics
+ORDER BY count DESC
+LIMIT 20;
+</code></pre>
+      </div>
+
+      <h3>8.3 Checklist Production</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Aspek</th><th>Rekomendasi</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Cluster Size</td><td>Minimum 3 node, ideal 5+ untuk production</td></tr>
+          <tr><td>Replication</td><td>3 replika default, 5 untuk critical data</td></tr>
+          <tr><td>Backups</td><td>Scheduled backup ke cloud storage setiap jam</td></tr>
+          <tr><td>Monitoring</td><td>Prometheus + Grafana, atau CockroachDB Cloud Console</td></tr>
+          <tr><td>Security</td><td>SSL/TLS, RBAC, audit logging</td></tr>
+          <tr><td>Connection Pool</td><td>Gunakan PgBouncer atau HikariCP</td></tr>
+          <tr><td>Version</td><td>Upgrade secara berkala, baca release notes</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                  -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang CockroachDB:</p>
+
+      <div class="quiz-container" id="quiz1">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa isolation level default di CockroachDB?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Read Committed</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Repeatable Read</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Serializable</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Snapshot</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa yang terjadi ketika transaksi mengalami serialization conflict di CockroachDB?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Data menjadi corrupt</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Transaksi di-commit dengan versi terbaru</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Transaksi mengembalikan error 40001 dan perlu di-retry</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) CockroachDB menurunkan isolation level otomatis</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi dari ranges di CockroachDB?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Mengelola user authentication</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Membagi data menjadi potongan dan mendistribusikannya ke node</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Mengompresi data untuk menghemat storage</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Mencatat log perubahan data</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari changefeeds di CockroachDB?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Mengubah schema database secara otomatis</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Menyediakan cache untuk query yang sering dijalankan</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Mengirimkan perubahan data secara real-time ke sistem eksternal</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Mengenkripsi data sebelum disimpan ke disk</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Table locality apa yang cocok untuk data lookup (seperti daftar negara) yang dibaca dari semua region?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) REGIONAL BY ROW</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) REGIONAL BY TABLE</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) GLOBAL</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) UNDEFINED</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="supabase-realtime.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Supabase Realtime Features</span>
+        </a>
+        <a href="clickhouse-analytics.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">ClickHouse untuk Real-time Analytics</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial Database terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

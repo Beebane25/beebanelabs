@@ -1,0 +1,1123 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">DevOps & Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">Linux Server Administration</span>
+      </div>
+      <span class="category-tag">DevOps & Cloud</span>
+      <h1>Linux Server Administration</h1>
+      <p class="article-subtitle">Tutorial lengkap mengelola Linux server — SSH, user management, systemd, cron jobs, disk management, networking, dan security hardening dengan contoh perintah praktis</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 14 menit baca</span>
+        <span class="difficulty pemula">Pemula</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Linux Server</a></li>
+          <li><a href="#ssh">SSH: Akses Remote yang Aman</a></li>
+          <li><a href="#user-management">User Management &amp; Permissions</a></li>
+          <li><a href="#systemd">systemd: Service Manager Modern</a></li>
+          <li><a href="#cron">Cron: Penjadwalan Tugas Otomatis</a></li>
+          <li><a href="#disk-management">Disk &amp; Storage Management</a></li>
+          <li><a href="#networking">Networking &amp; Firewall</a></li>
+          <li><a href="#security-hardening">Security Hardening</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Linux Server</h2>
+
+      <p><strong>Linux</strong> adalah sistem operasi open-source yang mendominasi dunia server, cloud computing, dan infrastruktur IT global. Lebih dari 96% server cloud, 90% supercomputer, dan sebagian besar website di dunia berjalan di atas Linux. Memahami administrasi Linux server adalah skill fundamental yang wajib dikuasai oleh setiap profesional IT.</p>
+
+      <p>Linux server berbeda dari desktop — tidak ada GUI (Graphical User Interface) yang berjalan secara default. Semua konfigurasi dan operasi dilakukan melalui <strong>command line interface (CLI)</strong> menggunakan terminal. Ini membuatnya sangat efisien dalam penggunaan resource dan memungkinkan administrasi jarak jauh dengan mudah.</p>
+
+      <h3>Distribusi Linux untuk Server</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Distribusi</th>
+            <th>Package Manager</th>
+            <th>Best For</th>
+            <th>LTS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Ubuntu Server</td><td>apt</td><td>Pemula, general purpose, cloud</td><td>5 tahun</td></tr>
+          <tr><td>Debian</td><td>apt</td><td>Stabilitas, production server</td><td>5 tahun</td></tr>
+          <tr><td>CentOS/Rocky Linux</td><td>dnf/yum</td><td>Enterprise, RHEL compatible</td><td>10 tahun</td></tr>
+          <tr><td>Alpine Linux</td><td>apk</td><td>Container, minimal footprint</td><td>2 tahun</td></tr>
+          <tr><td>Amazon Linux</td><td>dnf/yum</td><td>AWS EC2 instances</td><td>3 tahun</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Struktur Direktori Linux</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Filesystem Hierarchy Standard (FHS)</div>
+<pre class="mermaid">
+flowchart TD
+    ROOT["📁 / (root)"]
+    BIN["/bin — Binary dasar"]
+    ETC["/etc — Konfigurasi sistem"]
+    HOME["/home — Direktori user"]
+    VAR["/var — Log & data variabel"]
+    TMP["/tmp — File temporary"]
+    USR["/usr — Program & library"]
+    OPT["/opt — Software pihak ketiga"]
+    ROOT --> BIN
+    ROOT --> ETC
+    ROOT --> HOME
+    ROOT --> VAR
+    ROOT --> TMP
+    ROOT --> USR
+    ROOT --> OPT
+</pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Dasar Command Line</div>
+        <p>Beberapa perintah dasar yang wajib dikuasai sebelum mulai:</p>
+        <ul>
+          <li><code>ls -la</code> — Lihat semua file termasuk hidden</li>
+          <li><code>cd /path</code> — Pindah direktori</li>
+          <li><code>cat file.txt</code> — Baca isi file</li>
+          <li><code>tail -f /var/log/syslog</code> — Lihat log real-time</li>
+          <li><code>man command</code> — Baca manual page perintah</li>
+          <li><code>sudo</code> — Jalankan perintah sebagai superuser</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: SSH                 -->
+      <!-- ============================== -->
+      <h2 id="ssh">2. SSH: Akses Remote yang Aman</h2>
+
+      <p><strong>SSH (Secure Shell)</strong> adalah protokol kriptografis untuk mengakses server secara remote dengan aman. Semua data yang dikirim melalui SSH terenkripsi, sehingga aman untuk dikirimkan melalui jaringan publik. SSH menggantikan Telnet dan rlogin yang tidak aman.</p>
+
+      <h3>Koneksi SSH Dasar</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — SSH Connection</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Koneksi SSH dengan password
+ssh user@192.168.1.100
+
+# Koneksi SSH dengan port custom
+ssh -p 2222 user@192.168.1.100
+
+# Koneksi SSH dengan private key
+ssh -i ~/.ssh/id_rsa user@192.168.1.100
+
+# Copy file dari local ke server
+scp file.txt user@server:/home/user/
+
+# Copy file dari server ke local
+scp user@server:/var/log/app.log ./
+
+# Copy direktori secara rekursif
+scp -r ./myapp user@server:/opt/
+
+# SSH tunneling (port forwarding)
+ssh -L 8080:localhost:80 user@server  # Local port 8080 → server port 80
+</code></pre>
+      </div>
+
+      <h3>Konfigurasi SSH Key Authentication</h3>
+      <p>SSH key authentication lebih aman daripada password karena menggunakan pasangan kunci kriptografis (public key dan private key).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — SSH Key Setup</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Langkah 1: Generate SSH key pair di mesin lokal
+ssh-keygen -t ed25519 -C "admin@myserver.com"
+# Tekan Enter untuk menyimpan di default (~/.ssh/id_ed25519)
+# Masukkan passphrase (opsional tapi direkomendasikan)
+
+# Output:
+# Generating public/private ed25519 key pair.
+# Your identification has been saved in /home/user/.ssh/id_ed25519
+# Your public key has been saved in /home/user/.ssh/id_ed25519.pub
+
+# Langkah 2: Copy public key ke server
+ssh-copy-id user@192.168.1.100
+
+# Atau secara manual:
+cat ~/.ssh/id_ed25519.pub | ssh user@192.168.1.100 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+
+# Langkah 3: Coba login tanpa password
+ssh user@192.168.1.100  # Harusnya tidak perlu password lagi
+
+# Langkah 4 (Opsional): Disable password authentication
+# Edit /etc/ssh/sshd_config di server:
+# PasswordAuthentication no
+# PermitRootLogin no
+# ChallengeResponseAuthentication no
+# Lalu restart sshd:
+sudo systemctl restart sshd
+</code></pre>
+      </div>
+
+      <h3>Konfigurasi SSH Client yang Nyaman</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Config — ~/.ssh/config</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ~/.ssh/config di mesin lokal
+
+# Server produksi
+Host production
+    HostName 192.168.1.100
+    User deploy
+    Port 22
+    IdentityFile ~/.ssh/id_ed25519
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+# Server staging via bastion/jump host
+Host staging
+    HostName 10.0.2.50
+    User admin
+    ProxyJump bastion
+
+Host bastion
+    HostName 203.0.113.50
+    User jumpuser
+    Port 2222
+
+# Sekarang cukup:
+ssh production      # = ssh -i ~/.ssh/id_ed25519 -p 22 deploy@192.168.1.100
+ssh staging         # = ssh melalui bastion → staging
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Keamanan SSH</div>
+        <ul>
+          <li><strong>JANGAN</strong> pernah gunakan password sederhana untuk SSH</li>
+          <li><strong>SELALU</strong> gunakan SSH key authentication</li>
+          <li><strong>DISABLE</strong> root login langsung: <code>PermitRootLogin no</code></li>
+          <li><strong>GANTI</strong> port default 22 ke port lain (misal 2222)</li>
+          <li><strong>GUNAKAN</strong> fail2ban untuk memblokir brute force attempts</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: User Management     -->
+      <!-- ============================== -->
+      <h2 id="user-management">3. User Management &amp; Permissions</h2>
+
+      <p><strong>User Management</strong> adalah aspek kritis dalam server administration. Setiap user memiliki hak akses tertentu yang ditentukan oleh grup keanggotaan dan permission yang diberikan. Konsep ini merupakan fondasi keamanan Linux.</p>
+
+      <h3>Mengelola User dan Grup</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — User Management</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Tambah user baru
+sudo useradd -m -s /bin/bash -G sudo budi
+# -m = buat home directory
+# -s = set shell default
+# -G = tambahkan ke grup
+
+# Set password untuk user baru
+sudo passwd budi
+
+# Tambah user dengan spesifikasi lengkap
+sudo useradd -m -d /home/sari -s /bin/bash -c "Web Developer" -G sudo,www-data sari
+
+# Modifikasi user
+sudo usermod -aG docker budi      # Tambahkan user budi ke grup docker
+sudo usermod -s /usr/sbin/nologin botuser  # Disable interactive login
+sudo usermod -L olduser            # Lock/disable user account
+
+# Hapus user
+sudo userdel -r olduser            # -r = hapus juga home directory
+
+# Lihat informasi user
+id budi                             # Lihat UID, GID, dan grup
+whoami                             # User saat ini
+who                                # Siapa yang sedang login
+last -10                           # 10 login terakhir
+</code></pre>
+      </div>
+
+      <h3>Linux File Permissions (chmod, chown)</h3>
+      <p>Setiap file di Linux memiliki tiga jenis permission: <strong>read (r)</strong>, <strong>write (w)</strong>, dan <strong>execute (x)</strong> untuk tiga kategori: <strong>owner</strong>, <strong>group</strong>, dan <strong>others</strong>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — File Permissions</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Lihat permissions
+ls -la /var/www/
+# -rw-r--r-- 1 www-data www-data 4096 Jun 25 10:00 index.html
+# ▲▲▲        ▲▲▲         ▲▲▲
+# owner      group       others
+# rwx        rwx         rwx
+
+# Ubah permissions dengan chmod (numeric mode)
+chmod 755 script.sh      # rwxr-xr-x (owner=rwx, group=r-x, others=r-x)
+chmod 644 index.html     # rw-r--r-- (owner=rw, group=r, others=r)
+chmod 600 id_rsa         # rw------- (hanya owner, untuk private key SSH)
+chmod 700 ~/.ssh         # rwx------ (hanya owner untuk folder .ssh)
+
+# Ubah permissions dengan chmod (symbolic mode)
+chmod u+x script.sh     # Tambah execute untuk owner
+chmod g+w file.txt      # Tambah write untuk group
+chmod o-rwx secret.txt  # Hapus semua permission untuk others
+chmod a+r readme.txt    # Tambah read untuk semua (all)
+
+# Ubah owner dan group
+sudo chown budi:www-data /var/www/html
+sudo chown -R www-data:www-data /var/www/html    # Rekursif
+
+# Setgid: file baru otomatis punya group parent directory
+chmod g+s /var/www/shared/
+
+# Setgid: sticky bit untuk folder shared
+chmod +t /tmp  # Hanya owner file yang bisa hapus file di /tmp
+
+# Angka dalam chmod:
+# r=4, w=2, x=1
+# 7=4+2+1 (rwx), 6=4+2 (rw-), 5=4+1 (r-x), 4=r-- (read only)
+</code></pre>
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Memahami Angka Permission</div>
+<pre><code>Angka Owner Group Others
+← Berbahaya!
+← Untuk script/eksekusi
+← Untuk file biasa
+← Private key
+← Read-only owner
+← Private folder
+r = 4 (read)
+w = 2 (write)
+x = 1 (execute)
+Contoh: 755 = 7(owner) + 5(group) + 5(others)
+= rwx + r-x + r-x</code></pre>
+      </div>
+
+      <h3>sudo: Hak Akses Root Sementara</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — sudo Configuration</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Jalankan perintah sebagai root
+sudo apt update
+
+# Edit file sebagai root
+sudo nano /etc/nginx/nginx.conf
+
+# Switch ke root shell (gunakan dengan hati-hati)
+sudo -i
+
+# Jalankan perintah sebagai user lain
+sudo -u www-data cat /var/www/secret.txt
+
+# Edit sudoers file dengan aman (JANGAN langsung edit /etc/sudoers)
+sudo visudo
+
+# Tambahkan user ke grup sudo
+sudo usermod -aG sudo budi
+
+# Contoh /etc/sudoers.d/custom:
+# budi ALL=(ALL) ALL                    # Full access dengan password
+# deploy ALL=(ALL) NOPASSWD: ALL        # Full access tanpa password
+# www-data ALL=(ALL) NOPASSWD: /usr/sbin/nginx  # Hanya nginx command
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: systemd             -->
+      <!-- ============================== -->
+      <h2 id="systemd">4. systemd: Service Manager Modern</h2>
+
+      <p><strong>systemd</strong> adalah sistem init dan service manager yang digunakan oleh sebagian besar distribusi Linux modern (Ubuntu, Debian, CentOS, dll). systemd mengelola semua service yang berjalan di sistem, mulai dari web server hingga database.</p>
+
+      <h3>Perintah systemctl yang Sering Digunakan</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — systemctl Commands</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Start/stop/restart service
+sudo systemctl start nginx
+sudo systemctl stop nginx
+sudo systemctl restart nginx
+sudo systemctl reload nginx      # Reload config tanpa restart
+
+# Enable/disable service (auto-start saat boot)
+sudo systemctl enable nginx
+sudo systemctl disable nginx
+
+# Lihat status service
+sudo systemctl status nginx
+# Output: active (running) sejak Mon 2026-06-25
+
+# Lihat semua service yang aktif
+systemctl list-units --type=service --state=running
+
+# Lihat semua service yang failed
+systemctl --failed
+
+# Lihat log service tertentu
+journalctl -u nginx -f           # Follow real-time
+journalctl -u nginx --since today # Log hari ini saja
+journalctl -u nginx --since "2026-06-25 10:00" --until "2026-06-25 12:00"
+journalctl -u nginx -n 100       # 100 baris log terakhir
+journalctl -p err -u nginx       # Hanya log level error
+
+# Enable dan start sekaligus
+sudo systemctl enable --now nginx
+</code></pre>
+      </div>
+
+      <h3>Membuat Custom Service Unit</h3>
+      <p>Anda bisa membuat service systemd untuk aplikasi custom (Node.js, Python, Go, dll).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">INI — /etc/systemd/system/myapp.service</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>[Unit]
+Description=My Node.js Application
+Documentation=https://docs.myapp.com
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/opt/myapp
+ExecStart=/usr/bin/node /opt/myapp/server.js
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=PORT=3000
+EnvironmentFile=/opt/myapp/.env
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/myapp/logs /opt/myapp/uploads
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=65535
+LimitNPROC=4096
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=myapp
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Enable Custom Service</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Reload systemd untuk membaca unit file baru
+sudo systemctl daemon-reload
+
+# Enable dan start service
+sudo systemctl enable --now myapp
+
+# Cek status
+sudo systemctl status myapp
+
+# Lihat log aplikasi
+journalctl -u myapp -f
+
+# Edit unit file (buka editor)
+sudo systemctl edit myapp  # Untuk override/drop-in
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Mengapa systemctl Lebih Baik?</div>
+        <p>Dibanding init.d/supervisor lama, systemd menawarkan:</p>
+        <ul>
+          <li><strong>Dependency management:</strong> Service mulai sesuai urutan yang tepat</li>
+          <li><strong>Auto restart:</strong> Restart otomatis jika service crash</li>
+          <li><strong>Resource control:</strong> Limit CPU, memory, I/O per service</li>
+          <li><strong>Unified logging:</strong> Semua log di journalctl</li>
+          <li><strong>Socket activation:</strong> Service mulai saat ada request</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Cron                -->
+      <!-- ============================== -->
+      <h2 id="cron">5. Cron: Penjadwalan Tugas Otomatis</h2>
+
+      <p><strong>Cron</strong> adalah sistem penjadwalan tugas yang berjalan di background (cron daemon) untuk menjalankan perintah atau script secara otomatis sesuai jadwal yang ditentukan. Cron sangat berguna untuk backup otomatis, rotasi log, cleanup, monitoring, dan tugas periodik lainnya.</p>
+
+      <h3>Sintaks Crontab</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Format Crontab</div>
+<pre><code>menit (0-59)
+jam (0-23)
+hari dalam bulan (1-31)
+bulan (1-12)
+hari dalam minggu (0-7, 0&amp;7=Minggu)
+* * * * * /path/to/command arg1 arg2
+Contoh:
+*/5 * * * * = Setiap 5 menit
+0 */2 * * * = Setiap 2 jam (pada menit 0)
+0 2 * * * = Setiap hari jam 2 pagi
+0 0 * * 0 = Setiap Minggu jam 00:00
+0 9 * * 1-5 = Setiap hari kerja jam 9 pagi
+30 1 1,15 * * = Tanggal 1 dan 15 setiap bulan jam 01:30</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Crontab Management</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code class="language-Bash"># Edit crontab untuk user saat ini
+crontab -e
+# Lihat crontab saat ini
+crontab -l
+# Edit crontab untuk user lain (root only)
+sudo crontab -u deploy -e
+# Contoh crontab entries:
+# Backup database setiap jam 2 pagi
+#
+0 2 * * * /opt/scripts/backup_db.sh &gt;&gt; /var/log/backup.log 2&gt;&amp;1
+# Membersihkan file temporary setiap hari jam 3 pagi
+0 3 * * * find /tmp -type f -mtime +7 -delete
+# Restart web server setiap Minggu jam 4 pagi
+0 4 * * 0 systemctl restart nginx
+# Cek disk usage setiap 6 jam
+0 */6 * * * /opt/scripts/check_disk.sh
+# Deploy otomatis setiap push ke main (via webhook, bukan cron)
+# Tapi cron bisa pull repo setiap 5 menit:
+*/5 * * * * cd /opt/myapp &amp;&amp; git pull origin main 2&gt;&amp;1 | logger -t autodeploy
+# Kirim laporan harian jam 8 pagi
+0 8 * * * /opt/scripts/daily_report.sh | mail -s &quot;Daily Report&quot; admin@company.com
+# Cron dengan timezone (systemd)
+# Tambahkan CRON_TZ=Asia/Jakarta di awal crontab
+CRON_TZ=Asia/Jakarta
+0 7 * * * /opt/scripts/morning_task.sh</code></pre>
+      </div>
+
+      <h3>Alternatif Cron: systemd Timer</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">INI — systemd Timer (backup.timer)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># /etc/systemd/system/backup.timer
+[Unit]
+Description=Backup database harian
+
+[Timer]
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target
+
+# /etc/systemd/system/backup.service
+[Unit]
+Description=Run database backup
+
+[Service]
+Type=oneshot
+ExecStart=/opt/scripts/backup_db.sh
+User=deploy
+
+# Aktifkan timer
+sudo systemctl enable --now backup.timer
+
+# Lihat semua timer aktif
+systemctl list-timers --all
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Disk Management     -->
+      <!-- ============================== -->
+      <h2 id="disk-management">6. Disk &amp; Storage Management</h2>
+
+      <p><strong>Disk management</strong> mencakup pemantauan penggunaan disk, partisi, format, mounting, dan manajemen storage. Memahami disk management sangat penting untuk menjaga server tetap berjalan optimal dan mencegah masalah kehabisan ruang disk.</p>
+
+      <h3>Memantau Penggunaan Disk</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Disk Monitoring</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Lihat penggunaan disk (human-readable)
+df -h
+# Filesystem      Size  Used Avail Use% Mounted on
+# /dev/sda1        50G   32G   16G  67% /
+# /dev/sdb1       200G   45G  145G  24% /data
+
+# Lihat penggunaan per direktori
+du -sh /var/log        # Total ukuran /var/log
+du -sh /home/*         # Ukuran setiap home directory
+du -sh /* 2>/dev/null  # Ukuran setiap direktori root
+
+# Top 10 direktori terbesar
+du -h --max-depth=1 / 2>/dev/null | sort -hr | head -10
+
+# Lihat info block device
+lsblk
+# NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+# sda      8:0    0   50G  0 disk
+# ├─sda1   8:1    0   50G  0 part /
+# sdb      8:16   0  200G  0 disk
+# └─sdb1   8:17   0  200G  0 part /data
+
+# Lihat info filesystem
+sudo blkid           # UUID dan tipe filesystem
+sudo fdisk -l        # Tabel partisi lengkap
+</code></pre>
+      </div>
+
+      <h3>Partisi dan Format Disk Baru</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Disk Partitioning &amp; Mounting</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Langkah 1: Buat partisi baru pada /dev/sdb
+sudo fdisk /dev/sdb
+# Commands: n (new), p (primary), 1 (number), w (write)
+
+# Langkah 2: Format partisi dengan ext4
+sudo mkfs.ext4 /dev/sdb1
+
+# Langkah 3: Buat mount point
+sudo mkdir -p /data
+
+# Langkah 4: Mount partisi
+sudo mount /dev/sdb1 /data
+
+# Langkah 5: Tambahkan ke /etc/fstab untuk auto-mount saat boot
+echo 'UUID=xxxx-xxxx  /data  ext4  defaults,noatime  0  2' | sudo tee -a /etc/fstab
+
+# Cek fstab sebelum reboot (penting!)
+sudo mount -a
+
+# Resize partisi ext4 (jika disk di-expand di cloud)
+sudo resize2fs /dev/sdb1
+
+# Lihat disk I/O
+iostat -xz 1 5       # Monitor I/O setiap 1 detik, 5 kali
+iotop                # Top untuk disk I/O (seperti top)
+</code></pre>
+      </div>
+
+      <h3>Swap Space Management</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Swap Management</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Cek swap saat ini
+sudo swapon --show
+free -h
+
+# Buat swap file 2GB
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+# Tambahkan ke fstab agar persisten
+echo '/swapfile  none  swap  sw  0  0' | sudo tee -a /etc/fstab
+
+# Tuning swappiness (10 = gunakan swap hanya saat benar-benar perlu)
+sudo sysctl vm.swappiness=10
+echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Networking          -->
+      <!-- ============================== -->
+      <h2 id="networking">7. Networking &amp; Firewall</h2>
+
+      <p><strong>Networking</strong> adalah skill penting untuk mengelola server. Anda perlu memahami cara mengkonfigurasi jaringan, memantau koneksi, dan mengamankan server dengan firewall.</p>
+
+      <h3>Perintah Networking Penting</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Networking Commands</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Lihat konfigurasi IP
+ip addr show               # Atau: ip a
+ip route show              # Tabel routing
+
+# Cek konektivitas
+ping -c 4 google.com
+traceroute google.com
+
+# Cek port yang sedang terbuka (listening)
+ss -tlnp                   # TCP listening ports
+ss -ulnp                   # UDP listening ports
+ss -tp                     # Semua koneksi TCP aktif
+
+# Alternatif lama (masih banyak digunakan)
+netstat -tlnp              # TCP listening
+netstat -anp | grep :80    # Cek koneksi ke port 80
+
+# DNS lookup
+dig beebanelabs.pages.dev
+nslookup beebanelabs.pages.dev
+host beebanelabs.pages.dev
+
+# Test koneksi ke port tertentu
+nc -zv 192.168.1.100 22    # Test SSH
+telnet 192.168.1.100 80    # Test HTTP
+
+# Download file
+wget https://example.com/file.tar.gz
+curl -O https://example.com/file.tar.gz
+curl -I https://example.com  # Hanya headers
+
+# Lihat hostname dan IP
+hostname
+hostname -I
+</code></pre>
+      </div>
+
+      <h3>UFW: Uncomplicated Firewall</h3>
+      <p><strong>UFW</strong> adalah front-end yang memudahkan konfigurasi iptables untuk Ubuntu/Debian. Ini adalah firewall yang direkomendasikan untuk pemula.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — UFW Firewall Configuration</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Aktifkan UFW
+sudo ufw enable
+
+# Set default policy
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Izinkan port spesifik
+sudo ufw allow 22/tcp        # SSH
+sudo ufw allow 80/tcp        # HTTP
+sudo ufw allow 443/tcp       # HTTPS
+sudo ufw allow 8080/tcp      # Custom app
+
+# Izinkan dari IP tertentu
+sudo ufw allow from 192.168.1.0/24 to any port 22    # SSH dari LAN saja
+sudo ufw allow from 10.0.0.0/8 to any port 3306      # MySQL dari internal
+
+# Izinkan dengan deskripsi
+sudo ufw allow 8443/tcp comment 'Grafana HTTPS'
+
+# Hapus rule
+sudo ufw delete allow 8080/tcp
+sudo ufw delete 3            # Hapus rule nomor 3
+
+# Lihat status dan rules
+sudo ufw status verbose
+sudo ufw status numbered
+
+# Disable firewall (untuk debugging)
+sudo ufw disable
+</code></pre>
+      </div>
+
+      <h3>Netplan: Konfigurasi Jaringan Modern</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — /etc/netplan/01-netcfg.yaml</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Konfigurasi static IP (Ubuntu 20.04+)
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: false
+      addresses:
+        - 192.168.1.100/24
+      routes:
+        - to: default
+          via: 192.168.1.1
+      nameservers:
+        addresses:
+          - 8.8.8.8
+          - 8.8.4.4
+          - 1.1.1.1
+
+# Terapkan konfigurasi
+sudo netplan apply
+
+# Cek hasil
+sudo netplan try   # Coba dulu, auto-rollback jika gagal
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Security Hardening  -->
+      <!-- ============================== -->
+      <h2 id="security-hardening">8. Security Hardening</h2>
+
+      <p><strong>Security hardening</strong> adalah proses mengamankan server Linux dari berbagai ancaman keamanan. Ini mencakup konfigurasi SSH yang aman, firewall, automatic updates, intrusion detection, dan best practices keamanan lainnya.</p>
+
+      <h3>Checklist Security Hardening</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Langkah</th>
+            <th>Prioritas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Disable root login SSH</td><td>🔴 Kritis</td></tr>
+          <tr><td>2</td><td>Gunakan SSH key authentication</td><td>🔴 Kritis</td></tr>
+          <tr><td>3</td><td>Aktifkan firewall (UFW/iptables)</td><td>🔴 Kritis</td></tr>
+          <tr><td>4</td><td>Update sistem secara berkala</td><td>🔴 Kritis</td></tr>
+          <tr><td>5</td><td>Install &amp; konfigurasi fail2ban</td><td>🟡 Penting</td></tr>
+          <tr><td>6</td><td>Nonaktifkan service yang tidak diperlukan</td><td>🟡 Penting</td></tr>
+          <tr><td>7</td><td>Set password policy yang ketat</td><td>🟡 Penting</td></tr>
+          <tr><td>8</td><td>Audit log secara berkala</td><td>🟡 Penting</td></tr>
+          <tr><td>9</td><td>Install intrusion detection (AIDE/rkhunter)</td><td>🟢 Direkomendasikan</td></tr>
+          <tr><td>10</td><td>Enkripsi data at rest &amp; in transit</td><td>🟢 Direkomendasikan</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Implementasi Security Hardening</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Security Hardening Steps</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># 1. Update sistem
+sudo apt update && sudo apt upgrade -y
+sudo apt autoremove -y
+
+# 2. Install unattended-upgrades untuk auto security patches
+sudo apt install unattended-upgrades
+sudo dpkg-reconfigure -plow unattended-upgrades
+
+# 3. Install &amp; konfigurasi fail2ban
+sudo apt install fail2ban
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+
+# Edit /etc/fail2ban/jail.local:
+cat > /etc/fail2ban/jail.local << 'EOF'
+[DEFAULT]
+bantime = 3600
+findtime = 600
+maxretry = 5
+banaction = ufw
+
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 86400
+EOF
+
+sudo systemctl enable --now fail2ban
+
+# 4. Harden SSH config (/etc/ssh/sshd_config)
+sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sudo sed -i 's/#MaxAuthTries 6/MaxAuthTries 3/' /etc/ssh/sshd_config
+sudo sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 300/' /etc/ssh/sshd_config
+sudo sed -i 's/#ClientAliveCountMax 3/ClientAliveCountMax 2/' /etc/ssh/sshd_config
+echo "AllowUsers deploy admin" | sudo tee -a /etc/ssh/sshd_config
+sudo systemctl restart sshd
+
+# 5. Kernel hardening (/etc/sysctl.conf)
+cat > /etc/sysctl.d/99-security.conf << 'EOF'
+# Disable IP forwarding (jika bukan router)
+net.ipv4.ip_forward = 0
+
+# Disable ICMP redirect
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+
+# Enable SYN cookie (anti SYN flood)
+net.ipv4.tcp_syncookies = 1
+
+# Log Martian packets
+net.ipv4.conf.all.log_martians = 1
+
+# Disable IPv6 jika tidak diperlukan
+net.ipv6.conf.all.disable_ipv6 = 1
+EOF
+sudo sysctl --system
+
+# 6. Scan untuk malware
+sudo apt install rkhunter
+sudo rkhunter --check --skip-keypress
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Tips Keamanan Penting</div>
+        <ul>
+          <li><strong>SELALU</strong> buat backup sebelum mengubah konfigurasi keamanan</li>
+          <li><strong>TEST</strong> SSH connection di terminal baru sebelum menutup sesi yang ada</li>
+          <li><strong>PANTAU</strong> log keamanan secara berkala: <code>sudo tail -f /var/log/auth.log</code></li>
+          <li><strong>PRINCIPLE OF LEAST PRIVILEGE:</strong> Berikan hak akses seminimal mungkin yang diperlukan</li>
+          <li><strong>DOKUMENTASIKAN</strong> setiap perubahan konfigurasi keamanan</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Linux Server Administration:</p>
+
+      <div class="quiz-container" id="quizLinux01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa perintah untuk menggenerate SSH key pair dengan algoritma Ed25519?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) ssh-keygen -t rsa</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) ssh-keygen -t ed25519</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) ssh-keygen -t dsa</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) ssh-create -t ed25519</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa arti angka 755 dalam chmod?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) rwxrwxrwx (semua bisa baca, tulis, eksekusi)</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) rwxr-xr-x (owner full, group dan others hanya baca dan eksekusi)</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) rw-r--r-- (owner baca tulis, yang lain hanya baca)</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) rwx------ (hanya owner yang punya akses)</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Perintah systemctl mana yang memastikan service mulai otomatis saat boot?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) systemctl start nginx</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) systemctl restart nginx</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) systemctl enable nginx</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) systemctl status nginx</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Dalam format crontab "0 2 * * *", kapan perintah akan dijalankan?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Setiap 2 menit sekali</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Setiap hari jam 2 pagi</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Setiap 2 jam sekali</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Setiap hari tanggal 2</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Tool apa yang digunakan untuk memblokir IP yang mencoba brute force SSH?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) ufw</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) iptables</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) fail2ban</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) sshguard</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="gitops-argocd.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">GitOps dengan ArgoCD</span>
+        </a>
+        <a href="monitoring-observability.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Monitoring &amp; Observability untuk Developer</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

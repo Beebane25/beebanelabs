@@ -1,0 +1,938 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Keamanan</a>
+        <span class="separator">/</span>
+        <span class="current">CORS Security</span>
+      </div>
+      <span class="category-tag">Keamanan</span>
+      <h1>CORS Security: Cross-Origin Resource Sharing</h1>
+      <p class="article-subtitle">Pelajari mekanisme Same-Origin Policy, cara kerja CORS termasuk preflight requests, simple requests, dan credentials handling — beserta konfigurasi CORS yang aman untuk berbagai framework backend</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-cors">Pengenalan Same-Origin Policy &amp; CORS</a></li>
+          <li><a href="#cara-kerja-cors">Cara Kerja CORS</a></li>
+          <li><a href="#preflight">Preflight Requests</a></li>
+          <li><a href="#credentials">Credentials &amp; Cookies</a></li>
+          <li><a href="#cors-misconfig">CORS Misconfiguration &amp; Serangan</a></li>
+          <li><a href="#implementasi">Implementasi CORS yang Aman</a></li>
+          <li><a href="#best-practices">Best Practices CORS</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan CORS     -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-cors">1. Pengenalan Same-Origin Policy &amp; CORS</h2>
+
+      <p><strong>Cross-Origin Resource Sharing (CORS)</strong> adalah mekanisme keamanan browser yang memungkinkan web application di satu origin mengakses resource di origin lain secara terkendali. CORS dibangun di atas <strong>Same-Origin Policy (SOP)</strong> — fondasi keamanan browser yang membatasi bagaimana dokumen atau script dari satu origin dapat berinteraksi dengan resource dari origin lain.</p>
+
+      <h3>Apa itu Same-Origin Policy?</h3>
+      <p>Sebuah <strong>origin</strong> terdiri dari tiga komponen: <strong>protocol</strong> (http/https), <strong>hostname</strong>, dan <strong>port</strong>. Dua URL dianggap "same-origin" hanya jika ketiga komponen tersebut identik.</p>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>URL A</th>
+            <th>URL B</th>
+            <th>Same Origin?</th>
+            <th>Alasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>https://app.com/page1</td><td>https://app.com/page2</td><td>✅ Ya</td><td>Protocol, host, port sama</td></tr>
+          <tr><td>https://app.com</td><td>https://app.com:443</td><td>✅ Ya</td><td>Port 443 = default HTTPS</td></tr>
+          <tr><td>https://app.com</td><td>http://app.com</td><td>❌ Tidak</td><td>Protocol berbeda (https vs http)</td></tr>
+          <tr><td>https://app.com</td><td>https://api.app.com</td><td>❌ Tidak</td><td>Hostname berbeda (subdomain)</td></tr>
+          <tr><td>https://app.com</td><td>https://app.com:8080</td><td>❌ Tidak</td><td>Port berbeda</td></tr>
+          <tr><td>https://app.com</td><td>https://evil.com</td><td>❌ Tidak</td><td>Hostname berbeda</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Mengapa CORS Diperlukan?</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Same-Origin Policy and CORS</div>
+<pre class="mermaid">
+flowchart TD
+    N0["app.com (Frontend)"]
+    N1[❌ Blocked]
+    N2["api.com (Backend)"]
+    N3["app.com (Frontend)"]
+    N4[✅ Allowed]
+    N5["api.com (Backend)"]
+    N6["Kenapa SOP ada? • Mencegah situs jahat membaca ..."]
+    N7["Kenapa CORS diperlukan? • Modern apps: frontend..."]
+    N0 --> N2
+    N2 --> N1
+    N1 --> N3
+    N3 --> N5
+    N5 --> N4
+    N4 --> N6
+    N6 --> N7
+</pre>
+    </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Cara Kerja CORS     -->
+      <!-- ============================== -->
+      <h2 id="cara-kerja-cors">2. Cara Kerja CORS</h2>
+
+      <p>CORS menggunakan HTTP headers untuk memberitahu browser apakah origin tertentu diizinkan mengakses resource. Ada dua jenis request CORS: <strong>Simple Requests</strong> dan <strong>Preflighted Requests</strong>.</p>
+
+      <h3>HTTP Headers CORS</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Header</th>
+            <th>Arah</th>
+            <th>Deskripsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Origin</code></td><td>Request (Browser→Server)</td><td>Origin dari mana request berasal</td></tr>
+          <tr><td><code>Access-Control-Allow-Origin</code></td><td>Response (Server→Browser)</td><td>Origin mana yang diizinkan mengakses resource</td></tr>
+          <tr><td><code>Access-Control-Allow-Methods</code></td><td>Response</td><td>HTTP methods yang diizinkan (GET, POST, PUT, DELETE, dll)</td></tr>
+          <tr><td><code>Access-Control-Allow-Headers</code></td><td>Response</td><td>Custom headers yang diizinkan dalam request</td></tr>
+          <tr><td><code>Access-Control-Allow-Credentials</code></td><td>Response</td><td>Apakah request dengan credentials (cookie, auth header) diizinkan</td></tr>
+          <tr><td><code>Access-Control-Expose-Headers</code></td><td>Response</td><td>Response headers mana yang bisa dibaca oleh JavaScript</td></tr>
+          <tr><td><code>Access-Control-Max-Age</code></td><td>Response</td><td>Berapa lama hasil preflight bisa di-cache (dalam detik)</td></tr>
+          <tr><td><code>Access-Control-Request-Method</code></td><td>Preflight Request</td><td>Method yang akan digunakan dalam request sesungguhnya</td></tr>
+          <tr><td><code>Access-Control-Request-Headers</code></td><td>Preflight Request</td><td>Headers yang akan dikirim dalam request sesungguhnya</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Simple Requests</h3>
+      <p>Simple request adalah request yang memenuhi SEMUA kondisi berikut — browser langsung mengirimkannya tanpa preflight:</p>
+      <ul>
+        <li>Method: <code>GET</code>, <code>HEAD</code>, atau <code>POST</code></li>
+        <li>Hanya menggunakan headers yang "aman": <code>Accept</code>, <code>Accept-Language</code>, <code>Content-Language</code>, <code>Content-Type</code></li>
+        <li>Content-Type hanya: <code>application/x-www-form-urlencoded</code>, <code>multipart/form-data</code>, atau <code>text/plain</code></li>
+      </ul>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">HTTP — Simple CORS Request Flow</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Client (https://app.com) mengirim request ke API
+GET /api/users HTTP/1.1
+Host: api.example.com
+Origin: https://app.com
+Accept: application/json
+
+# Server meresponse dengan CORS headers
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: https://app.com
+Content-Type: application/json
+
+# Browser memeriksa: apakah Origin diizinkan?
+# ✅ Jika Access-Control-Allow-Origin cocok → response diteruskan ke JS
+# ❌ Jika tidak cocok → browser memblokir, JS tidak bisa baca response
+
+# Contoh Blokir:
+# Server mengirim: Access-Control-Allow-Origin: https://other.com
+# Browser: Origin https://app.com TIDAK cocok → BLOKIR!
+# JS menerima error: "has been blocked by CORS policy"
+
+# =============================================
+# POST simple request (form-like)
+# =============================================
+POST /api/comments HTTP/1.1
+Host: api.example.com
+Origin: https://app.com
+Content-Type: application/x-www-form-urlencoded
+
+text=Halo+dunia&amp;author=John
+
+# Server response:
+HTTP/1.1 201 Created
+Access-Control-Allow-Origin: https://app.com
+Content-Type: application/json
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Preflight Requests  -->
+      <!-- ============================== -->
+      <h2 id="preflight">3. Preflight Requests</h2>
+
+      <p>Ketika request <strong>bukan simple request</strong> (misalnya menggunakan method PUT/DELETE, custom headers, atau Content-Type application/json), browser akan mengirim <strong>preflight request</strong> terlebih dahulu menggunakan method OPTIONS. Preflight ini bertanya ke server: "Apakah kamu mengizinkan request dari origin ini dengan method dan headers ini?"</p>
+
+      
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: PREFLIGHT CORS FLOW</div>
+<pre><code>Browser
+API Server
+/&quot;Preflight Request (OPTIONS) OPTIONS /api/users ...&quot;/
+/&quot;api.example.com memeriksa CORS policy&quot;/
+Preflight Response (204 No Content) Access-Cont...
+/&quot;Actual Request (PUT) PUT /api/users/123 HTTP/1....&quot;/
+/&quot;Actual Response (200 OK) Access-Control-Allow-O...&quot;/</code></pre>
+    </div>
+      </div>
+
+      <h3>Kapan Preflight Terjadi?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Kondisi</th>
+            <th>Preflight?</th>
+            <th>Alasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>GET/HEAD/POST dengan headers standar</td><td>Tidak</td><td>Simple request</td></tr>
+          <tr><td>PUT / DELETE / PATCH</td><td>Ya</td><td>Bukan method simple</td></tr>
+          <tr><td>POST dengan Content-Type: application/json</td><td>Ya</td><td>Bukan simple Content-Type</td></tr>
+          <tr><td>Custom header (Authorization, X-API-Key)</td><td>Ya</td><td>Bukan simple header</td></tr>
+          <tr><td>Request dengan credentials</td><td>Ya (jika bukan simple)</td><td>Credentials mempengaruhi caching</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Trigger Preflight dengan Fetch API</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ❌ Simple request — TIDAK preflight
+fetch('https://api.example.com/users', {
+  method: 'GET'
+});
+
+// ❌ Simple request — TIDAK preflight
+fetch('https://api.example.com/users', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded'
+  },
+  body: 'name=John'
+});
+
+// ✅ Preflight — Content-Type application/json
+fetch('https://api.example.com/users', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'  // Bukan simple Content-Type!
+  },
+  body: JSON.stringify({ name: 'John' })
+});
+// Browser akan mengirim OPTIONS terlebih dahulu!
+
+// ✅ Preflight — Custom header Authorization
+fetch('https://api.example.com/users', {
+  method: 'GET',
+  headers: {
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9...'  // Custom header!
+  }
+});
+
+// ✅ Preflight — Method PUT
+fetch('https://api.example.com/users/123', {
+  method: 'PUT',  // Bukan simple method!
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ name: 'Jane' })
+});
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Credentials         -->
+      <!-- ============================== -->
+      <h2 id="credentials">4. Credentials &amp; Cookies</h2>
+
+      <p>Secara default, CORS request <strong>tidak mengirimkan</strong> credentials (cookies, HTTP authentication, client certificates). Untuk mengirim credentials, client harus secara eksplisit menyetel <code>credentials: 'include'</code>, dan server harus meresponse dengan <code>Access-Control-Allow-Credentials: true</code>.</p>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Aturan Penting Credentials + CORS</div>
+        <ul>
+          <li><strong>JANGAN gunakan <code>Access-Control-Allow-Origin: *</code></strong> dengan credentials — browser akan memblokir</li>
+          <li><strong>Server HARUS mengeksplisitkan origin</strong> (misalnya <code>https://app.com</code>), bukan wildcard</li>
+          <li><strong>Server HARUS mengirim</strong> <code>Access-Control-Allow-Credentials: true</code></li>
+          <li><strong>Client HARUS menyetel</strong> <code>credentials: 'include'</code> pada fetch atau <code>withCredentials: true</code> pada XHR</li>
+        </ul>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — CORS dengan Credentials</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Client-side: Mengirim request dengan cookies
+// ✅ Fetch API dengan credentials
+fetch('https://api.example.com/profile', {
+  method: 'GET',
+  credentials: 'include',  // Kirim cookies!
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+.then(response => response.json())
+.then(data => console.log('Profile:', data))
+.catch(err => console.error('CORS Error:', err));
+
+// ✅ XMLHttpRequest dengan credentials
+const xhr = new XMLHttpRequest();
+xhr.open('GET', 'https://api.example.com/profile', true);
+xhr.withCredentials = true;  // Kirim cookies!
+xhr.onload = function() {
+  if (xhr.status === 200) {
+    console.log('Profile:', JSON.parse(xhr.responseText));
+  }
+};
+xhr.send();
+
+// ✅ Axios dengan credentials (default)
+import axios from 'axios';
+const api = axios.create({
+  baseURL: 'https://api.example.com',
+  withCredentials: true  // Kirim cookies ke semua request
+});
+const profile = await api.get('/profile');
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">HTTP — CORS dengan Credentials Flow</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Preflight request dengan credentials
+OPTIONS /api/profile HTTP/1.1
+Host: api.example.com
+Origin: https://app.com
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: content-type
+
+# Preflight response — HARUS origin eksplisit, bukan *
+HTTP/1.1 204 No Content
+Access-Control-Allow-Origin: https://app.com
+Access-Control-Allow-Methods: GET, POST
+Access-Control-Allow-Headers: content-type
+Access-Control-Allow-Credentials: true
+Access-Control-Max-Age: 86400
+
+# Actual request dengan cookie
+GET /api/profile HTTP/1.1
+Host: api.example.com
+Origin: https://app.com
+Cookie: session_id=abc123xyz
+Content-Type: application/json
+
+# Response dengan CORS headers
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: https.com
+Access-Control-Allow-Credentials: true
+Content-Type: application/json
+Set-Cookie: session_id=abc123xyz; SameSite=None; Secure; HttpOnly
+
+{"id": 1, "name": "John Doe", "email": "john@app.com"}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: CORS Misconfig      -->
+      <!-- ============================== -->
+      <h2 id="cors-misconfig">5. CORS Misconfiguration &amp; Serangan</h2>
+
+      <p>Kesalahan konfigurasi CORS adalah <strong>kerentanan keamanan yang sangat umum</strong> dan sering dieksploitasi. Konfigurasi yang terlalu permisif bisa memungkinkan situs jahat membaca data sensitif pengguna dari API Anda.</p>
+
+      <h3>Jenis CORS Misconfiguration</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Misconfiguration</th>
+            <th>Risiko</th>
+            <th>Contoh</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Wildcard origin <code>*</code> dengan credentials</td><td>Diblokir browser, tapi menunjukkan kecerobohan</td><td><code>Access-Control-Allow-Origin: *</code></td></tr>
+          <tr><td>Reflect origin tanpa validasi</td><td>Situs manapun bisa mengakses data korban</td><td><code>Allow-Origin: {request.origin}</code></td></tr>
+          <tr><td>Origin dengan null value</td><td>iframe/sandboxed pages bisa mengakses</td><td><code>Access-Control-Allow-Origin: null</code></td></tr>
+          <tr><td>Regex yang terlalu luas</td><td>Subdomain jahat bisa menembus</td><td>Matching <code>*app.com</code> termasuk <code>evilapp.com</code></td></tr>
+          <tr><td>Trusted subdomain berbahaya</td><td>XSS di subdomain = akses ke API utama</td><td>Allow semua subdomain termasuk yang user-generated</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Contoh Serangan: Origin Reflection</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — CORS Misconfiguration: Origin Reflection</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ❌ SANGAT BERBAHAYA: Reflect origin tanpa validasi
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get('Origin')
+
+    # ❌ Merefleksikan origin dari request tanpa validasi!
+    # Artinya SIAPAPUN yang mengirim request akan diizinkan
+    if origin:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
+
+@app.route('/api/profile')
+def profile():
+    if 'user_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    user = get_user(session['user_id'])
+    return jsonify({
+        "name": user.name,
+        "email": user.email,
+        "balance": user.balance,    # Data sensitif!
+        "ssn": user.ssn             # Sangat sensitif!
+    })
+
+# Serangan: Situs jahat bisa membaca data korban
+# Script di evil.com:
+# fetch('https://api.example.com/api/profile', {
+#   credentials: 'include'
+# }).then(r => r.json()).then(data => {
+#   // Data sensitif korban berhasil dicuri!
+#   sendToAttacker(data);
+# });
+
+# Karena server merefleksikan origin evil.com,
+# browser mengizinkan response diteruskan ke JS!
+</code></pre>
+      </div>
+
+      <h3>Contoh Serangan: Regex yang Terlalu Luas</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Regex CORS Bypass</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ❌ RENTAN: Regex yang tidak tepat
+import re
+
+ALLOWED_ORIGINS_PATTERN = r'https://.*\.example\.com$'
+
+def is_origin_allowed(origin):
+    return bool(re.match(ALLOWED_ORIGINS_PATTERN, origin))
+
+# Masalah: Regex ini cocok dengan:
+# ✅ https://app.example.com      → benar
+# ✅ https://api.example.com      → benar
+# ❌ https://evil.example.com.attacker.com  → COCOK JUGA!
+# ❌ https://example.com.attacker.com       → COCOK JUGA!
+# Karena .* bisa match apapun, dan $ hanya match di akhir
+
+# ✅ SOLUSI: Gunakan whitelist eksplisit
+ALLOWED_ORIGINS = {
+    'https://app.example.com',
+    'https://admin.example.com',
+    'https://api.example.com'
+}
+
+def is_origin_allowed(origin):
+    return origin in ALLOWED_ORIGINS
+
+# Atau regex yang lebih ketat:
+STRICT_PATTERN = r'^https://(app|admin|api)\.example\.com$'
+
+def is_origin_allowed_strict(origin):
+    return bool(re.match(STRICT_PATTERN, origin))
+</code></pre>
+      </div>
+
+      <h3>Contoh Serangan: Null Origin</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Null Origin Attack</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ❌ RENTAN: Mengizinkan null origin
+@app.after_request
+def add_cors(response):
+    origin = request.headers.get('Origin', 'null')
+
+    # ❌ Mengizinkan 'null' origin!
+    # Ini memungkinkan sandboxed iframe mengakses API
+    response.headers['Access-Control-Allow-Origin'] = origin
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
+
+# Serangan: Penyerang membuat halaman dengan sandboxed iframe
+# &lt;iframe sandbox="allow-scripts" src="data:text/html,
+#   &lt;script&gt;
+#     fetch('https://api.example.com/api/profile', {
+#       credentials: 'include'
+#     }).then(r => r.json()).then(data => {
+#       parent.postMessage(data, '*');
+#     });
+#   &lt;/script&gt;
+# "&gt;&lt;/iframe&gt;
+#
+# Sandbox iframe memiliki origin "null" — dan server mengizinkannya!
+
+# ✅ SOLUSI: Jangan izinkan null origin
+@app.after_request
+def add_cors_safe(response):
+    origin = request.headers.get('Origin')
+
+    if origin and origin != 'null' and origin in ALLOWED_ORIGINS:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+
+    return response
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Implementasi Aman   -->
+      <!-- ============================== -->
+      <h2 id="implementasi">6. Implementasi CORS yang Aman</h2>
+
+      <h3>Flask dengan flask-cors</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python Flask — CORS Configuration yang Aman</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ✅ CORS yang aman untuk Flask
+from flask import Flask, jsonify
+from flask_cors import CORS
+import os
+
+app = Flask(__name__)
+
+# ✅ Opsi 1: Whitelist origin spesifik
+ALLOWED_ORIGINS = [
+    'https://beebanelabs.pages.dev',
+    'https://admin.beebanelabs.pages.dev',
+    'http://localhost:3000'  # Development only
+]
+
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ALLOWED_ORIGINS,
+        "methods": ["GET", "POST", "PUT", "DELETE"],
+        "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+        "expose_headers": ["X-Total-Count", "X-Page-Count"],
+        "supports_credentials": True,
+        "max_age": 3600  # Cache preflight selama 1 jam
+    }
+})
+
+# ✅ Opsi 2: Dynamic origin validation
+from flask import request
+import re
+
+TRUSTED_DOMAINS = re.compile(r'^https://(app|admin|api)\.beebanelabs\.pages\.dev$')
+
+def origin_allowed(origin):
+    if not origin:
+        return False
+    if origin == 'http://localhost:3000' and app.debug:
+        return True
+    return bool(TRUSTED_DOMAINS.match(origin))
+
+@app.after_request
+def set_cors_headers(response):
+    origin = request.headers.get('Origin')
+    if origin and origin_allowed(origin):
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+        response.headers['Access-Control-Expose-Headers'] = 'X-Total-Count'
+        response.headers['Access-Control-Max-Age'] = '3600'
+    return response
+
+# Handle preflight OPTIONS request
+@app.route('/api/<path:path>', methods=['OPTIONS'])
+def handle_preflight(path):
+    return '', 204
+
+# Contoh API endpoint
+@app.route('/api/users')
+def get_users():
+    return jsonify({"users": []})
+
+@app.route('/api/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    return jsonify({"message": "User updated"})
+</code></pre>
+      </div>
+
+      <h3>Express.js CORS</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript Express — CORS Configuration</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ✅ CORS yang aman untuk Express.js
+const express = require('express');
+const cors = require('cors');
+const app = express();
+
+// ✅ Opsi 1: Whitelist origin
+const allowedOrigins = [
+  'https://beebanelabs.pages.dev',
+  'https://admin.beebanelabs.pages.dev',
+  'http://localhost:3000'
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Izinkan request tanpa origin (mobile apps, Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Origin tidak diizinkan oleh CORS policy'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
+  credentials: true,  // Izinkan cookies
+  maxAge: 3600,       // Cache preflight 1 jam
+  optionsSuccessStatus: 204
+};
+
+app.use('/api', cors(corsOptions));
+
+// ✅ Opsi 2: Per-route CORS (lebih granular)
+app.get('/api/public/data', cors(), (req, res) => {
+  // Public endpoint — CORS terbuka
+  res.json({ data: 'public' });
+});
+
+app.get('/api/private/profile', cors(corsOptions), (req, res) => {
+  // Private endpoint — CORS ketat
+  res.json({ profile: {} });
+});
+
+// ✅ Handle preflight untuk semua route
+app.options('*', cors(corsOptions));
+
+// Error handler untuk CORS rejection
+app.use((err, req, res, next) => {
+  if (err.message.includes('CORS')) {
+    res.status(403).json({
+      error: 'CORS policy violation',
+      message: 'Origin tidak diizinkan mengakses resource ini'
+    });
+  } else {
+    next(err);
+  }
+});
+
+app.listen(3000);
+</code></pre>
+      </div>
+
+      <h3>Nginx CORS Configuration</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — CORS Headers</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># /etc/nginx/conf.d/cors.conf
+
+# Map untuk validasi origin
+map $http_origin $cors_origin {
+    default "";
+    "https://beebanelabs.pages.dev" $http_origin;
+    "https://admin.beebanelabs.pages.dev" $http_origin;
+    "~^https://(app|dev)\.beebanelabs\.pages\.dev$" $http_origin;
+}
+
+server {
+    listen 443 ssl;
+    server_name api.beebanelabs.pages.dev;
+
+    location /api/ {
+        # CORS headers — hanya jika origin valid
+        if ($cors_origin != "") {
+            add_header Access-Control-Allow-Origin $cors_origin always;
+            add_header Access-Control-Allow-Credentials "true" always;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With" always;
+            add_header Access-Control-Expose-Headers "X-Total-Count" always;
+            add_header Access-Control-Max-Age 3600 always;
+        }
+
+        # Handle preflight
+        if ($request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin $cors_origin;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
+            add_header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With";
+            add_header Access-Control-Max-Age 3600;
+            add_header Content-Length 0;
+            return 204;
+        }
+
+        proxy_pass http://backend;
+    }
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Best Practices      -->
+      <!-- ============================== -->
+      <h2 id="best-practices">7. Best Practices CORS</h2>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 CORS Security Checklist</div>
+        <ul>
+          <li>✅ <strong>Whitelist origin eksplisit</strong> — jangan gunakan wildcard <code>*</code> untuk API dengan data sensitif</li>
+          <li>✅ <strong>Validasi origin dengan tepat</strong> — gunakan exact match atau regex yang ketat</li>
+          <li>✅ <strong>Jangan izinkan null origin</strong> — blokir semua request dengan Origin: null</li>
+          <li>✅ <strong>Minimalisir allowed methods</strong> — hanya izinkan method yang benar-benar dibutuhkan</li>
+          <li>✅ <strong>Minimalisir allowed headers</strong> — hanya izinkan headers yang diperlukan</li>
+          <li>✅ <strong>Set max-age yang wajar</strong> — cache preflight untuk mengurangi overhead (1-24 jam)</li>
+          <li>✅ <strong>Hati-hati dengan credentials</strong> — hanya izinkan untuk origin yang sangat dipercaya</li>
+          <li>✅ <strong>Expose hanya yang perlu</strong> — jangan expose internal headers</li>
+          <li>✅ <strong>Log dan monitor</strong> CORS rejection untuk mendeteksi serangan</li>
+          <li>✅ <strong>Jangan mengandalkan CORS sebagai satu-satunya pertahanan</strong> — tetap implementasikan autentikasi dan otorisasi yang proper</li>
+        </ul>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Mitigasi Salah tentang CORS</div>
+        <ul>
+          <li><strong>CORS BUKAN pertahanan untuk CSRF</strong> — CORS hanya membatasi apakah JS bisa membaca response, tapi browser tetap mengirim request</li>
+          <li><strong>CORS BUKAN firewall</strong> — request tetap sampai ke server, hanya response yang diblokir browser</li>
+          <li><strong>CORS tidak melindungi server</strong> — hanya melindungi client (browser)</li>
+          <li><strong>Non-browser clients (curl, Postman) mengabaikan CORS</strong> — CORS hanya berlaku di browser</li>
+          <li><strong>CORS bukan pengganti autentikasi</strong> — tetap harus ada autentikasi dan otorisasi di server</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">8. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang CORS Security:</p>
+
+      <div class="quiz-container" id="quizCors01">
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Tiga komponen apa yang menentukan "origin" di browser?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Protocol, hostname, dan port</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Domain, path, dan query string</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) IP address, port, dan path</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Protocol, IP, dan hostname</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Kapan browser mengirim preflight request?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Untuk semua request HTTP</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Saat request bukan simple request (custom headers, PUT/DELETE, application/json)</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Hanya untuk request GET</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Hanya saat menggunakan VPN</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Mengapa tidak bisa menggunakan <code>Access-Control-Allow-Origin: *</code> dengan credentials?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Karena wildcard terlalu lambat</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Karena browser secara eksplisit memblokir kombinasi wildcard + credentials untuk keamanan</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Karena server tidak mendukung wildcard</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Karena wildcard hanya berfungsi di localhost</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa risiko dari origin reflection (server merefleksikan Origin header tanpa validasi)?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Server menjadi lambat</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Situs manapun bisa membaca data sensitif pengguna yang terotentikasi</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Browser crash</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Tidak ada risiko, ini fitur browser</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: CORS melindungi resource dari akses oleh non-browser clients seperti curl atau Postman?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Ya, CORS melindungi dari semua client</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Ya, tapi hanya di production</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Tidak, CORS hanya berlaku di browser</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Tidak, CORS sudah tidak berlaku</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="web-csrf-protection.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">CSRF Protection</span>
+        </a>
+        <a href="nmap-scanning.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Nmap: Network Scanning</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

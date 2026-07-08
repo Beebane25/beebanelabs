@@ -1,0 +1,366 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Mobile Development</a>
+        <span class="separator">/</span>
+        <span class="current">Flutter State Management</span>
+      </div>
+      <span class="category-tag">Mobile Development</span>
+      <h1>State Management Flutter: Riverpod &amp; BLoC</h1>
+      <p class="article-subtitle">Tutorial lengkap state management Flutter — konsep dasar state, Provider, Riverpod, BLoC pattern, perbandingan solusi, dan contoh kode praktis untuk arsitektur yang bersih</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 13 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#konsep-state">Konsep State Management</a></li>
+          <li><a href="#setState">setState &amp; Pendekatan Dasar</a></li>
+          <li><a href="#provider">Provider</a></li>
+          <li><a href="#riverpod">Riverpod</a></li>
+          <li><a href="#bloc">BLoC Pattern</a></li>
+          <li><a href="#perbandingan">Perbandingan Semua Solusi</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Konsep State         -->
+      <!-- ============================== -->
+      <h2 id="konsep-state">1. Konsep State Management</h2>
+
+      <p>Dalam pengembangan aplikasi Flutter, <strong>state</strong> adalah data yang dapat berubah selama lifecycle aplikasi — mulai dari data pengguna yang sedang login, isi keranjang belanja, hingga status loading halaman. State management yang baik adalah kunci untuk membangun aplikasi yang scalable, testable, dan mudah di-maintain.</p>
+
+      <h3>Mengapa State Management Penting?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Tanpa State Management</th>
+            <th>Dengan State Management</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Data tersebar di banyak widget</td><td>Data terpusat dan terorganisir</td></tr>
+          <tr><td>Sulit berbagi data antar widget</td><td>Komunikasi antar widget mudah dan terstruktur</td></tr>
+          <tr><td>Callback hell (prop drilling)</td><td>Akses data langsung dari sumbernya</td></tr>
+          <tr><td>Sulit di-test</td><td>Mudah unit test dan mocking</td></tr>
+          <tr><td>Kode spaghetti</td><td>Arsitektur bersih (Clean Architecture)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Jenis-jenis State dalam Flutter</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Jenis State dalam Flutter</div>
+<pre class="mermaid">
+flowchart TD
+    N0["App State (Shared) • User authentication • Shop..."]
+    N1["Ephemeral State (UI State) • Checkbox state • C..."]
+    N1 --> N0
+</pre>
+    </div>
+      </div>
+
+      <p><strong>Ephemeral state</strong> adalah state lokal yang hanya relevan untuk satu widget tertentu — seperti status expand/collapse. Sedangkan <strong>app state</strong> adalah state yang perlu dibagikan ke banyak bagian aplikasi — seperti data user atau keranjang belanja.</p>
+
+      <h3>Prinsip State Management yang Baik</h3>
+      <ul>
+        <li><strong>Single Source of Truth</strong> — setiap data hanya disimpan di satu tempat</li>
+        <li><strong>Unidirectional Data Flow</strong> — data mengalir dari sumber ke UI, event dari UI ke sumber</li>
+        <li><strong>Separation of Concerns</strong> — UI terpisah dari logika bisnis</li>
+        <li><strong>Immutability</strong> — state tidak diubah secara langsung, tetapi di-replace dengan state baru</li>
+        <li><strong>Testability</strong> — logika bisnis bisa di-test tanpa UI</li>
+      </ul>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Untuk aplikasi kecil atau halaman sederhana, <code>setState()</code> sudah cukup. Jangan over-engineer dengan BLoC atau Riverpod jika hanya mengelola satu checkbox. Gunakan state management library hanya ketika Anda perlu berbagi state antar banyak widget atau memisahkan logika bisnis.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: setState             -->
+      <!-- ============================== -->
+      <h2 id="setState">2. setState &amp; Pendekatan Dasar</h2>
+
+      <p><code>setState()</code> adalah metode paling dasar untuk mengelola state di Flutter. Ini bekerja dengan memperbarui variabel internal <code>StatefulWidget</code> dan memberitahu framework untuk membangun ulang widget. Cocok untuk state sederhana yang hanya relevan di satu halaman.</p>
+
+      <h3>Dasar StatefulWidget</h3>
+      </div>
+<div class="diagram-box">
+
+        <div class="diagram-label">Diagram: Riverpod Data Flow</div>
+<div class="diagram-box">
+        
+<pre class="mermaid">
+flowchart TD
+    N0[Repository / API]
+    N1["Provider (State) ▶ ◀"]
+    N2["UI / Screen ▶ ◀"]
+    N2 --> N1
+    N1 --> N0
+</pre>
+    </div>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Riverpod Code Generation</div>
+        <p>Dengan <code>riverpod_generator</code>, Anda bisa menggunakan anotasi <code>@riverpod</code> untuk menghasilkan provider secara otomatis. Ini mengurangi boilerplate dan menghindari kesalahan typing pada key provider.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: BLoC                -->
+      <!-- ============================== -->
+      <h2 id="bloc">5. BLoC Pattern</h2>
+
+      <p><strong>BLoC (Business Logic Component)</strong> adalah pattern yang memisahkan business logic dari UI menggunakan <strong>Streams</strong> dan <strong>Events</strong>. BLoC sangat cocok untuk proyek besar dengan banyak developer karena enforce struktur yang konsisten.</p>
+
+      <h3>Setup BLoC</h3>
+      </div>
+<div class="diagram-box">
+
+        <div class="diagram-label">Diagram: BLoC Data Flow</div>
+<div class="diagram-box">
+        
+<pre class="mermaid">
+flowchart TD
+    N0["Events (Input) ▶"]
+    N1["BLoC (Logic)"]
+    N2["States (Output) ◀"]
+    N3[Reposi- tory]
+    N0 --> N1
+    N1 --> N2
+    N2 --> N3
+</pre>
+    </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Perbandingan        -->
+      <!-- ============================== -->
+      <h2 id="perbandingan">6. Perbandingan Semua Solusi</h2>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>setState</th>
+            <th>Provider</th>
+            <th>Riverpod</th>
+            <th>BLoC</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Complexity</td><td>🟢 Rendah</td><td>🟡 Sedang</td><td>🟡 Sedang</td><td>🔴 Tinggi</td></tr>
+          <tr><td>Learning Curve</td><td>🟢 Mudah</td><td>🟢 Mudah</td><td>🟡 Sedang</td><td>🔴 Curam</td></tr>
+          <tr><td>Testability</td><td>🔴 Sulit</td><td>🟡 Cukup</td><td>🟢 Mudah</td><td>🟢 Sangat Mudah</td></tr>
+          <tr><td>Boilerplate</td><td>🟢 Minim</td><td>🟡 Sedang</td><td>🟢 Minim</td><td>🔴 Banyak</td></tr>
+          <tr><td>Compile Safety</td><td>🟢 Ya</td><td>🔴 Runtime</td><td>🟢 Compile-time</td><td>🟡 Cukup</td></tr>
+          <tr><td>Async Support</td><td>🟡 Manual</td><td>🟡 AsyncValue</td><td>🟢 Built-in</td><td>🟢 Stream</td></tr>
+          <tr><td>Dependency Injection</td><td>❌</td><td>✅ Sederhana</td><td>✅ Lengkap</td><td>✅ Modular</td></tr>
+          <tr><td>Cocok untuk</td><td>Widget lokal</td><td>Aplikasi kecil-sedang</td><td>Semua ukuran</td><td>Enterprise / Tim besar</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Kapan Menggunakan Apa?</h3>
+      <div class="info-box info">
+        <div class="info-box-title">📌 Rekomendasi Penggunaan</div>
+        <ul>
+          <li><strong>setState</strong> — Widget tunggal seperti form input, toggle, atau tab indicator</li>
+          <li><strong>Provider</strong> — Aplikasi sederhana-menengah, prototyping, atau migrasi dari setState</li>
+          <li><strong>Riverpod</strong> — Aplikasi modern, testability tinggi, atau proyek baru dari nol</li>
+          <li><strong>BLoC</strong> — Enterprise app, tim besar, atau proyek yang butuh arsitektur sangat terstruktur</li>
+        </ul>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Best Practice</div>
+        <p>Tidak ada "satu solusi yang benar" — yang terbaik adalah yang sesuai dengan kebutuhan dan tim Anda. Untuk proyek baru di 2026, <strong>Riverpod</strong> adalah pilihan populer karena menggabungkan kemudahan Provider dengan kekuatan compile-time safety dan testability. Jika tim Anda sudah familiar dengan reactive programming, <strong>BLoC</strong> memberikan struktur yang sangat jelas.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Quiz                 -->
+      <!-- ============================== -->
+      <h2 id="quiz">7. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang state management Flutter:</p>
+
+      <div class="quiz-container" id="quizFlutter01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa yang dimaksud dengan "state hoisting" dalam konteks Flutter state management?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Menyimpan semua state di dalam StatefulWidget</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Memindahkan state ke widget parent agar child widget menjadi stateless dan reusable</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Menyimpan state di dalam database lokal</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Menghapus state yang tidak digunakan</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa perbedaan utama antara Provider dan Riverpod?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Provider lebih cepat dari Riverpod</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Riverpod tidak memerlukan InheritedWidget dan mendukung compile-time safety</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Provider lebih baru dari Riverpod</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Riverpod hanya bisa digunakan di web</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Dalam BLoC pattern, apa yang dimaksud dengan "Event"?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Output yang ditampilkan di UI</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Input yang dikirim ke BLoC untuk diproses menjadi state baru</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Fungsi untuk menginisialisasi BLoC</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Data yang disimpan di SharedPreferences</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari notifyListeners() dalam ChangeNotifier?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Menghapus data dari provider</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Memberitahu semua widget Consumer untuk rebuild dengan state terbaru</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Menyimpan data ke local storage</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Menginisialisasi provider baru</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Kapan sebaiknya menggunakan setState() saja tanpa state management library?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Untuk semua kasus state management</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Saat state hanya relevan untuk satu widget lokal dan tidak perlu dibagikan</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Hanya saat menggunakan Widget yang sangat besar</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Tidak pernah, selalu gunakan library</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="jetpack-compose.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Jetpack Compose: UI Modern Android</span>
+        </a>
+        <a href="app-store-publishing.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Publish App ke Play Store &amp; App Store</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

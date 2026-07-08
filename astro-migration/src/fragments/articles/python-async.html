@@ -1,0 +1,309 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">Async Python</span>
+      </div>
+      <span class="category-tag">Python untuk IoT</span>
+      <h1>Async Python: Pemrograman Asinkron untuk IoT</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Pelajari cara membangun sistem IoT yang responsif dan efisien dengan pemrograman asinkron Python — asyncio, async/await, event loop, dan integrasi dengan MQTT serta database</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 13 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#sync-vs-async">Sync vs Async: Perbedaan Mendasar</a></li>
+          <li><a href="#asyncio-basics">Asyncio Basics</a></li>
+          <li><a href="#async-await">async / await dalam Praktik</a></li>
+          <li><a href="#event-loop">Memahami Event Loop</a></li>
+          <li><a href="#async-http">Async HTTP Requests</a></li>
+          <li><a href="#async-mqtt">Async MQTT</a></li>
+          <li><a href="#async-database">Async Database Queries</a></li>
+          <li><a href="#real-example">Contoh Nyata: Sistem IoT Async</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Sync vs Async        -->
+      <!-- ============================== -->
+      <h2 id="sync-vs-async">1. Sync vs Async: Perbedaan Mendasar</h2>
+
+      <p>Dalam dunia IoT, perangkat sering kali perlu melakukan banyak hal <strong>bersamaan</strong>: membaca sensor, mengirim data ke server, menerima perintah dari MQTT, menyimpan ke database, dan memantau koneksi jaringan. Jika semua ini dilakukan secara <strong>sinkron</strong> (berurutan), sistem akan menjadi lambat dan tidak responsif.</p>
+
+      <p><strong>Pemrograman asinkron</strong> memungkinkan program kita "menunggu" operasi yang lambat (jaringan, I/O) tanpa memblokir eksekusi keseluruhan. Saat satu operasi menunggu, operasi lain bisa berjalan.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Sinkron vs Asinkron</div>
+<pre><code>SINKRON (Berurutan) ASINKRON (Bersamaan)
+| Baca Sensor | | Baca Sensor |
+| Kirim HTTP | | Kirim HTTP |
+| Tunggu... | | Tunggu... |
+| Terima Resp | | Baca Sensor 2 |
+| Baca Sensor 2| | Terima Resp |
+| Simpan DB | | Simpan DB |
+| Tunggu... | | Tunggu... 8
+| Terima Resp | | Terima Resp |
+Total: ~8 detik Total: ~3 detik</code></pre>
+      </div>
+
+      <h3>Kapan Menggunakan Async?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Kondisi</th>
+            <th>Rekomendasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Banyak operasi I/O (HTTP, MQTT, database)</td><td>✅ Gunakan async</td></tr>
+          <tr><td>Perlu handle banyak sensor secara bersamaan</td><td>✅ Gunakan async</td></tr>
+          <tr><td>Server IoT perlu handle banyak client</td><td>✅ Gunakan async</td></tr>
+          <tr><td>Operasi CPU-intensive (image processing, ML)</td><td>⚠️ Gunakan multiprocessing</td></tr>
+          <tr><td>Program sederhana, satu tugas sekaligus</td><td>❌ Cukup sinkron saja</td></tr>
+          <tr><td>Script one-shot (baca sekali, kirim, selesai)</td><td>❌ Cukup sinkron saja</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Async bukan "lebih cepat" dari sinkron dalam hal kecepatan eksekusi per-baris kode. Keunggulannya adalah <strong>efisiensi waktu tunggu</strong> — saat satu operasi menunggu I/O, operasi lain bisa mulai. Ini sangat krusial di IoT di mana banyak sensor dan koneksi jaringan berjalan bersamaan.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Asyncio Basics       -->
+      <!-- ============================== -->
+      <h2 id="asyncio-basics">2. Asyncio Basics</h2>
+
+      <p><code>asyncio</code> adalah library bawaan Python (sejak Python 3.4) yang menyediakan infrastruktur untuk menulis kode asinkron. Library ini menjadi fondasi dari ekosistem async Python — hampir semua library async modern (aiohttp, aiomqtt, aiosqlite) dibangun di atas asyncio.</p>
+
+      <h3>2.1 — Konsep Dasar</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Konsep</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>async def</code></td><td>Mendefinisikan <em>coroutine</em> — fungsi yang bisa dijalankan secara asinkron</td></tr>
+          <tr><td><code>await</code></td><td>Menunggu coroutine selesai tanpa memblokir event loop</td></tr>
+          <tr><td>Event Loop</td><td>Mesin eksekusi asyncio yang mengatur kapan tiap coroutine berjalan</td></tr>
+          <tr><td>Task</td><td>Coroutine yang sudah dijadwalkan di event loop</td></tr>
+          <tr><td><code>asyncio.gather()</code></td><td>Menjalankan beberapa coroutine secara bersamaan</td></tr>
+          <tr><td><code>asyncio.sleep()</code></td><td>Tidur asinkron — tidak memblokir event loop</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.2 — Coroutine Pertama</h3>
+
+      </div>
+<pre class="mermaid">
+flowchart TD
+    N0["Task A (baca sensor)"]
+    N1["Waiting (I/O pending)"]
+    N2["Task B (kirim HTTP)"]
+    N3["Task C (simpan DB)"]
+    N0 --> N1
+    N1 --> N2
+    N2 --> N3
+</pre>
+    </div>
+      </div>
+
+      <h3>Blocking vs Non-Blocking: Kesalahan Umum</h3>
+
+      </div>
+<div class="diagram-box">
+
+        <div class="diagram-label">Diagram: Arsitektur Sistem IoT Async</div>
+<div class="diagram-box">
+        
+<pre class="mermaid">
+flowchart TD
+    N0["DataProcessor (threshold)"]
+    N1["StatusReport (setiap 10s)"]
+    N2["Sensor Suhu (setiap 2s)"]
+    N3["Sensor Lemb (setiap 3s) Sensor Gas (setiap 2.5s"]
+    N4["Kirim Cloud (async)"]
+    N5["Simpan DB (async)"]
+    N2 --> N3
+    N3 --> N0
+    N0 --> N1
+    N1 --> N4
+    N4 --> N5
+</pre>
+    </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                 -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang async Python untuk IoT:</p>
+
+      <div class="quiz-container" id="quizAsync01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa yang terjadi jika menggunakan <code>time.sleep()</code> di dalam coroutine async?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Tidak ada efek, program tetap async</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Event loop terblokir dan semua task terhambat</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Python otomatis mengubahnya ke asyncio.sleep()</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Menghasilkan SyntaxError</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Fungsi apa yang digunakan untuk menjalankan beberapa coroutine secara bersamaan?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) asyncio.run_all()</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) asyncio.gather()</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) asyncio.parallel()</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) asyncio.concurrent()</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Library apa yang digunakan untuk HTTP requests asinkron di Python?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) requests</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) urllib</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) aiohttp</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) httpx</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Bagaimana cara menjalankan fungsi blocking (sinkron) di dalam async code tanpa memblokir event loop?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Menggunakan asyncio.sleep() sebelum fungsi blocking</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Menggunakan asyncio.to_thread()</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Menambah parameter async di depan def</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Tidak bisa, harus rewrite semua ke async</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa fungsi <code>asyncio.create_task()</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Menjadwalkan coroutine untuk dijalankan di background</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Membuat thread baru untuk menjalankan kode</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Menghentikan event loop</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Menghapus coroutine dari antrean eksekusi</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="python-oop.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">OOP Python: Object-Oriented Programming untuk IoT</span>
+        </a>
+        <a href="python-web-scraping.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Web Scraping Python: BeautifulSoup &amp; Selenium</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

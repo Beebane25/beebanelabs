@@ -1,0 +1,756 @@
+</header>
+
+    <main class="article-container">
+        <article>
+            <div class="article-header">
+                <div class="article-meta">
+                    <span class="category-badge">Tools</span>
+                    <span class="difficulty-badge">Menengah</span>
+                    <span>📅 29 Juni 2026</span>
+                    <span>⏱️ 14 menit baca</span> <span class="difficulty pemula">Pemula</span>
+                    <span>👁️ 1,567 views</span>
+                </div>
+                <h1>V Programming Language: Simple, Fast, dan Compiled tanpa Garbage Collector</h1>
+                <p style="font-size: 1.1em; color: #555;">V (Vlang) adalah bahasa pemrograman compiled yang sederhana dan cepat. Dengan autofree memory management, C interop yang mulus, dan compilation speed yang luar biasa, V menawarkan pengalaman programming yang menyenangkan dengan performa tinggi.</p>
+            </div>
+
+            <div class="toc">
+                <h3>📋 Daftar Isi</h3>
+                <ul>
+                    <li><a href="#pengenalan">1. Mengapa V?</a></li>
+                    <li><a href="#instalasi">2. Instalasi</a></li>
+                    <li><a href="#dasar">3. Dasar-Dasar V</a></li>
+                    <li><a href="#memory">4. Memory Management (Autofree)</a></li>
+                    <li><a href="#c-interop">5. C Interop</a></li>
+                    <li><a href="#concurrency">6. Concurrency</a></li>
+                    <li><a href="#web">7. Web Development (Vweb)</a></li>
+                    <li><a href="#cross-compile">8. Cross Compilation</a></li>
+                    <li><a href="#quiz">9. Kuis</a></li>
+                </ul>
+            </div>
+
+            <section id="pengenalan">
+                <h2>1. Mengapa V?</h2>
+                <p>V dibuat oleh Alexander Medvednikov pada 2019. Bahasa ini dirancang untuk menjadi "bahasa yang sempurna" — simpel seperti Go, cepat seperti C, dan aman seperti Rust, tanpa complexity yang berlebihan.</p>
+
+                <ul>
+                    <li><strong>Simpel</strong> — Bisa dipelajari dalam beberapa jam, hanya ~30 keyword</li>
+                    <li><strong>Cepat compile</strong> — ~1 detik untuk compile project besar</li>
+                    <li><strong>Cepat execute</strong> — Setara dengan C</li>
+                    <li><strong>Tanpa GC</strong> — Autofree memory management</li>
+                    <li><strong>C Interop</strong> — Panggil C code langsung tanpa wrapper</li>
+                    <li><strong>Cross-compilation</strong> — Compile ke platform apapun</li>
+                    <li><strong>Built-in tools</strong> — Formatter, linter, testing, dan package manager</li>
+                </ul>
+
+                <div class="info-box">
+                    <strong>💡 Filosofi V</strong>
+                    <p>V berfokus pada kesederhanaan. Tidak ada hidden control flow, tidak ada hidden allocations, tidak ada undefined behavior. Setiap fitur dirancang untuk seminimal mungkin — tapi tetap powerful.</p>
+                </div>
+            </section>
+
+            <section id="instalasi">
+                <h2>2. Instalasi</h2>
+
+                <div class="code-label">Bash</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Clone dan build dari source (recommended)
+git clone https://github.com/vlang/v.git
+cd v
+make
+
+# Linux/macOS - symlink
+sudo ./v symlink
+
+# macOS (Homebrew)
+brew install vlang
+
+# Windows
+# Download dari https://vlang.io/download
+# Atau: git clone && make.bat
+
+# Verifikasi
+v version
+# V 0.4.x
+
+# Buat proyek baru
+v init my_project
+cd my_project
+
+# Compile dan jalankan
+v run .
+
+# Compile ke binary
+v -o my_app .
+
+# Jalankan file langsung
+v run hello.v
+
+# Format code
+v fmt -w .
+
+# Jalankan test
+v test .
+
+# Self-update
+v up
+</code></pre>
+                </div>
+            </section>
+
+            <section id="dasar">
+                <h2>3. Dasar-Dasar V</h2>
+
+                <h3>Variables dan Types</h3>
+                <div class="code-label">basics.v</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+module main
+
+import os
+
+fn main() {
+    // Variables - immutable by default
+    nama := 'BeebaneLabs'
+    umur := 25
+    tinggi := 1.75
+    aktif := true
+
+    // Mutable variables
+    mut skor := 100
+    skor += 50
+
+    // Type annotations
+    x := 42
+    y := 3.14
+    s := 'hello'
+    b := true
+    c := `a`  // rune/char
+
+    // Explicit types
+    a := int(42)
+    f := f64(3.14)
+
+    // String operations
+    println('Nama: ${nama}, Umur: ${umur}')
+    println(nama.len)
+    println(nama.to_upper())
+    println(nama.to_lower())
+    println(nama.contains('Bee'))
+    println(nama.replace('Bee', 'B'))
+    println(nama.reverse())
+
+    // String interpolation (menggunakan ${})
+    msg := 'Hello, ${nama}! Umur: ${umur + 1}'
+    println(msg)
+
+    // Integers: i8, i16, i32, i64, int
+    // Unsigned: u8, u16, u32, u64
+    // Float: f32, f64
+
+    // Arrays
+    angka := [1, 2, 3, 4, 5]
+    println(angka.len)      // 5
+    println(angka.first())  // 1
+    println(angka.last())   // 5
+    println(angka.contains(3)) // true
+
+    // Mutable arrays
+    mut list := []int{}
+    list << 1
+    list << 2
+    list << 3
+    println(list)
+
+    // Array operations
+    doubled := angka.map(it * 2)
+    evens := angka.filter(it % 2 == 0)
+    total := angka.reduce(fn (acc int, x int) int { return acc + x }, 0)
+
+    // Maps
+    mut user := map[string]string{}
+    user['nama'] = 'Andi'
+    user['email'] = 'andi@email.com'
+    println(user['nama'])
+
+    // Struct
+    struct Point {
+        x f64
+        y f64
+    }
+
+    p := Point{3.0, 4.0}
+    println('x=${p.x}, y=${p.y}')
+
+    // Enums
+    enum Color {
+        red
+        green
+        blue
+    }
+
+    c := Color.red
+
+    // Option type
+    fn find_user(id int) ?string {
+        if id == 1 {
+            return 'Andi'
+        }
+        return none
+    }
+
+    user := find_user(1) or { 'Unknown' }
+
+    // Result type
+    fn parse_age(s string) !int {
+        age := s.int()
+        if age < 0 || age > 150 {
+            return error('Umur tidak valid')
+        }
+        return age
+    }
+
+    age := parse_age('25') or { 0 }
+
+    // Control flow
+    if umur >= 17 {
+        println('Dewasa')
+    } else {
+        println('Anak-anak')
+    }
+
+    // Match (switch)
+    match c {
+        .red { println('Merah') }
+        .green { println('Hijau') }
+        .blue { println('Biru') }
+    }
+
+    // For loop
+    for i in 0 .. 10 {
+        println(i)
+    }
+
+    // For-in
+    for item in angka {
+        println(item)
+    }
+
+    // While
+    mut i := 0
+    for i < 10 {
+        println(i)
+        i++
+    }
+}
+</code></pre>
+                </div>
+
+                <h3>Functions dan Methods</h3>
+                <div class="code-label">functions.v</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+// Basic function
+fn tambah(a int, b int) int {
+    return a + b
+}
+
+// Single expression
+fn kali(a int, b int) int {
+    return a * b
+}
+
+// Multiple return values
+fn min_max(arr []int) (int, int) {
+    mut min := arr[0]
+    mut max := arr[0]
+    for val in arr {
+        if val < min { min = val }
+        if val > max { max = val }
+    }
+    return min, max
+}
+
+// Option return type
+fn safe_divide(a f64, b f64) ?f64 {
+    if b == 0 {
+        return none
+    }
+    return a / b
+}
+
+// Error return type
+fn read_file(path string) !string {
+    if !os.exists(path) {
+        return error('File tidak ditemukan: ${path}')
+    }
+    return os.read_file(path)
+}
+
+// Default parameters
+fn greet(nama string, greeting string = 'Halo') string {
+    return '${greeting}, ${nama}!'
+}
+
+// Variadic arguments
+fn jumlah(args ...int) int {
+    mut total := 0
+    for arg in args {
+        total += arg
+    }
+    return total
+}
+
+// Generic functions
+fn first<T>(arr []T) T {
+    return arr[0]
+}
+
+// Method pada struct
+struct User {
+    nama string
+    umur int
+}
+
+fn (u User) greet() string {
+    return 'Halo, ${u.nama} (${u.umur})'
+}
+
+fn (mut u User) set_age(umur int) {
+    u.umur = umur
+}
+
+// Interface
+interface Printable {
+    str() string
+}
+
+struct Product {
+    nama  string
+    harga f64
+}
+
+fn (p Product) str() string {
+    return '${p.nama}: Rp ${p.harga}'
+}
+</code></pre>
+                </div>
+            </section>
+
+            <section id="memory">
+                <h2>4. Memory Management (Autofree)</h2>
+                <p>V menggunakan pendekatan unik untuk memory management: autofree compiler. Compiler secara otomatis menambahkan free() call di tempat yang tepat, sehingga Anda tidak perlu GC atau manual management.</p>
+
+                <div class="code-label">memory.v</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+module main
+
+// Compile dengan autofree:
+// v -autofree run .
+
+// V secara otomatis men-free memory saat tidak digunakan lagi
+fn contoh_autofree() {
+    // String ini akan otomatis di-free setelah fungsi selesai
+    nama := 'BeebaneLabs'
+    pesan := 'Hello, ${nama}!'
+    println(pesan)
+    // Compiler menambahkan free(pesan) dan free(nama) di sini
+}
+
+// Manual memory management opsional
+fn contoh_manual() {
+    // Manual buffer
+    buf := unsafe { malloc(1024) }
+    // ... gunakan buffer
+    unsafe { free(buf) }
+}
+
+// Shared memory antar threads
+fn contoh_shared() {
+    shared counter := 0
+    lock counter {
+        counter++
+    }
+    rlock counter {
+        println('Counter: ${counter}')
+    }
+}
+
+// Optionals - tidak perlu null
+fn process(data ?string) {
+    // Option chaining
+    result := data or { 'default' }
+    println(result)
+
+    // Or-block
+    match data {
+        some { println('Ada data: ${data}') }
+        none { println('Tidak ada data') }
+    }
+}
+
+// Struct ownership
+struct Owner {
+    data string
+}
+
+struct Borrower<'a> {
+    owner &Owner
+}
+
+// Error propagation
+fn proses_data() !string {
+    data := read_data()!  // propagate error dengan !
+    validated := validate(data)!
+    return format(validated)
+}
+
+fn read_data() !string {
+    return 'data'
+}
+
+fn validate(data string) !string {
+    if data.len == 0 {
+        return error('Data kosong')
+    }
+    return data
+}
+
+fn format(data string) !string {
+    return 'Formatted: ${data}'
+}
+
+fn main() {
+    contoh_autofree()
+
+    result := proses_data() or { 'Error: ${err}' }
+    println(result)
+}
+</code></pre>
+                </div>
+            </section>
+
+            <section id="c-interop">
+                <h2>5. C Interop</h2>
+                <p>V bisa memanggil C library langsung tanpa FFI wrapper. Ini salah satu fitur terkuat V.</p>
+
+                <div class="code-label">c_interop.v</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+module main
+
+// Import C header langsung
+#include <math.h>
+#include <time.h>
+#include <stdio.h>
+
+// C function declarations
+fn C.sqrt(x f64) f64
+fn C.pow(base f64, exp f64) f64
+fn C.sin(x f64) f64
+fn C.cos(x f64) f64
+fn C.time(t &int) int
+fn C.printf(fmt &char, ...void) int
+
+// C struct
+struct C.timespec {
+    tv_sec  int
+    tv_nsec int
+}
+
+fn C.clock_gettime(clk_id int, tp &C.timespec) int
+
+fn main() {
+    // Panggil C functions langsung
+    println(C.sqrt(144.0))        // 12.0
+    println(C.pow(2.0, 10.0))     // 1024.0
+    println(C.sin(3.14159 / 2.0)) // ~1.0
+
+    // C variadic function
+    unsafe {
+        C.printf(c'Hello from C: %d\n', 42)
+    }
+
+    // Using C struct
+    ts := C.timespec{}
+    unsafe {
+        C.clock_gettime(0, &ts)
+    }
+    println('Unix timestamp: ${ts.tv_sec}')
+
+    // Compile dengan C library:
+    // v -cflags '-lm' run .
+
+    // Link dengan custom C library:
+    // v -cflags '-L./libs -lmylib' run .
+}
+
+// Wrapper module untuk C library
+// mylib/wrapper.v:
+// module mylib
+// #include "mylib.h"
+// fn C.my_function(x int) int
+// pub fn my_function(x int) int {
+//     return C.my_function(x)
+// }
+</code></pre>
+                </div>
+            </section>
+
+            <section id="concurrency">
+                <h2>6. Concurrency</h2>
+
+                <div class="code-label">concurrency.v</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+module main
+import time
+
+// Spawn - menjalankan function di goroutine-like thread
+fn worker(id int) {
+    for i in 0 .. 5 {
+        println('Worker ${id}: ${i}')
+        time.sleep(100 * time.millisecond)
+    }
+}
+
+fn main() {
+    // Spawn threads
+    spawn worker(1)
+    spawn worker(2)
+    spawn worker(3)
+
+    // Wait untuk threads selesai
+    time.sleep(1 * time.second)
+
+    // Channels
+    ch := chan int{cap: 10}
+
+    // Producer
+    spawn fn (ch chan int) {
+        for i in 0 .. 10 {
+            ch <- i
+        }
+        ch.close()
+    }(ch)
+
+    // Consumer
+    for val in ch {
+        println('Received: ${val}')
+    }
+
+    // Shared state
+    shared counter := 0
+
+    mut threads := []thread{}
+    for _ in 0 .. 10 {
+        threads << spawn fn (shared counter) {
+            for _ in 0 .. 1000 {
+                lock counter {
+                    counter++
+                }
+            }
+        }(counter)
+    }
+
+    threads.wait()
+
+    rlock counter {
+        println('Counter: ${counter}')
+    }
+
+    // Wait group
+    mut wg := sync.new_wait_group()
+    wg.add(3)
+
+    for i in 0 .. 3 {
+        spawn fn (i int, wg &sync.WaitGroup) {
+            defer { wg.done() }
+            println('Task ${i} selesai')
+        }(i, wg)
+    }
+
+    wg.wait()
+    println('Semua task selesai')
+}
+</code></pre>
+                </div>
+            </section>
+
+            <section id="web">
+                <h2>7. Web Development (Vweb)</h2>
+
+                <div class="code-label">src/main.v</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+module main
+
+import vweb
+import json
+
+struct App {
+    vweb.Context
+}
+
+struct User {
+    id   int    @[json: 'id']
+    name string @[json: 'name']
+    age  int    @[json: 'age']
+}
+
+['/']
+fn (app App) index() vweb.Result {
+    return app.html('<h1>Hello from V!</h1>')
+}
+
+['/api/users']
+fn (app App) get_users() vweb.Result {
+    users := [
+        User{1, 'Andi', 25},
+        User{2, 'Budi', 30},
+        User{3, 'Citra', 22},
+    ]
+    return app.json(users)
+}
+
+['/api/users/:id']
+fn (app App) get_user(id string) vweb.Result {
+    user := User{1, 'Andi', 25}
+    return app.json(user)
+}
+
+['/api/users'; post]
+fn (app App) create_user() vweb.Result {
+    user := json.decode(User, app.req.data) or {
+        return app.json({'error': 'Invalid JSON'})
+    }
+    return app.json(user)
+}
+
+fn main() {
+    mut app := &App{}
+    app.serve_static('/static', 'static/')
+    vweb.run(app, 8080)
+}
+</code></pre>
+                </div>
+            </section>
+
+            <section id="cross-compile">
+                <h2>8. Cross Compilation</h2>
+
+                <div class="code-label">Bash</div>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>
+# Cross-compile untuk Linux dari macOS/Windows
+v -os linux -o myapp .
+
+# Cross-compile untuk Windows
+v -os windows -o myapp.exe .
+
+# Cross-compile untuk macOS
+v -os macos -o myapp .
+
+# Cross-compile untuk FreeBSD
+v -os freebsd -o myapp .
+
+# Compile ke JavaScript
+v -b js_browser -o output.js .
+v -b js_node -o output.js .
+
+# Compile dengan optimasi
+v -prod -o myapp .  # Release mode
+
+# Compile dengan debug info
+v -g -o myapp .
+
+# Generate C code (tanpa compile ke binary)
+v -o main.c -translated .
+
+# Compile ke native, output berupa C yang bisa di-compile manual
+v -o output.c .
+gcc output.c -o myapp -lm -lpthread
+
+# Compile ke WASM (experimental)
+v -b wasm -o output.wasm .
+</code></pre>
+                </div>
+            </section>
+
+            <section id="quiz">
+                <div class="quiz-section">
+                    <h2>🧠 Kuis: V Programming Language</h2>
+
+                    <div class="quiz-question">
+                        <h4>1. Apa itu autofree di V?</h4>
+                        <ul class="quiz-options" data-correct="2">
+                            <li onclick="checkAnswer(this, false)">Garbage collector yang berjalan di background</li>
+                            <li onclick="checkAnswer(this, true)">Compiler secara otomatis menambahkan free() di tempat yang tepat</li>
+                            <li onclick="checkAnswer(this, false)">Manual memory management seperti C</li>
+                            <li onclick="checkAnswer(this, false)">Reference counting seperti Python</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>2. Bagaimana V memanggil C library?</h4>
+                        <ul class="quiz-options" data-correct="1">
+                            <li onclick="checkAnswer(this, true)">Dengan #include dan deklarasi fn C.nama()</li>
+                            <li onclick="checkAnswer(this, false)">Melalui FFI wrapper module</li>
+                            <li onclick="checkAnswer(this, false)">Tidak bisa, V tidak kompatibel dengan C</li>
+                            <li onclick="checkAnswer(this, false)">Hanya melalui dynamic linking</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>3. Berapa lama waktu compile yang dibutuhkan V untuk project besar?</h4>
+                        <ul class="quiz-options" data-correct="3">
+                            <li onclick="checkAnswer(this, false)">Menit-menit</li>
+                            <li onclick="checkAnswer(this, false)">Puluhan detik</li>
+                            <li onclick="checkAnswer(this, true)">Sekitar 1 detik</li>
+                            <li onclick="checkAnswer(this, false)">Tidak ada compilation, interpreted</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>4. Apa perbedaan := dan = di V?</h4>
+                        <ul class="quiz-options" data-correct="2">
+                            <li onclick="checkAnswer(this, false)">Tidak ada perbedaan</li>
+                            <li onclick="checkAnswer(this, true)">:= untuk deklarasi baru, = untuk assignment</li>
+                            <li onclick="checkAnswer(this, false)">:= untuk mutable, = untuk immutable</li>
+                            <li onclick="checkAnswer(this, false)">:= untuk global, = untuk local</li>
+                        </ul>
+                    </div>
+
+                    <div class="quiz-question">
+                        <h4>5. Apa fungsi dari option type (?) di V?</h4>
+                        <ul class="quiz-options" data-correct="4">
+                            <li onclick="checkAnswer(this, false)">Membuat parameter optional</li>
+                            <li onclick="checkAnswer(this, false)">Tipe data nullable seperti null di Java</li>
+                            <li onclick="checkAnswer(this, false)">Type casting</li>
+                            <li onclick="checkAnswer(this, true)">Merepresentasikan nilai yang mungkin tidak ada (none)</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <div style="margin-top: 40px; padding: 20px; background: #f0f0f0; border-radius: 10px;">
+                <h3>📚 Sumber Belajar Lanjutan</h3>
+                <ul>
+                    <li><a href="https://github.com/vlang/v" target="_blank">V GitHub Repository</a></li>
+                    <li><a href="https://vlang.io/docs" target="_blank">V Documentation</a></li>
+                    <li><a href="https://modules.vlang.io/" target="_blank">V Modules</a></li>
+                    <li><a href="https://discord.gg/vlang" target="_blank">V Discord</a></li>
+                </ul>
+            </div>
+        </article>
+    </main>

@@ -1,0 +1,1364 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">⚡ Go Concurrency</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>Go Concurrency: Goroutines &amp; Channels</h1>
+      <p class="article-subtitle">Panduan lengkap Go Concurrency — goroutines, channels, select statement, sync package, worker pools, dan pattern konkurensi praktis untuk backend developer</p>
+      <div class="article-meta">
+        <span>📅 27 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#apa-itu-concurrency">Apa Itu Concurrency?</a></li>
+          <li><a href="#goroutines">Goroutines</a></li>
+          <li><a href="#channels">Channels</a></li>
+          <li><a href="#buffered-channels">Buffered Channels</a></li>
+          <li><a href="#select">Select Statement</a></li>
+          <li><a href="#sync-package">Sync Package</a></li>
+          <li><a href="#mutex-rwmutex">Mutex &amp; RWMutex</a></li>
+          <li><a href="#worker-pool">Worker Pool Pattern</a></li>
+          <li><a href="#pipeline">Pipeline Pattern</a></li>
+          <li><a href="#context">Context &amp; Timeout</a></li>
+          <li><a href="#race-condition">Race Condition &amp; Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Apa Itu Concurrency -->
+      <!-- ============================== -->
+      <h2 id="apa-itu-concurrency">1. ⚡ Apa Itu Concurrency?</h2>
+
+      <p><strong>Concurrency</strong> adalah kemampuan program untuk menjalankan beberapa tugas secara bersamaan. Go memiliki fitur concurrency yang sangat kuat dan mudah digunakan melalui <strong>goroutines</strong> dan <strong>channels</strong>.</p>
+
+      <p>Perbedaan penting: <strong>Concurrency</strong> ≠ <strong>Parallelism</strong>. Concurrency adalah tentang menangani banyak tugas sekaligus (bisa bergantian), sedangkan parallelism adalah menjalankan banyak tugas secara literal bersamaan (butuh multi-core CPU).</p>
+
+      <h3>Concurrency vs Parallelism</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Concurrency</th>
+            <th>Parallelism</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Definisi</td><td>Menangani banyak tugas sekaligus</td><td>Menjalankan banyak tugas bersamaan</td></tr>
+          <tr><td>Analogi</td><td>1 kasir melayani banyak pelanggan bergantian</td><td>Banyak kasir melayani pelanggan bersamaan</td></tr>
+          <tr><td>CPU</td><td>Bisa single-core</td><td>Butuh multi-core</td></tr>
+          <tr><td>Di Go</td><td>Goroutines</td><td>GOMAXPROCS &gt; 1 (default = semua core)</td></tr>
+          <tr><td>Tujuan</td><td>Mengatur struktur program</td><td>Menjalankan lebih cepat</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Concurrency vs Parallelism</div>
+<pre class="mermaid">
+flowchart TD
+    subgraph CONC["⚡ Concurrency (1 CPU Core)"]
+        A1["Task A: baca file"] -->|"context switch"| A2["Task B: hitung data"]
+        A2 -->|"context switch"| A3["Task C: kirim response"]
+        A3 -->|"context switch"| A1
+    end
+    subgraph PAR["🚀 Parallelism (Multi CPU Core)"]
+        B1["Task A → CPU Core 1"]
+        B2["Task B → CPU Core 2"]
+        B3["Task C → CPU Core 3"]
+    end
+    CONC -->|"Go: goroutines\n(tidak butuh multi-core)"| PAR
+    PAR -->|"Go: GOMAXPROCS > 1\n(default semua core)"| PAR
+</pre>
+      </div>
+
+      <h3>Go Concurrency Model</h3>
+      <p>Go mengikuti filosofi <em>"Don't communicate by sharing memory; share memory by communicating."</em> — Rob Pike. Artinya, gunakan <strong>channels</strong> untuk komunikasi antar goroutine, bukan shared variable.</p>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Goroutines          -->
+      <!-- ============================== -->
+      <h2 id="goroutines">2. Goroutines</h2>
+
+      <p><strong>Goroutine</strong> adalah lightweight thread yang dikelola oleh Go runtime. Goroutine jauh lebih ringan dari OS thread — hanya membutuhkan ~2KB memory (vs ~1MB untuk thread biasa). Anda bisa menjalankan ribuan hingga jutaan goroutine secara bersamaan!</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Goroutines Dasar</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "time"
+)
+
+func cetakPesan(pesan string, delay int) {
+    for i := 0; i < 3; i++ {
+        fmt.Printf("[%s] %s (ke-%d)\n", time.Now().Format("15:04:05"), pesan, i+1)
+        time.Sleep(time.Duration(delay) * time.Millisecond)
+    }
+}
+
+func main() {
+    fmt.Println("=== Tanpa Goroutine (Sequential) ===")
+    start := time.Now()
+    cetakPesan("Tugas A", 100)
+    cetakPesan("Tugas B", 100)
+    fmt.Printf("Selesai dalam: %v\n\n", time.Since(start))
+
+    fmt.Println("=== Dengan Goroutine (Concurrent) ===")
+    start = time.Now()
+
+    // Menjalankan sebagai goroutine dengan keyword 'go'
+    go cetakPesan("Tugas A", 100)
+    go cetakPesan("Tugas B", 100)
+    go cetakPesan("Tugas C", 100)
+
+    // Tunggu sebentar agar goroutine selesai
+    time.Sleep(500 * time.Millisecond)
+    fmt.Printf("Selesai dalam: %v\n", time.Since(start))
+    // Output: jauh lebih cepat karena berjalan bersamaan!
+}
+</code></pre>
+      </div>
+
+      <h3>Anonim Goroutine</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Anonim Goroutine</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "sync"
+    "time"
+)
+
+func main() {
+    var wg sync.WaitGroup
+
+    // Anonymous goroutine dengan WaitGroup
+    for i := 1; i <= 5; i++ {
+        wg.Add(1)
+        go func(id int) {
+            defer wg.Done()
+            fmt.Printf("Goroutine %d mulai\n", id)
+            time.Sleep(time.Duration(id*100) * time.Millisecond)
+            fmt.Printf("Goroutine %d selesai\n", id)
+        }(i) // Penting: pass 'i' sebagai parameter!
+    }
+
+    fmt.Println("Menunggu semua goroutine selesai...")
+    wg.Wait()
+    fmt.Println("Semua goroutine selesai! ✅")
+}
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Common Mistake: Variable Capture</div>
+        <p>Saat menggunakan goroutine dalam loop, <strong>selalu pass variabel loop sebagai parameter</strong> ke fungsi anonim. Jika tidak, semua goroutine akan membaca variabel yang sama dan menghasilkan nilai yang tidak terduga (race condition).</p>
+      </div>
+
+      <h3>Goroutine vs Thread</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Goroutine</th>
+            <th>OS Thread</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Memory</td><td>~2-8 KB awal</td><td>~1 MB</td></tr>
+          <tr><td>Creation</td><td>~0.3 μs</td><td>~30 μs</td></tr>
+          <tr><td>Context Switch</td><td>~100 ns (user space)</td><td>~1-10 μs (kernel)</td></tr>
+          <tr><td>Max Count</td><td>Jutaan</td><td>Ribuan</td></tr>
+          <tr><td>Scheduling</td><td>Go runtime (M:N)</td><td>OS kernel (1:1)</td></tr>
+          <tr><td>Komunikasi</td><td>Channels (aman)</td><td>Shared memory (berbahaya)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Channels            -->
+      <!-- ============================== -->
+      <h2 id="channels">3. Channels</h2>
+
+      <p><strong>Channel</strong> adalah conduit (pipa) untuk komunikasi antar goroutine. Channel memastikan data dikirim dan diterima secara aman tanpa race condition. Ini adalah inti dari motto Go: <em>"Share memory by communicating."</em></p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Unbuffered Channel</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import "fmt"
+
+func main() {
+    // Membuat channel (unbuffered)
+    ch := make(chan string)
+
+    // Goroutine mengirim data ke channel
+    go func() {
+        ch <- "Halo dari goroutine!"
+    }()
+
+    // Menerima data dari channel (blocking!)
+    pesan := &lt;-ch
+    fmt.Println(pesan) // Halo dari goroutine!
+
+    // Channel dengan tipe data
+    intCh := make(chan int)
+
+    go func() {
+        for i := 1; i <= 5; i++ {
+            intCh &lt;- i * 10
+        }
+        close(intCh) // Tutup channel setelah selesai
+    }()
+
+    // Menerima dari channel yang sudah di-close
+    for nilai := range intCh {
+        fmt.Println(nilai) // 10, 20, 30, 40, 50
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>Channel Direction</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Channel Direction</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import "fmt"
+
+// Channel hanya untuk mengirim (write-only)
+func producer(ch chan&lt;- int) {
+    for i := 0; i < 5; i++ {
+        ch &lt;- i * i
+    }
+    close(ch)
+}
+
+// Channel hanya untuk menerima (read-only)
+func consumer(ch &lt;-chan int) {
+    for val := range ch {
+        fmt.Printf("Menerima: %d\n", val)
+    }
+}
+
+func main() {
+    ch := make(chan int)
+
+    go producer(ch)  // Mengirim ke channel
+    consumer(ch)     // Menerima dari channel
+
+    // Channel direction meningkatkan type safety:
+    // chan&lt;- int  = send-only channel
+    // &lt;-chan int  = receive-only channel
+    // chan int     = bidirectional channel
+}
+</code></pre>
+      </div>
+
+      <h3>Contoh: Fan-Out Fan-In</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Fan-Out Fan-In</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "sync"
+)
+
+// Fan-In: menggabungkan beberapa channel menjadi satu
+func fanIn(channels ...&lt;-chan string) &lt;-chan string {
+    var wg sync.WaitGroup
+    merged := make(chan string)
+
+    for _, ch := range channels {
+        wg.Add(1)
+        go func(c &lt;-chan string) {
+            defer wg.Done()
+            for val := range c {
+                merged &lt;- val
+            }
+        }(ch)
+    }
+
+    go func() {
+        wg.Wait()
+        close(merged)
+    }()
+
+    return merged
+}
+
+func producer(id int) &lt;-chan string {
+    ch := make(chan string)
+    go func() {
+        for i := 1; i <= 3; i++ {
+            ch &lt;- fmt.Sprintf("Producer %d - Item %d", id, i)
+        }
+        close(ch)
+    }()
+    return ch
+}
+
+func main() {
+    // Fan-Out: 3 producer berjalan paralel
+    ch1 := producer(1)
+    ch2 := producer(2)
+    ch3 := producer(3)
+
+    // Fan-In: gabungkan semua output ke satu channel
+    merged := fanIn(ch1, ch2, ch3)
+
+    for pesan := range merged {
+        fmt.Println(pesan)
+    }
+    fmt.Println("Semua producer selesai! ✅")
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Buffered Channels   -->
+      <!-- ============================== -->
+      <h2 id="buffered-channels">4. Buffered Channels</h2>
+
+      <p>Channel default bersifat <strong>unbuffered</strong> — pengirim harus menunggu sampai ada penerima. <strong>Buffered channel</strong> memiliki kapasitas penyimpanan, sehingga pengirim bisa mengirim beberapa data tanpa menunggu penerima.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Buffered Channel</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "time"
+)
+
+func main() {
+    // Unbuffered channel — blocking
+    ch1 := make(chan string)
+    go func() {
+        ch1 &lt;- "data" // Blok sampai ada yang menerima
+    }()
+    fmt.Println(&lt;-ch1)
+
+    // Buffered channel — kapasitas 3
+    ch2 := make(chan int, 3)
+
+    // Kirim tanpa blocking (sampai buffer penuh)
+    ch2 &lt;- 1
+    ch2 &lt;- 2
+    ch2 &lt;- 3
+    // ch2 &lt;- 4  // AKAN DEADLOCK! Buffer penuh
+
+    fmt.Println(&lt;-ch2) // 1
+    fmt.Println(&lt;-ch2) // 2
+    fmt.Println(&lt;-ch2) // 3
+
+    fmt.Printf("Len: %d, Cap: %d\n", len(ch2), cap(ch2))
+    // Len: 0 (sudah diambil semua), Cap: 3
+
+    // Contoh praktik: Rate limiter
+    limiter := make(chan time.Time, 5)
+
+    go func() {
+        for i := 0; i < 10; i++ {
+            limiter &lt;- time.Now()
+            time.Sleep(200 * time.Millisecond)
+        }
+        close(limiter)
+    }()
+
+    for t := range limiter {
+        fmt.Printf("Request diproses pada: %s\n", t.Format("15:04:05.000"))
+    }
+}
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips: Kapan Pakai Buffered?</div>
+        <p>Gunakan <strong>unbuffered</strong> saat butuh sinkronisasi (pastikan data diterima). Gunakan <strong>buffered</strong> saat produksi lebih cepat dari konsumsi, atau sebagai rate limiter. Jangan terlalu besar — buffer yang berlebihan menyembunyikan masalah (bufferbloat).</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Select              -->
+      <!-- ============================== -->
+      <h2 id="select">5. Select Statement</h2>
+
+      <p><code>select</code> memungkinkan goroutine menunggu beberapa channel sekaligus. Mirip seperti switch, tapi untuk channel operations.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Select Statement</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "time"
+)
+
+func main() {
+    ch1 := make(chan string)
+    ch2 := make(chan string)
+
+    go func() {
+        time.Sleep(1 * time.Second)
+        ch1 &lt;- "Response dari API 1"
+    }()
+
+    go func() {
+        time.Sleep(2 * time.Second)
+        ch2 &lt;- "Response dari API 2"
+    }()
+
+    // Select — tunggu channel yang pertama ready
+    for i := 0; i < 2; i++ {
+        select {
+        case msg1 := &lt;-ch1:
+            fmt.Println("Diterima:", msg1)
+        case msg2 := &lt;-ch2:
+            fmt.Println("Diterima:", msg2)
+        }
+    }
+
+    // Select dengan timeout
+    timeoutCh := make(chan string)
+    go func() {
+        time.Sleep(3 * time.Second) // Simulasi proses lama
+        timeoutCh &lt;- "Selesai!"
+    }()
+
+    select {
+    case result := &lt;-timeoutCh:
+        fmt.Println("Hasil:", result)
+    case &lt;-time.After(1 * time.Second):
+        fmt.Println("Timeout! ⏰ Proses terlalu lama")
+    }
+
+    // Non-blocking select dengan default
+    dataCh := make(chan string, 1)
+    dataCh &lt;- "test"
+
+    select {
+    case val := &lt;-dataCh:
+        fmt.Println("Ada data:", val)
+    default:
+        fmt.Println("Channel kosong, lanjut...")
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>Contoh: Fan-Out dengan Select</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Multiplexing dengan Select</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "math/rand"
+    "time"
+)
+
+func fetchData(name string, ch chan&lt;- string) {
+    delay := time.Duration(rand.Intn(3)+1) * time.Second
+    time.Sleep(delay)
+    ch &lt;- fmt.Sprintf("[%s] Data siap setelah %v", name, delay)
+}
+
+func main() {
+    rand.Seed(time.Now().UnixNano())
+
+    api1 := make(chan string, 1)
+    api2 := make(chan string, 1)
+    api3 := make(chan string, 1)
+
+    go fetchData("Google", api1)
+    go fetchData("GitHub", api2)
+    go fetchData("NewsAPI", api3)
+
+    // Tunggu semua dengan select (yang pertama selesai duluan)
+    for i := 0; i < 3; i++ {
+        select {
+        case res := &lt;-api1:
+            fmt.Println(res)
+        case res := &lt;-api2:
+            fmt.Println(res)
+        case res := &lt;-api3:
+            fmt.Println(res)
+        }
+    }
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Sync Package        -->
+      <!-- ============================== -->
+      <h2 id="sync-package">6. Sync Package</h2>
+
+      <p>Package <code>sync</code> menyediakan primitive sinkronisasi seperti <strong>WaitGroup</strong>, <strong>Mutex</strong>, <strong>Once</strong>, dan <strong>Pool</strong>.</p>
+
+      <h3>WaitGroup</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — sync.WaitGroup</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "sync"
+    "time"
+)
+
+func downloadFile(url string, wg *sync.WaitGroup) {
+    defer wg.Done() // Kurangi counter saat selesai
+
+    fmt.Printf("📥 Mulai download: %s\n", url)
+    time.Sleep(time.Duration(len(url)) * 100 * time.Millisecond)
+    fmt.Printf("✅ Selesai download: %s\n", url)
+}
+
+func main() {
+    var wg sync.WaitGroup
+
+    urls := []string{
+        "https://api.example.com/users",
+        "https://api.example.com/products",
+        "https://api.example.com/orders",
+        "https://api.example.com/reports",
+    }
+
+    for _, url := range urls {
+        wg.Add(1) // Tambah counter
+        go downloadFile(url, &wg)
+    }
+
+    fmt.Println("Menunggu semua download selesai...")
+    wg.Wait() // Block sampai counter = 0
+    fmt.Println("🎉 Semua file berhasil didownload!")
+}
+</code></pre>
+      </div>
+
+      <h3>sync.Once — Hanya Sekali</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — sync.Once</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "sync"
+)
+
+type Config struct {
+    DBHost string
+    DBPort int
+}
+
+var (
+    config *Config
+    once   sync.Once
+)
+
+// GetConfig — singleton pattern dengan sync.Once
+func GetConfig() *Config {
+    once.Do(func() {
+        fmt.Println("🔧 Loading config... (hanya sekali)")
+        config = &Config{
+            DBHost: "localhost",
+            DBPort: 5432,
+        }
+    })
+    return config
+}
+
+func main() {
+    var wg sync.WaitGroup
+
+    for i := 0; i < 10; i++ {
+        wg.Add(1)
+        go func(id int) {
+            defer wg.Done()
+            cfg := GetConfig()
+            fmt.Printf("Worker %d: DB=%s:%d\n", id, cfg.DBHost, cfg.DBPort)
+        }(i)
+    }
+
+    wg.Wait()
+    // "Loading config..." hanya dicetak sekali!
+}
+</code></pre>
+      </div>
+
+      <h3>sync.Map — Thread-Safe Map</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — sync.Map</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "sync"
+)
+
+func main() {
+    var cache sync.Map
+
+    // Store — simpan data
+    cache.Store("user:1", "Budi")
+    cache.Store("user:2", "Ani")
+    cache.Store("user:3", "Dimas")
+
+    // Load — ambil data
+    val, ok := cache.Load("user:1")
+    if ok {
+        fmt.Println(val) // Budi
+    }
+
+    // LoadOrStore — ambil atau simpan jika belum ada
+    actual, loaded := cache.LoadOrStore("user:4", "Sari")
+    fmt.Printf("Value: %s, Already existed: %t\n", actual, loaded)
+
+    // Delete — hapus
+    cache.Delete("user:2")
+
+    // Range — iterasi semua
+    cache.Range(func(key, value any) bool {
+        fmt.Printf("%v: %v\n", key, value)
+        return true // return false untuk berhenti
+    })
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Mutex & RWMutex     -->
+      <!-- ============================== -->
+      <h2 id="mutex-rwmutex">7. Mutex &amp; RWMutex</h2>
+
+      <p><strong>Mutex</strong> (Mutual Exclusion) melindungi shared resource dari concurrent access. Gunakan mutex saat beberapa goroutine perlu mengakses dan memodifikasi data yang sama.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Mutex</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "sync"
+)
+
+// SafeCounter — thread-safe counter
+type SafeCounter struct {
+    mu    sync.Mutex
+    count int
+}
+
+func (c *SafeCounter) Increment() {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    c.count++
+}
+
+func (c *SafeCounter) Get() int {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    return c.count
+}
+
+func main() {
+    counter := SafeCounter{}
+
+    var wg sync.WaitGroup
+    for i := 0; i < 1000; i++ {
+        wg.Add(1)
+        go func() {
+            defer wg.Done()
+            counter.Increment()
+        }()
+    }
+
+    wg.Wait()
+    fmt.Println("Final count:", counter.Get()) // Selalu 1000
+    // Tanpa mutex, hasilnya bisa kurang dari 1000 (race condition!)
+}
+</code></pre>
+      </div>
+
+      <h3>RWMutex — Read-Write Mutex</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — RWMutex</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "sync"
+    "time"
+)
+
+type SafeCache struct {
+    mu   sync.RWMutex
+    data map[string]string
+}
+
+func NewSafeCache() *SafeCache {
+    return &SafeCache{data: make(map[string]string)}
+}
+
+func (c *SafeCache) Set(key, value string) {
+    c.mu.Lock()         // Exclusive lock — hanya 1 writer
+    defer c.mu.Unlock()
+    c.data[key] = value
+}
+
+func (c *SafeCache) Get(key string) (string, bool) {
+    c.mu.RLock()        // Shared lock — bisa banyak reader
+    defer c.mu.RUnlock()
+    val, ok := c.data[key]
+    return val, ok
+}
+
+func main() {
+    cache := NewSafeCache()
+    var wg sync.WaitGroup
+
+    // Writers
+    for i := 0; i < 5; i++ {
+        wg.Add(1)
+        go func(id int) {
+            defer wg.Done()
+            key := fmt.Sprintf("key-%d", id)
+            cache.Set(key, fmt.Sprintf("value-%d", id))
+        }(i)
+    }
+
+    // Readers
+    for i := 0; i < 10; i++ {
+        wg.Add(1)
+        go func(id int) {
+            defer wg.Done()
+            time.Sleep(10 * time.Millisecond) // Tunggu writer
+            val, ok := cache.Get(fmt.Sprintf("key-%d", id%5))
+            if ok {
+                fmt.Printf("Reader %d: %s\n", id, val)
+            }
+        }(i)
+    }
+
+    wg.Wait()
+    fmt.Println("Selesai ✅")
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Worker Pool         -->
+      <!-- ============================== -->
+      <h2 id="worker-pool">8. Worker Pool Pattern</h2>
+
+      <p><strong>Worker Pool</strong> adalah pattern paling umum di Go concurrency. Batasi jumlah goroutine yang berjalan bersamaan untuk menghindari resource exhaustion.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Worker Pool</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "math/rand"
+    "sync"
+    "time"
+)
+
+type Job struct {
+    ID   int
+    Data string
+}
+
+type Result struct {
+    JobID  int
+    Output string
+}
+
+func worker(id int, jobs &lt;-chan Job, results chan&lt;- Result, wg *sync.WaitGroup) {
+    defer wg.Done()
+    for job := range jobs {
+        fmt.Printf("  Worker %d memproses Job %d\n", id, job.ID)
+        time.Sleep(time.Duration(rand.Intn(500)+200) * time.Millisecond)
+        results &lt;- Result{
+            JobID:  job.ID,
+            Output: fmt.Sprintf("Job '%s' selesai oleh Worker %d", job.Data, id),
+        }
+    }
+    fmt.Printf("  Worker %d selesai\n", id)
+}
+
+func main() {
+    const numJobs = 10
+    const numWorkers = 3
+
+    jobs := make(chan Job, numJobs)
+    results := make(chan Result, numJobs)
+
+    var wg sync.WaitGroup
+
+    // Start workers
+    for w := 1; w &lt;= numWorkers; w++ {
+        wg.Add(1)
+        go worker(w, jobs, results, &wg)
+    }
+
+    // Send jobs
+    for j := 1; j &lt;= numJobs; j++ {
+        jobs &lt;- Job{ID: j, Data: fmt.Sprintf("task-%d", j)}
+    }
+    close(jobs)
+
+    // Close results setelah semua worker selesai
+    go func() {
+        wg.Wait()
+        close(results)
+    }()
+
+    // Collect results
+    for result := range results {
+        fmt.Printf("✅ Result: %s\n", result.Output)
+    }
+
+    fmt.Println("\n🎉 Semua job selesai!")
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Pipeline            -->
+      <!-- ============================== -->
+      <h2 id="pipeline">9. Pipeline Pattern</h2>
+
+      <p><strong>Pipeline</strong> menghubungkan beberapa stage yang masing-masing membaca dari input channel, memproses, dan mengirim ke output channel. Setiap stage berjalan sebagai goroutine terpisah.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Pipeline</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "strings"
+)
+
+// Stage 1: Generate angka
+func generate(nums ...int) &lt;-chan int {
+    out := make(chan int)
+    go func() {
+        for _, n := range nums {
+            out &lt;- n
+        }
+        close(out)
+    }()
+    return out
+}
+
+// Stage 2: Filter — hanya ambil angka genap
+func filter(in &lt;-chan int) &lt;-chan int {
+    out := make(chan int)
+    go func() {
+        for n := range in {
+            if n%2 == 0 {
+                out &lt;- n
+            }
+        }
+        close(out)
+    }()
+    return out
+}
+
+// Stage 3: Transform — kuadratkan
+func transform(in &lt;-chan int) &lt;-chan int {
+    out := make(chan int)
+    go func() {
+        for n := range in {
+            out &lt;- n * n
+        }
+        close(out)
+    }()
+    return out
+}
+
+// Pipeline String
+func toUpper(in &lt;-chan string) &lt;-chan string {
+    out := make(chan string)
+    go func() {
+        for s := range in {
+            out &lt;- strings.ToUpper(s)
+        }
+        close(out)
+    }()
+    return out
+}
+
+func addPrefix(in &lt;-chan string, prefix string) &lt;-chan string {
+    out := make(chan string)
+    go func() {
+        for s := range in {
+            out &lt;- prefix + ": " + s
+        }
+        close(out)
+    }()
+    return out
+}
+
+func main() {
+    // Pipeline: generate → filter → transform
+    // Input: 1-10 → Genap → Kuadrat
+    nums := generate(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    evens := filter(nums)
+    squares := transform(evens)
+
+    fmt.Println("=== Number Pipeline ===")
+    for result := range squares {
+        fmt.Println(result) // 4, 16, 36, 64, 100
+    }
+
+    // Pipeline String
+    fmt.Println("\n=== String Pipeline ===")
+    words := make(chan string)
+    go func() {
+        for _, w := range []string{"hello", "world", "golang"} {
+            words &lt;- w
+        }
+        close(words)
+    }()
+
+    upper := toUpper(words)
+    prefixed := addPrefix(upper, "LOG")
+
+    for msg := range prefixed {
+        fmt.Println(msg) // LOG: HELLO, LOG: WORLD, LOG: GOLANG
+    }
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Context            -->
+      <!-- ============================== -->
+      <h2 id="context">10. Context &amp; Timeout</h2>
+
+      <p><code>context</code> digunakan untuk mengelola lifecycle goroutine, mengirim sinyal cancellation, dan mengatur deadline/timeout. Sangat penting untuk HTTP handler, database query, dan operasi jaringan.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Context</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>package main
+
+import (
+    "context"
+    "fmt"
+    "time"
+)
+
+func fetchData(ctx context.Context, name string) string {
+    select {
+    case &lt;-time.After(2 * time.Second): // Simulasi proses lama
+        return fmt.Sprintf("Data %s berhasil", name)
+    case &lt;-ctx.Done():
+        return fmt.Sprintf("Data %s dibatalkan: %v", name, ctx.Err())
+    }
+}
+
+func main() {
+    // Context dengan timeout
+    ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+    defer cancel() // Selalu panggil cancel!
+
+    result := fetchData(ctx, "users")
+    fmt.Println(result)
+    // Output: "Data users dibatalkan: context deadline exceeded"
+
+    // Context dengan value
+    ctx2 := context.WithValue(context.Background(), "requestID", "abc-123")
+    requestID := ctx2.Value("requestID")
+    fmt.Println("Request ID:", requestID)
+
+    // Context dengan cancel manual
+    ctx3, cancel3 := context.WithCancel(context.Background())
+
+    go func() {
+        result := fetchData(ctx3, "products")
+        fmt.Println(result)
+    }()
+
+    time.Sleep(500 * time.Millisecond)
+    cancel3() // Batalkan!
+    time.Sleep(100 * time.Millisecond)
+
+    // Contoh: batch request dengan timeout
+    fmt.Println("\n=== Batch Request ===")
+    services := []string{"users", "products", "orders", "reports"}
+    batchCtx, batchCancel := context.WithTimeout(context.Background(), 3*time.Second)
+    defer batchCancel()
+
+    for _, svc := range services {
+        go func(s string) {
+            fmt.Println(fetchData(batchCtx, s))
+        }(svc)
+    }
+
+    time.Sleep(4 * time.Second)
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Race Condition     -->
+      <!-- ============================== -->
+      <h2 id="race-condition">11. Race Condition &amp; Best Practices</h2>
+
+      <p><strong>Race condition</strong> terjadi ketika dua atau lebih goroutine mengakses shared resource secara bersamaan tanpa sinkronisasi. Go memiliki tool bawaan untuk mendeteksi race condition.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Go — Race Detection</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Jalankan dengan -race flag untuk mendeteksi race condition:
+go run -race main.go
+go test -race ./...
+
+# Contoh race condition (JANGAN ditiru!):
+var counter int
+var wg sync.WaitGroup
+
+for i := 0; i < 1000; i++ {
+    wg.Add(1)
+    go func() {
+        defer wg.Done()
+        counter++  // RACE CONDITION! ⚠️
+    }()
+}
+wg.Wait()
+// Hasil: bisa 987, 993, atau apapun — tidak konsisten!
+
+# Solusi: gunakan Mutex atau atomic operations
+
+# Best Practices:
+# 1. Hindari shared state — gunakan channels
+# 2. Gunakan sync.WaitGroup untuk menunggu goroutine
+# 3. Selalu gunakan -race saat testing
+# 4. Hindari goroutine leak — pastikan semua goroutine selesai
+# 5. Gunakan context untuk cancellation
+# 6. Jangan gunakan panic di goroutine (gunakan recover)
+# 7. Close channel dari sisi pengirim, bukan penerima
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Hindari Goroutine Leak!</div>
+        <p>Pastikan setiap goroutine memiliki cara untuk berhenti. Goroutine yang tidak pernah selesai (leak) akan menghabiskan memory. Gunakan <code>context</code>, <code>done channel</code>, atau timeout untuk memastikan goroutine bisa dihentikan.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz               -->
+      <!-- ============================== -->
+      <h2 id="quiz">12. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Go Concurrency:</p>
+
+      <div class="quiz-container" id="quizGoConcurrency01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa keyword untuk menjalankan fungsi sebagai goroutine di Go?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) <code>thread</code></div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) <code>go</code></div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) <code>async</code></div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) <code>spawn</code></div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa yang terjadi saat mengirim data ke unbuffered channel tanpa ada penerima?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Data di-drop</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Pengirim mendapat error</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Pengirim block (menunggu) sampai ada penerima</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Data disimpan di buffer otomatis</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Package apa yang digunakan untuk menunggu beberapa goroutine selesai?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) <code>runtime</code></div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) <code>sync.WaitGroup</code></div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) <code>time.Sleep</code></div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) <code>fmt.Println</code></div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari <code>select</code> dalam Go concurrency?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Memilih goroutine tercepat</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Menghentikan semua goroutine</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Menunggu beberapa channel sekaligus</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Mengompilasi kode lebih cepat</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Bagaimana cara mendeteksi race condition di Go?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) <code>go build -check</code></div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) <code>go run -race</code></div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) <code>go test -debug</code></div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) <code>go vet -race</code></div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="go-pemula.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Go (Golang) untuk Pemula</span>
+        </a>
+        <a href="go-web-development.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Go Web Development: net/http &amp; Gin</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

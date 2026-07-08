@@ -1,0 +1,1033 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== READING PROGRESS ========== -->
+  <div style="position:fixed;top:64px;left:0;right:0;height:3px;z-index:999;background:transparent;">
+    <div id="readingProgress" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent-primary),var(--accent-cyan));transition:width 0.1s linear;border-radius:0 2px 2px 0;"></div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">›</span>
+        <a href="../index.html#categories">MikroTik</a>
+        <span class="separator">›</span>
+        <span>Firewall</span>
+      </div>
+
+      <h1>Konfigurasi Firewall MikroTik: Filter Rules, NAT &amp; Proteksi Jaringan</h1>
+      <span class="access-badge token">TOKEN</span>
+
+      <div class="meta-row">
+        <div class="meta-item">📅 20 Juni 2026</div>
+        <div class="meta-item">📖 15 menit baca</div>
+        <div class="meta-item"><span class="difficulty lanjut">Lanjut</span></div>
+        <div class="meta-item">🌐 MikroTik</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide" id="ad-slot-top">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li>1. Pengenalan MikroTik Firewall</li>
+          <li>2. Filter Rules: Input, Forward, Output Chain</li>
+          <li>3. NAT: SRCNAT &amp; DSTNAT (Port Forwarding)</li>
+          <li>4. Mangle &amp; Marking (Connection Marking, Packet Marking)</li>
+          <li>5. Proteksi Jaringan: Anti-DDoS, Brute Force &amp; Brute SSH</li>
+          <li>6. Layer 7 Protocol Filtering (Blokir Aplikasi)</li>
+          <li>7. Firewall di RouterOS v7 (Fitur Baru)</li>
+          <li>8. Best Practices &amp; Backup Rules</li>
+          <li>9. Quiz: Uji Pemahamanmu</li>
+          <li>Quiz Pemahaman</li>
+        </ol>
+      </div>
+
+
+
+    <!-- ====== 1. PENGENALAN MIKROTIK FIREWALL ====== -->
+    <h2>1. Pengenalan MikroTik Firewall</h2>
+
+    <p>
+      Firewall MikroTik merupakan salah satu fitur paling kuat dan serbaguna di RouterOS.
+      Firewall memungkinkan administrator untuk mengontrol lalu lintas jaringan (traffic filtering)
+      yang masuk, keluar, dan melintasi router. Dengan konfigurasi firewall yang tepat, kamu dapat
+      melindungi jaringan dari serangan luar, mengatur akses pengguna, hingga mengoptimalkan
+      jalur data ke internet.
+    </p>
+
+    <h3>Konsep Dasar Firewall MikroTik</h3>
+    <p>
+      Sebelum masuk ke konfigurasi, penting untuk memahami tiga konsep inti dalam firewall MikroTik:
+      <strong>Chain</strong>, <strong>Rule</strong>, dan <strong>Action</strong>. Ketiganya bekerja
+      secara berurutan — setiap paket data yang melintasi firewall akan diperiksa berdasarkan
+      rangkaian rule yang sudah ditentukan.
+    </p>
+
+    <table class="net-table">
+      <thead>
+        <tr>
+          <th>Konsep</th>
+          <th>Deskripsi</th>
+          <th>Contoh</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Chain</strong></td>
+          <td>Kumpulan aturan yang dikelompokkan berdasarkan titik pemeriksaan paket. Menentukan kapan rule diterapkan.</td>
+          <td>input, forward, output, srcnat, dstnat</td>
+        </tr>
+        <tr>
+          <td><strong>Rule</strong></td>
+          <td>Satu atau lebih kondisi (criteria) yang harus dipenuhi paket agar action tertentu diterapkan.</td>
+          <td>src-address=192.168.1.0/24, protocol=tcp, dst-port=22</td>
+        </tr>
+        <tr>
+          <td><strong>Action</strong></td>
+          <td>Tindakan yang dilakukan terhadap paket yang cocok dengan rule. Menentukan fate dari paket tersebut.</td>
+          <td>accept, drop, reject, add-src-to-address-list</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="diagram-box">
+      <div class="diagram-label">📊 Alur Paket di Firewall MikroTik</div>
+      <div class="diagram-box">
+        
+<pre class="mermaid">
+flowchart TD
+    N0[Interface Ethernet]
+    N1["FORWARD (melintas router)"]
+    N2[Interface Keluar]
+    N3["INPUT (ke router)"]
+    N4[Filter Rules NAT Filter Rules Rules]
+    N0 --> N3
+    N3 --> N1
+    N1 --> N4
+    N4 --> N2
+</pre>
+    </div>
+    </div>
+
+    <div class="info-box info">
+      <div class="info-box-title">💡 Mengapa Firewall MikroTik Sangat Penting?</div>
+      <p>
+        Tanpa firewall yang dikonfigurasi dengan benar, MikroTik akan menerima semua paket
+        dari jaringan manapun. Ini berarti setiap orang di internet bisa mencoba mengakses
+        layanan yang berjalan di router — termasuk Winbox, SSH, dan API. Firewall adalah
+        garis pertahanan pertama dan utama untuk keamanan jaringan kamu.
+      </p>
+    </div>
+
+    <!-- ====== 2. FILTER RULES: INPUT, FORWARD, OUTPUT ====== -->
+    <h2>2. Filter Rules: Input, Forward, Output Chain</h2>
+
+    <p>
+      Filter rules adalah komponen utama firewall MikroTik yang berfungsi memfilter paket
+      berdasarkan kriteria tertentu. Terdapat tiga chain utama yang perlu dipahami oleh
+      setiap administrator jaringan.
+    </p>
+
+    <h3>Chain INPUT</h3>
+    <p>
+      Chain <code>input</code> memproses paket yang <strong>ditujukan ke router itu sendiri</strong>
+      (bukan paket yang melintasi router). Ini termasuk koneksi Winbox, SSH, WinAPI, ping ke
+      router, dan semua layanan yang berjalan di MikroTik.
+    </p>
+
+    </div>
+<div class="diagram-box">
+
+      <div class="diagram-label">📊 Ilustrasi Port Forwarding</div>
+      <div class="diagram-box">
+        
+<pre class="mermaid">
+flowchart TD
+    N0["MikroTik Router :2222→ :22 ▶ 192.168.1.20 Linux..."]
+    N1["MikroTik Router :80 → :80 ▶ 192.168.1.10 Web Se..."]
+    N2["Internet Client ▶ IP Publik:80 ▶"]
+    N3["Internet Client ▶ IP Publik:2222 ▶"]
+    N2 --> N1
+    N1 --> N3
+    N3 --> N0
+</pre>
+    </div>
+    </div>
+
+    <div class="info-box warning">
+      <div class="info-box-title">⚠️ Peringatan Keamanan Port Forwarding</div>
+      <p>
+        Port forwarding membuka akses ke server internal dari internet. Pastikan kamu hanya
+        meneruskan port yang benar-benar diperlukan, gunakan password yang kuat pada layanan
+        tersebut, dan pertimbangkan untuk menggunakan VPN sebagai gantinya jika memungkinkan.
+        Hindari meneruskan port seperti 23 (telnet), 3306 (MySQL), atau 27017 (MongoDB)
+        langsung ke internet.
+      </p>
+    </div>
+
+    <!-- ====== 4. MANGLE & MARKING ====== -->
+    <h2>4. Mangle &amp; Marking (Connection Marking, Packet Marking)</h2>
+
+    <p>
+      Mangle adalah fitur firewall MikroTik yang digunakan untuk memanipulasi paket dan
+      menerapkan "mark" (tanda) pada paket atau koneksi. Marking ini kemudian bisa digunakan
+      oleh firewall filter, queue, routing, dan komponen lainnya untuk mengambil tindakan
+      lebih lanjut.
+    </p>
+
+    <h3>Jenis-Jenis Marking</h3>
+
+    <table class="net-table">
+      <thead>
+        <tr>
+          <th>Jenis Mark</th>
+          <th>Deskripsi</th>
+          <th>Kegunaan Utama</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Connection Mark</strong></td>
+          <td>Menandai seluruh koneksi berdasarkan paket pertamanya. Semua paket dalam koneksi yang sama akan otomatis mendapat mark yang sama.</td>
+          <td>Queue management, bandwidth limiting</td>
+        </tr>
+        <tr>
+          <td><strong>Packet Mark</strong></td>
+          <td>Menandai paket individu tanpa mempengaruhi paket lain dalam koneksi yang sama.</td>
+          <td>Traffic classification untuk queue tree</td>
+        </tr>
+        <tr>
+          <td><strong>Routing Mark</strong></td>
+          <td>Menandai paket agar di-route melalui jalur tertentu. Berguna untuk policy-based routing.</td>
+          <td>Load balancing, failover routing</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Contoh Konfigurasi Mangle</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">MikroTik CLI</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# === Connection Marking ===
+# Tandai koneksi upload dari pengguna VIP
+/ip firewall mangle
+add chain=forward src-address=192.168.1.100 protocol=tcp \
+    dst-port=80,443 \
+    action=mark-connection new-connection-mark=vip-traffic \
+    passthrough=yes \
+    comment="Mark VIP user web traffic"
+
+# Tandai koneksi upload dari pengguna biasa
+add chain=forward src-address=192.168.1.0/24 \
+    protocol=tcp dst-port=80,443 \
+    action=mark-connection new-connection-mark=regular-traffic \
+    passthrough=yes \
+    comment="Mark regular user web traffic"
+
+# === Packet Marking ===
+# Tandai paket upload dari koneksi VIP
+add chain=forward connection-mark=vip-traffic \
+    action=mark-packet new-packet-mark=vip-upload \
+    passthrough=no \
+    comment="Mark VIP upload packets"
+
+# Tandai paket download ke koneksi VIP
+add chain=forward connection-mark=vip-traffic \
+    action=mark-packet new-packet-mark=vip-download \
+    passthrough=no \
+    comment="Mark VIP download packets"
+
+# === Routing Mark ===
+# Tandai paket dari server untuk routing via ISP B
+/ip firewall mangle
+add chain=forward src-address=192.168.1.10 \
+    action=mark-routing new-routing-mark=via-isp-b \
+    passthrough=no \
+    comment="Route server traffic via ISP B"
+
+# Tandai paket untuk load balancing ECMP
+add chain=prerouting src-address=192.168.1.0/24 \
+    connection-state=new \
+    action=mark-connection \
+    new-connection-mark=ecmp-balance \
+    per-connection-classifier=both-addresses:2/0 \
+    passthrough=yes \
+    comment="ECMP connection marking - path 0"
+
+add chain=prerouting src-address=192.168.1.0/24 \
+    connection-state=new \
+    action=mark-connection \
+    new-connection-mark=ecmp-balance \
+    per-connection-classifier=both-addresses:2/1 \
+    passthrough=yes \
+    comment="ECMP connection marking - path 1"
+      </code></pre>
+    </div>
+
+    <div class="info-box tip">
+      <div class="info-box-title">✅ Tips: Connection Mark vs Packet Mark</div>
+      <p>
+        Gunakan <code>connection mark</code> jika kamu ingin menerapkan tindakan pada
+        <strong>seluruh</strong> koneksi (semua paket yang berhubungan). Gunakan
+        <code>packet mark</code> jika kamu hanya perlu menandai paket individual.
+        Untuk queue tree dan bandwidth management, kamu biasanya membutuhkan
+        keduanya — connection mark untuk mengidentifikasi koneksi, lalu packet mark
+        untuk diterapkan ke queue tree.
+      </p>
+    </div>
+
+    <!-- ====== 5. PROTEKSI JARINGAN ====== -->
+    <h2>5. Proteksi Jaringan: Anti-DDoS, Brute Force &amp; Brute SSH</h2>
+
+    <p>
+      Firewall MikroTik bukan hanya sekadar filter traffic — ia juga mampu mendeteksi dan
+      memblokir berbagai jenis serangan jaringan. Pada bagian ini, kita akan membahas
+      konfigurasi firewall untuk melindungi router dan jaringan dari serangan DDoS, brute force,
+      serta berbagai serangan umum lainnya.
+    </p>
+
+    <h3>Anti-DDoS Basic</h3>
+    <p>
+      Serangan DDoS (Distributed Denial of Service) mencoba membuat jaringan atau layanan
+      tidak bisa diakses dengan mengirim traffic dalam volume besar. Berikut konfigurasi
+      firewall untuk mitigasi DDoS dasar:
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">MikroTik CLI</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# === ANTI-DDoS FILTER RULES ===
+
+# Buat address list untuk tracking attacker
+/ip firewall address-list
+add list=ddos-attackers timeout=00:05:00
+
+# 1. Drop paket dengan flag fragment (serangan fragmen)
+/ip firewall filter
+add chain=input action=drop protocol=icmp \
+    fragment=no \
+    comment="Anti-DDoS: Drop ICMP fragment"
+
+# 2. Drop paket TCP tanpa flag SYN yang mencurigakan
+add chain=input action=drop protocol=tcp \
+    tcp-flags=!syn connection-state=new \
+    comment="Anti-DDoS: Drop TCP non-SYN new connections"
+
+# 3. Drop SYN flood (banyak SYN tanpa ACK)
+add chain=input action=add-src-to-address-list \
+    protocol=tcp tcp-flags=syn connection-state=new \
+    src-address-list=ddos-connection-limit \
+    address-list=ddos-attackers \
+    address-list-timeout=00:05:00 \
+    comment="Anti-DDoS: Track SYN flood attackers"
+
+# 4. Limit koneksi baru per IP (SYN flood protection)
+add chain=input protocol=tcp tcp-flags=syn connection-state=new \
+    src-address-list=ddos-connection-limit \
+    action=drop \
+    comment="Anti-DDoS: Drop SYN flood"
+
+add chain=input protocol=tcp tcp-flags=syn connection-state=new \
+    action=add-src-to-address-list \
+    address-list=ddos-connection-limit \
+    address-list-timeout=30s \
+    limit=50/10,5 \
+    passthrough=yes \
+    comment="Anti-DDoS: Add to SYN limit list"
+
+# 5. Drop UDP flood (serangan volume tinggi UDP)
+add chain=input action=drop protocol=udp \
+    connection-state=new \
+    src-address-list=udp-flood \
+    comment="Anti-DDoS: Drop UDP flood"
+
+add chain=input action=add-src-to-address-list protocol=udp \
+    connection-state=new \
+    address-list=udp-flood \
+    address-list-timeout=00:01:00 \
+    limit=50/10,5 \
+    passthrough=yes \
+    comment="Anti-DDoS: Track UDP flood"
+
+# 6. Drop XMAS scan (serangan reconnaissance)
+add chain=input action=drop protocol=tcp \
+    tcp-flags=fin,psh,urg \
+    comment="Anti-DDoS: Drop XMAS scan"
+
+# 7. Drop NULL scan
+add chain=input action=drop protocol=tcp \
+    tcp-flags=!fin,!syn,!rst,!psh,!ack,!urg \
+    comment="Anti-DDoS: Drop NULL scan"
+      </code></pre>
+    </div>
+
+    <h3>Proteksi Brute Force Login</h3>
+    <p>
+      Serangan brute force mencoba login ke layanan (Winbox, SSH, API) dengan
+      mencoba banyak kombinasi username dan password secara berulang. Berikut cara
+      memblokir IP yang melakukan percobaan login berlebihan:
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">MikroTik CLI</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# === BRUTE FORCE PROTECTION: WINBOX ===
+
+# Buat address list untuk tracker
+/ip firewall address-list
+add list=winbox-brute-force timeout=00:10:00
+add list=blocked-winbox timeout=00:30:00
+
+# Drop IP yang sudah diblokir
+/ip firewall filter
+add chain=input protocol=tcp dst-port=8291 \
+    src-address-list=blocked-winbox \
+    action=drop \
+    comment="Block brute force Winbox (penalty)"
+
+# Tambah ke blacklist jika koneksi melebihi batas
+add chain=input protocol=tcp dst-port=8291 \
+    src-address-list=winbox-brute-force \
+    action=add-src-to-address-list \
+    address-list=blocked-winbox \
+    address-list-timeout=00:30:00 \
+    comment="Escalate to blacklist: Winbox brute force"
+
+add chain=input protocol=tcp dst-port=8291 \
+    action=add-src-to-address-list \
+    address-list=winbox-brute-force \
+    address-list-timeout=00:05:00 \
+    limit=3/1,5 \
+    passthrough=yes \
+    comment="Track Winbox login attempts"
+
+# === BRUTE FORCE PROTECTION: SSH ===
+
+/ip firewall address-list
+add list=ssh-brute-force timeout=00:10:00
+add list=blocked-ssh timeout=00:30:00
+
+# Drop SSH dari IP yang sudah masuk blacklist
+/ip firewall filter
+add chain=input protocol=tcp dst-port=22 \
+    src-address-list=blocked-ssh \
+    action=drop \
+    comment="Block brute force SSH (penalty)"
+
+# Escalate ke blacklist
+add chain=input protocol=tcp dst-port=22 \
+    src-address-list=ssh-brute-force \
+    action=add-src-to-address-list \
+    address-list=blocked-ssh \
+    address-list-timeout=00:30:00 \
+    comment="Escalate to blacklist: SSH brute force"
+
+# Track SSH login attempts
+add chain=input protocol=tcp dst-port=22 \
+    action=add-src-to-address-list \
+    address-list=ssh-brute-force \
+    address-list-timeout=00:05:00 \
+    limit=5/1,5 \
+    passthrough=yes \
+    comment="Track SSH login attempts"
+
+# === BRUTE FORCE PROTECTION: API (RouterOS API) ===
+
+/ip firewall address-list
+add list=api-brute-force timeout=00:10:00
+
+add chain=input protocol=tcp dst-port=8728 \
+    src-address-list=api-brute-force \
+    action=add-src-to-address-list \
+    address-list=blocked-winbox \
+    address-list-timeout=00:30:00 \
+    comment="Escalate to blacklist: API brute force"
+
+add chain=input protocol=tcp dst-port=8728 \
+    action=add-src-to-address-list \
+    address-list=api-brute-force \
+    address-list-timeout=00:05:00 \
+    limit=3/1,5 \
+    passthrough=yes \
+    comment="Track API login attempts"
+      </code></pre>
+    </div>
+
+    <h3>Proteksi Lanjutan: Connection Tracking Limits</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">MikroTik CLI</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# Batasi jumlah koneksi simultan per IP
+/ip firewall filter
+add chain=forward protocol=tcp connection-state=new \
+    src-address=192.168.1.0/24 \
+    connection-limit=150,32 \
+    action=drop \
+    comment="Limit connections per host (150/32)"
+
+# Batasi jumlah koneksi ICMP per detik (anti ping flood)
+add chain=input protocol=icmp \
+    limit=5/1,5 \
+    action=accept \
+    comment="Rate limit ICMP (5/sec)"
+
+add chain=input protocol=icmp \
+    action=drop \
+    comment="Drop ICMP flood (exceed rate limit)"
+
+# Drop paket dengan TTL rendah (traceroute probe)
+add chain=input protocol=icmp ttl=equal:1 \
+    action=drop \
+    comment="Drop traceroute probes"
+
+# Batasi concurrent FTP connections
+add chain=forward protocol=tcp dst-port=21 \
+    connection-limit=3,32 \
+    action=drop \
+    comment="Limit FTP connections per host"
+      </code></pre>
+    </div>
+
+    
+
+    <!-- ====== 6. LAYER 7 PROTOCOL FILTERING ====== -->
+    <h2>6. Layer 7 Protocol Filtering (Blokir Aplikasi)</h2>
+
+    <p>
+      Layer 7 protocol filtering memungkinkan kamu memblokir atau mengontrol aplikasi berdasarkan
+      konten payload-nya, bukan hanya port atau IP. Ini sangat berguna untuk memblokir aplikasi
+      seperti BitTorrent, Telegram, WhatsApp, atau protokol tertentu yang menggunakan port standar
+      (misalnya HTTP/80) tapi mengandung aplikasi berbeda.
+    </p>
+
+    <div class="info-box info">
+      <div class="info-box-title">💡 Catatan: Layer 7 di RouterOS v6</div>
+      <p>
+        Layer 7 protocol matching tersedia di RouterOS v6 dengan nama
+        <code>layer7-protocol</code>. Fitur ini menggunakan regex (regular expression)
+        untuk memindai konten paket. Perlu diingat bahwa Layer 7 filtering cukup memakan CPU,
+        jadi gunakan secara bijak dan kombinasikan dengan filter rules port-based.
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">MikroTik CLI</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# === LAYER 7 PROTOCOL DEFINITIONS ===
+
+# Blokir BitTorrent
+/ip firewall layer7-protocol
+add name=BitTorrent regexp="^(\\x13BitTorrent protocol|d1:ad2:id20:|\\x08\\x00\\x00\\x00\\x00\\x00\\x00\\x00)\\x00" \
+    comment="BitTorrent protocol detection"
+
+# Blokir Telegram
+add name=Telegram regexp="tg://|api.telegram.org" \
+    comment="Telegram protocol detection"
+
+# Blokir WhatsApp
+add name=WhatsApp regexp="whatsapp|WHATS" \
+    comment="WhatsApp protocol detection"
+
+# Blokir DNS-over-HTTPS (DoH) untuk kontrol DNS
+add name=DoH regexp="(dns\\.google|cloudflare-dns|dns\\.quad9)" \
+    comment="DNS-over-HTTPS detection"
+
+# Blokir TikTok
+add name=TikTok regexp="(tikcdn|bytedance|douyin|tiktok)" \
+    comment="TikTok protocol detection"
+
+# === LAYER 7 FILTER RULES ===
+
+/ip firewall filter
+add chain=forward layer7-protocol=BitTorrent action=drop \
+    comment="Drop BitTorrent traffic"
+
+add chain=forward layer7-protocol=Telegram src-address=192.168.1.0/24 \
+    action=drop \
+    comment="Block Telegram from LAN"
+
+add chain=forward layer7-protocol=WhatsApp \
+    action=accept \
+    comment="Allow WhatsApp (no block)"
+
+add chain=forward layer7-protocol=DoH action=drop \
+    comment="Block DNS-over-HTTPS"
+
+add chain=forward layer7-protocol=TikTok src-address=192.168.1.0/24 \
+    action=drop \
+    comment="Block TikTok from LAN"
+      </code></pre>
+    </div>
+
+    <div class="info-box warning">
+      <div class="info-box-title">⚠️ Peringatan: Layer 7 Limitations</div>
+      <p>
+        Layer 7 matching hanya memindai <strong>beberapa byte pertama</strong> dari payload paket.
+        Aplikasi modern seperti Telegram dan WhatsApp menggunakan enkripsi end-to-end, sehingga
+        deteksi hanya bisa berfungsi pada saat koneksi awal (handshake). Selain itu, regex Layer 7
+        sangat berat untuk CPU — gunakan hanya jika filter berbasis port tidak cukup.
+        Pertimbangkan juga menggunakan <strong>content matching</strong> (<code>content=</code>)
+        sebagai alternatif yang lebih ringan.
+      </p>
+    </div>
+
+    <!-- ====== 7. FIREWALL DI ROUTEROS V7 ====== -->
+    <h2>7. Firewall di RouterOS v7 (Fitur Baru)</h2>
+
+    <p>
+      RouterOS v7 membawa banyak perubahan signifikan pada subsystem firewall. MikroTik
+      mengubah arsitektur dari kernel networking lama ke <strong>nftables-based backend</strong>
+      yang memberikan performa lebih baik, fitur lebih modern, dan kemampuan filtering yang
+      lebih canggih.
+    </p>
+
+    <h3>Perubahan Utama di RouterOS v7</h3>
+
+    <table class="net-table">
+      <thead>
+        <tr>
+          <th>Fitur</th>
+          <th>RouterOS v6</th>
+          <th>RouterOS v7</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Backend Firewall</strong></td>
+          <td>iptables-based custom kernel</td>
+          <td>nftables-based, lebih cepat &amp; modern</td>
+        </tr>
+        <tr>
+          <td><strong>Fasttrack</strong></td>
+          <td>Tersedia (limited)</td>
+          <td>Ditingkatkan, lebih efisien</td>
+        </tr>
+        <tr>
+          <td><strong>Conntrack</strong></td>
+          <td>Single-threaded</td>
+          <td>Multi-threaded, lebih scalable</td>
+        </tr>
+        <tr>
+          <td><strong>NAT Hairpinning</strong></td>
+          <td>Tidak tersedia</td>
+          <td>Dukungan native</td>
+        </tr>
+        <tr>
+          <td><strong>HW Offloading</strong></td>
+          <td>Limited</td>
+          <td>Extended HW offloading support</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Fitur Baru: Fasttrack &amp; HW Offloading di v7</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">MikroTik CLI (RouterOS v7)</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# === FASTTRACK CONNECTIONS (RouterOS v7) ===
+
+# Aktifkan fasttrack untuk koneksi established/related
+/ip firewall filter
+add chain=forward action=fasttrack-connection \
+    connection-state=established,related \
+    hw-offload=yes \
+    comment="Fasttrack established/related connections"
+
+# Pastikan rule accept untuk established ada sebelum fasttrack
+add chain=forward action=accept connection-state=established,related \
+    comment="Accept established (non-fasttrack fallback)"
+
+# === HARDWARE OFFLOADING ===
+# Aktifkan HW offloading pada bridge (switch chip)
+/interface bridge
+set [find name=bridge1] hardware=on vlan-filtering=yes
+
+# === CONNECTION TRACKING TUNING ===
+/ip firewall connection tracking
+set enabled=yes \
+    tcp-timeout=1d00:00:00 \
+    udp-timeout=30s \
+    icmp-timeout=10s \
+    fasttimeout=00:30:00 \
+    udp-stream-timeout=300s
+      </code></pre>
+    </div>
+
+    <h3>NAT Hairpinning di RouterOS v7</h3>
+    <p>
+      NAT hairpinning memungkinkan komputer di LAN mengakses layanan yang di-forward menggunakan
+      IP publik/router. Di RouterOS v6, ini memerlukan workarounding — v7 mendukungnya secara native.
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">MikroTik CLI (RouterOS v7)</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# === NAT HAIRPINNING (RouterOS v7) ===
+
+# Port forwarding dari internet ke server
+/ip firewall nat
+add chain=dstnat protocol=tcp dst-port=443 \
+    in-interface=ether1-wan \
+    to-addresses=192.168.1.10 to-ports=443 \
+    comment="Port forward HTTPS (internet)"
+
+# Hairpin rule: agar LAN juga bisa akses via IP publik
+/ip firewall nat
+add chain=dstnat protocol=tcp dst-port=443 \
+    src-address=192.168.1.0/24 \
+    to-addresses=192.168.1.10 to-ports=443 \
+    comment="NAT Hairpin for HTTPS"
+
+# === ROUTING-MARK BASED NAT (v7) ===
+# SRCNAT berbeda untuk masing-masing ISP
+/ip firewall nat
+add chain=srcnat src-address=192.168.1.0/24 \
+    out-interface=ether1-isp1 routing-mark=via-isp1 \
+    to-addresses=203.0.113.5 \
+    action=srcnat \
+    comment="SRCNAT via ISP 1"
+
+add chain=srcnat src-address=192.168.1.0/24 \
+    out-interface=ether2-isp2 routing-mark=via-isp2 \
+    to-addresses=198.51.100.5 \
+    action=srcnat \
+    comment="SRCNAT via ISP 2"
+      </code></pre>
+    </div>
+
+    <div class="info-box tip">
+      <div class="info-box-title">✅ Tips: Migrasi dari RouterOS v6 ke v7</div>
+      <p>
+        Saat migrasi ke RouterOS v7, pastikan untuk melakukan backup penuh konfigurasi
+        terlebih dahulu (<code>/export file=backup-v6</code>). Beberapa rule mungkin
+        memerlukan penyesuaian syntax, terutama yang berkaitan dengan <code>passthrough</code>,
+        <code>connection-tracking</code>, dan <code>layer7-protocol</code>. Test konfigurasi
+        di lingkungan staging sebelum diterapkan ke production.
+      </p>
+    </div>
+
+    <!-- ====== 8. BEST PRACTICES & BACKUP RULES ====== -->
+    <h2>8. Best Practices &amp; Backup Rules</h2>
+
+    <p>
+      Mengkonfigurasi firewall yang efektif memerlukan perencanaan yang matang. Berikut
+      best practices yang wajib diikuti untuk memastikan firewall MikroTik kamu berfungsi
+      optimal dan aman.
+    </p>
+
+    <h3>Checklist Firewall MikroTik Terbaik</h3>
+
+    
+
+    <h3>Script Backup &amp; Restore Firewall Rules</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">MikroTik CLI</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# === BACKUP KONFIGURASI ===
+
+# Backup penuh (binary) - cepat untuk restore
+/system backup save name="firewall-backup-2026-06-20"
+
+# Export dalam format teks (bisa diedit manual)
+/export file="firewall-export-2026-06-20"
+
+# Export hanya firewall rules
+/ip firewall filter print file="filter-rules-backup"
+/ip firewall nat print file="nat-rules-backup"
+/ip firewall mangle print file="mangle-rules-backup"
+/ip firewall address-list print file="address-list-backup"
+
+# === RESTORE KONFIGURASI ===
+# Restore dari backup binary
+/system backup load name="firewall-backup-2026-06-20"
+
+# Import dari file export (teks)
+/import file-name="firewall-export-2026-06-20"
+
+# === SCHEDULE AUTO BACKUP ===
+# Buat backup otomatis setiap hari
+/system scheduler
+add name=daily-backup \
+    interval=1d \
+    on-event="\
+        /system backup save name=\"auto-backup-\$[:pick [/system clock get date] 0 4]-\$[:pick [/system clock get date] 5 7]-\$[:pick [/system clock get date] 8 10]\";\
+        /log info message=\"Daily backup completed\";\
+    " \
+    comment="Auto backup setiap hari"
+      </code></pre>
+    </div>
+
+    <h3>Template Firewall Dasar (Copy-Paste Ready)</h3>
+    <p>
+      Berikut template firewall MikroTik yang bisa langsung kamu jalankan untuk
+      setup awal keamanan. Ganti IP dan interface sesuai dengan konfigurasi jaringanmu.
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">MikroTik CLI — Template Lengkap</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# ================================================
+# MIKROTIK FIREWALL TEMPLATE - BeebaneLabs
+# Ganti IP, interface, dan password sesuai kebutuhan
+# ================================================
+
+# --- STEP 1: Address List untuk Management ---
+/ip firewall address-list
+add address=192.168.1.0/24 list=management comment="LAN Management"
+add address=192.168.1.10 list=management comment="Admin PC"
+
+# --- STEP 2: Disable Layanan Tidak Perlu ---
+/ip service
+set telnet disabled=yes
+set ftp disabled=yes
+set www disabled=yes
+set api disabled=yes
+set api-ssl disabled=yes
+set winbox address=192.168.1.0/24
+set ssh address=192.168.1.0/24
+set www-ssl address=192.168.1.0/24
+
+# --- STEP 3: Change Default Password ---
+/user set admin password="R4h4s1a_S3cr3t!"
+
+# --- STEP 4: Disable Hotspot, DHCP if not needed ---
+# (Uncomment jika tidak menggunakan)
+# /ip service set www disabled=yes
+
+# --- STEP 5: Connection Tracking ---
+/ip firewall connection tracking
+set enabled=yes
+
+# --- STEP 6: INPUT Chain ---
+/ip firewall filter
+
+# Accept established/related
+add chain=input action=accept \
+    connection-state=established,related \
+    comment="INPUT: Accept established"
+
+# Drop invalid
+add chain=input action=drop \
+    connection-state=invalid \
+    comment="INPUT: Drop invalid"
+
+# Accept loopback
+add chain=input action=accept \
+    in-interface=loopback \
+    comment="INPUT: Accept loopback"
+
+# Accept ICMP (rate limited)
+add chain=input action=accept \
+    protocol=icmp limit=5/1,5 \
+    comment="INPUT: Accept ICMP (rate limit)"
+
+# Accept Winbox from management
+add chain=input action=accept \
+    protocol=tcp dst-port=8291 \
+    src-address-list=management \
+    comment="INPUT: Winbox from management"
+
+# Accept SSH from management
+add chain=input action=accept \
+    protocol=tcp dst-port=22 \
+    src-address-list=management \
+    comment="INPUT: SSH from management"
+
+# Accept DNS from LAN (for router-as-DNS)
+add chain=input action=accept \
+    protocol=udp dst-port=53 \
+    src-address=192.168.1.0/24 \
+    comment="INPUT: DNS from LAN"
+
+# Accept NTP
+add chain=input action=accept \
+    protocol=udp dst-port=123 \
+    src-address=192.168.1.0/24 \
+    comment="INPUT: NTP from LAN"
+
+# Drop all other input
+add chain=input action=drop \
+    comment="INPUT: Drop all other"
+
+# --- STEP 7: FORWARD Chain ---
+add chain=forward action=accept \
+    connection-state=established,related \
+    comment="FORWARD: Accept established"
+
+add chain=forward action=drop \
+    connection-state=invalid \
+    comment="FORWARD: Drop invalid"
+
+add chain=forward action=accept \
+    src-address=192.168.1.0/24 \
+    out-interface=ether1-wan \
+    comment="FORWARD: LAN to internet"
+
+add chain=forward action=drop \
+    comment="FORWARD: Drop all other"
+
+# --- STEP 8: NAT ---
+/ip firewall nat
+add chain=srcnat src-address=192.168.1.0/24 \
+    out-interface=ether1-wan action=masquerade \
+    comment="NAT: LAN to internet"
+      </code></pre>
+    </div>
+
+    <div class="info-box info">
+      <div class="info-box-title">💡 Verifikasi Setelah Konfigurasi</div>
+      <p>
+        Setelah menerapkan firewall, selalu verifikasi dengan cara berikut:
+        <br>• Cek rule aktif: <code>/ip firewall filter print stats</code>
+        <br>• Cek hit count per rule untuk melihat rule mana yang bekerja
+        <br>• Test dari luar jaringan menggunakan <code>nmap</code> atau <code> ShieldsUP!</code>
+        <br>• Pastikan koneksi internet masih berfungsi untuk user di LAN
+        <br>• Cek connection tracking: <code>/ip firewall connection tracking print count</code>
+      </p>
+    </div>
+
+    <!-- ====== 9. QUIZ ====== -->
+    <h2>9. Quiz: Uji Pemahamanmu</h2>
+
+    <p>
+      Jawab pertanyaan berikut untuk menguji pemahaman kamu tentang konfigurasi firewall
+      di MikroTik RouterOS. Pilih satu jawaban terbaik untuk setiap pertanyaan.
+    </p>
+
+    <div class="quiz-container" id="quiz12">
+      <h3>📝 Quiz Firewall MikroTik</h3>
+
+      <!-- Q1 -->
+      <div class="quiz-question">
+        <h4>1. Chain mana di MikroTik Firewall yang memproses paket yang ditujukan ke router itu sendiri (bukan paket yang melintasi router)?</h4>
+        <button class="quiz-option" data-question="0" data-answer="a">a. forward</button>
+        <button class="quiz-option" data-question="0" data-answer="b">b. output</button>
+        <button class="quiz-option" data-question="0" data-answer="c">c. input</button>
+        <button class="quiz-option" data-question="0" data-answer="d">d. prerouting</button>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-question">
+        <h4>2. Apa perbedaan antara masquerade dan srcnat statis pada MikroTik?</h4>
+        <button class="quiz-option" data-question="1" data-answer="a">a. Tidak ada perbedaan, keduanya sama persis</button>
+        <button class="quiz-option" data-question="1" data-answer="b">b. Masquerade menggunakan IP statis, srcnat menggunakan IP dinamis</button>
+        <button class="quiz-option" data-question="1" data-answer="c">c. Masquerade otomatis mendeteksi IP publik (cocok untuk dynamic IP), srcnat menggunakan IP tetap yang ditentukan manual</button>
+        <button class="quiz-option" data-question="1" data-answer="d">d. srcnat hanya bisa digunakan pada chain forward, masquerade di chain input</button>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-question">
+        <h4>3. Dalam mangle MikroTik, apa yang terjadi jika kamu menggunakan <code>connection mark</code> pada paket pertama sebuah koneksi?</h4>
+        <button class="quiz-option" data-question="2" data-answer="a">a. Hanya paket pertama yang ditandai</button>
+        <button class="quiz-option" data-question="2" data-answer="b">b. Semua paket dalam koneksi tersebut otomatis mendapat mark yang sama</button>
+        <button class="quiz-option" data-question="2" data-answer="c">c. Paket berikutnya harus ditandai secara manual</button>
+        <button class="quiz-option" data-question="2" data-answer="d">d. Mark hanya berlaku untuk 5 paket pertama</button>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-question">
+        <h4>4. Untuk memblokir IP yang melakukan brute force SSH ke MikroTik, mekanisme address-list dengan timeout dan action <code>add-src-to-address-list</code> berfungsi dengan cara...</h4>
+        <button class="quiz-option" data-question="3" data-answer="a">a. Memblokir semua IP secara permanen</button>
+        <button class="quiz-option" data-question="3" data-answer="b">b. Mengirim email notifikasi ke admin</button>
+        <button class="quiz-option" data-question="3" data-answer="c">c. Mengatur bandwidth agar terbatas</button>
+        <button class="quiz-option" data-question="3" data-answer="d">d. Menambah IP pelanggar ke daftar hitam sementara, lalu memblokir koneksi dari IP tersebut selama periode timeout</button>
+      </div>
+
+      <!-- Q5 -->
+      <div class="quiz-question">
+        <h4>5. Apa keuntungan utama NAT hairpinning di RouterOS v7 dibandingkan RouterOS v6?</h4>
+        <button class="quiz-option" data-question="4" data-answer="a">a. Mendukung lebih banyak port secara bersamaan</button>
+        <button class="quiz-option" data-question="4" data-answer="b">b. Mengurangi penggunaan CPU hingga 50%</button>
+        <button class="quiz-option" data-question="4" data-answer="c">c. Memungkinkan komputer di LAN mengakses layanan yang di-forward ke IP publik, tanpa perlu workarounding seperti di v6</button>
+        <button class="quiz-option" data-question="4" data-answer="d">d. Menghapus kebutuhan akan SRCNAT sama sekali</button>
+      </div>
+
+      <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+      <div class="quiz-result"></div>
+    </div>
+
+    <!-- ====== AD SLOT BOTTOM ====== -->
+    <div class="ad-slot ad-slot-wide" id="ad-slot-bottom">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+    <!-- ====== ARTICLE NAVIGATION ====== -->
+    <div class="article-nav">
+      <a href="network-security.html" class="prev">
+        <span class="nav-label">← Sebelumnya</span>
+        <span class="nav-title">Keamanan Jaringan IoT: Firewall, VPN &amp; Enkripsi Data</span>
+      </a>
+      <a href="telegram-bot-iot.html" class="next">
+        <span class="nav-label">Selanjutnya →</span>
+        <span class="nav-title">Membangun Bot Telegram untuk Monitoring IoT</span>
+      </a>
+    </div>
+
+  </article>
+
+  <!-- ========== FOOTER ========== -->

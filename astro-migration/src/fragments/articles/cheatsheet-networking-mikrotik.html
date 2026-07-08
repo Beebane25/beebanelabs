@@ -1,0 +1,177 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <main id="main-content">
+    <article class="article-page">
+      <div class="container">
+        <div class="breadcrumb" aria-label="Breadcrumb">
+          <a href="../index.html">Beranda</a> &rsaquo;
+          <a href="../kategori/networking.html">Jaringan Dasar</a> &rsaquo;
+          <span>Cheatsheet Networking & MikroTik</span>
+        </div>
+        <div class="article-header">
+          <div class="article-meta-top">
+            <span class="cheatsheet-badge">📋 Cheatsheet</span>
+            <span class="category-tag">Jaringan Dasar</span>
+            <span class="access-badge free">GRATIS</span>
+          </div>
+          <h1>Cheatsheet Networking & MikroTik: Command Line, Subnetting, dan RouterOS</h1>
+          <p class="article-subtitle">Referensi cepat OSI model, subnetting, MikroTik CLI, firewall, DHCP, dan VPN configuration.</p>
+          <div class="article-meta">
+            <span class="date">📅 3 Juli 2026</span>
+            <span class="read-time">📖 10 menit baca</span>
+            <span class="difficulty pemula">Pemula</span>
+          </div>
+        </div>
+        <div class="article-layout">
+          <div class="article-content cheatsheet">
+<h2>📋 OSI Model</h2>
+<table class="data-table">
+<tr><th>Layer</th><th>Nama</th><th>Protokol</th><th>Device</th></tr>
+<tr><td>7</td><td>Application</td><td>HTTP, FTP, SMTP, DNS</td><td>Load Balancer, WAF</td></tr>
+<tr><td>6</td><td>Presentation</td><td>SSL/TLS, JPEG, ASCII</td><td>—</td></tr>
+<tr><td>5</td><td>Session</td><td>NetBIOS, RPC</td><td>—</td></tr>
+<tr><td>4</td><td>Transport</td><td>TCP, UDP</td><td>—</td></tr>
+<tr><td>3</td><td>Network</td><td>IP, ICMP, ARP</td><td>Router</td></tr>
+<tr><td>2</td><td>Data Link</td><td>Ethernet, WiFi</td><td>Switch</td></tr>
+<tr><td>1</td><td>Physical</td><td>Cable, Fiber</td><td>Hub, Repeater</td></tr>
+</table>
+
+<h2>📊 Subnetting</h2>
+<table class="data-table">
+<tr><th>CIDR</th><th>Subnet Mask</th><th>Hosts</th><th>Network</th></tr>
+<tr><td>/24</td><td>255.255.255.0</td><td>254</td><td>1 subnet</td></tr>
+<tr><td>/25</td><td>255.255.255.128</td><td>126</td><td>2 subnet</td></tr>
+<tr><td>/26</td><td>255.255.255.192</td><td>62</td><td>4 subnet</td></tr>
+<tr><td>/27</td><td>255.255.255.224</td><td>30</td><td>8 subnet</td></tr>
+<tr><td>/28</td><td>255.255.255.240</td><td>14</td><td>16 subnet</td></tr>
+<tr><td>/29</td><td>255.255.255.248</td><td>6</td><td>32 subnet</td></tr>
+<tr><td>/30</td><td>255.255.255.252</td><td>2</td><td>64 subnet (point-to-point)</td></tr>
+</table>
+
+<h2>🔌 Common Ports</h2>
+<table class="data-table">
+<tr><th>Port</th><th>Service</th><th>Protocol</th></tr>
+<tr><td>20/21</td><td>FTP</td><td>TCP</td></tr>
+<tr><td>22</td><td>SSH</td><td>TCP</td></tr>
+<tr><td>23</td><td>Telnet</td><td>TCP</td></tr>
+<tr><td>25</td><td>SMTP</td><td>TCP</td></tr>
+<tr><td>53</td><td>DNS</td><td>TCP/UDP</td></tr>
+<tr><td>80</td><td>HTTP</td><td>TCP</td></tr>
+<tr><td>443</td><td>HTTPS</td><td>TCP</td></tr>
+<tr><td>3306</td><td>MySQL</td><td>TCP</td></tr>
+<tr><td>5432</td><td>PostgreSQL</td><td>TCP</td></tr>
+<tr><td>8080</td><td>HTTP Alt</td><td>TCP</td></tr>
+</table>
+
+<h2>🔧 MikroTik CLI</h2>
+<div class="code-block"><pre><code># Interface
+/interface print
+/interface ethernet print
+/interface enable ether1
+/interface disable ether2
+
+# IP Address
+/ip address add address=192.168.1.1/24 interface=ether1
+/ip address print
+
+# DHCP
+/ip pool add name=dhcp_pool ranges=192.168.1.10-192.168.1.100
+/ip dhcp-server add name=dhcp1 interface=ether1 address-pool=dhcp_pool
+/ip dhcp-server network add address=192.168.1.0/24 gateway=192.168.1.1
+
+# DNS
+/ip dns set servers=8.8.8.8,8.8.4.4
+/ip dns set allow-remote-requests=yes
+
+# NAT (masquerade)
+/ip firewall nat add chain=srcnat out-interface=ether1 action=masquerade
+
+# Static route
+/ip route add dst-address=0.0.0.0/0 gateway=10.0.0.1</code></pre></div>
+
+<h2>🛡️ MikroTik Firewall</h2>
+<div class="code-block"><pre><code># Filter rules
+/ip firewall filter add chain=input protocol=icmp action=accept
+/ip firewall filter add chain=input connection-state=established action=accept
+/ip firewall filter add chain=input connection-state=related action=accept
+/ip firewall filter add chain=input protocol=tcp dst-port=8291 action=accept comment="Winbox"
+/ip firewall filter add chain=input protocol=tcp dst-port=22 action=accept comment="SSH"
+/ip firewall filter add chain=input action=drop comment="Drop all"
+
+# Anti brute-force
+/ip firewall filter add chain=input protocol=tcp dst-port=22 \
+  connection-state=new src-address-list=ssh_blacklist action=drop
+/ip firewall filter add chain=input protocol=tcp dst-port=22 \
+  connection-state=new action=add-src-to-address-list \
+  address-list=ssh_blacklist address-list-timeout=1d</code></pre></div>
+
+<h2>📡 VLAN</h2>
+<div class="code-block"><pre><code># Create VLAN
+/interface vlan add name=vlan10 vlan-id=10 interface=ether1
+/interface vlan add name=vlan20 vlan-id=20 interface=ether1
+
+# Assign IP
+/ip address add address=192.168.10.1/24 interface=vlan10
+/ip address add address=192.168.20.1/24 interface=vlan20
+
+# Bridge VLAN
+/interface bridge add name=bridge1
+/interface bridge port add bridge=bridge1 interface=ether2
+/interface bridge vlan add bridge=bridge1 vlan-ids=10 tagged=ether1 untagged=ether2</code></pre></div>
+
+<h2>📡 VPN Configuration</h2>
+<div class="code-block"><pre><code># PPTP Server
+/interface pptp-server server set enabled=yes
+/ppp secret add name=user1 password=pass1 service=pptp local-address=10.0.0.1 remote-address=10.0.0.100
+
+# L2TP Server
+/interface l2tp-server server set enabled=yes default-profile=default-encryption
+/ppp secret add name=user2 password=pass2 service=l2tp
+
+# WireGuard
+/interface wireguard add name=wg1 listen-port=51820
+/ip address add address=10.10.10.1/24 interface=wg1
+/interface wireguard peers add interface=wg1 public-key="CLIENT_PUB_KEY" allowed-address=10.10.10.2/32</code></pre></div>
+
+<h2>🔍 Troubleshooting</h2>
+<div class="code-block"><pre><code># Ping & traceroute
+/ping 8.8.8.8 count=5
+/tool traceroute 8.8.8.8
+
+# Connection tracking
+/ip firewall connection print
+/ip firewall connection tracking print
+
+# Interface stats
+/interface monitor-traffic ether1
+/tool bandwidth-test address=192.168.1.1
+
+# Logs
+/log print where topics~"firewall"
+/log print where topics~"dhcp"
+
+# DNS test
+/tool dns lookup=google.com</code></pre></div>
+
+<h2>📊 Bandwidth Management</h2>
+<div class="code-block"><pre><code># Simple Queue
+/queue simple add name="User1" target=192.168.1.10/32 max-limit=10M/10M
+/queue simple add name="User2" target=192.168.1.11/32 max-limit=5M/5M
+
+# Queue Tree (parent-child)
+/queue tree add name="Download" parent=global
+/queue tree add name="User1-DL" parent=Download limit-at=5M max-limit=10M
+
+# PCQ (Per Connection Queue)
+/queue type add name="pcq-download" kind=pcq pcq-classifier=dst-address
+/queue type add name="pcq-upload" kind=pcq pcq-classifier=src-address</code></pre></div>
+</article>
+  </main>

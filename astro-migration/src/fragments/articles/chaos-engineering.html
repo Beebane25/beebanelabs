@@ -1,0 +1,687 @@
+<div class="search-overlay" id="searchOverlay"><button class="search-close-btn" aria-label="Tutup pencarian">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+
+  <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">DevOps &amp; Cloud</a><span class="separator">/</span><span class="current">Chaos Engineering</span></div><span class="category-tag">DevOps &amp; Cloud</span><h1>Chaos Engineering with Litmus</h1><span class="access-badge free">TOKEN</span><p class="article-subtitle">Kuasai Chaos Engineering di Kubernetes dengan Litmus — experiments, chaos hub, probes, faults, resilience scoring, dan practice continuous validation</p><div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 15 menit baca</span><span class="difficulty lanjut">Lanjut</span></div></div></section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content"><div class="container">
+
+    <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#chaos-engineering">Prinsip Chaos Engineering</a></li>
+      <li><a href="#litmus">LitmusChaos Overview</a></li>
+      <li><a href="#instalasi">Instalasi Litmus</a></li>
+      <li><a href="#experiments">Experiments</a></li>
+      <li><a href="#chaos-hub">Chaos Hub</a></li>
+      <li><a href="#probes">Probes &amp; Assertions</a></li>
+      <li><a href="#chaos-engine">ChaosEngine &amp; Faults</a></li>
+      <li><a href="#resilience">Resilience Scoring</a></li>
+      <li><a href="#quiz">Quiz Pemahaman</a></li>
+    </ol></div>
+
+    <h2 id="chaos-engineering">1. Prinsip Chaos Engineering</h2>
+    <p><strong>Chaos Engineering</strong> adalah disiplin eksperimen pada sistem produksi untuk membangun kepercayaan bahwa sistem mampu bertahan dalam kondisi yang tidak terduga. Tujuannya bukan untuk "merusak" sistem, tapi untuk menemukan kelemahan sebelum menemukan Anda.</p>
+
+    <div class="arch-diagram"><div class="arch-title">Chaos Engineering Workflow</div><div class="arch-row">
+      <div class="arch-box highlight"><div class="arch-icon">📊</div><div class="arch-label">Steady State</div><div class="arch-desc">Define normal behavior<br>Metrics baseline</div></div>
+      <div class="arch-arrow">→ Hypothesize →</div>
+      <div class="arch-box info"><div class="arch-icon">💭</div><div class="arch-label">Hypothesis</div><div class="arch-desc">System should handle<br>this fault gracefully</div></div>
+      <div class="arch-arrow">→ Inject →</div>
+      <div class="arch-box purple"><div class="arch-icon">💥</div><div class="arch-label">Inject Fault</div><div class="arch-desc">Pod kill, network delay,<br>CPU stress, disk fill</div></div>
+      <div class="arch-arrow">→ Observe →</div>
+      <div class="arch-box success"><div class="arch-icon">🔍</div><div class="arch-label">Analyze</div><div class="arch-desc">Verify hypothesis<br>Identify weaknesses<br>Improve resilience</div></div>
+    </div></div>
+
+    <h3>1.1 Empat Prinsip Chaos Engineering</h3>
+    <ul>
+      <li><strong>Build Hypothesis around Steady State:</strong> Definisikan "normal" berdasarkan metrik (latency, error rate, throughput)</li>
+      <li><strong>Vary Real-world Events:</strong> Simulasikan kegagalan yang benar-benar terjadi (pod crash, network partition, resource exhaustion)</li>
+      <li><strong>Run Experiments in Production:</strong> Lakukan di production (atau staging yang menyerupai production) untuk hasil yang valid</li>
+      <li><strong>Automate Experiments to Run Continuously:</strong> Integrasikan ke CI/CD pipeline untuk continuous resilience validation</li>
+    </ul>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="litmus">2. LitmusChaos Overview</h2>
+    <p><strong>LitmusChaos</strong> adalah CNCF chaos engineering framework untuk Kubernetes. Litmus menyediakan library fault injection (ChaosHub), orchestration engine, dan observability untuk eksperimen chaos yang terstruktur.</p>
+
+    <table class="spec-table">
+      <thead><tr><th>Komponen</th><th>Fungsi</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ChaosCenter</strong></td><td>Web UI &amp; management</td><td>Dashboard untuk manage experiments</td></tr>
+        <tr><td><strong>ChaosEngine</strong></td><td>CRD orchestration</td><td>Mendefinisikan eksperimen yang akan dijalankan</td></tr>
+        <tr><td><strong>ChaosExperiment</strong></td><td>CRD fault definition</td><td>Definisikan fault spesifik (pod delete, CPU stress)</td></tr>
+        <tr><td><strong>ChaosResult</strong></td><td>CRD result</td><td>Hasil eksekusi eksperimen</td></tr>
+        <tr><td><strong>ChaosHub</strong></td><td>Experiment library</td><td>Katalog eksperimen siap pakai</td></tr>
+        <tr><td><strong>Chaos Operator</strong></td><td>Controller</td><td>Reconcile ChaosEngine, inject faults</td></tr>
+        <tr><td><strong>ChaosRunner</strong></td><td>Execution pod</td><td>Pod yang menjalankan fault injection</td></tr>
+      </tbody>
+    </table>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="instalasi">3. Instalasi Litmus</h2>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal — Install LitmusChaos</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Tambahkan Helm repo
+helm repo add litmuschaos https://litmuschaos.github.io/litmus-helm/
+helm repo update
+
+# Install Litmus Control Plane (ChaosCenter)
+helm install litmus litmuschaos/litmus-control-plane \
+  --namespace litmus --create-namespace \
+  --set portal.frontend.service.type=NodePort
+
+# Atau install hanya CRDs + Operator (tanpa UI)
+helm install litmus litmuschaos/litmus \
+  --namespace litmus --create-namespace
+
+# Verifikasi instalasi
+kubectl get pods -n litmus
+# NAME                                    READY   STATUS
+# litmus-server-xxx                       1/1     Running
+# litmus-frontend-xxx                     1/1     Running
+# litmus-mongo-xxx                        1/1     Running
+# chaos-operator-ce-xxx                   1/1     Running
+
+# Akses ChaosCenter UI
+kubectl port-forward svc/litmusportal-frontend -n litmus 3030:80
+# Buka http://localhost:3030
+# Default credentials: admin / litmus
+
+# Install litmusctl CLI
+curl -sL https://litmusctl.litmuschaos.io/install.sh | bash
+# Atau download dari GitHub releases
+
+# Login via CLI
+litmusctl config set-account --endpoint="http://localhost:3030" \
+  --username="admin" --password="litmus"
+</code></pre>
+    </div>
+
+    <div class="code-block"><div class="code-header"><span class="code-lang">Litmus RBAC setup</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# ServiceAccount dan RBAC untuk chaos experiments
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: litmus-admin
+  namespace: litmus
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: litmus-admin
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/exec", "pods/log", "events", "services",
+      "configmaps", "secrets", "persistentvolumeclaims"]
+    verbs: ["create", "delete", "get", "list", "patch", "update"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "daemonsets"]
+    verbs: ["create", "delete", "get", "list", "patch", "update"]
+  - apiGroups: ["litmuschaos.io"]
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "delete", "get", "list"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: litmus-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: litmus-admin
+subjects:
+  - kind: ServiceAccount
+    name: litmus-admin
+    namespace: litmus
+</code></pre>
+    </div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="experiments">4. Experiments</h2>
+    <p><strong>ChaosExperiment</strong> mendefinisikan fault yang akan di-inject. Litmus memiliki library eksperimen yang bisa diinstall dari ChaosHub.</p>
+
+    <div class="code-block"><div class="code-header"><span class="code-lang">Pod Delete Experiment</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Install eksperimen dari ChaosHub
+# litmusctl get chaos-experiments --hub-name=ChaosHub
+
+# Atau install manual
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: pod-delete-engine
+  namespace: default
+spec:
+  # Target aplikasi
+  appinfo:
+    appns: default
+    applabel: app=my-app
+    appkind: deployment
+
+  # ServiceAccount yang digunakan
+  serviceAccount: litmus-admin
+
+  # Experiments yang akan dijalankan
+  experiments:
+    - name: pod-delete
+      spec:
+        components:
+          env:
+            # Jumlah pod yang akan di-delete
+            - name: TOTAL_CHAOS_DURATION
+              value: '30'
+            # Interval antara pod deletion
+            - name: CHAOS_INTERVAL
+              value: '10'
+            # Force delete (tanpa graceful termination)
+            - name: FORCE
+              value: 'false'
+            # Target pod count
+            - name: TARGET_PODS
+              value: ''
+            # Pod affected percentage
+            - name: PODS_AFFECTED_PERC
+              value: ''
+        # Probes untuk verifikasi
+        probes:
+          - name: "Verify app is running"
+            type: "httpProbe"
+            mode: "Continuous"
+            httpProbe/inputs:
+              url: "http://my-app.default.svc:8080/health"
+              method:
+                get:
+                  criteria: "=="
+                  responseCode: "200"
+            runProperties:
+              probeTimeout: 5
+              interval: 2
+              retry: 3
+
+  # Experiment execution policy
+  engineState: "active"
+  chaosServiceAccount: litmus-admin
+</code></pre>
+    </div>
+
+    <div class="info-box tip"><div class="info-box-title">💡 Mulai dari Staging</div><p>Jangan langsung menjalankan chaos experiments di production. Mulai dari environment staging yang menyerupai production. Pastikan Anda memiliki monitoring yang memadai (metrics, logs, alerts) sebelum menjalankan eksperimen di production.</p></div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="chaos-hub">5. Chaos Hub</h2>
+    <p><strong>ChaosHub</strong> adalah library eksperimen yang bisa diinstall langsung. Litmus memiliki lebih dari 50+ fault types yang tersedia.</p>
+
+    <div class="code-block"><div class="code-header"><span class="code-lang">Install experiments dari ChaosHub</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Install eksperimen spesifik ke cluster
+kubectl apply -f https://hub.litmuschaos.io/api/chaos/1.13.0?file=charts/generic/experiments.yaml
+
+# Kategori eksperimen yang tersedia di ChaosHub:
+
+# === Kubernetes Faults ===
+# pod-delete        — Hapus pods secara acak
+# pod-cpu-hog       — Stress CPU pada pods
+# pod-memory-hog    — Exhaust memory pada pods
+# pod-network-loss  — Simulasikan packet loss
+# pod-network-delay — Tambahkan network latency
+# pod-dns-error     — Simulasikan DNS failures
+
+# === Application Faults ===
+# node-drain        — Drain node dari pods
+# node-cpu-hog     — Stress CPU pada node
+# node-memory-hog  — Exhaust memory node
+# node-taint       — Taint nodes
+# kubelet-service-kill — Kill kubelet service
+
+# === Cloud Provider Faults ===
+# ec2-terminate     — Terminate EC2 instances
+# ebs-loss          — Detach EBS volumes
+# gcp-vm-stop       — Stop GCP VM instances
+# azure-vm-stop     — Stop Azure VM instances
+
+# === Network Faults ===
+# network-partition — Simulasikan network partition
+# network-duplication — Duplicate network packets
+# network-jitter    — Add network jitter
+# bandwidth-limit   — Limit network bandwidth
+
+# Install eksperimen spesifik
+kubectl apply -f https://hub.litmuschaos.io/api/chaos/1.13.0?file=charts/generic/experiments.yaml -n litmus
+
+# Cek eksperimen yang terinstall
+kubectl get chaosexperiments -n litmus
+</code></pre>
+    </div>
+
+    <div class="code-block"><div class="code-header"><span class="code-lang">Network delay experiment</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: network-delay-engine
+  namespace: default
+spec:
+  appinfo:
+    appns: default
+    applabel: app=api-gateway
+    appkind: deployment
+  experiments:
+    - name: pod-network-delay
+      spec:
+        components:
+          env:
+            - name: NETWORK_LATENCY
+              value: '2000'  # 2 detik delay
+            - name: JITTER
+              value: '500'   # 500ms jitter
+            - name: DESTINATION_IPS
+              value: ''      # Semua IPs
+            - name: DESTINATION_HOSTS
+              value: ''      # Semua hosts
+            - name: CONTAINER_RUNTIME
+              value: 'containerd'
+            - name: TOTAL_CHAOS_DURATION
+              value: '60'
+            - name: CHAOS_INTERVAL
+              value: '10'
+        probes:
+          - name: "Verify latency is bounded"
+            type: "promProbe"
+            mode: "Edge"
+            promProbe/inputs:
+              endpoint: "http://prometheus.monitoring:9090"
+              query: |
+                histogram_quantile(0.99,
+                  sum(rate(http_request_duration_seconds_bucket[1m]))) < 5
+              comparator:
+                type: "float"
+                criteria: "<"
+                value: "5"
+            runProperties:
+              probeTimeout: 10
+              interval: 5
+</code></pre>
+    </div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="probes">6. Probes &amp; Assertions</h2>
+    <p><strong>Probes</strong> adalah assertions yang dijalankan sebelum, selama, dan setelah eksperimen. Probes memverifikasi bahwa sistem berperilaku sesuai harapan selama fault injection.</p>
+
+    <table class="spec-table">
+      <thead><tr><th>Probe Type</th><th>Deskripsi</th><th>Contoh</th></tr></thead>
+      <tbody>
+        <tr><td><code>httpProbe</code></td><td>Validasi HTTP endpoint</td><td>Health check returns 200</td></tr>
+        <tr><td><code>cmdProbe</code></td><td>Validasi via command execution</td><td>kubectl get pods returns Running</td></tr>
+        <tr><td><code>k8sProbe</code></td><td>Validasi Kubernetes resource state</td><td>Deployment ready replicas &gt; 2</td></tr>
+        <tr><td><code>promProbe</code></td><td>Validasi via PromQL query</td><td>Error rate &lt; 5%</td></tr>
+      </tbody>
+    </table>
+
+    <div class="code-block"><div class="code-header"><span class="code-lang">Probe examples</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Probes di dalam ChaosEngine experiment spec
+experiments:
+  - name: pod-delete
+    spec:
+      probes:
+        # Probe 1: HTTP health check (continuous)
+        - name: "App is responding"
+          type: "httpProbe"
+          mode: "Continuous"
+          httpProbe/inputs:
+            url: "http://my-app.default:8080/health"
+            method:
+              get:
+                criteria: "=="
+                responseCode: "200"
+          runProperties:
+            probeTimeout: 5
+            interval: 2
+            retry: 3
+            probePollingInterval: 2
+
+        # Probe 2: K8s resource validation (edge)
+        - name: "Deployment has minimum replicas"
+          type: "k8sProbe"
+          mode: "Edge"
+          k8sProbe/inputs:
+            command:
+              command: ["kubectl", "get", "deploy", "my-app",
+                "-o", "jsonpath='{.status.readyReplicas}'"]
+            comparator:
+              type: "int"
+              criteria: ">="
+              value: "2"
+          runProperties:
+            probeTimeout: 10
+
+        # Probe 3: Prometheus metric validation (edge)
+        - name: "Error rate below threshold"
+          type: "promProbe"
+          mode: "Edge"
+          promProbe/inputs:
+            endpoint: "http://prometheus.monitoring:9090"
+            query: |
+              sum(rate(http_requests_total{status=~"5.."}[2m]))
+              / sum(rate(http_requests_total[2m])) * 100
+            comparator:
+              type: "float"
+              criteria: "<"
+              value: "5"
+          runProperties:
+            probeTimeout: 15
+            interval: 10
+
+        # Probe 4: Command validation (onChaos)
+        - name: "DB connection exists"
+          type: "cmdProbe"
+          mode: "OnChaos"
+          cmdProbe/inputs:
+            command: "pg_isready -h postgres.default -p 5432"
+            comparator:
+              type: "string"
+              criteria: "contains"
+              value: "accepting"
+          runProperties:
+            probeTimeout: 10
+</code></pre>
+    </div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="chaos-engine">7. ChaosEngine &amp; Faults</h2>
+
+    <div class="code-block"><div class="code-header"><span class="code-lang">Comprehensive ChaosEngine</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# ChaosEngine lengkap dengan multiple experiments
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: comprehensive-resilience-test
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: resilience-testing
+    environment: staging
+spec:
+  engineState: active
+  chaosServiceAccount: litmus-admin
+  appinfo:
+    appns: default
+    applabel: app=my-app,env=staging
+    appkind: deployment
+
+  experiments:
+    # Experiment 1: Pod Delete
+    - name: pod-delete
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: '30'
+            - name: CHAOS_INTERVAL
+              value: '10'
+            - name: FORCE
+              value: 'false'
+        probes:
+          - name: "App recovers after pod delete"
+            type: "httpProbe"
+            mode: "Edge"
+            httpProbe/inputs:
+              url: "http://my-app:8080/health"
+              method:
+                get:
+                  criteria: "=="
+                  responseCode: "200"
+            runProperties:
+              probeTimeout: 30
+              interval: 5
+              retry: 10
+
+    # Experiment 2: CPU Stress
+    - name: pod-cpu-hog
+      spec:
+        components:
+          env:
+            - name: CPU_CORES
+              value: '2'
+            - name: CPU_LOAD
+              value: '100'
+            - name: TOTAL_CHAOS_DURATION
+              value: '60'
+        probes:
+          - name: "Latency still acceptable under CPU pressure"
+            type: "promProbe"
+            mode: "Edge"
+            promProbe/inputs:
+              endpoint: "http://prometheus.monitoring:9090"
+              query: |
+                histogram_quantile(0.99,
+                  sum(rate(http_request_duration_seconds_bucket[1m]))) < 2
+              comparator:
+                type: "float"
+                criteria: "<"
+                value: "2"
+
+    # Experiment 3: Network Loss
+    - name: pod-network-loss
+      spec:
+        components:
+          env:
+            - name: NETWORK_PACKET_LOSS_PERCENTAGE
+              value: '30'
+            - name: DESTINATION_IPS
+              value: ''
+            - name: DESTINATION_HOSTS
+              value: ''
+            - name: CONTAINER_RUNTIME
+              value: 'containerd'
+            - name: TOTAL_CHAOS_DURATION
+              value: '60'
+        probes:
+          - name: "App handles packet loss gracefully"
+            type: "k8sProbe"
+            mode: "Edge"
+            k8sProbe/inputs:
+              command:
+                command: ["kubectl", "get", "deploy", "my-app",
+                  "-o", "jsonpath='{.status.readyReplicas}'"]
+              comparator:
+                type: "int"
+                criteria: ">="
+                value: "1"
+
+  # Schedule — jalankan eksperimen secara periodik
+  schedule:
+    repeat: weekly
+    time: "02:00"  # Jam 2 pagi
+    dayOfWeek: "Saturday"
+
+  # Rollback jika probes gagal
+  jobCleanUpPolicy: delete
+</code></pre>
+    </div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="resilience">8. Resilience Scoring</h2>
+    <p><strong>Resilience Score</strong> adalah metrik yang mengukur seberapa tangguh aplikasi Anda terhadap kegagalan. Score dihitung berdasarkan pass/fail ratio dari semua probes yang dijalankan selama eksperimen.</p>
+
+    <div class="code-block"><div class="code-header"><span class="code-lang">Resilience score calculation</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Formula Resilience Score
+# RS = (Jumlah probe yang passed / Total probes) × 100
+
+# Contoh: ChaosEngine dengan 3 experiments
+# Experiment 1 (pod-delete): 2/3 probes passed → 66.7%
+# Experiment 2 (cpu-stress): 3/3 probes passed → 100%
+# Experiment 3 (net-loss): 1/3 probes passed → 33.3%
+
+# Overall Resilience Score = (66.7 + 100 + 33.3) / 3 = 66.7%
+
+# Ambil hasil dari ChaosResult CRD
+# kubectl get chaosresult -n default -o yaml
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosResult
+metadata:
+  name: pod-delete-pod-delete
+  namespace: default
+spec:
+  engine: comprehensive-resilience-test
+  experiment: pod-delete
+status:
+  experimentStatus:
+    phase: Completed
+    verdict: Pass
+    probeSuccessPercentage: "66.7"
+    runningPhase: Completed
+  # History dari setiap run
+  history:
+    - verdict: Pass
+      probeSuccessPercentage: "66.7"
+      updatedAt: "2026-06-29T02:15:00Z"
+    - verdict: Fail
+      probeSuccessPercentage: "33.3"
+      updatedAt: "2026-06-22T02:15:00Z"
+
+# Monitoring resilience score di Grafana
+# PromQL query untuk Litmus metrics
+# litmus_experiment_verdict{experiment="pod-delete"}
+# litmus_probe_success_percentage
+
+# Target resilience score per environment:
+# Development: 60%+ (acceptable)
+# Staging: 80%+ (good)
+# Production: 90%+ (excellent)
+</code></pre>
+    </div>
+
+    <h3>8.1 CI/CD Integration</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">GitHub Actions — Chaos in CI/CD</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# .github/workflows/chaos-test.yml
+name: Chaos Engineering Test
+
+on:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 6'  # Setiap Sabtu jam 2 pagi
+
+jobs:
+  chaos-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Kubernetes cluster
+        uses: helm/kind-action@v1
+
+      - name: Install Litmus
+        run: |
+          helm repo add litmuschaos https://litmuschaos.github.io/litmus-helm/
+          helm install litmus litmuschaos/litmus \
+            --namespace litmus --create-namespace
+
+      - name: Deploy application
+        run: kubectl apply -f k8s/
+
+      - name: Run chaos experiments
+        run: |
+          kubectl apply -f chaos/pod-delete.yaml
+          # Tunggu eksperimen selesai
+          kubectl wait --for=condition=Completed \
+            chaosresult/pod-delete-pod-delete \
+            --timeout=300s
+
+      - name: Check resilience score
+        run: |
+          SCORE=$(kubectl get chaosresult -o jsonpath=
+            '{.items[0].status.experimentStatus.probeSuccessPercentage}')
+          echo "Resilience Score: $SCORE%"
+          if (( $(echo "$SCORE < 80" | bc -l) )); then
+            echo "❌ Resilience score below threshold!"
+            exit 1
+          fi
+          echo "✅ Resilience check passed"
+</code></pre>
+    </div>
+
+    <div class="info-box warning"><div class="info-box-title">⚠️ Safety Guidelines</div><p>Chaos Engineering bukan tentang merusak sistem. Pastikan selalu: (1) Punya rollback plan, (2) Blast radius dibatasi, (3) Monitoring aktif, (4) Tim yang aware, (5) Mulai dari staging. Jangan pernah menjalankan chaos experiment pada sistem yang Anda tidak pahami sepenuhnya.</p></div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+    <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+    <div class="quiz-container" id="quiz10">
+      <div class="quiz-question">
+        <h3>Pertanyaan 1: Apa tujuan utama Chaos Engineering?</h3>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="0" data-answer="a">a) Merusak sistem produksi untuk testing</div>
+          <div class="quiz-option" data-question="0" data-answer="b">b) Mengeksperimen pada sistem untuk menemukan kelemahan sebelum terjadi kegagalan yang tidak terduga</div>
+          <div class="quiz-option" data-question="0" data-answer="c">c) Menggantikan unit testing</div>
+          <div class="quiz-option" data-question="0" data-answer="d">d) Memonitoring performa aplikasi</div>
+        </div>
+      </div>
+      <div class="quiz-question">
+        <h3>Pertanyaan 2: Apa fungsi Probes di LitmusChaos?</h3>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="1" data-answer="a">a) Meng-inject faults ke dalam sistem</div>
+          <div class="quiz-option" data-question="1" data-answer="b">b) Assertions yang memverifikasi sistem berperilaku sesuai harapan sebelum, selama, dan setelah eksperimen</div>
+          <div class="quiz-option" data-question="1" data-answer="c">c) Mengumpulkan logs dari pods</div>
+          <div class="quiz-option" data-question="1" data-answer="d">d) Mengelola Kubernetes RBAC</div>
+        </div>
+      </div>
+      <div class="quiz-question">
+        <h3>Pertanyaan 3: Apa yang diukur oleh Resilience Score?</h3>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="2" data-answer="a">a) Response time aplikasi</div>
+          <div class="quiz-option" data-question="2" data-answer="b">b) Jumlah CPU dan memory yang digunakan</div>
+          <div class="quiz-option" data-question="2" data-answer="c">c) Persentase probes yang berhasil selama eksperimen — mengukur ketangguhan sistem terhadap faults</div>
+          <div class="quiz-option" data-question="2" data-answer="d">d) Jumlah pods yang running</div>
+        </div>
+      </div>
+      <div class="quiz-question">
+        <h3>Pertanyaan 4: Apa fungsi ChaosHub di Litmus?</h3>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="3" data-answer="a">a) Dashboard untuk monitoring cluster</div>
+          <div class="quiz-option" data-question="3" data-answer="b">b) Library katalog eksperimen yang bisa diinstall dan digunakan langsung</div>
+          <div class="quiz-option" data-question="3" data-answer="c">c) Tempat menyimpan hasil eksperimen</div>
+          <div class="quiz-option" data-question="3" data-answer="d">d) CI/CD pipeline untuk chaos testing</div>
+        </div>
+      </div>
+      <div class="quiz-question">
+        <h3>Pertanyaan 5: Mengapa penting menjalankan chaos experiments di staging sebelum production?</h3>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="4" data-answer="a">a) Karena Litmus tidak mendukung production</div>
+          <div class="quiz-option" data-question="4" data-answer="b">b) Untuk memvalidasi eksperimen, memahami blast radius, dan memastikan monitoring siap sebelum mengambil risiko di production</div>
+          <div class="quiz-option" data-question="4" data-answer="c">c) Karena staging lebih murah</div>
+          <div class="quiz-option" data-question="4" data-answer="d">d) Karena production tidak bisa diakses oleh Litmus</div>
+        </div>
+      </div>
+      <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+      <div class="quiz-result"></div>
+    </div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <div class="article-nav">
+      <a href="nix-containers.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">NixOS and Nix for Containers</span></a>
+      <a href="backstage-developer-portal.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">Backstage Developer Portal</span></a>
+    </div>
+
+  </div></article>
+
+  <section class="newsletter-section" id="newsletter"><div class="container"><div class="newsletter-card fade-in"><h2>📬 Dapatkan Tutorial Terbaru</h2><p>Subscribe untuk tutorial DevOps terbaru.</p><form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form></div></div></section>

@@ -1,0 +1,698 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">DevOps &amp; Cloud</a><span class="separator">/</span><span class="current">Crossplane</span></div>
+      <span class="category-tag">DevOps &amp; Cloud</span>
+      <h1>Crossplane: Infrastructure as Code dari Kubernetes</h1>
+      <span class="access-badge free">TOKEN</span>
+      <p class="article-subtitle">Kuasai Crossplane untuk mengelola infrastruktur cloud dari Kubernetes — providers, compositions, XRDs, claims, provider config, dan GitOps integration</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#konsep">Apa itu Crossplane?</a></li>
+          <li><a href="#instalasi">Instalasi &amp; Setup</a></li>
+          <li><a href="#providers">Providers</a></li>
+          <li><a href="#xrd">XRDs (Composite Resource Definitions)</a></li>
+          <li><a href="#compositions">Compositions</a></li>
+          <li><a href="#claims">Claims</a></li>
+          <li><a href="#provider-config">Provider Config &amp; Secrets</a></li>
+          <li><a href="#gitops">GitOps Integration</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="konsep">1. Apa itu Crossplane?</h2>
+
+      <p><strong>Crossplane</strong> adalah open-source Kubernetes add-on yang memungkinkan Anda mengelola infrastruktur cloud (database, cluster, storage, networking) menggunakan Kubernetes Custom Resource Definitions (CRDs). Dengan Crossplane, infrastruktur dikelola dengan cara yang sama seperti aplikasi Kubernetes — deklaratif, version-controlled, dan GitOps-friendly.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Arsitektur Crossplane</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">👤</div>
+            <div class="arch-label">Platform Team</div>
+            <div class="arch-desc">Definisikan XRD &amp;<br>Composition (API)</div>
+          </div>
+          <div class="arch-arrow">→ Define →</div>
+          <div class="arch-box info">
+            <div class="arch-icon">📝</div>
+            <div class="arch-label">App Team</div>
+            <div class="arch-desc">Submit Claim<br>(simplified API)</div>
+          </div>
+          <div class="arch-arrow">→ Claim →</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">🔄</div>
+            <div class="arch-label">Crossplane</div>
+            <div class="arch-desc">Compose &amp; Reconcile<br>Managed Resources</div>
+          </div>
+          <div class="arch-arrow">→ Provision →</div>
+          <div class="arch-box success">
+            <div class="arch-icon">☁️</div>
+            <div class="arch-label">Cloud Provider</div>
+            <div class="arch-desc">AWS, GCP, Azure<br>Actual infrastructure</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Crossplane vs Terraform</h3>
+      <table class="spec-table">
+        <thead><tr><th>Fitur</th><th>Crossplane</th><th>Terraform</th></tr></thead>
+        <tbody>
+          <tr><td>State</td><td>CRD di Kubernetes (etcd)</td><td>State file (.tfstate)</td></tr>
+          <tr><td>Reconciliation</td><td>Continuous (watch loop)</td><td>Hanya saat apply</td></tr>
+          <tr><td>Abstraction</td><td>XRD + Composition</td><td>Modules</td></tr>
+          <tr><td>GitOps</td><td>Native (ArgoCD)</td><td>Butuh wrapper</td></tr>
+          <tr><td>Drift Detection</td><td>Otomatis</td><td>Terraform plan</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="instalasi">2. Instalasi &amp; Setup</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Install Crossplane</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Install Crossplane menggunakan Helm
+helm repo add crossplane-stable https://charts.crossplane.io/stable
+helm repo update
+
+# Install Crossplane
+helm install crossplane crossplane-stable/crossplane \
+  --namespace crossplane-system \
+  --create-namespace \
+  --wait
+
+# Verifikasi instalasi
+kubectl get pods -n crossplane-system
+
+# Install Crossplane CLI (kubectl crossplane)
+curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh | sh
+sudo mv crossplane /usr/local/bin/
+
+# Install provider untuk AWS
+kubectl crossplane install provider crossplane/provider-aws:v0.44.0
+
+# Install provider untuk AWS (terbaru)
+kubectl crossplane install provider xpkg.upbound.io/crossplane-contrib/provider-aws:v1.1.0
+
+# Cek status provider
+kubectl get providers
+# NAME                          INSTALLED   HEALTHY   AGE
+# crossplane-provider-aws       True        True      2m
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 3 -->
+      <h2 id="providers">3. Providers</h2>
+
+      <p><strong>Provider</strong> adalah plugin yang memungkinkan Crossplane berkomunikasi dengan cloud provider. Setiap provider mendefinisikan Managed Resources (MR) — representasi CRD dari resource cloud yang sebenarnya.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Install &amp; configure providers</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Install provider AWS
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-s3
+spec:
+  package: xpkg.upbound.io/crossplane-contrib/provider-aws-s3:v1.1.0
+  # Runtime config untuk mengatur resource limits
+  runtimeConfigRef:
+    name: provider-aws-runtime
+
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-aws-runtime
+spec:
+  deployment:
+    spec:
+      replicas: 1
+      template:
+        spec:
+          containers:
+            - name: package-runtime
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+
+# Install provider AWS RDS
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-rds
+spec:
+  package: xpkg.upbound.io/crossplane-contrib/provider-aws-rds:v1.1.0
+
+# Install provider Kubernetes (untuk mengelola K8s resources)
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-kubernetes
+spec:
+  package: xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.14.0
+
+# Install provider Helm
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-helm
+spec:
+  package: xpkg.upbound.io/crossplane-contrib/provider-helm:v0.18.0
+
+# Cek semua providers
+kubectl get providers
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="xrd">4. XRDs (Composite Resource Definitions)</h2>
+
+      <p><strong>XRD</strong> mendefinisikan API baru yang disederhanakan untuk application teams. Platform team membuat XRD yang mengabstraksi kompleksitas cloud resource menjadi API yang lebih sederhana.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">xrd-database.yaml — Definisikan API untuk database</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xpostgresqlinstances.database.example.com
+spec:
+  group: database.example.com
+  names:
+    kind: XPostgreSQLInstance
+    plural: xpostgresqlinstances
+  claimNames:
+    kind: PostgreSQLInstance
+    plural: postgresqlinstances
+  connectionSecretKeys:
+    - host
+    - port
+    - username
+    - password
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                parameters:
+                  type: object
+                  description: "Parameter yang bisa diatur oleh app team"
+                  properties:
+                    storageGB:
+                      type: integer
+                      description: "Ukuran storage dalam GB"
+                      minimum: 20
+                      maximum: 1000
+                      default: 50
+                    engine:
+                      type: string
+                      enum: ["postgres"]
+                      default: "postgres"
+                    engineVersion:
+                      type: string
+                      enum: ["14", "15", "16"]
+                      default: "16"
+                    multiAZ:
+                      type: boolean
+                      default: false
+                      description: "Enable Multi-AZ untuk high availability"
+                    backupRetentionDays:
+                      type: integer
+                      minimum: 0
+                      maximum: 35
+                      default: 7
+                  required:
+                    - storageGB
+              required:
+                - parameters
+            status:
+              type: object
+              properties:
+                endpoint:
+                  type: string
+                port:
+                  type: integer
+                instanceId:
+                  type: string
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 XRD sebagai Internal API</div>
+        <p>XRD adalah API internal platform Anda. Application team tidak perlu tahu apakah database menggunakan AWS RDS, Google Cloud SQL, atau self-hosted PostgreSQL. Mereka hanya perlu menspesifikasi <code>storageGB</code> dan <code>engineVersion</code>. Platform team yang memutuskan implementasi di belakangnya.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 5 -->
+      <h2 id="compositions">5. Compositions</h2>
+
+      <p><strong>Composition</strong> mendefinisikan bagaimana XRD di-mapping ke managed resources yang sebenarnya. Ini adalah template yang menggabungkan beberapa cloud resource menjadi satu unit logis.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">composition-database.yaml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: postgresql-aws
+  labels:
+    provider: aws
+spec:
+  compositeTypeRef:
+    apiVersion: database.example.com/v1alpha1
+    kind: XPostgreSQLInstance
+  writeConnectionSecretsToNamespace: crossplane-system
+  patchSets:
+    - name: common
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.labels
+          toFieldPath: metadata.labels
+
+  resources:
+    # Resource 1: RDS Subnet Group
+    - name: subnetGroup
+      base:
+        apiVersion: rds.aws.crossplane.io/v1alpha1
+        kind: DBSubnetGroup
+        spec:
+          forProvider:
+            description: "Crossplane managed subnet group"
+            subnetIds:
+              - subnet-0123456789abcdef0
+              - subnet-0123456789abcdef1
+          providerConfigRef:
+            name: aws-provider
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.uid
+          toFieldPath: spec.forProvider.tags
+          transforms:
+            - type: string
+              string:
+                fmt: "crossplane-%s"
+          policy:
+            mergeOptions:
+              appendSlice: true
+
+    # Resource 2: RDS Instance
+    - name: rdsInstance
+      base:
+        apiVersion: rds.aws.crossplane.io/v1alpha1
+        kind: DBInstance
+        spec:
+          forProvider:
+            dbInstanceClass: db.t3.medium
+            engine: postgres
+            publiclyAccessible: false
+            autoMinorVersionUpgrade: true
+            storageEncrypted: true
+            multiAZ: false
+            masterUsername: admin
+          providerConfigRef:
+            name: aws-provider
+          writeConnectionSecretToRef:
+            namespace: crossplane-system
+      patches:
+        - type: CombineFromComposite
+          combine:
+            variables:
+              - fromFieldPath: metadata.uid
+            strategy: string
+            string:
+              fmt: "crossplane-%s"
+          toFieldPath: metadata.annotations[crossplane.io/external-name]
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.storageGB
+          toFieldPath: spec.forProvider.allocatedStorage
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.engineVersion
+          toFieldPath: spec.forProvider.engineVersion
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.multiAZ
+          toFieldPath: spec.forProvider.multiAZ
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.backupRetentionDays
+          toFieldPath: spec.forProvider.backupRetentionPeriod
+      connectionDetails:
+        - name: host
+          fromFieldPath: status.atProvider.endpoint.address
+        - name: port
+          fromFieldPath: status.atProvider.endpoint.port
+          type: FromFieldPath
+        - name: username
+          fromConnectionSecretKey: username
+        - name: password
+          fromConnectionSecretKey: password
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="claims">6. Claims</h2>
+
+      <p><strong>Claims</strong> adalah cara application team meminta resource. Claims adalah namespace-scoped, berbeda dengan Composite Resource yang cluster-scoped.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">claim-database.yaml — App team request</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Application team hanya perlu submit claim ini
+apiVersion: database.example.com/v1alpha1
+kind: PostgreSQLInstance
+metadata:
+  name: my-app-db
+  namespace: app-team-a
+spec:
+  parameters:
+    storageGB: 100
+    engineVersion: "16"
+    multiAZ: true
+    backupRetentionDays: 14
+  compositionSelector:
+    matchLabels:
+      provider: aws  # Pilih AWS implementation
+  writeConnectionSecretToRef:
+    name: my-app-db-connection
+
+---
+# Cek status claim
+# kubectl get postgresqlinstances -n app-team-a
+# NAME        READY   CONNECTION-SECRET        AGE
+# my-app-db   True    my-app-db-connection     5m
+
+# Connection secret berisi endpoint, port, username, password
+# kubectl get secret my-app-db-connection -n app-team-a -o yaml
+
+# Gunakan connection secret di Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  namespace: app-team-a
+spec:
+  template:
+    spec:
+      containers:
+        - name: my-app
+          image: my-app:latest
+          env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-db-connection
+                  key: host
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-db-connection
+                  key: port
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-db-connection
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-db-connection
+                  key: password
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 7 -->
+      <h2 id="provider-config">7. Provider Config &amp; Secrets</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">provider-config-aws.yaml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Simpan AWS credentials di Kubernetes Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aws-credentials
+  namespace: crossplane-system
+type: Opaque
+stringData:
+  credentials: |
+    [default]
+    aws_access_key_id = AKIAIOSFODNN7EXAMPLE
+    aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+---
+# ProviderConfig mengarahkan provider ke credentials
+apiVersion: aws.crossplane.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: aws-provider
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      name: aws-credentials
+      namespace: crossplane-system
+      key: credentials
+
+# Alternatif: IRSA (IAM Roles for Service Accounts) — lebih aman
+apiVersion: aws.crossplane.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: aws-provider-irsa
+spec:
+  credentials:
+    source: InjectedIdentity  # Gunakan workload identity
+
+---
+# Multi-region: buat ProviderConfig per region
+apiVersion: aws.crossplane.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: aws-us-east-1
+spec:
+  credentials:
+    source: InjectedIdentity
+  region: us-east-1
+
+apiVersion: aws.crossplane.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: aws-ap-southeast-1
+spec:
+  credentials:
+    source: InjectedIdentity
+  region: ap-southeast-1
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="gitops">8. GitOps Integration</h2>
+
+      <p>Crossplane bekerja sangat baik dengan GitOps karena semua konfigurasi adalah CRD yang bisa di-commit ke Git dan di-manage dengan ArgoCD.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">ArgoCD + Crossplane integration</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Repository structure untuk GitOps dengan Crossplane
+# gitops-repo/
+# ├── providers/
+# │   ├── aws-provider.yaml
+# │   └── provider-config.yaml
+# ├── xrd/
+# │   ├── xrd-database.yaml
+# │   ├── xrd-bucket.yaml
+# │   └── xrd-cluster.yaml
+# ├── compositions/
+# │   ├── composition-db-aws.yaml
+# │   └── composition-bucket-aws.yaml
+# ├── claims/
+# │   ├── dev/
+# │   │   ├── app-database.yaml
+# │   │   └── app-bucket.yaml
+# │   └── prod/
+# │       ├── app-database.yaml
+# │       └── app-bucket.yaml
+# └── argocd/
+#     ├── app-of-apps.yaml
+#     └── applications/
+#         ├── providers.yaml
+#         ├── xrd.yaml
+#         └── claims-dev.yaml
+
+# ArgoCD Application untuk providers
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crossplane-providers
+  namespace: argocd
+spec:
+  project: infrastructure
+  source:
+    repoURL: https://github.com/my-org/gitops-infra.git
+    targetRevision: main
+    path: providers
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: crossplane-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+# Perubahan infrastruktur = perubahan Git commit
+# Developer mengubah storageGB dari 50 ke 100:
+# 1. Edit claim-database.yaml di Git (ubah storageGB)
+# 2. Commit &amp; push
+# 3. ArgoCD detect perubahan &amp; sync ke cluster
+# 4. Crossplane detect perubahan pada Claim
+# 5. Crossplane reconcile: update RDS instance storage
+# 6. Status Claim menjadi "Ready"
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Delete Policy</div>
+        <p>Saat menggunakan ArgoCD dengan Crossplane, perhatikan <code>propagationPolicy</code> saat menghapus resource. Jika ArgoCD menghapus Claim, Crossplane akan menghapus managed resources dan juga cloud resource yang sebenarnya. Pastikan Anda memiliki backup atau menggunakan <code>deletionPolicy: Orphan</code> untuk resource production.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 9 -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quiz5">
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa peran utama XRD (Composite Resource Definition) di Crossplane?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Mengelola credentials cloud provider</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Mendefinisikan API baru yang disederhanakan untuk application team, mengabstraksi kompleksitas infrastruktur</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Menginstal provider ke cluster</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Mengelola RBAC Kubernetes</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa yang membedakan Crossplane dari Terraform dalam hal state management?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Crossplane menggunakan file .tfstate yang sama</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Crossplane menyimpan state sebagai CRD di Kubernetes etcd dan melakukan reconciliation secara continuous</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Crossplane tidak menyimpan state</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Crossplane menggunakan database eksternal untuk state</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi Composition di Crossplane?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Menggabungkan beberapa Kubernetes cluster</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Mendefinisikan mapping dari XRD ke managed resources — template bagaimana infrastruktur dibuat</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Mengelola secrets untuk provider</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Monitoring resource usage</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Siapa yang menggunakan Claims di Crossplane?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Platform team untuk mendefinisikan infrastruktur</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Application team untuk meminta resource infrastruktur yang dibutuhkan</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Cloud provider untuk mengelola layanan</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Security team untuk auditing</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa Crossplane sangat cocok untuk GitOps?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Karena Crossplane menggunakan Git sebagai database</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Karena semua konfigurasi Crossplane adalah Kubernetes CRDs yang bisa di-commit ke Git dan di-manage dengan ArgoCD</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Karena Crossplane hanya bisa di-deploy dari Git</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Karena Crossplane menggantikan Git</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="istio-service-mesh.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Istio Service Mesh</span>
+        </a>
+        <a href="opentofu-iac.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">OpenTofu: Terraform Alternative</span>
+        </a>
+      </div>
+
+    </div>
+  </article>
+
+  <section class="newsletter-section" id="newsletter"><div class="container"><div class="newsletter-card fade-in"><h2>📬 Dapatkan Tutorial Terbaru</h2><p>Subscribe untuk mendapatkan tutorial DevOps terbaru.</p><form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form></div></div></section>
