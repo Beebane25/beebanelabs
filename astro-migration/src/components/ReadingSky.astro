@@ -93,8 +93,9 @@
   }
 </style>
 
-<script>
-import * as THREE from 'three';
+<script is:inline type="module">
+// Use CDN import to avoid Astro bundling issues
+const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
 
 const PAL = {
   day: {
@@ -111,7 +112,7 @@ const PAL = {
   }
 };
 
-const canvas = document.getElementById('reading-sky-canvas') as HTMLCanvasElement;
+const canvas = document.getElementById('reading-sky-canvas');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -157,7 +158,7 @@ const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, transpare
 const stars = new THREE.Points(starGeo, starMat);
 scene.add(stars);
 
-function makeGlowTexture(hex: string){
+function makeGlowTexture(hex){
   const size = 128;
   const c = document.createElement('canvas');
   c.width = c.height = size;
@@ -199,7 +200,7 @@ function makeCloudTexture(){
   return new THREE.CanvasTexture(c);
 }
 const cloudTex = makeCloudTexture();
-const clouds: THREE.Sprite[] = [];
+const clouds = [];
 const cloudGroup = new THREE.Group();
 for (let i=0;i<7;i++){
   const mat = new THREE.SpriteMaterial({ map: cloudTex, transparent: true, opacity: 0, depthWrite: false });
@@ -213,8 +214,8 @@ for (let i=0;i<7;i++){
 }
 scene.add(cloudGroup);
 
-function makeMountainRow(zPos: number, height: number, color: number){
-  const points: THREE.Vector2[] = [];
+function makeMountainRow(zPos, height, color){
+  const points = [];
   const segs = 10;
   for (let i=0;i<=segs;i++){
     const x = (i/segs - 0.5) * 500;
@@ -259,7 +260,7 @@ const fireflies = new THREE.Points(fireflyGeo, fireflyMat);
 scene.add(fireflies);
 
 let timeOfDay = 0.25;
-let manualTarget: number | null = 0.25;
+let manualTarget = 0.25;
 let mouseX = 0, mouseY = 0;
 const clock = new THREE.Clock();
 
@@ -334,9 +335,9 @@ function animate(){
 
   const groundColor = new THREE.Color().lerpColors(PAL.night.ground, PAL.day.ground, dayFactor);
   const groundFarColor = new THREE.Color().lerpColors(PAL.night.groundFar, PAL.day.groundFar, dayFactor);
-  (groundNear.material as THREE.MeshBasicMaterial).color.copy(groundColor);
-  (groundFar.material as THREE.MeshBasicMaterial).color.copy(groundFarColor);
-  treeGroup.children.forEach(tr => ((tr as THREE.Mesh).material as THREE.MeshBasicMaterial).color.copy(groundColor));
+  (groundNear.material ).color.copy(groundColor);
+  (groundFar.material ).color.copy(groundFarColor);
+  treeGroup.children.forEach(tr => ((tr).material ).color.copy(groundColor));
 
   starMat.opacity = nightFactor * 0.9;
   fireflyMat.opacity = nightFactor * 0.85;
