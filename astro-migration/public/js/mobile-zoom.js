@@ -84,6 +84,9 @@ window.MobileQuickMenu = {
   },
 
   toggleTheme: function() {
+    // Trigger ReadingSky toggle (syncs sky + theme)
+    var skyToggle = document.getElementById("reading-sky-toggle");
+    if (skyToggle) { skyToggle.click(); this.updateThemeIcon(); return; }
     if (typeof ThemeToggle !== 'undefined' && ThemeToggle.toggle) {
       ThemeToggle.toggle();
       this.updateThemeIcon();
