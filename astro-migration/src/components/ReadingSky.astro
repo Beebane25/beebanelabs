@@ -1,34 +1,28 @@
 ---
 /**
  * ReadingSky.astro
- * Latar 3D interaktif siang/malam untuk BeebaneLabs.
- * Berdasarkan referensi ReadingSky — diadaptasi dengan accent hijau BeebaneLabs.
- * 
- * Dipasang sekali di Layout.astro, sebelum <slot /> konten.
- * Dependency: three (sudah terinstall)
+ * Latar 3D interaktif siang/malam yang terikat pada scroll pembaca.
+ * Taruh komponen ini sekali di layout utama (mis. BaseLayout.astro),
+ * sebelum <slot /> konten artikel.
+ *
+ * Butuh dependency: npm install three
  */
-
-interface Props {
-  initialMode?: 'day' | 'night';
-}
-
-const { initialMode = 'night' } = Astro.props;
 ---
 
-<canvas id="reading-sky-canvas" aria-hidden="true"></canvas>
+<canvas id="reading-sky-canvas"></canvas>
 
-<button id="reading-sky-toggle" aria-label="Ganti mode siang/malam" title="Ganti suasana">
-  <span class="sky-knob"></span>
+<button id="reading-sky-toggle" aria-label="Ganti mode siang/malam">
+  <span class="knob"></span>
 </button>
 
 <div id="reading-sky-hud">
-  <span class="sky-dot"></span>
-  <span class="sky-clock">{initialMode === 'night' ? '🌙' : '☀️'}</span>
-  <span class="sky-phase">{initialMode === 'night' ? 'Malam' : 'Siang'}</span>
+  <span class="dot"></span>
+  <span class="clock">06:00</span>
+  <span class="phase">Fajar</span>
 </div>
 
 <style>
-  #reading-sky-canvas {
+  #reading-sky-canvas{
     position: fixed;
     inset: 0;
     width: 100vw;
@@ -37,7 +31,7 @@ const { initialMode = 'night' } = Astro.props;
     display: block;
   }
 
-  #reading-sky-hud {
+  #reading-sky-hud{
     position: fixed;
     left: 20px;
     bottom: 20px;
@@ -48,64 +42,54 @@ const { initialMode = 'night' } = Astro.props;
     gap: 12px;
     padding: 10px 16px 10px 12px;
     border-radius: 999px;
-    background: var(--sky-panel, rgba(14, 18, 36, 0.72));
+    background: var(--reading-sky-panel-day, rgba(234, 244, 240, 0.82));
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--sky-panel-border, rgba(255,255,255,0.08));
+    border: 1px solid rgba(255,255,255,0.3);
     box-shadow: 0 10px 30px rgba(0,0,0,0.18);
-    transition: background 1.2s ease, border-color 1.2s ease, color 1.2s ease;
-    color: var(--sky-text, #E7E8F5);
+    transition: background 1.2s ease;
+    color: inherit;
   }
-  #reading-sky-hud .sky-dot {
+  #reading-sky-hud .dot{
     width: 8px; height: 8px; border-radius: 50%;
-    background: var(--sky-accent, #3ecf8e);
-    box-shadow: 0 0 8px var(--sky-accent, #3ecf8e);
+    background: var(--reading-sky-accent, #39D9C4);
+    box-shadow: 0 0 8px var(--reading-sky-accent, #39D9C4);
     flex-shrink: 0;
   }
-  #reading-sky-hud .sky-clock { font-size: 14px; font-weight: 500; min-width: 52px; }
-  #reading-sky-hud .sky-phase { font-size: 12px; opacity: 0.75; }
+  #reading-sky-hud .clock{ font-size: 14px; font-weight: 500; min-width: 52px; }
+  #reading-sky-hud .phase{ font-size: 12px; opacity: 0.75; }
 
-  #reading-sky-toggle {
+  #reading-sky-toggle{
     position: fixed;
     top: 20px;
     right: 20px;
-    z-index: 60;
+    z-index: 50;
     width: 56px;
     height: 30px;
     border-radius: 999px;
-    border: 1px solid var(--sky-panel-border, rgba(255,255,255,0.08));
-    background: var(--sky-panel, rgba(14, 18, 36, 0.72));
+    border: 1px solid rgba(255,255,255,0.3);
+    background: var(--reading-sky-panel-day, rgba(234, 244, 240, 0.82));
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     cursor: pointer;
     padding: 3px;
-    transition: background 1.2s ease, border-color 1.2s ease;
+    transition: background 1.2s ease;
   }
-  #reading-sky-toggle .sky-knob {
-    display: block;
+  #reading-sky-toggle .knob{
     width: 22px; height: 22px; border-radius: 50%;
-    background: var(--sky-accent, #3ecf8e);
+    background: var(--reading-sky-accent, #39D9C4);
     transition: transform 0.5s cubic-bezier(.65,0,.35,1), background 0.5s ease;
     box-shadow: 0 2px 8px rgba(0,0,0,0.25);
   }
 
-  /* Day mode overrides */
-  :global(body.sky-day) #reading-sky-hud,
-  :global(body.sky-day) #reading-sky-toggle {
-    background: var(--sky-panel-nav, rgba(255, 255, 255, 0.65));
-    border-color: rgba(255, 255, 255, 0.5);
-    color: var(--sky-text, #0a1a14);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  :global(body.reading-sky-night) #reading-sky-hud,
+  :global(body.reading-sky-night) #reading-sky-toggle{
+    background: var(--reading-sky-panel-night, rgba(14, 18, 36, 0.72));
+    border-color: rgba(255,255,255,0.08);
   }
-  :global(body.sky-day) #reading-sky-toggle .sky-knob {
+  :global(body.reading-sky-night) #reading-sky-toggle .knob{
     transform: translateX(26px);
-    background: #FFD166;
-  }
-  :global(body.sky-day) #reading-sky-hud .sky-dot {
-    background: #FFD166;
-    box-shadow: 0 0 8px #FFD166;
+    background: #DCE3F0;
   }
 </style>
 
@@ -128,265 +112,253 @@ const PAL = {
 };
 
 const canvas = document.getElementById('reading-sky-canvas') as HTMLCanvasElement;
-if (canvas) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
-  camera.position.set(0, 12, 46);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
+camera.position.set(0, 12, 46);
+camera.lookAt(0, 14, -60);
+
+const skyGeo = new THREE.SphereGeometry(400, 32, 32);
+const skyMat = new THREE.ShaderMaterial({
+  uniforms: { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() } },
+  side: THREE.BackSide,
+  depthWrite: false,
+  vertexShader: `
+    varying vec3 vPos;
+    void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+  `,
+  fragmentShader: `
+    uniform vec3 uTop; uniform vec3 uHorizon; varying vec3 vPos;
+    void main(){
+      float h = clamp(normalize(vPos).y * 1.4 + 0.15, 0.0, 1.0);
+      gl_FragColor = vec4(mix(uHorizon, uTop, h), 1.0);
+    }
+  `
+});
+const sky = new THREE.Mesh(skyGeo, skyMat);
+scene.add(sky);
+
+const STAR_COUNT = 900;
+const starGeo = new THREE.BufferGeometry();
+const starPos = new Float32Array(STAR_COUNT * 3);
+for (let i = 0; i < STAR_COUNT; i++) {
+  const r = 300 + Math.random() * 60;
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.acos(Math.random() * 0.85);
+  starPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+  starPos[i*3+1] = Math.abs(r * Math.cos(phi)) + 20;
+  starPos[i*3+2] = r * Math.sin(phi) * Math.sin(theta) - 100;
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, transparent: true, opacity: 0, depthWrite: false });
+const stars = new THREE.Points(starGeo, starMat);
+scene.add(stars);
+
+function makeGlowTexture(hex: string){
+  const size = 128;
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d')!;
+  const g = ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+  g.addColorStop(0, hex + 'ff');
+  g.addColorStop(0.35, hex + '88');
+  g.addColorStop(1, hex + '00');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,size,size);
+  return new THREE.CanvasTexture(c);
+}
+
+const sun = new THREE.Mesh(new THREE.SphereGeometry(6, 24, 24), new THREE.MeshBasicMaterial({ color: 0xFFD166 }));
+const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture('#FFF3C4'), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+sunGlow.scale.set(46, 46, 1);
+sun.add(sunGlow);
+scene.add(sun);
+
+const moon = new THREE.Mesh(new THREE.SphereGeometry(5, 24, 24), new THREE.MeshBasicMaterial({ color: 0xDCE3F0 }));
+const moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture('#8FA8D6'), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+moonGlow.scale.set(34, 34, 1);
+moon.add(moonGlow);
+scene.add(moon);
+
+function makeCloudTexture(){
+  const w = 256, h = 128;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d')!;
+  ctx.filter = 'blur(8px)';
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  for (let i=0;i<6;i++){
+    const cx = 60 + Math.random()*130, cy = 55 + Math.random()*20, r = 26 + Math.random()*22;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, r*1.6, r, 0, 0, Math.PI*2);
+    ctx.fill();
+  }
+  return new THREE.CanvasTexture(c);
+}
+const cloudTex = makeCloudTexture();
+const clouds: THREE.Sprite[] = [];
+const cloudGroup = new THREE.Group();
+for (let i=0;i<7;i++){
+  const mat = new THREE.SpriteMaterial({ map: cloudTex, transparent: true, opacity: 0, depthWrite: false });
+  const spr = new THREE.Sprite(mat);
+  const scale = 40 + Math.random()*40;
+  spr.scale.set(scale, scale*0.5, 1);
+  spr.position.set((Math.random()-0.5)*300, 40 + Math.random()*40, -120 - Math.random()*80);
+  spr.userData.speed = 0.6 + Math.random()*0.8;
+  cloudGroup.add(spr);
+  clouds.push(spr);
+}
+scene.add(cloudGroup);
+
+function makeMountainRow(zPos: number, height: number, color: number){
+  const points: THREE.Vector2[] = [];
+  const segs = 10;
+  for (let i=0;i<=segs;i++){
+    const x = (i/segs - 0.5) * 500;
+    const y = Math.sin(i*1.7 + zPos) * height * 0.4 + height * (0.4 + Math.random()*0.3);
+    points.push(new THREE.Vector2(x, y));
+  }
+  points.unshift(new THREE.Vector2(-250, -20));
+  points.push(new THREE.Vector2(250, -20));
+  const shape = new THREE.Shape(points);
+  const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({ color }));
+  mesh.position.z = zPos;
+  mesh.position.y = -6;
+  return mesh;
+}
+const groundFar = makeMountainRow(-90, 22, PAL.day.groundFar.getHex());
+const groundNear = makeMountainRow(-40, 14, PAL.day.ground.getHex());
+scene.add(groundFar, groundNear);
+
+const treeGroup = new THREE.Group();
+const treeGeo = new THREE.ConeGeometry(1.6, 5, 6);
+for (let i=0;i<22;i++){
+  const t = new THREE.Mesh(treeGeo, new THREE.MeshBasicMaterial({ color: PAL.day.ground.getHex() }));
+  t.position.set((Math.random()-0.5)*140, -3 + Math.random()*1.5, -30 - Math.random()*15);
+  t.scale.setScalar(0.7 + Math.random()*0.9);
+  treeGroup.add(t);
+}
+scene.add(treeGroup);
+
+const FIREFLY_COUNT = 40;
+const fireflyGeo = new THREE.BufferGeometry();
+const fPos = new Float32Array(FIREFLY_COUNT*3);
+const fSeed = new Float32Array(FIREFLY_COUNT);
+for (let i=0;i<FIREFLY_COUNT;i++){
+  fPos[i*3] = (Math.random()-0.5)*100;
+  fPos[i*3+1] = -2 + Math.random()*8;
+  fPos[i*3+2] = -35 + Math.random()*30;
+  fSeed[i] = Math.random()*Math.PI*2;
+}
+fireflyGeo.setAttribute('position', new THREE.BufferAttribute(fPos, 3));
+const fireflyMat = new THREE.PointsMaterial({ color: 0xC9F26C, size: 2.2, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+const fireflies = new THREE.Points(fireflyGeo, fireflyMat);
+scene.add(fireflies);
+
+let timeOfDay = 0.25;
+let manualTarget: number | null = 0.25;
+let mouseX = 0, mouseY = 0;
+const clock = new THREE.Clock();
+
+window.addEventListener('mousemove', (e) => {
+  mouseX = (e.clientX / window.innerWidth - 0.5);
+  mouseY = (e.clientY / window.innerHeight - 0.5);
+});
+
+const toggleBtn = document.getElementById('reading-sky-toggle')!;
+const THEME_KEY = 'beebanelabs_theme';
+let isNightMode = false;
+
+// Restore saved theme
+const savedTheme = localStorage.getItem(THEME_KEY);
+if (savedTheme === 'night') {
+  isNightMode = true;
+  timeOfDay = 0.75;
+  manualTarget = 0.75;
+  document.body.classList.add('reading-sky-night');
+}
+
+const clockEl = document.querySelector('#reading-sky-hud .clock')!;
+const phaseEl = document.querySelector('#reading-sky-hud .phase')!;
+function updateHud(){
+  clockEl.textContent = isNightMode ? '🌙' : '☀️';
+  phaseEl.textContent = isNightMode ? 'Malam' : 'Siang';
+}
+toggleBtn.addEventListener('click', () => {
+  isNightMode = !isNightMode;
+  manualTarget = isNightMode ? 0.75 : 0.25;
+  document.body.classList.toggle('reading-sky-night', isNightMode);
+  localStorage.setItem(THEME_KEY, isNightMode ? 'night' : 'day');
+  // Update theme-color meta
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeMeta) themeMeta.content = isNightMode ? '#08090a' : '#f0f7f4';
+  updateHud();
+});
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+function animate(){
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  const t = clock.getElapsedTime();
+
+  if (manualTarget !== null){
+    timeOfDay += (manualTarget - timeOfDay) * Math.min(1, dt * 2.2);
+    if (Math.abs(manualTarget - timeOfDay) < 0.002){
+      timeOfDay = manualTarget;
+      manualTarget = null;
+    }
+  }
+
+  const angle = timeOfDay * Math.PI * 2;
+  const sunHeight = Math.sin(angle);
+  const moonHeight = Math.sin(angle + Math.PI);
+  const dayFactor = Math.max(0, sunHeight);
+  const nightFactor = Math.max(0, moonHeight);
+  const radius = 130;
+
+  sun.position.set(Math.cos(angle) * -radius, 20 + sunHeight * 70, -140);
+  sun.visible = sunHeight > -0.08;
+  moon.position.set(Math.cos(angle + Math.PI) * -radius, 20 + moonHeight * 70, -140);
+  moon.visible = moonHeight > -0.08;
+
+  skyMat.uniforms.uTop.value.copy(new THREE.Color().lerpColors(PAL.night.skyTop, PAL.day.skyTop, dayFactor));
+  skyMat.uniforms.uHorizon.value.copy(new THREE.Color().lerpColors(PAL.night.skyHorizon, PAL.day.skyHorizon, dayFactor));
+
+  const groundColor = new THREE.Color().lerpColors(PAL.night.ground, PAL.day.ground, dayFactor);
+  const groundFarColor = new THREE.Color().lerpColors(PAL.night.groundFar, PAL.day.groundFar, dayFactor);
+  (groundNear.material as THREE.MeshBasicMaterial).color.copy(groundColor);
+  (groundFar.material as THREE.MeshBasicMaterial).color.copy(groundFarColor);
+  treeGroup.children.forEach(tr => ((tr as THREE.Mesh).material as THREE.MeshBasicMaterial).color.copy(groundColor));
+
+  starMat.opacity = nightFactor * 0.9;
+  fireflyMat.opacity = nightFactor * 0.85;
+  const fAttr = fireflyGeo.attributes.position;
+  for (let i=0;i<FIREFLY_COUNT;i++){
+    fAttr.array[i*3] += Math.sin(t*0.6 + fSeed[i]) * 0.02;
+    fAttr.array[i*3+1] += Math.cos(t*0.8 + fSeed[i]) * 0.015;
+  }
+  fAttr.needsUpdate = true;
+
+  clouds.forEach(c => {
+    c.material.opacity = dayFactor * 0.85;
+    c.position.x += c.userData.speed * dt * 2;
+    if (c.position.x > 200) c.position.x = -200;
+  });
+
+  camera.position.x += (mouseX * 8 - camera.position.x) * 0.03;
+  camera.position.y += (12 - mouseY * 4 - camera.position.y) * 0.03;
   camera.lookAt(0, 14, -60);
 
-  // Sky dome
-  const skyGeo = new THREE.SphereGeometry(400, 32, 32);
-  const skyMat = new THREE.ShaderMaterial({
-    uniforms: { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() } },
-    side: THREE.BackSide,
-    depthWrite: false,
-    vertexShader: `
-      varying vec3 vPos;
-      void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-    `,
-    fragmentShader: `
-      uniform vec3 uTop; uniform vec3 uHorizon; varying vec3 vPos;
-      void main(){
-        float h = clamp(normalize(vPos).y * 1.4 + 0.15, 0.0, 1.0);
-        gl_FragColor = vec4(mix(uHorizon, uTop, h), 1.0);
-      }
-    `
-  });
-  scene.add(new THREE.Mesh(skyGeo, skyMat));
-
-  // Stars
-  const STAR_COUNT = 900;
-  const starGeo = new THREE.BufferGeometry();
-  const starPos = new Float32Array(STAR_COUNT * 3);
-  for (let i = 0; i < STAR_COUNT; i++) {
-    const r = 300 + Math.random() * 60;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(Math.random() * 0.85);
-    starPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
-    starPos[i*3+1] = Math.abs(r * Math.cos(phi)) + 20;
-    starPos[i*3+2] = r * Math.sin(phi) * Math.sin(theta) - 100;
-  }
-  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-  const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, transparent: true, opacity: 0, depthWrite: false });
-  scene.add(new THREE.Points(starGeo, starMat));
-
-  // Glow texture helper
-  function makeGlowTexture(hex: string) {
-    const size = 128;
-    const c = document.createElement('canvas');
-    c.width = c.height = size;
-    const ctx = c.getContext('2d')!;
-    const g = ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
-    g.addColorStop(0, hex + 'ff');
-    g.addColorStop(0.35, hex + '88');
-    g.addColorStop(1, hex + '00');
-    ctx.fillStyle = g;
-    ctx.fillRect(0,0,size,size);
-    return new THREE.CanvasTexture(c);
-  }
-
-  // Sun
-  const sun = new THREE.Mesh(new THREE.SphereGeometry(6, 24, 24), new THREE.MeshBasicMaterial({ color: 0xFFD166 }));
-  const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture('#FFF3C4'), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
-  sunGlow.scale.set(46, 46, 1);
-  sun.add(sunGlow);
-  scene.add(sun);
-
-  // Moon
-  const moon = new THREE.Mesh(new THREE.SphereGeometry(5, 24, 24), new THREE.MeshBasicMaterial({ color: 0xDCE3F0 }));
-  const moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture('#8FA8D6'), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
-  moonGlow.scale.set(34, 34, 1);
-  moon.add(moonGlow);
-  scene.add(moon);
-
-  // Clouds
-  function makeCloudTexture() {
-    const w = 256, h = 128;
-    const c = document.createElement('canvas');
-    c.width = w; c.height = h;
-    const ctx = c.getContext('2d')!;
-    ctx.filter = 'blur(8px)';
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    for (let i = 0; i < 6; i++) {
-      const cx = 60 + Math.random()*130, cy = 55 + Math.random()*20, r = 26 + Math.random()*22;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, r*1.6, r, 0, 0, Math.PI*2);
-      ctx.fill();
-    }
-    return new THREE.CanvasTexture(c);
-  }
-  const cloudTex = makeCloudTexture();
-  const clouds: THREE.Sprite[] = [];
-  const cloudGroup = new THREE.Group();
-  for (let i = 0; i < 7; i++) {
-    const mat = new THREE.SpriteMaterial({ map: cloudTex, transparent: true, opacity: 0, depthWrite: false });
-    const spr = new THREE.Sprite(mat);
-    const scale = 40 + Math.random()*40;
-    spr.scale.set(scale, scale*0.5, 1);
-    spr.position.set((Math.random()-0.5)*300, 40 + Math.random()*40, -120 - Math.random()*80);
-    spr.userData.speed = 0.6 + Math.random()*0.8;
-    cloudGroup.add(spr);
-    clouds.push(spr);
-  }
-  scene.add(cloudGroup);
-
-  // Mountains
-  function makeMountainRow(zPos: number, height: number, color: number) {
-    const points: THREE.Vector2[] = [];
-    const segs = 10;
-    for (let i = 0; i <= segs; i++) {
-      const x = (i/segs - 0.5) * 500;
-      const y = Math.sin(i*1.7 + zPos) * height * 0.4 + height * (0.4 + Math.random()*0.3);
-      points.push(new THREE.Vector2(x, y));
-    }
-    points.unshift(new THREE.Vector2(-250, -20));
-    points.push(new THREE.Vector2(250, -20));
-    const shape = new THREE.Shape(points);
-    const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({ color }));
-    mesh.position.z = zPos;
-    mesh.position.y = -6;
-    return mesh;
-  }
-  const groundFar = makeMountainRow(-90, 22, PAL.day.groundFar.getHex());
-  const groundNear = makeMountainRow(-40, 14, PAL.day.ground.getHex());
-  scene.add(groundFar, groundNear);
-
-  // Trees
-  const treeGroup = new THREE.Group();
-  const treeGeo = new THREE.ConeGeometry(1.6, 5, 6);
-  for (let i = 0; i < 22; i++) {
-    const t = new THREE.Mesh(treeGeo, new THREE.MeshBasicMaterial({ color: PAL.day.ground.getHex() }));
-    t.position.set((Math.random()-0.5)*140, -3 + Math.random()*1.5, -30 - Math.random()*15);
-    t.scale.setScalar(0.7 + Math.random()*0.9);
-    treeGroup.add(t);
-  }
-  scene.add(treeGroup);
-
-  // Fireflies
-  const FIREFLY_COUNT = 40;
-  const fireflyGeo = new THREE.BufferGeometry();
-  const fPos = new Float32Array(FIREFLY_COUNT*3);
-  const fSeed = new Float32Array(FIREFLY_COUNT);
-  for (let i = 0; i < FIREFLY_COUNT; i++) {
-    fPos[i*3] = (Math.random()-0.5)*100;
-    fPos[i*3+1] = -2 + Math.random()*8;
-    fPos[i*3+2] = -35 + Math.random()*30;
-    fSeed[i] = Math.random()*Math.PI*2;
-  }
-  fireflyGeo.setAttribute('position', new THREE.BufferAttribute(fPos, 3));
-  const fireflyMat = new THREE.PointsMaterial({ color: 0x3ecf8e, size: 2.2, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
-  scene.add(new THREE.Points(fireflyGeo, fireflyMat));
-
-  // State
-  let timeOfDay = 0.75; // Start night
-  let manualTarget: number | null = 0.75;
-  let mouseX = 0, mouseY = 0;
-  const clock = new THREE.Clock();
-
-  window.addEventListener('mousemove', (e) => {
-    mouseX = (e.clientX / window.innerWidth - 0.5);
-    mouseY = (e.clientY / window.innerHeight - 0.5);
-  });
-
-  // Toggle
-  const toggleBtn = document.getElementById('reading-sky-toggle');
-  const clockEl = document.querySelector('#reading-sky-hud .sky-clock')!;
-  const phaseEl = document.querySelector('#reading-sky-hud .sky-phase')!;
-  let isNightMode = true;
-
-  function updateHud() {
-    clockEl.textContent = isNightMode ? '🌙' : '☀️';
-    phaseEl.textContent = isNightMode ? 'Malam' : 'Siang';
-  }
-
-  toggleBtn?.addEventListener('click', () => {
-    isNightMode = !isNightMode;
-    manualTarget = isNightMode ? 0.75 : 0.25;
-    document.body.classList.toggle('sky-day', !isNightMode);
-    document.body.classList.toggle('sky-night', isNightMode);
-    // Sync with existing data-theme
-    document.documentElement.setAttribute('data-theme', isNightMode ? 'dark' : 'light');
-    updateHud();
-  });
-
-  // Check existing theme preference
-  const existingTheme = document.documentElement.getAttribute('data-theme');
-  if (existingTheme === 'light') {
-    isNightMode = false;
-    timeOfDay = 0.25;
-    manualTarget = 0.25;
-    document.body.classList.add('sky-day');
-    updateHud();
-  } else {
-    document.body.classList.add('sky-night');
-  }
-
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
-
-  function animate() {
-    requestAnimationFrame(animate);
-    const dt = clock.getDelta();
-    const t = clock.getElapsedTime();
-
-    if (manualTarget !== null) {
-      timeOfDay += (manualTarget - timeOfDay) * Math.min(1, dt * 2.2);
-      if (Math.abs(manualTarget - timeOfDay) < 0.002) {
-        timeOfDay = manualTarget;
-        manualTarget = null;
-      }
-    }
-
-    const angle = timeOfDay * Math.PI * 2;
-    const sunHeight = Math.sin(angle);
-    const moonHeight = Math.sin(angle + Math.PI);
-    const dayFactor = Math.max(0, sunHeight);
-    const nightFactor = Math.max(0, moonHeight);
-    const radius = 130;
-
-    sun.position.set(Math.cos(angle) * -radius, 20 + sunHeight * 70, -140);
-    sun.visible = sunHeight > -0.08;
-    moon.position.set(Math.cos(angle + Math.PI) * -radius, 20 + moonHeight * 70, -140);
-    moon.visible = moonHeight > -0.08;
-
-    skyMat.uniforms.uTop.value.copy(new THREE.Color().lerpColors(PAL.night.skyTop, PAL.day.skyTop, dayFactor));
-    skyMat.uniforms.uHorizon.value.copy(new THREE.Color().lerpColors(PAL.night.skyHorizon, PAL.day.skyHorizon, dayFactor));
-
-    const groundColor = new THREE.Color().lerpColors(PAL.night.ground, PAL.day.ground, dayFactor);
-    const groundFarColor = new THREE.Color().lerpColors(PAL.night.groundFar, PAL.day.groundFar, dayFactor);
-    (groundNear.material as THREE.MeshBasicMaterial).color.copy(groundColor);
-    (groundFar.material as THREE.MeshBasicMaterial).color.copy(groundFarColor);
-    treeGroup.children.forEach(tr => ((tr as THREE.Mesh).material as THREE.MeshBasicMaterial).color.copy(groundColor));
-
-    starMat.opacity = nightFactor * 0.9;
-    fireflyMat.opacity = nightFactor * 0.85;
-    const fAttr = fireflyGeo.attributes.position;
-    for (let i = 0; i < FIREFLY_COUNT; i++) {
-      (fAttr.array as Float32Array)[i*3] += Math.sin(t*0.6 + fSeed[i]) * 0.02;
-      (fAttr.array as Float32Array)[i*3+1] += Math.cos(t*0.8 + fSeed[i]) * 0.015;
-    }
-    fAttr.needsUpdate = true;
-
-    clouds.forEach(c => {
-      c.material.opacity = dayFactor * 0.85;
-      c.position.x += c.userData.speed * dt * 2;
-      if (c.position.x > 200) c.position.x = -200;
-    });
-
-    camera.position.x += (mouseX * 8 - camera.position.x) * 0.03;
-    camera.position.y += (12 - mouseY * 4 - camera.position.y) * 0.03;
-    camera.lookAt(0, 14, -60);
-
-    renderer.render(scene, camera);
-  }
-  updateHud();
-  animate();
+  renderer.render(scene, camera);
 }
+updateHud();
+animate();
 </script>

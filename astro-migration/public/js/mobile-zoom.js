@@ -96,8 +96,8 @@ window.MobileQuickMenu = {
   updateThemeIcon: function() {
     var icon = document.getElementById('quickMenuThemeIcon');
     if (icon) {
-      var current = document.documentElement.getAttribute('data-theme') || 'dark';
-      icon.textContent = current === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+      var isNight = document.body.classList.contains('reading-sky-night');
+      icon.textContent = isNight ? '\u2600\uFE0F' : '\uD83C\uDF19';
     }
   }
 };

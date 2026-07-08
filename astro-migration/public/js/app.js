@@ -1138,7 +1138,7 @@ function updateReadingHistoryBadges() {
 // Creates real shooting stars with glowing head + fading trail
 // Inspired by Yusuke Nakaya (CodePen XyOaBj)
 function initShootingStars() {
-  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var isDark = document.body.classList.contains('reading-sky-night');
   if (!isDark) return;
 
   // Create container
@@ -1181,7 +1181,7 @@ function initShootingStars() {
   // Spawn multiple stars at once (2-3 per cycle)
   function spawnLoop() {
     // Only spawn in dark theme
-    if (document.documentElement.getAttribute('data-theme') !== 'dark') {
+    if (!document.body.classList.contains('reading-sky-night')) {
       setTimeout(spawnLoop, 5000);
       return;
     }
@@ -2511,28 +2511,37 @@ const CookieConsent = {
   dismiss(btn) { localStorage.setItem(this.KEY, 'declined'); document.body.classList.remove('cookie-visible'); btn.closest('.cookie-consent').classList.remove('show'); setTimeout(() => btn.closest('.cookie-consent').remove(), 400); }
 };
 
-// === THEME TOGGLE (Global - applies to ALL pages via html element) ===
+// === THEME TOGGLE (syncs with ReadingSky component) ===
 const ThemeToggle = {
   KEY: 'beebanelabs_theme',
   init() {
-    const saved = localStorage.getItem(this.KEY) || 'dark';
-    document.documentElement.setAttribute('data-theme', saved);
+    const saved = localStorage.getItem(this.KEY) || 'day';
+    const isNight = saved === 'night';
+    if (isNight) {
+      document.body.classList.add('reading-sky-night');
+    }
     this.updateButton();
   },
   toggle() {
-    const current = document.documentElement.getAttribute('data-theme') || 'dark';
-    const next = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem(this.KEY, next);
+    const isNight = document.body.classList.contains('reading-sky-night');
+    const next = isNight ? 'day' : 'night';
+    // Delegate to ReadingSky toggle if available
+    const skyBtn = document.getElementById('reading-sky-toggle');
+    if (skyBtn) {
+      skyBtn.click();
+    } else {
+      document.body.classList.toggle('reading-sky-night');
+    }
+    localStorage.setItem(this.KEY, document.body.classList.contains('reading-sky-night') ? 'night' : 'day');
     this.updateButton();
     // Update theme-color for mobile browser chrome
     const themeMeta = document.querySelector('meta[name="theme-color"]');
-    if (themeMeta) themeMeta.content = next === 'light' ? '#ffffff' : '#08090a';
+    if (themeMeta) themeMeta.content = document.body.classList.contains('reading-sky-night') ? '#08090a' : '#f0f7f4';
   },
   updateButton() {
     const btn = document.querySelector('.theme-toggle');
-    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-    if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+    const isNight = document.body.classList.contains('reading-sky-night');
+    if (btn) btn.textContent = isNight ? '☀️' : '🌙';
   }
 };
 
@@ -3698,8 +3707,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Update theme-color meta tag based on current theme
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   if (themeMeta) {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-    themeMeta.content = currentTheme === 'light' ? '#ffffff' : '#08090a';
+    const isNight = document.body.classList.contains('reading-sky-night');
+    themeMeta.content = isNight ? '#08090a' : '#f0f7f4';
   }
   injectArticleExtras();
   injectArticleJsonLd();
