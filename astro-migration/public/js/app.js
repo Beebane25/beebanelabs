@@ -1136,7 +1136,7 @@ function updateReadingHistoryBadges() {
 
 // === SHOOTING STARS (Dark Theme Only) ===
 // Creates real shooting stars with glowing head + fading trail
-// Inspired by Yusuke Nakaya (CodePen XyOaBj)
+// Direction: upper-right → lower-left (like real meteors)
 function initShootingStars() {
   var isDark = document.body.classList.contains('reading-sky-night');
   if (!isDark) return;
@@ -1151,23 +1151,39 @@ function initShootingStars() {
     var star = document.createElement('span');
     star.className = 'shooting-star';
 
-    // Randomize starting position (anywhere across the top)
-    var startX = Math.random() * 120 - 20; // -20% to 100% (can start off-screen left)
-    var startY = Math.random() * 40 - 10;  // -10% to 30% (can start off-screen top)
+    // Starting position: upper portion of screen, spread across width
+    var startX = Math.random() * 80 + 10; // 10% to 90% from left
+    var startY = Math.random() * 30;       // 0% to 30% from top
     star.style.left = startX + '%';
     star.style.top = startY + '%';
 
-    // Randomize trail length
-    var trailLen = Math.random() * 50 + 50; // 50-100px
+    // Trail length (visual length of the streak)
+    var trailLen = Math.random() * 80 + 100; // 100-180px
     star.style.width = trailLen + 'px';
 
-    // Randomize speed (2.5-4.5s — much slower)
-    var duration = Math.random() * 2 + 2.5;
-    star.style.animationDuration = duration + 's';
+    // Angle: mostly diagonal (-25 to -50 degrees = upper-right to lower-left)
+    // Negative angle = trail points upper-right, head moves lower-left
+    var angle = -(Math.random() * 25 + 25); // -25 to -50 degrees
+    star.style.setProperty('--shoot-angle', angle + 'deg');
 
-    // Randomize brightness
-    var brightness = Math.random() * 0.4 + 0.6; // 0.6-1.0
-    star.style.opacity = brightness;
+    // Travel distance (how far the star moves)
+    var dist = Math.random() * 300 + 400; // 400-700px
+    var angleRad = angle * Math.PI / 180;
+    var dx = dist * Math.cos(angleRad); // negative = move left
+    var dy = dist * Math.abs(Math.sin(angleRad)); // positive = move down
+    star.style.setProperty('--shoot-dx', (-dx) + 'px');
+    star.style.setProperty('--shoot-dy', dy + 'px');
+
+    // Speed (0.8-1.8s — fast like real meteors)
+    var duration = Math.random() * 1 + 0.8;
+    star.style.setProperty('--shoot-duration', duration + 's');
+
+    // Random brightness
+    var brightness = Math.random() * 0.3 + 0.7; // 0.7-1.0
+    star.style.setProperty('--shoot-brightness', brightness);
+
+    // Slight delay for staggered spawning
+    star.style.setProperty('--shoot-delay', '0s');
 
     // Add to container
     container.appendChild(star);
@@ -1178,7 +1194,7 @@ function initShootingStars() {
     });
   }
 
-  // Spawn multiple stars at once (2-3 per cycle)
+  // Spawn multiple stars at once (1-3 per cycle)
   function spawnLoop() {
     // Only spawn in dark theme
     if (!document.body.classList.contains('reading-sky-night')) {
@@ -1186,21 +1202,21 @@ function initShootingStars() {
       return;
     }
 
-    // Spawn 2-3 stars with slight stagger
-    var count = Math.floor(Math.random() * 2) + 2; // 2-3 stars
+    // Spawn 1-3 stars with slight stagger
+    var count = Math.floor(Math.random() * 3) + 1;
     for (var i = 0; i < count; i++) {
       (function(idx) {
-        setTimeout(function() { createStar(); }, idx * 200); // 200ms stagger
+        setTimeout(function() { createStar(); }, idx * 300);
       })(i);
     }
 
-    // Shorter interval between groups (0.8-2s)
-    var delay = Math.random() * 1200 + 800;
+    // Interval between groups (3-8s — natural spacing)
+    var delay = Math.random() * 5000 + 3000;
     setTimeout(spawnLoop, delay);
   }
 
   // Start after a short delay
-  setTimeout(spawnLoop, 1000);
+  setTimeout(spawnLoop, 2000);
 }
 
 // === CONFIGURATION ===
