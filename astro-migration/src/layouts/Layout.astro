@@ -38,12 +38,13 @@ const {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://pagead2.googlesyndication.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="dns-prefetch" href="https://ep1.adtrafficquality.google">
   <link rel="dns-prefetch" href="https://ep2.adtrafficquality.google">
+  <link rel="dns-prefetch" href="https://unpkg.com">
   <link rel="preload" href="/css/style.css?v=15.0" as="style">
   <link rel="preload" href="/js/app.js?v=19.2" as="script">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <script defer src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -84,7 +85,8 @@ const {
   <link rel="canonical" href={canonicalUrl}>
 
   <link rel="stylesheet" href="/css/style.css?v=15.0">
-  <link rel="stylesheet" href="/css/mobile-quick-menu.css">
+  <link rel="preload" href="/css/mobile-quick-menu.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/css/mobile-quick-menu.css"></noscript>
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
 
@@ -131,7 +133,7 @@ const {
 
       <a href="/" class="navbar-brand">
 
-        <picture><source srcset="/images/logo_beebane_webp.webp" type="image/webp"><img src="/images/logo_beebane_webp.webp" alt="BeebaneLabs" class="brand-logo" width="40" height="22"></picture>
+        <picture><source srcset="/images/logo_beebane_webp.webp" type="image/webp"><img src="/images/logo_beebane_webp.webp" alt="BeebaneLabs" class="brand-logo" width="40" height="22" fetchpriority="high"></picture>
 
       </a>
 
@@ -325,41 +327,50 @@ const {
   <script defer src="/js/app.js?v=19.2"></script>
   <script defer src="/js/mobile-zoom.js?v=9.2"></script>
   <script defer src="/js/diagram-interactions.js?v=1.0"></script>
-  <!-- Mermaid.js fallback for diagrams not pre-rendered to SVG -->
-  <script defer src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <!-- Mermaid.js: lazy-loaded only when diagrams exist on the page -->
   <script>
   document.addEventListener('DOMContentLoaded', function() {
-    if (typeof mermaid !== 'undefined') {
-      function getMermaidTheme() {
-        var isNight = document.body.classList.contains('reading-sky-night');
-        return {
-          theme: isNight ? 'dark' : 'default',
-          themeVariables: isNight ? {
-            primaryColor: '#1a2332',
-            primaryTextColor: '#E7E8F5',
-            primaryBorderColor: '#39D9C4',
-            lineColor: '#39D9C4',
-            secondaryColor: '#0f1620',
-            tertiaryColor: '#1a1f2e',
-            edgeLabelBackground: '#0f1011',
-            nodeTextColor: '#E7E8F5'
-          } : {
-            primaryColor: '#eaf4f0',
-            primaryTextColor: '#10231F',
-            primaryBorderColor: '#39D9C4',
-            lineColor: '#39D9C4',
-            secondaryColor: '#d4eae4',
-            tertiaryColor: '#f0f7f4',
-            edgeLabelBackground: '#ffffff',
-            nodeTextColor: '#10231F'
-          },
-          fontFamily: "'Work Sans', system-ui, sans-serif",
-          fontSize: 14,
-          flowchart: { curve: 'basis', padding: 15 }
-        };
-      }
-      mermaid.initialize(Object.assign({ startOnLoad: true }, getMermaidTheme()));
+    /* Only load Mermaid if there are .mermaid elements (250KB savings on non-article pages) */
+    var mermaidEls = document.querySelectorAll('pre.mermaid');
+    if (mermaidEls.length === 0) return;
+
+    function getMermaidTheme() {
+      var isNight = document.body.classList.contains('reading-sky-night');
+      return {
+        theme: isNight ? 'dark' : 'default',
+        themeVariables: isNight ? {
+          primaryColor: '#1a2332',
+          primaryTextColor: '#E7E8F5',
+          primaryBorderColor: '#39D9C4',
+          lineColor: '#39D9C4',
+          secondaryColor: '#0f1620',
+          tertiaryColor: '#1a1f2e',
+          edgeLabelBackground: '#0f1011',
+          nodeTextColor: '#E7E8F5'
+        } : {
+          primaryColor: '#eaf4f0',
+          primaryTextColor: '#10231F',
+          primaryBorderColor: '#39D9C4',
+          lineColor: '#39D9C4',
+          secondaryColor: '#d4eae4',
+          tertiaryColor: '#f0f7f4',
+          edgeLabelBackground: '#ffffff',
+          nodeTextColor: '#10231F'
+        },
+        fontFamily: "'Work Sans', system-ui, sans-serif",
+        fontSize: 14,
+        flowchart: { curve: 'basis', padding: 15 }
+      };
     }
+
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+    s.onload = function() {
+      if (typeof mermaid !== 'undefined') {
+        mermaid.initialize(Object.assign({ startOnLoad: true }, getMermaidTheme()));
+      }
+    };
+    document.head.appendChild(s);
   });
   </script>
 

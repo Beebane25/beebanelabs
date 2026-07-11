@@ -3,6 +3,10 @@
  * ReadingSky.astro
  * Day mode: CSS gradient + sun + clouds + light rays
  * Night mode: Three.js canvas (stars, moon, mountains, fireflies)
+ *
+ * PERFORMANCE: Three.js is lazy-loaded — only fetched when user
+ * switches to night mode (or returns in night mode). Saves ~556KB
+ * on initial page load for day-mode users.
  */
 
 interface Props {
@@ -48,206 +52,162 @@ const { initialMode = 'day' } = Astro.props;
     z-index: -3;
     background: linear-gradient(180deg, #bfe3fb 0%, #e8f4fd 45%, #fdf6e8 100%);
     transition: opacity 1.2s ease;
+    opacity: 1;
   }
-
-  body.reading-sky-night #reading-sky-day {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  /* Light rays */
-  .rs-rays {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background: conic-gradient(from 200deg at 78% 12%,
-      rgba(255,244,214,0.35) 0deg, transparent 25deg,
-      rgba(255,244,214,0.25) 45deg, transparent 70deg,
-      rgba(255,244,214,0.3) 95deg, transparent 130deg);
-    animation: rs-rayDrift 40s linear infinite;
-    opacity: 0.7;
-  }
-
-  @keyframes rs-rayDrift {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+  body.reading-sky-night #reading-sky-day { opacity: 0; pointer-events: none; }
 
   /* Sun */
   .rs-sun-wrap {
-    position: fixed; top: 6%; right: 10%; z-index: 1; pointer-events: none;
-  }
-  .rs-sun-glow {
-    width: 220px; height: 220px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,230,160,0.8) 0%, rgba(255,230,160,0.25) 45%, transparent 70%);
-    position: absolute; top: -70px; left: -70px;
-    animation: rs-breathe 6s ease-in-out infinite;
+    position: absolute;
+    top: 12%;
+    right: 18%;
+    width: 90px;
+    height: 90px;
   }
   .rs-sun-core {
-    width: 80px; height: 80px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #fffdf5, #fff6d8 55%, #ffe9ad 100%);
-    box-shadow: 0 0 40px 10px rgba(255,230,160,0.5);
-    animation: rs-breathe 6s ease-in-out infinite;
+    position: absolute;
+    inset: 15px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff7d4 0%, #ffd54f 60%, #ffb300 100%);
+    box-shadow: 0 0 60px 20px rgba(255,200,0,0.3);
+    animation: sunPulse 4s ease-in-out infinite;
   }
-  @keyframes rs-breathe {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.06); }
+  .rs-sun-glow {
+    position: absolute;
+    inset: -30px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,220,80,0.35) 0%, transparent 70%);
+    animation: sunGlow 6s ease-in-out infinite;
   }
 
   /* Clouds */
   .rs-cloud-layer {
-    position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
   }
   .rs-cloud {
     position: absolute;
-    background: #fff;
-    border-radius: 100px;
-    opacity: 0.85;
-    filter: drop-shadow(0 8px 12px rgba(150,170,190,0.25));
+    width: 200px;
+    height: 60px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 60px;
+    filter: blur(2px);
+    animation: cloudDrift linear infinite;
   }
   .rs-cloud::before, .rs-cloud::after {
-    content: "";
+    content: '';
     position: absolute;
-    background: #fff;
-    border-radius: 100px;
+    background: inherit;
+    border-radius: 50%;
   }
+  .rs-cloud::before { width: 80px; height: 80px; top: -35px; left: 30px; }
+  .rs-cloud::after { width: 60px; height: 60px; top: -20px; right: 30px; }
+  .rs-cloud1 { top: 15%; animation-duration: 45s; opacity: 0.8; }
+  .rs-cloud2 { top: 28%; animation-duration: 60s; animation-delay: -15s; opacity: 0.6; transform: scale(0.7); }
+  .rs-cloud3 { top: 40%; animation-duration: 55s; animation-delay: -30s; opacity: 0.5; transform: scale(0.5); }
+  .rs-cloud4 { top: 22%; animation-duration: 70s; animation-delay: -45s; opacity: 0.4; transform: scale(0.9); }
 
-  .rs-cloud1 {
-    width: 140px; height: 44px; top: 14%; left: -200px;
-    animation: rs-drift1 55s linear infinite;
+  /* Rays */
+  .rs-rays {
+    position: absolute;
+    top: 8%;
+    right: 14%;
+    width: 200px;
+    height: 200px;
+    background: conic-gradient(from 0deg, transparent 0%, rgba(255,220,80,0.08) 5%, transparent 10%, transparent 15%, rgba(255,220,80,0.06) 20%, transparent 25%, transparent 30%, rgba(255,220,80,0.08) 35%, transparent 40%, transparent 45%, rgba(255,220,80,0.05) 50%, transparent 55%, transparent 60%, rgba(255,220,80,0.07) 65%, transparent 70%, transparent 75%, rgba(255,220,80,0.06) 80%, transparent 85%, transparent 90%, rgba(255,220,80,0.08) 95%, transparent 100%);
+    animation: raysSpin 30s linear infinite;
+    opacity: 0.8;
   }
-  .rs-cloud1::before { width: 70px; height: 70px; top: -34px; left: 20px; }
-  .rs-cloud1::after { width: 50px; height: 50px; top: -24px; left: 80px; }
+  body.reading-sky-night .rs-rays { opacity: 0; }
 
-  .rs-cloud2 {
-    width: 100px; height: 32px; top: 26%; left: -180px;
-    animation: rs-drift2 70s linear infinite; opacity: 0.7;
-  }
-  .rs-cloud2::before { width: 50px; height: 50px; top: -24px; left: 14px; }
-  .rs-cloud2::after { width: 36px; height: 36px; top: -16px; left: 56px; }
-
-  .rs-cloud3 {
-    width: 180px; height: 54px; top: 8%; left: -260px;
-    animation: rs-drift3 90s linear infinite; opacity: 0.6;
-  }
-  .rs-cloud3::before { width: 90px; height: 90px; top: -44px; left: 26px; }
-  .rs-cloud3::after { width: 60px; height: 60px; top: -28px; left: 110px; }
-
-  .rs-cloud4 {
-    width: 120px; height: 38px; top: 38%; left: -200px;
-    animation: rs-drift1 65s linear infinite; animation-delay: -20s; opacity: 0.55;
-  }
-  .rs-cloud4::before { width: 60px; height: 60px; top: -28px; left: 18px; }
-  .rs-cloud4::after { width: 40px; height: 40px; top: -18px; left: 68px; }
-
-  @keyframes rs-drift1 {
-    from { transform: translateX(0); }
-    to { transform: translateX(160vw); }
-  }
-  @keyframes rs-drift2 {
-    from { transform: translateX(0); }
-    to { transform: translateX(160vw); }
-  }
-  @keyframes rs-drift3 {
-    from { transform: translateX(0); }
-    to { transform: translateX(160vw); }
-  }
-
-  /* ========== NIGHT MODE CANVAS ========== */
+  /* Canvas (night) */
   #reading-sky-canvas {
     position: fixed;
     inset: 0;
     width: 100vw;
     height: 100vh;
-    z-index: -2;
-    display: block;
+    z-index: -3;
     opacity: 0;
     transition: opacity 1.2s ease;
+    pointer-events: none;
   }
+  body.reading-sky-night #reading-sky-canvas { opacity: 1; }
 
-  body.reading-sky-night #reading-sky-canvas {
-    opacity: 1;
-  }
-
-  /* ========== TOGGLE & HUD ========== */
-  #reading-sky-hud {
-    position: fixed;
-    left: 20px;
-    bottom: 20px;
-    z-index: 50;
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 16px 10px 12px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255,255,255,0.4);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    transition: background 1.2s ease, border-color 1.2s ease, box-shadow 1.2s ease;
-    color: #2b3a4a;
-  }
-  #reading-sky-hud .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #39D9C4;
-    box-shadow: 0 0 8px #39D9C4;
-    flex-shrink: 0;
-  }
-  #reading-sky-hud .clock { font-size: 14px; font-weight: 500; min-width: 30px; }
-  #reading-sky-hud .phase { font-size: 12px; opacity: 0.75; }
-
+  /* Toggle */
   #reading-sky-toggle {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 50;
-    width: 56px;
-    height: 30px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.4);
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    bottom: 80px;
+    right: 18px;
+    width: 54px;
+    height: 28px;
+    border-radius: 14px;
+    border: 2px solid var(--panel-border, rgba(255,255,255,0.2));
+    background: var(--panel, rgba(255,255,255,0.15));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     cursor: pointer;
-    padding: 3px;
-    transition: background 1.2s ease, border-color 1.2s ease;
+    z-index: 10000;
+    padding: 0;
+    transition: background 0.3s, border-color 0.3s;
   }
+  #reading-sky-toggle:hover { border-color: var(--accent, #39D9C4); }
   #reading-sky-toggle .knob {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: #39D9C4;
-    transition: transform 0.5s cubic-bezier(.65,0,.35,1), background 0.5s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffd54f;
+    box-shadow: 0 0 8px rgba(255,200,0,0.5);
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1), background 0.35s, box-shadow 0.35s;
+    transform: translateX(2px);
+  }
+  body.reading-sky-night #reading-sky-toggle .knob {
+    transform: translateX(28px);
+    background: #8fa8d6;
+    box-shadow: 0 0 10px rgba(143,168,214,0.6);
   }
 
-  /* Night mode overrides for HUD & Toggle */
-  :global(body.reading-sky-night) #reading-sky-hud {
-    background: rgba(14, 18, 36, 0.72);
-    border-color: rgba(255,255,255,0.08);
-    color: #E7E8F5;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  /* HUD */
+  #reading-sky-hud {
+    position: fixed;
+    bottom: 114px;
+    right: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--panel, rgba(255,255,255,0.12));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--panel-border, rgba(255,255,255,0.1));
+    border-radius: 10px;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    color: var(--text, #10231F);
+    z-index: 10000;
+    pointer-events: none;
   }
-  :global(body.reading-sky-night) #reading-sky-toggle {
-    background: rgba(14, 18, 36, 0.72);
-    border-color: rgba(255,255,255,0.08);
-  }
-  :global(body.reading-sky-night) #reading-sky-toggle .knob {
-    transform: translateX(26px);
-    background: #DCE3F0;
+  #reading-sky-hud .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: hudPulse 2s ease-in-out infinite;
   }
 
-  /* Reduce motion */
+  /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
-    .rs-sun-glow, .rs-sun-core, .rs-cloud, .rs-rays { animation: none !important; }
+    .rs-sun-core, .rs-sun-glow, .rs-rays { animation: none !important; }
   }
 </style>
 
 <script is:inline>
 document.addEventListener('DOMContentLoaded', function() {
-  var THREE = window.THREE;
-
   /* ====== STATE ====== */
   var THEME_KEY = 'beebanelabs_theme';
   var isNightMode = false;
+  var threeLoaded = false;
+  var threeInitializing = false;
 
   /* Restore saved theme */
   var saved = localStorage.getItem(THEME_KEY);
@@ -265,6 +225,227 @@ document.addEventListener('DOMContentLoaded', function() {
     phaseEl.textContent = isNightMode ? 'Malam' : 'Siang';
   }
 
+  /* ====== THREE.JS LAZY LOADER ====== */
+  function loadThreeJS(callback) {
+    if (window.THREE) { callback(window.THREE); return; }
+    if (threeInitializing) {
+      // Another call is already loading — wait for it
+      var check = setInterval(function() {
+        if (window.THREE) { clearInterval(check); callback(window.THREE); }
+      }, 50);
+      return;
+    }
+    threeInitializing = true;
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js';
+    s.onload = function() { callback(window.THREE); };
+    s.onerror = function() { console.error('Failed to load Three.js'); };
+    document.head.appendChild(s);
+  }
+
+  /* ====== THREE.JS SCENE INIT ====== */
+  function initThreeScene(THREE) {
+    if (threeLoaded) return;
+    threeLoaded = true;
+
+    var PAL = {
+      day: {
+        skyTop: new THREE.Color('#bfe3fb'),
+        skyHorizon: new THREE.Color('#fdf6e8'),
+        ground: new THREE.Color('#1F3A3D'),
+        groundFar: new THREE.Color('#2C4F4F')
+      },
+      night: {
+        skyTop: new THREE.Color('#050714'),
+        skyHorizon: new THREE.Color('#2B2B52'),
+        ground: new THREE.Color('#05070A'),
+        groundFar: new THREE.Color('#0a0c17')
+      }
+    };
+
+    var canvas = document.getElementById('reading-sky-canvas');
+    if (!canvas) return;
+
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.set(0, 12, 46);
+    camera.lookAt(0, 14, -60);
+
+    /* Sky dome */
+    var skyGeo = new THREE.SphereGeometry(400, 32, 32);
+    var skyMat = new THREE.ShaderMaterial({
+      uniforms: { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() } },
+      side: THREE.BackSide,
+      depthWrite: false,
+      vertexShader: 'varying vec3 vPos; void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: 'uniform vec3 uTop; uniform vec3 uHorizon; varying vec3 vPos; void main(){ float h = clamp(normalize(vPos).y * 1.4 + 0.15, 0.0, 1.0); gl_FragColor = vec4(mix(uHorizon, uTop, h), 1.0); }'
+    });
+    scene.add(new THREE.Mesh(skyGeo, skyMat));
+
+    /* Stars */
+    var STAR_COUNT = 900;
+    var starGeo = new THREE.BufferGeometry();
+    var starPos = new Float32Array(STAR_COUNT * 3);
+    for (var i = 0; i < STAR_COUNT; i++) {
+      var r = 300 + Math.random() * 60;
+      var theta = Math.random() * Math.PI * 2;
+      var phi = Math.acos(Math.random() * 0.85);
+      starPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+      starPos[i*3+1] = Math.abs(r * Math.cos(phi)) + 20;
+      starPos[i*3+2] = r * Math.sin(phi) * Math.sin(theta) - 100;
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    var starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, transparent: true, opacity: 0, depthWrite: false });
+    scene.add(new THREE.Points(starGeo, starMat));
+
+    /* Glow texture */
+    function makeGlowTexture(hex) {
+      var size = 128;
+      var c = document.createElement('canvas');
+      c.width = c.height = size;
+      var ctx = c.getContext('2d');
+      var g = ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+      g.addColorStop(0, hex + 'ff');
+      g.addColorStop(0.35, hex + '88');
+      g.addColorStop(1, hex + '00');
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,size,size);
+      return new THREE.CanvasTexture(c);
+    }
+
+    /* Moon */
+    var moon = new THREE.Mesh(new THREE.SphereGeometry(5, 24, 24), new THREE.MeshBasicMaterial({ color: 0xDCE3F0 }));
+    var moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture('#8FA8D6'), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    moonGlow.scale.set(34, 34, 1);
+    moon.add(moonGlow);
+    scene.add(moon);
+
+    /* Mountains */
+    function makeMountainRow(zPos, height, color) {
+      var points = [];
+      var segs = 10;
+      for (var j = 0; j <= segs; j++) {
+        var x = (j/segs - 0.5) * 500;
+        var y = Math.sin(j*1.7 + zPos) * height * 0.4 + height * (0.4 + Math.random()*0.3);
+        points.push(new THREE.Vector2(x, y));
+      }
+      points.unshift(new THREE.Vector2(-250, -20));
+      points.push(new THREE.Vector2(250, -20));
+      var shape = new THREE.Shape(points);
+      var mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({ color: color }));
+      mesh.position.z = zPos;
+      mesh.position.y = -6;
+      return mesh;
+    }
+    var groundFar = makeMountainRow(-90, 22, PAL.night.groundFar.getHex());
+    var groundNear = makeMountainRow(-40, 14, PAL.night.ground.getHex());
+    scene.add(groundFar, groundNear);
+
+    /* Trees */
+    var treeGroup = new THREE.Group();
+    var treeGeo = new THREE.ConeGeometry(1.6, 5, 6);
+    for (var ti = 0; ti < 22; ti++) {
+      var t = new THREE.Mesh(treeGeo, new THREE.MeshBasicMaterial({ color: PAL.night.ground.getHex() }));
+      t.position.set((Math.random()-0.5)*140, -3 + Math.random()*1.5, -30 - Math.random()*15);
+      t.scale.setScalar(0.7 + Math.random()*0.9);
+      treeGroup.add(t);
+    }
+    scene.add(treeGroup);
+
+    /* Fireflies */
+    var FIREFLY_COUNT = 40;
+    var fireflyGeo = new THREE.BufferGeometry();
+    var fPos = new Float32Array(FIREFLY_COUNT*3);
+    var fSeed = new Float32Array(FIREFLY_COUNT);
+    for (var fi = 0; fi < FIREFLY_COUNT; fi++) {
+      fPos[fi*3] = (Math.random()-0.5)*100;
+      fPos[fi*3+1] = -2 + Math.random()*8;
+      fPos[fi*3+2] = -35 + Math.random()*30;
+      fSeed[fi] = Math.random()*Math.PI*2;
+    }
+    fireflyGeo.setAttribute('position', new THREE.BufferAttribute(fPos, 3));
+    var fireflyMat = new THREE.PointsMaterial({ color: 0xC9F26C, size: 2.2, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+    scene.add(new THREE.Points(fireflyGeo, fireflyMat));
+
+    /* State */
+    var timeOfDay = 0.75; // Start night (canvas hidden by CSS)
+    var manualTarget = null;
+    var mouseX = 0, mouseY = 0;
+    var clock = new THREE.Clock();
+
+    window.addEventListener('mousemove', function(e) {
+      mouseX = (e.clientX / window.innerWidth - 0.5);
+      mouseY = (e.clientY / window.innerHeight - 0.5);
+    });
+
+    /* Animate time when toggling */
+    toggleBtn.addEventListener('click', function() {
+      manualTarget = isNightMode ? 0.75 : 0.25;
+    });
+
+    window.addEventListener('resize', function() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      var dt = clock.getDelta();
+      var t = clock.getElapsedTime();
+
+      if (manualTarget !== null) {
+        timeOfDay += (manualTarget - timeOfDay) * Math.min(1, dt * 2.2);
+        if (Math.abs(manualTarget - timeOfDay) < 0.002) {
+          timeOfDay = manualTarget;
+          manualTarget = null;
+        }
+      }
+
+      var angle = timeOfDay * Math.PI * 2;
+      var sunHeight = Math.sin(angle);
+      var moonHeight = Math.sin(angle + Math.PI);
+      var nightFactor = Math.max(0, moonHeight);
+
+      /* Moon position */
+      moon.position.set(Math.cos(angle + Math.PI) * -130, 20 + moonHeight * 70, -140);
+      moon.visible = moonHeight > -0.08;
+
+      /* Sky colors (always dark for night canvas) */
+      skyMat.uniforms.uTop.value.copy(PAL.night.skyTop);
+      skyMat.uniforms.uHorizon.value.copy(PAL.night.skyHorizon);
+
+      /* Ground */
+      groundNear.material.color.copy(PAL.night.ground);
+      groundFar.material.color.copy(PAL.night.groundFar);
+      treeGroup.children.forEach(function(tr) { tr.material.color.copy(PAL.night.ground); });
+
+      /* Stars & fireflies */
+      starMat.opacity = nightFactor * 0.9;
+      fireflyMat.opacity = nightFactor * 0.85;
+      var fAttr = fireflyGeo.attributes.position;
+      for (var i = 0; i < FIREFLY_COUNT; i++) {
+        fPos[i*3] += Math.sin(t*0.6 + fSeed[i]) * 0.02;
+        fPos[i*3+1] += Math.cos(t*0.8 + fSeed[i]) * 0.015;
+      }
+      fAttr.needsUpdate = true;
+
+      /* Camera parallax */
+      camera.position.x += (mouseX * 8 - camera.position.x) * 0.03;
+      camera.position.y += (12 - mouseY * 4 - camera.position.y) * 0.03;
+      camera.lookAt(0, 14, -60);
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  }
+
+  /* ====== TOGGLE HANDLER ====== */
   toggleBtn.addEventListener('click', function() {
     isNightMode = !isNightMode;
     document.body.classList.toggle('reading-sky-night', isNightMode);
@@ -272,211 +453,18 @@ document.addEventListener('DOMContentLoaded', function() {
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = isNightMode ? '#08090a' : '#bfe3fb';
     updateHud();
+
+    /* Lazy-load Three.js when switching to night mode */
+    if (isNightMode && !threeLoaded) {
+      loadThreeJS(initThreeScene);
+    }
   });
 
   updateHud();
 
-  /* ====== THREE.JS NIGHT MODE ====== */
-  if (!THREE) {
-    console.error('THREE.js not loaded — night mode disabled');
-    return;
+  /* ====== AUTO-LOAD THREE.JS IF NIGHT MODE ====== */
+  if (isNightMode) {
+    loadThreeJS(initThreeScene);
   }
-
-  var PAL = {
-    day: {
-      skyTop: new THREE.Color('#bfe3fb'),
-      skyHorizon: new THREE.Color('#fdf6e8'),
-      ground: new THREE.Color('#1F3A3D'),
-      groundFar: new THREE.Color('#2C4F4F')
-    },
-    night: {
-      skyTop: new THREE.Color('#050714'),
-      skyHorizon: new THREE.Color('#2B2B52'),
-      ground: new THREE.Color('#05070A'),
-      groundFar: new THREE.Color('#0a0c17')
-    }
-  };
-
-  var canvas = document.getElementById('reading-sky-canvas');
-  if (!canvas) return;
-
-  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-
-  var scene = new THREE.Scene();
-  var camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
-  camera.position.set(0, 12, 46);
-  camera.lookAt(0, 14, -60);
-
-  /* Sky dome */
-  var skyGeo = new THREE.SphereGeometry(400, 32, 32);
-  var skyMat = new THREE.ShaderMaterial({
-    uniforms: { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() } },
-    side: THREE.BackSide,
-    depthWrite: false,
-    vertexShader: 'varying vec3 vPos; void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: 'uniform vec3 uTop; uniform vec3 uHorizon; varying vec3 vPos; void main(){ float h = clamp(normalize(vPos).y * 1.4 + 0.15, 0.0, 1.0); gl_FragColor = vec4(mix(uHorizon, uTop, h), 1.0); }'
-  });
-  scene.add(new THREE.Mesh(skyGeo, skyMat));
-
-  /* Stars */
-  var STAR_COUNT = 900;
-  var starGeo = new THREE.BufferGeometry();
-  var starPos = new Float32Array(STAR_COUNT * 3);
-  for (var i = 0; i < STAR_COUNT; i++) {
-    var r = 300 + Math.random() * 60;
-    var theta = Math.random() * Math.PI * 2;
-    var phi = Math.acos(Math.random() * 0.85);
-    starPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
-    starPos[i*3+1] = Math.abs(r * Math.cos(phi)) + 20;
-    starPos[i*3+2] = r * Math.sin(phi) * Math.sin(theta) - 100;
-  }
-  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-  var starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, transparent: true, opacity: 0, depthWrite: false });
-  scene.add(new THREE.Points(starGeo, starMat));
-
-  /* Glow texture */
-  function makeGlowTexture(hex) {
-    var size = 128;
-    var c = document.createElement('canvas');
-    c.width = c.height = size;
-    var ctx = c.getContext('2d');
-    var g = ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
-    g.addColorStop(0, hex + 'ff');
-    g.addColorStop(0.35, hex + '88');
-    g.addColorStop(1, hex + '00');
-    ctx.fillStyle = g;
-    ctx.fillRect(0,0,size,size);
-    return new THREE.CanvasTexture(c);
-  }
-
-  /* Moon */
-  var moon = new THREE.Mesh(new THREE.SphereGeometry(5, 24, 24), new THREE.MeshBasicMaterial({ color: 0xDCE3F0 }));
-  var moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture('#8FA8D6'), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
-  moonGlow.scale.set(34, 34, 1);
-  moon.add(moonGlow);
-  scene.add(moon);
-
-  /* Mountains */
-  function makeMountainRow(zPos, height, color) {
-    var points = [];
-    var segs = 10;
-    for (var j = 0; j <= segs; j++) {
-      var x = (j/segs - 0.5) * 500;
-      var y = Math.sin(j*1.7 + zPos) * height * 0.4 + height * (0.4 + Math.random()*0.3);
-      points.push(new THREE.Vector2(x, y));
-    }
-    points.unshift(new THREE.Vector2(-250, -20));
-    points.push(new THREE.Vector2(250, -20));
-    var shape = new THREE.Shape(points);
-    var mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({ color: color }));
-    mesh.position.z = zPos;
-    mesh.position.y = -6;
-    return mesh;
-  }
-  var groundFar = makeMountainRow(-90, 22, PAL.night.groundFar.getHex());
-  var groundNear = makeMountainRow(-40, 14, PAL.night.ground.getHex());
-  scene.add(groundFar, groundNear);
-
-  /* Trees */
-  var treeGroup = new THREE.Group();
-  var treeGeo = new THREE.ConeGeometry(1.6, 5, 6);
-  for (var ti = 0; ti < 22; ti++) {
-    var t = new THREE.Mesh(treeGeo, new THREE.MeshBasicMaterial({ color: PAL.night.ground.getHex() }));
-    t.position.set((Math.random()-0.5)*140, -3 + Math.random()*1.5, -30 - Math.random()*15);
-    t.scale.setScalar(0.7 + Math.random()*0.9);
-    treeGroup.add(t);
-  }
-  scene.add(treeGroup);
-
-  /* Fireflies */
-  var FIREFLY_COUNT = 40;
-  var fireflyGeo = new THREE.BufferGeometry();
-  var fPos = new Float32Array(FIREFLY_COUNT*3);
-  var fSeed = new Float32Array(FIREFLY_COUNT);
-  for (var fi = 0; fi < FIREFLY_COUNT; fi++) {
-    fPos[fi*3] = (Math.random()-0.5)*100;
-    fPos[fi*3+1] = -2 + Math.random()*8;
-    fPos[fi*3+2] = -35 + Math.random()*30;
-    fSeed[fi] = Math.random()*Math.PI*2;
-  }
-  fireflyGeo.setAttribute('position', new THREE.BufferAttribute(fPos, 3));
-  var fireflyMat = new THREE.PointsMaterial({ color: 0xC9F26C, size: 2.2, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
-  scene.add(new THREE.Points(fireflyGeo, fireflyMat));
-
-  /* State */
-  var timeOfDay = 0.75; // Start night (canvas hidden by CSS)
-  var manualTarget = null;
-  var mouseX = 0, mouseY = 0;
-  var clock = new THREE.Clock();
-
-  window.addEventListener('mousemove', function(e) {
-    mouseX = (e.clientX / window.innerWidth - 0.5);
-    mouseY = (e.clientY / window.innerHeight - 0.5);
-  });
-
-  /* Animate time when toggling */
-  var origToggle = toggleBtn.onclick;
-  toggleBtn.addEventListener('click', function() {
-    manualTarget = isNightMode ? 0.75 : 0.25;
-  });
-
-  window.addEventListener('resize', function() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
-
-  function animate() {
-    requestAnimationFrame(animate);
-    var dt = clock.getDelta();
-    var t = clock.getElapsedTime();
-
-    if (manualTarget !== null) {
-      timeOfDay += (manualTarget - timeOfDay) * Math.min(1, dt * 2.2);
-      if (Math.abs(manualTarget - timeOfDay) < 0.002) {
-        timeOfDay = manualTarget;
-        manualTarget = null;
-      }
-    }
-
-    var angle = timeOfDay * Math.PI * 2;
-    var sunHeight = Math.sin(angle);
-    var moonHeight = Math.sin(angle + Math.PI);
-    var nightFactor = Math.max(0, moonHeight);
-
-    /* Moon position */
-    moon.position.set(Math.cos(angle + Math.PI) * -130, 20 + moonHeight * 70, -140);
-    moon.visible = moonHeight > -0.08;
-
-    /* Sky colors (always dark for night canvas) */
-    skyMat.uniforms.uTop.value.copy(PAL.night.skyTop);
-    skyMat.uniforms.uHorizon.value.copy(PAL.night.skyHorizon);
-
-    /* Ground */
-    groundNear.material.color.copy(PAL.night.ground);
-    groundFar.material.color.copy(PAL.night.groundFar);
-    treeGroup.children.forEach(function(tr) { tr.material.color.copy(PAL.night.ground); });
-
-    /* Stars & fireflies */
-    starMat.opacity = nightFactor * 0.9;
-    fireflyMat.opacity = nightFactor * 0.85;
-    var fAttr = fireflyGeo.attributes.position;
-    for (var i = 0; i < FIREFLY_COUNT; i++) {
-      fAttr.array[i*3] += Math.sin(t*0.6 + fSeed[i]) * 0.02;
-      fAttr.array[i*3+1] += Math.cos(t*0.8 + fSeed[i]) * 0.015;
-    }
-    fAttr.needsUpdate = true;
-
-    /* Camera parallax */
-    camera.position.x += (mouseX * 8 - camera.position.x) * 0.03;
-    camera.position.y += (12 - mouseY * 4 - camera.position.y) * 0.03;
-    camera.lookAt(0, 14, -60);
-
-    renderer.render(scene, camera);
-  }
-
-  animate();
 });
 </script>
