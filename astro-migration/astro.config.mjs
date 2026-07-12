@@ -10,6 +10,7 @@ const REDIRECT_PAGES = [
   '/kategori/mikrotik',
   '/kategori/raspberry-pi',
   '/kategori/tools',
+  '/offline',
 ];
 
 // https://astro.build/config

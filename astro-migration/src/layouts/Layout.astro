@@ -9,6 +9,10 @@ interface Props {
   ogType?: string;
   canonicalUrl?: string;
   pageClass?: string;
+  datePublished?: string;
+  dateModified?: string;
+  category?: string;
+  noindex?: boolean;
 }
 
 const {
@@ -19,7 +23,14 @@ const {
   ogType = 'website',
   canonicalUrl = 'https://beebanelabs.pages.dev',
   pageClass = '',
+  datePublished = '',
+  dateModified = '',
+  category = '',
+  noindex = false,
 } = Astro.props;
+
+const isArticle = ogType === 'article';
+const articleSlug = canonicalUrl.split('/').pop()?.replace('.html', '') || '';
 ---
 
 <!DOCTYPE html>
@@ -32,7 +43,7 @@ const {
     <link rel="alternate" type="application/rss+xml" title="BeebaneLabs RSS" href="https://beebanelabs.pages.dev/rss.xml">
     <link rel="alternate" type="application/atom+xml" title="BeebaneLabs Atom" href="https://beebanelabs.pages.dev/atom.xml">
   <meta name="theme-color" content="#f0f7f4">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow"}>
   <meta name="google-site-verification" content="googlebb38388a1a1bdaed">
   <link rel="preconnect" href="https://*.supabase.co" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,7 +53,17 @@ const {
   <link rel="dns-prefetch" href="https://ep1.adtrafficquality.google">
   <link rel="dns-prefetch" href="https://ep2.adtrafficquality.google">
   <link rel="dns-prefetch" href="https://unpkg.com">
-  <link rel="preload" href="/css/style.css?v=16.0" as="style">
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+
+  <!-- Google Analytics GA4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-J36M9V5K3G"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-J36M9V5K3G', { 'anonymize_ip': true });
+  </script>
+  <link rel="preload" href="/css/style.css?v=17.0" as="style">
   <link rel="preload" href="/js/app.js?v=19.2" as="script">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -84,7 +105,7 @@ const {
 
   <link rel="canonical" href={canonicalUrl}>
 
-  <link rel="stylesheet" href="/css/style.css?v=16.0">
+  <link rel="stylesheet" href="/css/style.css?v=17.0">
   <link rel="preload" href="/css/mobile-quick-menu.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/css/mobile-quick-menu.css"></noscript>
 
@@ -110,6 +131,63 @@ const {
 
   </script>
 
+  {isArticle && (
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": title.replace(' | BeebaneLabs', ''),
+      "description": description,
+      "image": ogImage,
+      "datePublished": datePublished,
+      "dateModified": dateModified || datePublished,
+      "author": {
+        "@type": "Organization",
+        "name": "BeebaneLabs",
+        "url": "https://beebanelabs.pages.dev/about.html"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "BeebaneLabs",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://beebanelabs.pages.dev/images/logo_beebane.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": canonicalUrl
+      },
+      "articleSection": category,
+      "inLanguage": "id"
+    })} />
+  )}
+
+  {isArticle && (
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Beranda",
+          "item": "https://beebanelabs.pages.dev"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": category || "Artikel",
+          "item": "https://beebanelabs.pages.dev/kategori.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": title.replace(' | BeebaneLabs', ''),
+          "item": canonicalUrl
+        }
+      ]
+    })} />
+  )}
 
   <script type="speculationrules">{ "prerender": [{ "where": { "href_matches": "/*" }, "eagerness": "moderate" }] }</script>
 <script>

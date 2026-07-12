@@ -29,10 +29,20 @@
             <span class="read-time">📖 10 menit baca</span>
             <span class="difficulty pemula">Pemula</span>
           </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
         </div>
         <div class="article-layout">
           <div class="article-content cheatsheet">
+            <p>Cheatsheet ini menyediakan referensi cepat dan praktis untuk empat protokol komunikasi yang paling banyak digunakan dalam pengembangan IoT dan web modern: <strong>MQTT</strong>, <strong>HTTP/REST</strong>, <strong>WebSocket</strong>, dan <strong>CoAP</strong>. Setiap bagian dilengkapi dengan contoh kode langsung yang bisa Anda copy-paste, tabel referensi, serta penjelasan singkat kapan harus menggunakan protokol tertentu. Cocok untuk developer IoT yang bekerja dengan sensor dan microcontroller, backend developer yang membangun REST API, maupun siapa saja yang ingin memahami cara komunikasi antar-sistem berjalan di dunia nyata.</p>
+
             <h2>📡 MQTT Quick Reference</h2>
+<p>MQTT (Message Queuing Telemetry Transport) adalah protokol messaging ringan berbasis publish/subscribe yang dirancang untuk komunikasi mesin-ke-mesin (M2M) dan IoT. Broker MQTT bertengah antara publisher (pengirim) dan subscriber (penerima), sehingga kedua belah pihak tidak perlu saling mengenal. Keunggulan utama MQTT adalah overhead header yang sangat kecil (hanya 2 byte minimum), dukungan QoS tiga level, dan retained messages yang menyimpan pesan terakhir pada sebuah topic.</p>
 <table class="data-table"><tr><th>QoS</th><th>Nama</th><th>Deskripsi</th><th>Gunakan</th></tr>
 <tr><td>0</td><td>At most once</td><td>Fire and forget, no ack</td><td>Sensor data, telemetry</td></tr>
 <tr><td>1</td><td>At least once</td><td>Acknowledged, may duplicate</td><td>Commands, notifications</td></tr>
@@ -47,6 +57,7 @@ sensor/temperature/livingroom  # Specific
 sensor/+/livingroom            # Single level wildcard
 sensor/#                       # Multi level wildcard</code></pre></div>
 <h2>🌐 HTTP Status Codes</h2>
+<p>HTTP (Hypertext Transfer Protocol) adalah protokol standar untuk komunikasi web. Setiap response dari server menyertakan status code yang menunjukkan hasil request. Memahami status code sangat penting untuk debugging API dan menulis error handling yang tepat. Status code dibagi dalam 5 kategori: 1xx (informational), 2xx (success), 3xx (redirect), 4xx (client error), dan 5xx (server error).</p>
 <table class="data-table"><tr><th>Code</th><th>Nama</th><th>Gunakan</th></tr>
 <tr><td>200</td><td>OK</td><td>Success</td></tr><tr><td>201</td><td>Created</td><td>Resource created</td></tr>
 <tr><td>204</td><td>No Content</td><td>Delete success</td></tr><tr><td>301</td><td>Moved Permanently</td><td>Redirect</td></tr>
@@ -77,8 +88,77 @@ Upgrade: websocket
 Connection: Upgrade
 Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
 Sec-WebSocket-Version: 13</code></pre></div>
+
+<h2>📡 CoAP (Constrained Application Protocol)</h2>
+<p>CoAP adalah protokol ringan berbasis UDP yang dirancang khusus untuk perangkat IoT dengan resource terbatas. Berbeda dengan HTTP, CoAP menggunakan format biner yang jauh lebih efisien dan mendukung multicast.</p>
+<div class="code-block"><pre><code># CoAP methods (mirrors HTTP)
+GET    /sensors/temperature    # Read resource
+POST   /sensors                # Create resource
+PUT    /sensors/1              # Update resource
+DELETE /sensors/1              # Delete resource
+
+# CoAP response codes
+2.01 Created
+2.05 Content
+4.00 Bad Request
+4.04 Not Found
+
+# Using libcoap CLI
+coap-client -m get coap://sensor.local/sensors/temp
+coap-client -m put -e '{"led":"on"}' coap://sensor.local/actuators/led
+
+# Observe (subscribe to changes, like MQTT)
+coap-client -s 10 coap://sensor.local/sensors/temp</code></pre></div>
+
+<h2>🔄 Perbandingan Protokol</h2>
+<table class="data-table"><tr><th>Fitur</th><th>MQTT</th><th>HTTP</th><th>WebSocket</th><th>CoAP</th></tr>
+<tr><td>Transport</td><td>TCP</td><td>TCP</td><td>TCP</td><td>UDP</td></tr>
+<tr><td>Model</td><td>Publish/Subscribe</td><td>Request/Response</td><td>Full Duplex</td><td>Request/Response</td></tr>
+<tr><td>Overhead</td><td>Sangat rendah</td><td>Tinggi</td><td>Sedang</td><td>Sangat rendah</td></tr>
+<tr><td>Real-time</td><td>Ya (push)</td><td>Tidak (polling)</td><td>Ya (bidirectional)</td><td>Ya (observe)</td></tr>
+<tr><td>Ukuran payload</td><td>256 MB</td><td>Tidak terbatas</td><td>64 KB frame</td><td>~1 KB optimal</td></tr>
+<tr><td>Use case</td><td>IoT sensor</td><td>Web API</td><td>Chat, live data</td><td>Embedded IoT</td></tr></table>
+
+<h2>💡 Tips & Best Practices</h2>
+<div class="info-box info">
+<p><strong>🔒 Keamanan MQTT:</strong> Selalu gunakan TLS (port 8883) untuk koneksi MQTT di production. Gunakan username/password atau client certificate untuk autentikasi. Jangan pernah mengirim data sensitif tanpa enkripsi.</p>
+<p><strong>📋 Topic Design:</strong> Buat hierarki topic yang konsisten dan terstruktur. Gunakan format <code>org/device-type/device-id/metric</code> untuk memudahkan filtering dan akses control. Hindari topic yang terlalu dalam (maksimal 5 level).</p>
+<p><strong>🔄 QoS Selection:</strong> Gunakan QoS 0 untuk data telemetri biasa yang toleran hilang, QoS 1 untuk command dan notifikasi, dan QoS 2 hanya untuk data kritis seperti transaksi pembayaran karena overhead-nya 4x lipat.</p>
+<p><strong>🌐 REST API Design:</strong> Gunakan noun (bukan verb) untuk endpoint: <code>/api/users</code> bukan <code>/api/getUsers</code>. Gunakan HTTP method yang tepat: GET untuk read, POST untuk create, PUT untuk full update, PATCH untuk partial update, DELETE untuk hapus.</p>
+<p><strong>🔌 WebSocket vs Polling:</strong> Jika aplikasi membutuhkan update real-time dari server (chat, notifikasi, live dashboard), gunakan WebSocket. Untuk data yang jarang berubah (setiap 30 detik+), long-polling atau SSE (Server-Sent Events) mungkin lebih sederhana dan cukup.</p>
+<p><strong>📊 Rate Limiting:</strong> Selalu implementasikan rate limiting di API Anda. Return header <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, dan <code>X-RateLimit-Reset</code> agar client tahu batasan mereka.</p>
+</div>
+
+<h2>📌 Kapan Menggunakan?</h2>
+<table class="data-table"><tr><th>Skenario</th><th>Protokol Terbaik</th><th>Alasan</th></tr>
+<tr><td>Sensor suhu kirim data tiap 5 detik</td><td>MQTT QoS 0</td><td>Overhead rendah, pub/sub cocok untuk telemetry</td></tr>
+<tr><td>Mobile app ambil data user</td><td>HTTP REST</td><td>Request/response, caching, universal support</td></tr>
+<tr><td>Dashboard monitoring real-time</td><td>WebSocket</td><td>Full duplex, push data tanpa polling</td></tr>
+<tr><td>ESP32 kirim data ke gateway</td><td>CoAP</td><td>Sangat ringan, hemat bandwidth dan memory</td></tr>
+<tr><td>Chat aplikasi</td><td>WebSocket</td><td>Latency rendah, bidirectional communication</td></tr>
+<tr><td>Microservice communication</td><td>HTTP/gRPC</td><td>Standar industri, tooling lengkap</td></tr>
+<tr><td>Smart home control</td><td>MQTT QoS 1</td><td>Reliable delivery, retained messages</td></tr></table>
           </div>
         </div>
       </div>
-    </article>
+    
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/expo-react-native.html" class="related-card">
+          <span class="related-category">Mobile</span>
+          <span class="related-title">Expo: React Native Development</span>
+        </a>
+        <a href="/articles/mikrotik-routing.html" class="related-card">
+          <span class="related-category">Other</span>
+          <span class="related-title">Konfigurasi Routing MikroTik: Static Route, OSPF & BGP</span>
+        </a>
+        <a href="/articles/php-oop.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">🏛️ PHP Object-Oriented Programming</span>
+        </a>
+
+      </div>
+    </div>
+</article>
   </main>

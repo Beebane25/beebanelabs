@@ -29,10 +29,19 @@
             <span class="read-time">📖 10 menit baca</span>
             <span class="difficulty pemula">Pemula</span>
           </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
         </div>
         <div class="article-layout">
           <div class="article-content cheatsheet">
-            <h2>📋 CRUD Operations</h2>
+<p>SQL (Structured Query Language) adalah bahasa standar untuk berinteraksi dengan database relasional. Baik Anda menggunakan PostgreSQL, MySQL, SQLite, atau SQL Server, syntax dasar SQL tetap konsisten. Cheatsheet ini mencakup semua query yang paling sering digunakan oleh developer dan database administrator sehari-hari — mulai dari operasi CRUD dasar, JOIN, aggregate functions, window functions, hingga CTE dan index optimization. Simpan halaman ini sebagai referensi cepat saat Anda sedang menulis query atau debugging performa database.</p>
+
+<h2>📋 CRUD Operations</h2>
 <div class="code-block"><pre><code>-- SELECT
 SELECT col1, col2 FROM table WHERE id = 1;
 SELECT * FROM users ORDER BY created_at DESC LIMIT 10;
@@ -104,8 +113,31 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_orders_user_date ON orders(user_id, created_at);
 CREATE UNIQUE INDEX idx_users_email ON users(email);
 
+-- Partial index (PostgreSQL)
+CREATE INDEX idx_active_users ON users(email) WHERE status = 'active';
+
 -- Explain query
-EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@mail.com';</code></pre></div>
+EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@mail.com';
+
+-- Show indexes on a table
+SELECT * FROM pg_indexes WHERE tablename = 'users';</code></pre></div>
+
+<h2>🗃️ Subquery & EXISTS</h2>
+<div class="code-block"><pre><code>-- Subquery in WHERE
+SELECT name FROM users WHERE id IN (
+  SELECT user_id FROM orders WHERE total > 100000
+);
+
+-- EXISTS (faster for large datasets)
+SELECT u.name FROM users u WHERE EXISTS (
+  SELECT 1 FROM orders o WHERE o.user_id = u.id AND o.total > 100000
+);
+
+-- Correlated subquery
+SELECT name, salary, department FROM employees e1
+WHERE salary > (
+  SELECT AVG(salary) FROM employees e2 WHERE e2.department = e1.department
+);</code></pre></div>
 <h2>⚡ PostgreSQL vs MySQL</h2>
 <table class="data-table"><tr><th>Fitur</th><th>PostgreSQL</th><th>MySQL</th></tr>
 <tr><td>Limit</td><td><code>LIMIT 10 OFFSET 20</code></td><td><code>LIMIT 10 OFFSET 20</code></td></tr>
@@ -117,5 +149,51 @@ EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'test@mail.com';</code></pre><
           </div>
         </div>
       </div>
-    </article>
+    
+<h2>💡 Tips & Best Practices</h2>
+<div class="info-box info">
+<ul>
+<li><strong>Gunakan EXPLAIN ANALYZE</strong> sebelum mengoptimalkan query — ini menunjukkan execution plan aktual termasuk cost dan waktu eksekusi setiap step.</li>
+<li><strong>Hindari SELECT *</strong> dalam production query — pilih hanya kolom yang dibutuhkan untuk mengurangi I/O dan network transfer.</li>
+<li><strong>Index kolom yang sering di-WHERE</strong>, tapi jangan berlebihan — setiap index memperlambat INSERT/UPDATE dan memakan storage.</li>
+<li><strong>Gunakan parameterized queries</strong> untuk mencegah SQL injection — jangan pernah concatenation string user input langsung ke query.</li>
+<li><strong>Normalisasi data</strong> hingga 3NF, lalu denormalisasi secara strategis untuk query yang membutuhkan performa tinggi.</li>
+<li><strong>Backup database secara rutin</strong> dan test restore procedure — pg_dump untuk PostgreSQL, mysqldump untuk MySQL.</li>
+<li><strong>Gunakan TRANSACTIONS</strong> untuk operasi multi-statement yang harus atomic — BEGIN, COMMIT, ROLLBACK.</li>
+<li><strong>Monitor slow queries</strong> — aktifkan slow query log di MySQL (<code>slow_query_log = 1</code>) atau <code>pg_stat_statements</code> di PostgreSQL.</li>
+</ul>
+</div>
+
+<h2>🎯 Kapan Menggunakan</h2>
+<table class="data-table">
+<tr><th>Situasi</th><th>Gunakan</th><th>Hindari</th></tr>
+<tr><td>Ambil data dari 2+ tabel</td><td>JOIN dengan index pada kolom relasi</td><td>Multiple query terpisah lalu merge di aplikasi</td></tr>
+<tr><td>Update jutaan baris</td><td>Batch update dengan LIMIT + loop</td><td>UPDATE satu statement tanpa LIMIT (locking)</td></tr>
+<tr><td>Agregasi data per kategori</td><td>GROUP BY + HAVING di database</td><td>Fetch semua data lalu proses di aplikasi</td></tr>
+<tr><td>Pagination</td><td>LIMIT + OFFSET atau cursor-based</td><td>SELECT * lalu slice di frontend</td></tr>
+<tr><td>Subquery kompleks</td><td>CTE (WITH clause) untuk readability</td><td>Nested subquery berlapis-lapis</td></tr>
+<tr><td>Ranking data</td><td>Window functions (ROW_NUMBER, RANK)</td><td>Self-join atau subquery untuk ranking</td></tr>
+<tr><td>Insert massal</td><td>Bulk INSERT multi-value atau COPY</td><td>Satu INSERT per baris dalam loop</td></tr>
+<tr><td>Cek duplikat</td><td>GROUP BY HAVING COUNT(*) > 1</td><td>SELECT DISTINCT tanpa investigasi akar masalah</td></tr>
+</table>
+
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/couchdb-basics.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">Apache CouchDB: NoSQL Document Database Lengkap</span>
+        </a>
+        <a href="/articles/sql-partitioning.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">SQL Table Partitioning: Range, List & Hash Partitioning</span>
+        </a>
+        <a href="/articles/clickhouse-analytics.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">ClickHouse untuk Real-time Analytics</span>
+        </a>
+
+      </div>
+    </div>
+</article>
   </main>

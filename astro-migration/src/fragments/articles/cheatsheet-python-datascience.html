@@ -29,9 +29,18 @@
             <span class="read-time">📖 10 menit baca</span>
             <span class="difficulty pemula">Pemula</span>
           </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
         </div>
         <div class="article-layout">
           <div class="article-content cheatsheet">
+            <p>Cheatsheet ini adalah referensi lengkap dan praktis untuk <strong>Python Data Science</strong> yang mencakup empat library utama: <strong>NumPy</strong> untuk komputasi numerik, <strong>Pandas</strong> untuk manipulasi data tabular, <strong>Matplotlib</strong> untuk visualisasi, dan <strong>Scikit-learn</strong> untuk machine learning. Setiap bagian dilengkapi contoh kode yang langsung bisa dijalankan, penjelasan fungsi, dan tips optimasi. Cheatsheet ini cocok untuk data scientist, analis data, mahasiswa, dan siapa saja yang ingin memiliki referensi cepat saat bekerja dengan data di Python. Simpan halaman ini sebagai bookmark agar bisa diakses kapan saja saat coding!</p>
+
             <h2>📦 NumPy Array</h2>
 <div class="code-block"><pre><code>import numpy as np
 
@@ -132,8 +141,113 @@ df = df[(df["col"] >= Q1-1.5*IQR) & (df["col"] <= Q3+1.5*IQR)]
 # Type conversion
 df["date"] = pd.to_datetime(df["date"])
 df["category"] = df["category"].astype("category")</code></pre></div>
+
+<h2>📊 Seaborn: Statistical Visualization</h2>
+<div class="code-block"><pre><code>import seaborn as sns
+
+# Distribution plot
+sns.histplot(df["age"], kde=True, bins=30)
+sns.boxplot(x="category", y="price", data=df)
+
+# Relationship plot
+sns.scatterplot(x="age", y="salary", hue="gender", data=df)
+sns.heatmap(df.corr(), annot=True, cmap="coolwarm", fmt=".2f")
+
+# Categorical plot
+sns.barplot(x="city", y="salary", data=df, estimator=np.mean)
+sns.violinplot(x="category", y="score", data=df)
+sns.pairplot(df, hue="species")  # All pairwise relationships</code></pre></div>
+
+<h2>🤖 Scikit-learn: Model Selection & Tuning</h2>
+<div class="code-block"><pre><code>from sklearn.model_selection import cross_val_score, GridSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
+
+# Pipeline (preprocessing + model)
+pipe = Pipeline([
+    ("scaler", StandardScaler()),
+    ("model", RandomForestClassifier())
+])
+pipe.fit(X_train, y_train)
+pipe.score(X_test, y_test)
+
+# Cross-validation
+scores = cross_val_score(pipe, X, y, cv=5, scoring="accuracy")
+print(f"Mean: {scores.mean():.3f} ± {scores.std():.3f}")
+
+# Hyperparameter tuning
+param_grid = {
+    "model__n_estimators": [100, 200, 500],
+    "model__max_depth": [5, 10, None],
+    "model__min_samples_split": [2, 5]
+}
+grid = GridSearchCV(pipe, param_grid, cv=3, n_jobs=-1)
+grid.fit(X_train, y_train)
+print(f"Best params: {grid.best_params_}")
+print(f"Best score: {grid.best_score_:.3f}")</code></pre></div>
+
+<h2>📉 Feature Engineering</h2>
+<div class="code-block"><pre><code>from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.feature_selection import SelectKBest, f_classif
+
+# Encoding categorical variables
+le = LabelEncoder()
+df["city_encoded"] = le.fit_transform(df["city"])
+
+# One-hot encoding (untuk model linear)
+df_encoded = pd.get_dummies(df, columns=["city", "gender"], drop_first=True)
+
+# Feature selection
+selector = SelectKBest(f_classif, k=10)
+X_selected = selector.fit_transform(X, y)
+selected_features = X.columns[selector.get_support()]
+
+# Feature scaling comparison
+from sklearn.preprocessing import MinMaxScaler, RobustScaler
+minmax = MinMaxScaler()       # [0, 1] range, sensitive outliers
+robust = RobustScaler()       # median-based, robust to outliers
+standard = StandardScaler()   # mean=0, std=1, assumes normal</code></pre></div>
+
+<h2>💡 Tips & Best Practices</h2>
+<div class="info-box info">
+<p><strong>📦 NumPy vs Python List:</strong> Selalu gunakan NumPy array untuk komputasi numerik. NumPy 10-100x lebih cepat dari Python list karena operasi dilakukan di level C dengan vectorization. Hindari loop Python biasa untuk operasi array — gunakan operasi element-wise NumPy.</p>
+<p><strong>📊 Pandas Performance:</strong> Untuk dataset besar (>1 GB), gunakan <code>pd.read_csv()</code> dengan parameter <code>dtype</code> dan <code>usecols</code> untuk menghemat memory. Gunakan <code>.itertuples()</code> bukan <code>.iterrows()</code> jika harus iterasi. Pertimbangkan Polars atau Dask untuk dataset sangat besar.</p>
+<p><strong>📈 Visualisasi yang Efektif:</strong> Selalu beri label sumbu X dan Y, title, dan legend. Gunakan colorblind-friendly palette seperti <code>sns.color_palette("colorblind")</code>. Simpan chart dengan <code>dpi=150</code> untuk presentasi dan <code>dpi=300</code> untuk publikasi.</p>
+<p><strong>🤖 Train-Test Split:</strong> Selalu split data SEBELUM preprocessing (scaling, encoding) untuk menghindari data leakage. Gunakan <code>Pipeline</code> Scikit-learn agar preprocessing otomatis hanya fit di training data.</p>
+<p><strong>🔍 EDA First:</strong> Selalu lakukan Exploratory Data Analysis sebelum modeling. Cek distribusi, missing values, outliers, dan korelasi. Gunakan <code>df.describe()</code>, <code>df.info()</code>, dan <code>sns.pairplot()</code> sebagai langkah awal.</p>
+</div>
+
+<h2>📌 Kapan Menggunakan Library Mana?</h2>
+<table class="data-table"><tr><th>Tugas</th><th>Library</th><th>Fungsi Utama</th></tr>
+<tr><td>Komputasi matrix/vektor</td><td>NumPy</td><td><code>np.array()</code>, <code>np.dot()</code></td></tr>
+<tr><td>Load & transformasi CSV/Excel</td><td>Pandas</td><td><code>pd.read_csv()</code>, <code>.groupby()</code></td></tr>
+<tr><td>Chart statis untuk laporan</td><td>Matplotlib</td><td><code>plt.plot()</code>, <code>plt.subplots()</code></td></tr>
+<tr><td>Chart statistik cepat</td><td>Seaborn</td><td><code>sns.heatmap()</code>, <code>sns.pairplot()</code></td></tr>
+<tr><td>Chart interaktif dashboard</td><td>Plotly</td><td><code>px.scatter()</code>, <code>px.line()</code></td></tr>
+<tr><td>Klasifikasi/Regresi</td><td>Scikit-learn</td><td><code>LogisticRegression()</code>, <code>RandomForest()</code></td></tr>
+<tr><td>Deep Learning</td><td>PyTorch / TF</td><td><code>nn.Module</code>, <code>tf.keras</code></td></tr>
+<tr><td>NLP / Text Processing</td><td>spaCy / NLTK</td><td><code>nlp()</code>, <code>word_tokenize()</code></td></tr></table>
           </div>
         </div>
       </div>
-    </article>
+    
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/langchain-ai-agent.html" class="related-card">
+          <span class="related-category">AI & Data Science</span>
+          <span class="related-title">LangChain & AI Agent untuk Developer</span>
+        </a>
+        <a href="/articles/ml-svm.html" class="related-card">
+          <span class="related-category">AI & Data Science</span>
+          <span class="related-title">Support Vector Machine (SVM)</span>
+        </a>
+        <a href="/articles/ml-ensemble-methods.html" class="related-card">
+          <span class="related-category">AI & Data Science</span>
+          <span class="related-title">Ensemble Methods: Bagging, Boosting & Kombinasi Model</span>
+        </a>
+
+      </div>
+    </div>
+</article>
   </main>
