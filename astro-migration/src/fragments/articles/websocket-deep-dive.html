@@ -1,0 +1,850 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a><span class="separator">/</span>
+        <a href="../index.html#categories">Protokol</a><span class="separator">/</span>
+        <span class="current">WebSocket</span>
+      </div>
+      <span class="category-tag">Protokol</span>
+      <h1>WebSocket Deep Dive</h1>
+      <p class="article-subtitle">Panduan mendalam protokol WebSocket — upgrade handshake, binary framing, ping/pong heartbeat, close handshake, strategi scaling horizontal, dan load balancing untuk koneksi jutaan client</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 14 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#apa-itu-ws">Apa Itu WebSocket?</a></li>
+          <li><a href="#handshake">WebSocket Handshake</a></li>
+          <li><a href="#framing">Frame Format &amp; Data Types</a></li>
+          <li><a href="#pingpong">Ping/Pong &amp; Heartbeat</a></li>
+          <li><a href="#close">Close Handshake</a></li>
+          <li><a href="#scaling">Scaling &amp; Load Balancing</a></li>
+          <li><a href="#implementasi">Implementasi dengan Node.js &amp; Socket.IO</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="apa-itu-ws">1. Apa Itu WebSocket?</h2>
+      <p><strong>WebSocket</strong> (RFC 6455) adalah protokol komunikasi <em>full-duplex</em> yang beroperasi di atas satu koneksi TCP. Berbeda dengan HTTP yang bersifat request/response, WebSocket memungkinkan client dan server mengirim data secara <strong>simultan dan asynchronous</strong> setelah koneksi terbentuk.</p>
+
+      <h3>WebSocket vs HTTP Polling</h3>
+      <table class="net-table">
+        <thead><tr><th>Aspek</th><th>HTTP Polling</th><th>Long Polling</th><th>Server-Sent Events</th><th>WebSocket</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Direction</strong></td><td>Client → Server</td><td>Client → Server</td><td>Server → Client</td><td>Bidirectional</td></tr>
+          <tr><td><strong>Overhead</strong></td><td>~800 bytes per request</td><td>~800 bytes per poll</td><td>HTTP header sekali</td><td>2-6 bytes per frame</td></tr>
+          <tr><td><strong>Latency</strong></td><td>Interval-based</td><td>Rendah</td><td>Rendah</td><td>Sangat rendah</td></tr>
+          <tr><td><strong>Real-time</strong></td><td>Tidak</td><td>Mendekati</td><td>Ya (satu arah)</td><td>Ya (dua arah)</td></tr>
+          <tr><td><strong>Protocol</strong></td><td>HTTP/1.1+</td><td>HTTP/1.1+</td><td>HTTP/1.1+</td><td>ws:// atau wss://</td></tr>
+          <tr><td><strong>Binary support</strong></td><td>Base64 (boros)</td><td>Base64</td><td>Base64</td><td>Native binary</td></tr>
+          <tr><td><strong>Use case</strong></td><td>Data jarang berubah</td><td>Chat ringan</td><td>Notifikasi, feed</td><td>Chat, gaming, trading</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Kapan Menggunakan WebSocket?</div>
+        <p>WebSocket ideal untuk: <strong>chat apps</strong> (WhatsApp Web), <strong>real-time dashboards</strong> (monitoring), <strong>multiplayer games</strong>, <strong>collaborative editing</strong> (Google Docs), <strong>live trading</strong> (crypto/forex), dan <strong>IoT telemetry</strong>. Jika Anda hanya butuh server-to-client, SSE lebih sederhana.</p>
+      </div>
+
+      <!-- SECTION 2 -->
+      <h2 id="handshake">2. WebSocket Handshake</h2>
+      <p>WebSocket menggunakan <strong>HTTP Upgrade mechanism</strong> untuk memulai koneksi. Client mengirim HTTP request dengan header <code>Upgrade: websocket</code>, server merespons <code>101 Switching Protocols</code>, dan koneksi berubah dari HTTP ke WebSocket.</p>
+
+      <h3>Upgrade Handshake Detail</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">HTTP</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code>
+# === Client Request (HTTP Upgrade) ===
+GET /chat HTTP/1.1
+Host: server.example.com
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+Origin: http://example.com
+Sec-WebSocket-Protocol: chat, superchat
+Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+
+# === Server Response (101 Switching Protocols) ===
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+Sec-WebSocket-Protocol: chat
+
+# === Penjelasan Header ===
+# Sec-WebSocket-Key: random 16-byte nonce, base64-encoded
+# → Digenerate client baru setiap koneksi
+# → BUKAN security measure, hanya mencegah cache proxy
+
+# Sec-WebSocket-Accept: server menghitung hash dari key client
+# → SHA1(Key + "258EAFA5-E914-47DA-95CA-5AB40401B2E7")
+# → "magic string" ini adalah GUID tetap dari RFC 6455
+# → Client harus verifikasi hash ini!
+
+# Sec-WebSocket-Extensions: permessage-deflate
+# → Kompresi message (opsional)
+# → Mengurangi bandwidth 50-80% untuk payload text
+
+# Sec-WebSocket-Protocol: subprotocol negotiation
+# → Client menawarkan beberapa, server memilih satu
+</code></pre>
+      </div>
+
+      <h3>Verifikasi Handshake di JavaScript</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code>
+// Browser API — handshake dilakukan otomatis
+const ws = new WebSocket('wss://server.example.com/chat', ['chat', 'superchat']);
+
+ws.onopen = (event) => {
+    console.log('WebSocket connected!');
+
+    // Browser sudah melakukan:
+    // 1. Generate random Sec-WebSocket-Key
+    // 2. Kirim HTTP Upgrade request
+    // 3. Verifikasi Sec-WebSocket-AcAccept dari server
+    // 4. Switch ke WebSocket mode
+
+    ws.send(JSON.stringify({ type: 'join', room: 'general' }));
+};
+
+ws.onmessage = (event) => {
+    console.log('Received:', event.data);
+};
+
+ws.onerror = (error) => {
+    console.error('WebSocket error:', error);
+};
+
+ws.onclose = (event) => {
+    console.log(`Closed: code=${event.code}, reason=${event.reason}`);
+};
+
+// Server-side (Node.js dengan 'ws' library):
+const WebSocket = require('ws');
+const crypto = require('crypto');
+
+const wss = new WebSocket.Server({ port: 8080 });
+
+wss.on('connection', (ws, req) => {
+    console.log('New connection from:', req.socket.remoteAddress);
+
+    // WebSocket library sudah handle handshake otomatis
+    // Tapi kita bisa akses raw headers:
+    console.log('Origin:', req.headers['origin']);
+    console.log('Protocol:', ws.protocol);
+
+    ws.on('message', (data) => {
+        console.log('Received:', data.toString());
+        ws.send(`Echo: ${data}`);
+    });
+});
+</code></pre>
+      </div>
+
+      <!-- SECTION 3 -->
+      <h2 id="framing">3. Frame Format &amp; Data Types</h2>
+      <p>WebSocket menggunakan <strong>binary framing</strong> yang sangat efisien. Setiap frame memiliki overhead hanya <strong>2-6 bytes</strong> (tanpa masking key), jauh lebih kecil dari HTTP header.</p>
+
+      <h3>WebSocket Frame Structure</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-------+-+-------------+-------------------------------+
+|F|R|R|R| opcode|M| Payload len |    Extended payload length    |
+|I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
+|N|V|V|V|       |S|             |   (jika payload len=126/127) |
+| |1|2|3|       |K|             |                               |
++-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+|     Extended payload length continued, if payload len == 127  |
++ - - - - - - - - - - - - - - - +-------------------------------+
+|                               |Masking-key, if MASK set to 1  |
++-------------------------------+-------------------------------+
+| Masking-key (continued)       |          Payload Data         |
++-------------------------------- - - - - - - - - - - - - - - - +
+:                     Payload Data continued ...                :
++ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+|                     Payload Data (continued)                  |
++---------------------------------------------------------------+
+
+# Penjelasan Field:
+# FIN (1 bit)     : 1 = frame terakhir dari message
+# RSV1-3 (3 bit)  : Reserved (untuk extensions seperti permessage-deflate)
+# OPCODE (4 bit)  : Tipe frame
+# MASK (1 bit)    : 1 = payload di-mask (client→server WAJIB mask)
+# Payload Length  : 0-125 langsung, 126 = 2 byte extended, 127 = 8 byte extended
+
+# Opcodes:
+# 0x0 = Continuation frame
+# 0x1 = Text frame (UTF-8)
+# 0x2 = Binary frame
+# 0x8 = Connection close
+# 0x9 = Ping
+# 0xA = Pong
+</code></pre>
+      </div>
+
+      <h3>Contoh Frame Encoding</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code>
+import struct
+import os
+
+def encode_ws_frame(payload, opcode=0x1, mask=True):
+    """Encode payload menjadi WebSocket frame"""
+    frame = bytearray()
+
+    # Byte pertama: FIN (1) + RSV (000) + Opcode
+    frame.append(0x80 | opcode)  # 0x80 = FIN bit set
+
+    # Byte kedua: MASK bit + payload length
+    length = len(payload)
+    if length < 126:
+        frame.append((0x80 if mask else 0) | length)
+    elif length < 65536:
+        frame.append((0x80 if mask else 0) | 126)
+        frame.extend(struct.pack('>H', length))
+    else:
+        frame.append((0x80 if mask else 0) | 127)
+        frame.extend(struct.pack('>Q', length))
+
+    # Masking key (4 bytes random)
+    if mask:
+        masking_key = os.urandom(4)
+        frame.extend(masking_key)
+
+        # Mask payload
+        masked = bytearray(len(payload))
+        for i in range(len(payload)):
+            masked[i] = payload[i] ^ masking_key[i % 4]
+        frame.extend(masked)
+    else:
+        frame.extend(payload)
+
+    return bytes(frame)
+
+# Contoh: Text frame "Hello"
+frame = encode_ws_frame(b'Hello')
+print(f"Frame size: {len(frame)} bytes")  # 11 bytes (2 header + 4 mask + 5 payload)
+print(f"Overhead: {len(frame) - len(b'Hello')} bytes")  # 6 bytes overhead
+
+# Contoh: Binary frame dengan data 1000 bytes
+import json
+data = json.dumps({"temp": 25.3, "humidity": 62}).encode()
+frame = encode_ws_frame(data, opcode=0x2)
+print(f"Binary frame: {len(frame)} bytes for {len(data)} bytes payload")
+</code></pre>
+      </div>
+
+      <!-- SECTION 4 -->
+      <h2 id="pingpong">4. Ping/Pong &amp; Heartbeat</h2>
+      <p>WebSocket mendukung mekanisme <strong>Ping/Pong</strong> untuk mendeteksi koneksi yang mati (liveness check) dan menjaga koneksi tetap hidup melalui proxy/firewall yang mungkin akan menutup idle connections.</p>
+
+      <h3>Mekanisme Ping/Pong</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code>
+# Ping/Pong Flow:
+
+# 1. Bisa dikirim oleh KEDUA belah pihak (client dan server)
+# 2. Pong WAJIB dikirim sebagai respons terhadap Ping
+# 3. Ping bisa membawa payload (application data)
+# 4. Pong HARUS meng-copy payload dari Ping
+
+# Contoh flow:
+Client                          Server
+  |                               |
+  |--- Ping (frame 0x9) -------->|
+  |    payload: "keepalive"       |
+  |                               |
+  |<-- Pong (frame 0xA) ---------|
+  |    payload: "keepalive"       |  ← HARUS sama dengan Ping payload
+  |                               |
+  |     ... connection healthy ...|
+  |                               |
+  |--- Ping ---------------------->|
+  |                               |
+  |    (timeout, tidak ada Pong)  |
+  |     → Koneksi dianggap MATI  |
+  |     → Trigger close/onerror  |
+
+# Best Practice:
+# - Ping interval: 30 detik (normal), 15 detik (high-reliability)
+# - Pong timeout: 10 detik (jika tidak ada Pong dalam 10s → close)
+# - Jangan terlalu sering (boros bandwidth) atau terlalu jarang (lambat deteksi)
+</code></pre>
+      </div>
+
+      <h3>Implementasi Heartbeat di Node.js</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code>
+const WebSocket = require('ws');
+
+class HeartbeatWebSocket {
+    constructor(url, options = {}) {
+        this.url = url;
+        this.pingInterval = options.pingInterval || 30000; // 30 detik
+        this.pongTimeout = options.pongTimeout || 10000;   // 10 detik
+        this.isAlive = false;
+        this.pingTimer = null;
+        this.pongTimer = null;
+
+        this.connect();
+    }
+
+    connect() {
+        this.ws = new WebSocket(this.url);
+
+        this.ws.on('open', () => {
+            console.log('Connected');
+            this.isAlive = true;
+            this.startHeartbeat();
+        });
+
+        this.ws.on('pong', (data) => {
+            // Pong diterima → koneksi hidup
+            this.isAlive = true;
+            clearTimeout(this.pongTimer);
+            console.log(`Pong received: ${data.toString()}`);
+        });
+
+        this.ws.on('close', () => {
+            console.log('Disconnected');
+            this.stopHeartbeat();
+            // Reconnect setelah 3 detik
+            setTimeout(() => this.connect(), 3000);
+        });
+    }
+
+    startHeartbeat() {
+        this.pingTimer = setInterval(() => {
+            if (!this.isAlive) {
+                console.log('No pong received, terminating...');
+                return this.ws.terminate();
+            }
+
+            this.isAlive = false;
+            this.ws.ping('heartbeat');
+
+            // Set timeout untuk pong
+            this.pongTimer = setTimeout(() => {
+                if (!this.isAlive) {
+                    console.log('Pong timeout, closing...');
+                    this.ws.close(1000, 'Pong timeout');
+                }
+            }, this.pongTimeout);
+
+        }, this.pingInterval);
+    }
+
+    stopHeartbeat() {
+        clearInterval(this.pingTimer);
+        clearTimeout(this.pongTimer);
+    }
+}
+
+// Server-side heartbeat
+const wss = new WebSocket.Server({ port: 8080 });
+
+wss.on('connection', (ws) => {
+    ws.isAlive = true;
+
+    ws.on('pong', () => {
+        ws.isAlive = true;
+    });
+});
+
+// Periodic check — setiap 30 detik
+const heartbeatInterval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (!ws.isAlive) return ws.terminate();
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 30000);
+
+wss.on('close', () => clearInterval(heartbeatInterval));
+</code></pre>
+      </div>
+
+      <!-- SECTION 5 -->
+      <h2 id="close">5. Close Handshake</h2>
+      <p>WebSocket memiliki mekanisme <strong>graceful close</strong> yang memungkinkan kedua belah pihak menutup koneksi dengan terhormat, termasuk mengirim alasan penutupan.</p>
+
+      <h3>Close Frame Format &amp; Status Codes</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code>
+# Close Frame Structure:
+# OPCODE: 0x8
+# Payload: 2-byte status code (big-endian) + optional UTF-8 reason string
+
+# Close Handshake:
+# 1. Peer A mengirim Close frame
+# 2. Peer B menerima Close frame
+# 3. Peer B mengirim Close frame balasan (echo status code)
+# 4. TCP connection ditutup
+
+Client                          Server
+  |                               |
+  |--- Close (1000, "Normal") -->|
+  |                               |
+  |<-- Close (1000) --------------|
+  |                               |
+  | TCP FIN ───────────────────> |
+  | <───────────────────────── FIN ACK
+
+# Status Codes:
+# 1000 — Normal closure
+# 1001 — Going away (server shutdown, browser navigate away)
+# 1002 — Protocol error
+# 1003 — Unsupported data type (text vs binary mismatch)
+# 1005 — No status received (internal, tidak dikirim di frame)
+# 1006 — Abnormal closure (internal, tidak dikirim di frame)
+# 1007 — Invalid frame payload data (misal: UTF-8 encoding error)
+# 1008 — Policy violation
+# 1009 — Message too big
+# 1010 — Mandatory extension not negotiated
+# 1011 — Internal server error
+# 1012 — Service restart
+# 1013 — Try again later
+# 1014 — Bad gateway
+# 3000-3999 — Registered extensions
+# 4000-4999 — Application-defined
+</code></pre>
+      </div>
+
+      <!-- SECTION 6 -->
+      <h2 id="scaling">6. Scaling &amp; Load Balancing</h2>
+      <p>Scaling WebSocket server adalah tantangan tersendiri karena sifat <strong>stateful</strong> dari koneksi. Setiap client terikat ke satu server instance, berbeda dengan HTTP stateless yang bisa di-route ke mana saja.</p>
+
+      <h3>Tantangan Scaling WebSocket</h3>
+      <table class="net-table">
+        <thead><tr><th>Tantangan</th><th>Penjelasan</th><th>Solusi</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Sticky Sessions</strong></td><td>Client harus terhubung ke server yang sama</td><td>Sticky load balancing berdasarkan IP/cookie</td></tr>
+          <tr><td><strong>State Management</strong></td><td>State harus di-share antar server</td><td>Redis Pub/Sub sebagai message bus</td></tr>
+          <tr><td><strong>Connection Memory</strong></td><td>Setiap koneksi butuh RAM ~20-50KB</td><td>Optimasi buffer, horizontal scaling</td></tr>
+          <tr><td><strong>Health Check</strong></td><td>Load balancer perlu cek koneksi</td><td>Custom health endpoint, ping/pong</td></tr>
+          <tr><td><strong>Graceful Shutdown</strong></td><td>Server update tanpa memutus koneksi</td><td>Drain connections sebelum restart</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Architecture: Multi-Server dengan Redis Pub/Sub</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Text</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code>
+# === Arsitektur Scaling WebSocket ===
+
+# Client A (terhubung ke Server 1) mengirim message ke Client C (terhubung ke Server 2)
+
+┌──────────────┐    ┌──────────────┐
+│  Client A    │    │  Client B    │
+│  (Server 1)  │    │  (Server 1)  │
+└──────┬───────┘    └──────┬───────┘
+       │                   │
+       ▼                   ▼
+┌─────────────────────────────────┐
+│         Load Balancer           │
+│   (Sticky by IP / Cookie)       │
+│   Nginx / HAProxy / AWS ALB     │
+└────┬────────────┬───────────┬───┘
+     ▼            ▼           ▼
+┌─────────┐ ┌─────────┐ ┌─────────┐
+│ Server 1│ │ Server 2│ │ Server 3│
+│  Node.js│ │  Node.js│ │  Node.js│
+└────┬────┘ └────┬────┘ └────┬────┘
+     │           │           │
+     ▼           ▼           ▼
+┌─────────────────────────────────┐
+│           Redis Pub/Sub         │
+│   Channel: "chat:room-1"        │
+│   Channel: "notifications"      │
+│   Channel: "broadcast"          │
+└─────────────────────────────────┘
+
+# Flow:
+# 1. Client A → Server 1: "Hello everyone!"
+# 2. Server 1 → Redis PUBLISH "chat:room-1" {message}
+# 3. Server 1, 2, 3 semua SUBSCRIBE "chat:room-1"
+# 4. Server 1 → kirim ke Client A, B (yang terhubung ke Server 1)
+# 5. Server 2 → kirim ke Client C (yang terhubung ke Server 2)
+# 6. Server 3 → kirim ke Client D (yang terhubung ke Server 3)
+</code></pre>
+      </div>
+
+      <h3>Implementasi Multi-Server</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code>
+const WebSocket = require('ws');
+const Redis = require('ioredis');
+const http = require('http');
+
+// Setup Redis
+const pub = new Redis({ host: 'redis-server', port: 6379 });
+const sub = new Redis({ host: 'redis-server', port: 6379 });
+
+// Setup HTTP + WebSocket server
+const server = http.createServer();
+const wss = new WebSocket.Server({ server });
+
+// Track clients per room
+const rooms = new Map();
+
+wss.on('connection', (ws, req) => {
+    const clientId = generateId();
+    ws.clientId = clientId;
+    ws.rooms = new Set();
+
+    ws.on('message', (data) => {
+        const msg = JSON.parse(data);
+
+        switch (msg.type) {
+            case 'join':
+                joinRoom(ws, msg.room);
+                break;
+            case 'chat':
+                broadcastToRoom(msg.room, {
+                    type: 'chat',
+                    from: clientId,
+                    message: msg.message,
+                    timestamp: Date.now()
+                }, ws); // exclude sender
+                break;
+        }
+    });
+
+    ws.on('close', () => {
+        // Leave all rooms
+        ws.rooms.forEach(room => leaveRoom(ws, room));
+    });
+});
+
+function joinRoom(ws, room) {
+    ws.rooms.add(room);
+    if (!rooms.has(room)) {
+        rooms.set(room, new Set());
+        // Subscribe ke Redis channel untuk room ini
+        sub.subscribe(`room:${room}`);
+    }
+    rooms.get(room).add(ws);
+
+    // Notify semua di room
+    broadcastToRoom(room, {
+        type: 'join',
+        user: ws.clientId,
+        room: room
+    });
+}
+
+function broadcastToRoom(room, message, exclude = null) {
+    const localClients = rooms.get(room) || new Set();
+
+    // Kirim ke client lokal
+    const payload = JSON.stringify(message);
+    localClients.forEach(client => {
+        if (client !== exclude && client.readyState === WebSocket.OPEN) {
+            client.send(payload);
+        }
+    });
+
+    // Publish ke Redis agar server lain juga mengirim
+    pub.publish(`room:${room}`, JSON.stringify({
+        ...message,
+        _fromServer: SERVER_ID
+    }));
+}
+
+// Terima message dari server lain via Redis
+sub.on('message', (channel, data) => {
+    const message = JSON.parse(data);
+    const room = channel.replace('room:', '');
+
+    // Skip jika dari server ini sendiri
+    if (message._fromServer === SERVER_ID) return;
+
+    // Kirim ke client lokal
+    const clients = rooms.get(room) || new Set();
+    clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(message));
+        }
+    });
+});
+
+const SERVER_ID = process.env.SERVER_ID || 'server-1';
+server.listen(8080, () => console.log(`WS Server ${SERVER_ID} on :8080`));
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Nginx Load Balancing untuk WebSocket</div>
+        <p>Di Nginx, pastikan menambahkan header <code>Upgrade</code> dan <code>Connection</code> di proxy_pass. Tanpa ini, WebSocket handshake akan gagal. Tambahkan juga <code>proxy_read_timeout</code> yang cukup panjang agar Nginx tidak menutup koneksi idle.</p>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">Nginx</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code>
+# Nginx configuration untuk WebSocket load balancing
+
+upstream websocket_backend {
+    ip_hash;  # Sticky session berdasarkan IP
+    server 127.0.0.1:8081;
+    server 127.0.0.1:8082;
+    server 127.0.0.1:8083;
+}
+
+server {
+    listen 443 ssl;
+    server_name ws.example.com;
+
+    location /ws {
+        proxy_pass http://websocket_backend;
+        proxy_http_version 1.1;
+
+        # Header untuk WebSocket upgrade
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        # Timeout — 1 jam untuk WebSocket
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+
+        # Preserve client info
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        # Buffering off untuk real-time
+        proxy_buffering off;
+    }
+}
+</code></pre>
+      </div>
+
+      <!-- SECTION 7 -->
+      <h2 id="implementasi">7. Implementasi dengan Node.js &amp; Socket.IO</h2>
+      <p><strong>Socket.IO</strong> adalah library populer yang built di atas WebSocket dengan fitur tambahan: automatic reconnection, rooms, namespaces, fallback ke HTTP polling, dan binary support.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code>
+// === Server (Express + Socket.IO) ===
+const express = require('express');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
+
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: { origin: '*' },
+    pingInterval: 25000,
+    pingTimeout: 20000,
+    maxHttpBufferSize: 1e6 // 1MB
+});
+
+// Namespace: /chat
+const chatNs = io.of('/chat');
+
+chatNs.use((socket, next) => {
+    // Middleware: authentication
+    const token = socket.handshake.auth.token;
+    if (verifyToken(token)) {
+        socket.userId = decodeToken(token).id;
+        next();
+    } else {
+        next(new Error('Authentication failed'));
+    }
+});
+
+chatNs.on('connection', (socket) => {
+    console.log(`User ${socket.userId} connected`);
+
+    // Join room
+    socket.on('join-room', (roomId) => {
+        socket.join(roomId);
+        socket.to(roomId).emit('user-joined', {
+            userId: socket.userId,
+            timestamp: Date.now()
+        });
+    });
+
+    // Chat message
+    socket.on('chat-message', (data) => {
+        const { room, message } = data;
+        chatNs.to(room).emit('new-message', {
+            from: socket.userId,
+            message: message,
+            timestamp: Date.now()
+        });
+    });
+
+    // Typing indicator
+    socket.on('typing', (room) => {
+        socket.to(room).emit('user-typing', { userId: socket.userId });
+    });
+
+    // Disconnect
+    socket.on('disconnect', (reason) => {
+        console.log(`User ${socket.userId} disconnected: ${reason}`);
+    });
+});
+
+httpServer.listen(3000);
+
+// === Client (Browser) ===
+import { io } from 'socket.io-client';
+
+const socket = io('https://server.example.com/chat', {
+    auth: { token: 'jwt-token-here' },
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionAttempts: 10,
+    transports: ['websocket', 'polling']
+});
+
+socket.on('connect', () => console.log('Connected!'));
+socket.on('new-message', (data) => console.log('Message:', data));
+socket.emit('join-room', 'room-general');
+socket.emit('chat-message', { room: 'room-general', message: 'Halo semua!' });
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- QUIZ -->
+      <h2 id="quiz">Quiz Pemahaman</h2>
+      <div class="quiz-container" id="quiz-ws">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Berapa ukuran minimum overhead per WebSocket frame?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) 8 bytes</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) 2 bytes</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) 4 bytes</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) 16 bytes</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: HTTP status code apa yang dikembalikan saat WebSocket upgrade berhasil?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) 200 OK</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) 101 Switching Protocols</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) 301 Moved Permanently</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) 204 No Content</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa yang terjadi jika client tidak mengirim masking pada frame ke server?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Server tetap menerima</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Server harus menutup koneksi (protocol violation)</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Frame di-drop tanpa close</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Data diterima tapi terbalik</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Mengapa sticky sessions diperlukan untuk WebSocket load balancing?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Karena DNS</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Karena koneksi WebSocket bersifat stateful dan terikat ke server tertentu</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Karena TLS</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Karena cookie</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa fungsi utama Ping/Pong di WebSocket?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Mengirim data</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Mendeteksi koneksi mati dan menjaga koneksi tetap hidup</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Mengenkripsi data</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Kompresi payload</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="mqtt-v5.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">MQTT v5: Fitur Terbaru</span>
+        </a>
+        <a href="grpc-protobuf.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">gRPC dan Protocol Buffers</span>
+        </a>
+      </div>
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/coap-protocol.html" class="related-card">
+          <span class="related-category">Protokol</span>
+          <span class="related-title">CoAP Protocol untuk IoT</span>
+        </a>
+        <a href="/articles/grpc-protobuf.html" class="related-card">
+          <span class="related-category">Protokol</span>
+          <span class="related-title">gRPC dan Protocol Buffers</span>
+        </a>
+        <a href="/articles/message-queue-patterns.html" class="related-card">
+          <span class="related-category">Protokol</span>
+          <span class="related-title">Message Queue Patterns</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

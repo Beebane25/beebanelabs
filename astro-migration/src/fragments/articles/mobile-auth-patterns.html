@@ -1,0 +1,663 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a><span class="separator">/</span>
+        <a href="../index.html#categories">Mobile Development</a><span class="separator">/</span>
+        <span class="current">Mobile Authentication Patterns</span>
+      </div>
+      <span class="category-tag">Mobile Development</span>
+      <h1>Mobile Authentication Patterns</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Pola autentikasi mobile — biometric, OAuth 2.0 + PKCE, token storage, session management, social login, dan security best practices</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  <article class="article-content" id="main-content">
+    <div class="container>
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#intro-auth">Autentikasi Mobile</a></li>
+          <li><a href="#oauth-pkce">OAuth 2.0 + PKCE</a></li>
+          <li><a href="#token-storage">Token Storage</a></li>
+          <li><a href="#biometric">Biometric Authentication</a></li>
+          <li><a href="#session-management">Session Management</a></li>
+          <li><a href="#social-login">Social Login</a></li>
+          <li><a href="#security-best">Security Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+
+      <h2 id="intro-auth">1. Autentikasi Mobile</h2>
+      <p>Autentikasi mobile memiliki tantangan unik: perangkat bisa hilang/dicuri, jaringan tidak stabil, dan user menginginkan login yang cepat. Artikel ini membahas pola autentikasi modern untuk mobile.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Mobile Auth Flow</div>
+        <div class="arch-row">
+          <div class="arch-box highlight"><div class="arch-icon">🔑</div><div class="arch-label">User Login</div><div class="arch-desc">Credential<br>Biometric</div></div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box purple"><div class="arch-icon">🔐</div><div class="arch-label">Auth Server</div><div class="arch-desc">OAuth 2.0 / OIDC<br>Token issuance</div></div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box"><div class="arch-icon">💾</div><div class="arch-label">Token Storage</div><div class="arch-desc">Secure storage<br>Keychain / Keystore</div></div>
+        </div>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="oauth-pkce">2. OAuth 2.0 + PKCE</h2>
+      <p><strong>PKCE (Proof Key for Code Exchange)</strong> adalah ekstensi OAuth 2.0 yang wajib untuk mobile apps. PKCE mencegah serangan <em>authorization code interception</em>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — OAuth PKCE Flow</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+class OAuthManager(
+    private val clientId: String,
+    private val redirectUri: String,
+    private val authEndpoint: String,
+    private val tokenEndpoint: String,
+) {
+    // Generate PKCE parameters
+    fun generatePKCE(): PKCEParams {
+        // Code verifier: random string 43-128 chars
+        val codeVerifier = generateRandomString(128)
+
+        // Code challenge: SHA256 of verifier, base64url encoded
+        val codeChallenge = base64UrlEncode(
+            sha256(codeVerifier.toByteArray())
+        )
+
+        return PKCEParams(
+            codeVerifier = codeVerifier,
+            codeChallenge = codeChallenge,
+            codeChallengeMethod = "S256"
+        )
+    }
+
+    // Step 1: Build authorization URL
+    fun buildAuthUrl(pkce: PKCEParams): String {
+        return Uri.parse(authEndpoint).buildUpon()
+            .appendQueryParameter("response_type", "code")
+            .appendQueryParameter("client_id", clientId)
+            .appendQueryParameter("redirect_uri", redirectUri)
+            .appendQueryParameter("code_challenge", pkce.codeChallenge)
+            .appendQueryParameter("code_challenge_method", pkce.codeChallengeMethod)
+            .appendQueryParameter("state", generateRandomString(32))
+            .appendQueryParameter("scope", "openid profile email")
+            .build().toString()
+    }
+
+    // Step 2: Exchange code for token
+    suspend fun exchangeCode(
+        authorizationCode: String,
+        codeVerifier: String
+    ): TokenResponse {
+        return httpClient.post(tokenEndpoint) {
+            parameter("grant_type", "authorization_code")
+            parameter("code", authorizationCode)
+            parameter("redirect_uri", redirectUri)
+            parameter("client_id", clientId)
+            parameter("code_verifier", codeVerifier)  // PKCE!
+        }.body()
+    }
+}
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Swift — ASWebAuthenticationSession (iOS)</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import AuthenticationServices
+
+class OAuthService {
+    func login() async throws -> TokenResponse {
+        let pkce = generatePKCE()
+        let authURL = buildAuthURL(pkce: pkce)
+
+        // Present system auth sheet
+        let code = try await withCheckedThrowingContinuation { cont in
+            let session = ASWebAuthenticationSession(
+                url: authURL,
+                callbackURLScheme: "myapp"
+            ) { callbackURL, error in
+                if let error { cont.resume(throwing: error); return }
+                guard let code = callbackURL?.queryValue("code") else {
+                    cont.resume(throwing: AuthError.noCode)
+                    return
+                }
+                cont.resume(returning: code)
+            }
+            session.presentationContextProvider = self
+            session.prefersEphemeralWebBrowserSession = true
+            session.start()
+        }
+
+        // Exchange code for tokens
+        return try await exchangeCode(code: code, verifier: pkce.codeVerifier)
+    }
+}
+</code></pre>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="token-storage">3. Token Storage</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — Android Secure Storage</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Menggunakan EncryptedSharedPreferences
+class SecureTokenStorage(context: Context) {
+    private val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    private val prefs = EncryptedSharedPreferences.create(
+        context,
+        "secure_tokens",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+
+    fun saveTokens(accessToken: String, refreshToken: String) {
+        prefs.edit()
+            .putString("access_token", accessToken)
+            .putString("refresh_token", refreshToken)
+            .putLong("saved_at", System.currentTimeMillis())
+            .apply()
+    }
+
+    fun getAccessToken(): String? = prefs.getString("access_token", null)
+    fun getRefreshToken(): String? = prefs.getString("refresh_token", null)
+
+    fun clearTokens() {
+        prefs.edit().clear().apply()
+    }
+}
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Swift — iOS Keychain</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import Security
+
+class KeychainService {
+    func save(key: String, value: String) throws {
+        guard let data = value.data(using: .utf8) else { return }
+
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+        ]
+
+        SecItemDelete(query as CFDictionary)  // Remove existing
+        let status = SecItemAdd(query as CFDictionary, nil)
+        guard status == errSecSuccess else {
+            throw KeychainError.saveFailed(status)
+        }
+    }
+
+    func get(key: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+        ]
+
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+
+        guard status == errSecSuccess, let data = result as? Data else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
+    }
+
+    func delete(key: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>3.1 Perbandingan Storage</h3>
+      <table class="spec-table">
+        <thead><tr><th>Storage</th><th>Enkripsi</th><th>Platform</th><th>Aman?</th></tr></thead>
+        <tbody>
+          <tr><td>SharedPreferences / UserDefaults</td><td>Tidak</td><td>Keduanya</td><td>❌ Tidak</td></tr>
+          <tr><td>EncryptedSharedPreferences</td><td>AES-256</td><td>Android</td><td>✅ Ya</td></tr>
+          <tr><td>Keychain</td><td>Hardware-backed</td><td>iOS</td><td>✅ Ya</td></tr>
+          <tr><td>Flutter Secure Storage</td><td>Platform-level</td><td>Keduanya</td><td>✅ Ya</td></tr>
+          <tr><td>SQLite (unencrypted)</td><td>Tidak</td><td>Keduanya</td><td>❌ Tidak</td></tr>
+          <tr><td>SQLCipher</td><td>AES-256</td><td>Keduanya</td><td>✅ Ya</td></tr>
+        </tbody>
+      </table>
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Jangan Simpan Token di SharedPreferences Biasa</div>
+        <p>SharedPreferences dan UserDefaults TIDAK terenkripsi. Siapa pun dengan akses device bisa membaca token. Selalu gunakan Keychain (iOS) atau EncryptedSharedPreferences (Android).</p>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="biometric">4. Biometric Authentication</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — BiometricPrompt (Android)</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import androidx.biometric.BiometricPrompt
+import androidx.biometric.BiometricManager
+
+class BiometricAuthManager(private val activity: FragmentActivity) {
+
+    fun isAvailable(): Boolean {
+        val biometricManager = BiometricManager.from(activity)
+        return biometricManager.canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG
+        ) == BiometricManager.BIOMETRIC_SUCCESS
+    }
+
+    fun authenticate(
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val executor = ContextCompat.getMainExecutor(activity)
+
+        val callback = object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                onSuccess()
+            }
+
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                onError(errString.toString())
+            }
+        }
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Autentikasi")
+            .setSubtitle("Verifikasi identitas Anda")
+            .setNegativeButtonText("Batal")
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            .build()
+
+        BiometricPrompt(activity, executor, callback)
+            .authenticate(promptInfo)
+    }
+}
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Swift — LAContext (iOS)</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import LocalAuthentication
+
+class BiometricService {
+    enum BiometricType {
+        case faceID, touchID, none
+    }
+
+    var biometricType: BiometricType {
+        let context = LAContext()
+        var error: NSError?
+        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
+            return .none
+        }
+        return context.biometryType == .faceID ? .faceID : .touchID
+    }
+
+    func authenticate(reason: String) async throws -> Bool {
+        let context = LAContext()
+        return try await context.evaluatePolicy(
+            .deviceOwnerAuthenticationWithBiometrics,
+            localizedReason: reason
+        )
+    }
+}
+
+// Penggunaan
+let biometric = BiometricService()
+do {
+    let success = try await biometric.authenticate(reason: "Login ke MyApp")
+    if success {
+        // Load token dari Keychain, auto-login
+        let token = keychain.get(key: "access_token")
+    }
+} catch {
+    // Fallback ke password
+    showPasswordLogin()
+}
+</code></pre>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="session-management">5. Session Management</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dart — Token Refresh Interceptor</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import 'package:dio/dio.dart';
+
+class AuthInterceptor extends Interceptor {
+  final Dio dio;
+  final SecureStorage storage;
+  bool _isRefreshing = false;
+  final _queue = <Completer<void>>[];
+
+  AuthInterceptor({required this.dio, required this.storage});
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+    final token = await storage.getAccessToken();
+    if (token != null) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
+    handler.next(options);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode == 401) {
+      // Token expired
+      if (!_isRefreshing) {
+        _isRefreshing = true;
+        try {
+          final refreshToken = await storage.getRefreshToken();
+          final response = await dio.post('/auth/refresh', data: {
+            'refresh_token': refreshToken,
+          });
+          await storage.saveTokens(
+            accessToken: response.data['access_token'],
+            refreshToken: response.data['refresh_token'],
+          );
+          // Retry original request
+          err.requestOptions.headers['Authorization'] =
+              'Bearer ${response.data['access_token']}';
+          final retryResponse = await dio.fetch(err.requestOptions);
+          handler.resolve(retryResponse);
+        } catch (e) {
+          // Refresh failed, force logout
+          await storage.clearTokens();
+          navigatorKey.currentState?.pushReplacementNamed('/login');
+          handler.reject(err);
+        } finally {
+          _isRefreshing = false;
+          // Process queued requests
+          for (var completer in _queue) {
+            completer.complete();
+          }
+          _queue.clear();
+        }
+      } else {
+        // Wait for refresh to complete
+        final completer = Completer<void>();
+        _queue.add(completer);
+        await completer.future;
+        // Retry with new token
+        final token = await storage.getAccessToken();
+        err.requestOptions.headers['Authorization'] = 'Bearer $token';
+        final retryResponse = await dio.fetch(err.requestOptions);
+        handler.resolve(retryResponse);
+      }
+    } else {
+      handler.next(err);
+    }
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>5.1 Token Lifecycle</h3>
+      <table class="spec-table">
+        <thead><tr><th>Token</th><th>Durasi</th><th>Gunakan Untuk</th></tr></thead>
+        <tbody>
+          <tr><td>Access Token</td><td>15-60 menit</td><td>Autentikasi API request</td></tr>
+          <tr><td>Refresh Token</td><td>7-30 hari</td><td>Mendapatkan access token baru</td></tr>
+          <tr><td>ID Token (OIDC)</td><td>15-60 menit</td><td>Identitas user (claims)</td></tr>
+          <tr><td>Session Token</td><td>Varies</td><td>Server-side session</td></tr>
+        </tbody>
+      </table>
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="social-login">6. Social Login</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dart — Google Sign-In</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import 'package:google_sign_in/google_sign_in.dart';
+
+final GoogleSignIn _google = GoogleSignIn(
+  scopes: ['email', 'profile'],
+);
+
+Future<void> signInWithGoogle() async {
+  try {
+    final account = await _google.signIn();
+    if (account == null) return; // User cancelled
+
+    final auth = await account.authentication;
+    final idToken = auth.idToken;
+    final accessToken = auth.accessToken;
+
+    // Send tokens to your backend for verification
+    final response = await apiClient.post('/auth/google', data: {
+      'id_token': idToken,
+      'access_token': accessToken,
+    });
+
+    // Save server-issued tokens
+    await secureStorage.saveTokens(
+      accessToken: response.data['access_token'],
+      refreshToken: response.data['refresh_token'],
+    );
+
+    navigateToHome();
+  } catch (e) {
+    showError('Login gagal: $e');
+  }
+}
+</code></pre>
+      </div>
+
+      <h2 id="security-best">7. Security Best Practices</h2>
+      <table class="spec-table">
+        <thead><tr><th>Praktik</th><th>Mengapa</th></tr></thead>
+        <tbody>
+          <tr><td>Gunakan PKCE untuk OAuth</td><td>Cegah code interception</td></tr>
+          <tr><td>Simpan token di Keychain/Keystore</td><td>Enkripsi hardware-backed</td></tr>
+          <tr><td>Implement token refresh</td><td>User tidak perlu login ulang</td></tr>
+          <tr><td>Biometric sebagai second factor</td><td>Tambah layer keamanan</td></tr>
+          <tr><td>Certificate pinning</td><td>Cegah MITM attack</td></tr>
+          <tr><td>Root/jailbreak detection</td><td>Cegah running di compromised device</td></tr>
+          <tr><td>Auto-logout setelah idle</td><td>Cegah unauthorized access</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="quiz">Quiz Pemahaman</h2>
+      <div class="quiz-container" id="quiz09">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa fungsi PKCE di OAuth 2.0?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Mengenkripsi password</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Mencegah authorization code interception</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Menyimpan token</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Generate API key</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Di mana menyimpan token di iOS secara aman?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) UserDefaults</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) File system</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Keychain</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) NSCache</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Durasi tipikal access token?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) 1 tahun</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) 30 hari</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) 15-60 menit</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) 1 detik</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa yang terjadi saat refresh token gagal?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) App crash</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Retry terus</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Force logout user</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Ignore error</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Komponen Android apa untuk autentikasi biometric?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) FingerprintManager</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) BiometricPrompt</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) KeyguardManager</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) SecurityManager</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+      <div class="article-nav">
+        <a href="../index.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">Kembali ke Beranda</span></a>
+        <a href="../kategori.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">Lihat Kategori</span></a>
+      </div>
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/mobile-performance.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">Mobile App Performance Optimization</span>
+        </a>
+        <a href="/articles/cheatsheet-flutter-dart.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">Cheatsheet Flutter & Dart: Referensi Cepat Widget, State,...</span>
+        </a>
+        <a href="/articles/react-native-reanimated.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">React Native Reanimated 3</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

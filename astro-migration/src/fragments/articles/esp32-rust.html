@@ -1,0 +1,914 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">IoT</a>
+        <span class="separator">/</span>
+        <span class="current">Rust on ESP32</span>
+      </div>
+      <span class="category-tag">IoT</span>
+      <h1>Rust on ESP32: Embedded Development dengan Rust</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Pelajari cara membangun aplikasi embedded menggunakan Rust di ESP32 dengan esp-hal, esp-idf-hal, dan async Embassy</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="ad-slot ad-slot-wide"></div>
+  </div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#mengapa-rust">Mengapa Rust untuk Embedded?</a></li>
+          <li><a href="#setup">Setup Toolchain</a></li>
+          <li><a href="#blink">Blink: Hello World ESP32 Rust</a></li>
+          <li><a href="#gpio">GPIO: Input &amp; Output</a></li>
+          <li><a href="#i2c">I2C: Komunikasi Sensor</a></li>
+          <li><a href="#spi">SPI: Komunikasi High Speed</a></li>
+          <li><a href="#wifi">WiFi &amp; HTTP Client</a></li>
+          <li><a href="#embassy">Async dengan Embassy</a></li>
+          <li><a href="#esp-idf-hal">ESP-IDF HAL</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="mengapa-rust">1. Mengapa Rust untuk Embedded?</h2>
+
+      <p>Rust telah menjadi bahasa pemrograman yang sangat populer untuk embedded development berkat fitur keamanan memori (memory safety) yang dimilikinya tanpa garbage collector. Di dunia embedded, di mana setiap byte dan microsecond sangat berharga, Rust menawarkan performa yang setara dengan C/C++ namun dengan jaminan keamanan yang jauh lebih baik.</p>
+
+      <p>Untuk ESP32, komunitas Rust menyediakan dua pendekatan utama: <strong>esp-hal</strong> (bare-metal, tanpa OS) dan <strong>esp-idf-hal</strong> (menggunakan ESP-IDF sebagai RTOS backend). Keduanya menggunakan Rust standar library dan bisa menjalankan async code.</p>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>C/C++ (Arduino)</th>
+            <th>Rust (esp-hal)</th>
+            <th>Rust (esp-idf-hal)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Memory Safety</td><td>Manual (raw pointers)</td><td>Compile-time (borrow checker)</td><td>Compile-time (borrow checker)</td></tr>
+          <tr><td>Runtime</td><td>Arduino Framework</td><td>Custom (no_std)</td><td>ESP-IDF (FreeRTOS)</td></tr>
+          <tr><td>Async Support</td><td>Tidak (tanpa library)</td><td>Ya (Embassy)</td><td>Ya (tokio-esp32)</td></tr>
+          <tr><td>WiFi/BLE</td><td>Built-in</td><td>Experimental</td><td>Lengkap (via esp-idf-svc)</td></tr>
+          <tr><td>Binary Size</td><td>Kecil</td><td>Sangat kecil</td><td>Lebih besar (~500KB+)</td></tr>
+          <tr><td>Kurva Belajar</td><td>Menengah</td><td>Sulit (Rust + embedded)</td><td>Menengah-Sulit</td></tr>
+        </tbody>
+      </table>
+
+      <div class="compare-grid cols-2">
+        <div class="compare-card" style="--card-color: #00e5ff">
+          <div class="cc-icon">🦀</div>
+          <div class="cc-title">esp-hal (Bare Metal)</div>
+          <div class="cc-subtitle">Kontrol Penuh Hardware</div>
+          <ul class="cc-features">
+            <li><span class="check">✅</span> Binary sangat kecil</li>
+            <li><span class="check">✅</span> Tanpa RTOS</li>
+            <li><span class="check">✅</span> Full async dengan Embassy</li>
+            <li><span class="check">✅</span> Startup cepat</li>
+            <li><span class="cross">❌</span> WiFi/BLE belum stabil</li>
+            <li><span class="cross">❌</span> Komunitas lebih kecil</li>
+          </ul>
+        </div>
+        <div class="compare-card" style="--card-color: #ffeb00">
+          <div class="cc-icon">🦀</div>
+          <div class="cc-title">esp-idf-hal (ESP-IDF)</div>
+          <div class="cc-subtitle">Fitur Lengkap + Rust</div>
+          <ul class="cc-features">
+            <li><span class="check">✅</span> WiFi, BLE, NVS lengkap</li>
+            <li><span class="check">✅</span> Kompatibel ESP-IDF SDK</li>
+            <li><span class="check">✅</span> Driver lengkap</li>
+            <li><span class="check">✅</span> Lebih stabil untuk produksi</li>
+            <li><span class="cross">❌</span> Binary lebih besar</li>
+            <li><span class="cross">❌</span> Boot lebih lambat</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="setup">2. Setup Toolchain</h2>
+
+      <p>Untuk memulai development Rust di ESP32, kita perlu menginstall toolchain yang tepat. Ada dua pendekatan: espup (untuk esp-hal) atau esp-idf-rs (untuk esp-idf-hal).</p>
+
+      <h3>Install Rust dan ESP Toolchain</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code># 1. Install Rust (jika belum ada)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+
+# 2. Install espup — ESP32 toolchain manager
+cargo install espup
+espup install
+
+# 3. Install target untuk ESP32
+rustup target add xtensa-esp32-none-elf    # ESP32 original
+rustup target add xtensa-esp32s2-none-elf   # ESP32-S2
+rustup target add xtensa-esp32s3-none-elf   # ESP32-S3
+rustup target add riscv32imc-unknown-none-elf  # ESP32-C3 (RISC-V)
+
+# 4. Install tool flasher
+cargo install espflash
+cargo install espmonitor
+
+# 5. Install cargo-generate untuk template
+cargo install cargo-generate
+
+# 6. Clone template project
+cargo generate esp-rs/esp-idf-template cargo --name esp32-rust-demo
+
+# Atau untuk bare-metal (esp-hal):
+cargo generate esp-rs/esp-template cargo --name esp32-rust-bare
+
+# 7. Set environment variables (tambahkan ke .bashrc/.zshrc)
+export LIBCLANG_PATH="$HOME/.rustup/toolchains/esp/xtensa-esp32-elf-clang/esp-18.1.2_20240912/esp-clang/lib"
+export PATH="$HOME/.rustup/toolchains/esp/xtensa-esp32-elf-clang/esp-18.1.2_20240912/esp-clang/bin:$PATH"</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Platform</div>
+        <p>Untuk ESP32-C3 (RISC-V), toolchain Rust standar sudah mendukung target <code>riscv32imc</code> tanpa perlu espup khusus. Ini membuat ESP32-C3 paling mudah untuk mulai belajar Rust embedded.</p>
+      </div>
+
+      <!-- SECTION 3 -->
+      <h2 id="blink">3. Blink: Hello World ESP32 Rust</h2>
+
+      <p>Mari kita mulai dengan program klasik — blink LED. Ini adalah "Hello World" di dunia embedded.</p>
+
+      <h3>Project Structure</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Project Layout</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: esp32-rust-blink/</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 214.53125px;" viewBox="0 0 214.53125 694" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M107.266,62L107.266,66.167C107.266,70.333,107.266,78.667,107.266,86.333C107.266,94,107.266,101,107.266,104.5L107.266,108" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTA3LjI2NTYyNSwieSI6NjJ9LHsieCI6MTA3LjI2NTYyNSwieSI6ODd9LHsieCI6MTA3LjI2NTYyNSwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M107.266,166L107.266,170.167C107.266,174.333,107.266,182.667,107.266,190.333C107.266,198,107.266,205,107.266,208.5L107.266,212" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTA3LjI2NTYyNSwieSI6MTY2fSx7IngiOjEwNy4yNjU2MjUsInkiOjE5MX0seyJ4IjoxMDcuMjY1NjI1LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M107.266,270L107.266,274.167C107.266,278.333,107.266,286.667,107.266,294.333C107.266,302,107.266,309,107.266,312.5L107.266,316" id="L_N2_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N3_0" data-points="W3sieCI6MTA3LjI2NTYyNSwieSI6MjcwfSx7IngiOjEwNy4yNjU2MjUsInkiOjI5NX0seyJ4IjoxMDcuMjY1NjI1LCJ5IjozMjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M107.266,374L107.266,378.167C107.266,382.333,107.266,390.667,107.266,398.333C107.266,406,107.266,413,107.266,416.5L107.266,420" id="L_N3_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N4_0" data-points="W3sieCI6MTA3LjI2NTYyNSwieSI6Mzc0fSx7IngiOjEwNy4yNjU2MjUsInkiOjM5OX0seyJ4IjoxMDcuMjY1NjI1LCJ5Ijo0MjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M107.266,478L107.266,482.167C107.266,486.333,107.266,494.667,107.266,502.333C107.266,510,107.266,517,107.266,520.5L107.266,524" id="L_N4_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N4_N5_0" data-points="W3sieCI6MTA3LjI2NTYyNSwieSI6NDc4fSx7IngiOjEwNy4yNjU2MjUsInkiOjUwM30seyJ4IjoxMDcuMjY1NjI1LCJ5Ijo1Mjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M107.266,582L107.266,586.167C107.266,590.333,107.266,598.667,107.266,606.333C107.266,614,107.266,621,107.266,624.5L107.266,628" id="L_N5_N6_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N5_N6_0" data-points="W3sieCI6MTA3LjI2NTYyNSwieSI6NTgyfSx7IngiOjEwNy4yNjU2MjUsInkiOjYwN30seyJ4IjoxMDcuMjY1NjI1LCJ5Ijo2MzJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N4_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N5_N6_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(107.265625, 35)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="-99.265625" y="-27" width="198.53125" height="54"/><g class="label" style="" transform="translate(-69.265625, -12)"><rect/><foreignObject width="138.53125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>/"esp32-rust-blink/"/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(107.265625, 139)"><rect class="basic label-container" style="" x="-54.4609375" y="-27" width="108.921875" height="54"/><g class="label" style="" transform="translate(-24.4609375, -12)"><rect/><foreignObject width="48.921875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>.cargo/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(107.265625, 243)"><rect class="basic label-container" style="" x="-78.8125" y="-27" width="157.625" height="54"/><g class="label" style="" transform="translate(-48.8125, -12)"><rect/><foreignObject width="97.625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>/"config.toml"/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(107.265625, 347)"><rect class="basic label-container" style="" x="-42.890625" y="-27" width="85.78125" height="54"/><g class="label" style="" transform="translate(-12.890625, -12)"><rect/><foreignObject width="25.78125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>src/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(107.265625, 451)"><rect class="basic label-container" style="" x="-56.2265625" y="-27" width="112.453125" height="54"/><g class="label" style="" transform="translate(-26.2265625, -12)"><rect/><foreignObject width="52.453125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>main.rs</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(107.265625, 555)"><rect class="basic label-container" style="" x="-79.25" y="-27" width="158.5" height="54"/><g class="label" style="" transform="translate(-49.25, -12)"><rect/><foreignObject width="98.5" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>/"Cargo.toml"/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N6-6" transform="translate(107.265625, 659)"><rect class="basic label-container" style="" x="-65.9140625" y="-27" width="131.828125" height="54"/><g class="label" style="" transform="translate(-35.9140625, -12)"><rect/><foreignObject width="71.828125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>/"build.rs"/</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      </div>
+
+      <h3>Cargo.toml</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TOML</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>[package]
+name = "esp32-rust-blink"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+esp-hal = { version = "0.22", features = ["esp32"] }
+esp-backtrace = { version = "0.14", features = ["esp32", "panic-handler", "exception-handler", "println"] }
+esp-println = { version = "0.12", features = ["esp32"] }
+
+[profile.release]
+opt-level = "s"      # Optimasi untuk ukuran
+lto = true           # Link-Time Optimization
+debug = false        # Tanpa debug info</code></pre>
+      </div>
+
+      <h3>.cargo/config.toml</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TOML</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>[build]
+target = "xtensa-esp32-none-elf"
+
+[target.xtensa-esp32-none-elf]
+runner = "espflash flash --monitor"
+
+[unstable]
+build-std = ["core", "alloc"]</code></pre>
+      </div>
+
+      <h3>src/main.rs — Blink LED</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>#![no_std]
+#![no_main]
+
+use esp_hal::clock::CpuClock;
+use esp_hal::delay::Delay;
+use esp_hal::gpio::Level;
+use esp_hal::gpio::Output;
+use esp_hal::main;
+use esp_println::println;
+
+#[main]
+fn main() -> ! {
+    // Inisialisasi hardware dengan CPU clock 240 MHz
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
+
+    // Setup GPIO — LED built-in pada pin 2
+    let mut led = Output::new(peripherals.GPIO2, Level::Low);
+
+    // Delay handler
+    let delay = Delay::new();
+
+    println!("ESP32 Rust Blink dimulai! 🦀");
+
+    // Loop utama — blink LED
+    loop {
+        led.toggle();
+        println!("LED toggle!");
+        delay.delay_millis(500);
+    }
+}</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Build &amp; Flash</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code># Build dan flash ke ESP32
+cargo run --release
+
+# Atau manual:
+cargo build --release
+espflash flash --monitor target/xtensa-esp32-none-elf/release/esp32-rust-blink</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="gpio">4. GPIO: Input &amp; Output</h2>
+
+      <p>GPIO adalah interface paling dasar antara mikrokontroler dan dunia luar. Di Rust, GPIO diakses melalui HAL (Hardware Abstraction Layer) yang memastikan keamanan tipe data (type safety).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>#![no_std]
+#![no_main]
+
+use esp_hal::clock::CpuClock;
+use esp_hal::delay::Delay;
+use esp_hal::gpio::{Input, Level, Output, Pull};
+use esp_hal::main;
+use esp_println::println;
+
+#[main]
+fn main() -> ! {
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let p = esp_hal::init(config);
+
+    // Output: LED pada GPIO 2
+    let mut led = Output::new(p.GPIO2, Level::Low);
+
+    // Input: Tombol pada GPIO 0 (BOOT button)
+    let button = Input::new(p.GPIO0, Pull::Up);
+
+    // Input: Sensor digital pada GPIO 4
+    let sensor = Input::new(p.GPIO4, Pull::Down);
+
+    let delay = Delay::new();
+    let mut debounce_counter = 0u32;
+
+    println!("GPIO Demo mulai!");
+
+    loop {
+        // Baca tombol dengan debounce sederhana
+        if button.is_low() {
+            debounce_counter += 1;
+            if debounce_counter > 5 {
+                led.toggle();
+                println!("Tombol ditekan! LED: {:?}", if led.is_set_high() { "ON" } else { "OFF" });
+                debounce_counter = 0;
+            }
+        } else {
+            debounce_counter = 0;
+        }
+
+        // Baca sensor digital
+        if sensor.is_high() {
+            println!("Sensor HIGH — objek terdeteksi!");
+        }
+
+        // PWM sederhana dengan software
+        for duty in (0..100).step_by(5) {
+            led.set_high();
+            delay.delay_micros(duty);
+            led.set_low();
+            delay.delay_micros(100 - duty);
+        }
+    }
+}</code></pre>
+      </div>
+
+      <h3>Konfigurasi Pin Modes</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>Tipe</th>
+            <th>Deskripsi</th>
+            <th>Contoh Penggunaan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Output</td><td>Push-Pull</td><td>Output HIGH/LOW standar</td><td>LED, Relay, Buzzer</td></tr>
+          <tr><td>Output</td><td>Open-Drain</td><td>HIGH = floating, LOW = ground</td><td>I2C, sensor kapasitif</td></tr>
+          <tr><td>Input</td><td>Pull-Up</td><td>Input dengan internal pull-up</td><td>Tombol aktif-low</td></tr>
+          <tr><td>Input</td><td>Pull-Down</td><td>Input dengan internal pull-down</td><td>Tombol aktif-high</td></tr>
+          <tr><td>Input</td><td>Floating</td><td>Tanpa pull resistor</td><td>Sensor digital eksternal</td></tr>
+          <tr><td>Alternate</td><td>UART/SPI/I2C</td><td>Pin di-assign ke peripheral</td><td>Perangkat komunikasi</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 5 -->
+      <h2 id="i2c">5. I2C: Komunikasi Sensor</h2>
+
+      <p>I2C (Inter-Integrated Circuit) adalah protokol komunikasi serial dua-kabel (SDA, SCL) yang sangat umum untuk sensor, EEPROM, display OLED, dan peripheral lainnya. Di Rust, kita menggunakan <code>esp-hal</code> I2C driver.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>#![no_std]
+#![no_main]
+
+use esp_hal::clock::CpuClock;
+use esp_hal::delay::Delay;
+use esp_hal::i2c::master::{I2c, Config as I2cConfig};
+use esp_hal::main;
+use esp_hal::time::Rate;
+use esp_println::println;
+
+// Alamat I2C untuk sensor BMP280
+const BMP280_ADDR: u8 = 0x76;
+
+// Register BMP280
+const REG_ID: u8 = 0xD0;
+const REG_CTRL_MEAS: u8 = 0xF4;
+const REG_CONFIG: u8 = 0xF5;
+const REG_PRESS_MSB: u8 = 0xF7;
+const REG_TEMP_MSB: u8 = 0xFA;
+
+#[main]
+fn main() -> ! {
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
+    let delay = Delay::new();
+
+    // Setup I2C pada GPIO 21 (SDA) dan GPIO 22 (SCL)
+    let mut i2c = I2c::new(peripherals.I2C0, I2cConfig::default())
+        .expect("Gagal inisialisasi I2C")
+        .with_sda(peripherals.GPIO21)
+        .with_scl(peripherals.GPIO22)
+        .with_bus_speed(Rate::from_khz(400))  // 400 kHz Fast Mode
+        .into();
+
+    println!("I2C scan bus...");
+
+    // Scan I2C bus untuk menemukan device
+    for addr in 0x08u8..=0x77 {
+        let mut buf = [0u8; 1];
+        if i2c.read(addr, &amp;mut buf).is_ok() {
+            println!("Device ditemukan di alamat: 0x{:02X}", addr);
+        }
+    }
+
+    // Baca Chip ID BMP280
+    let mut chip_id = [0u8; 1];
+    i2c.write_read(BMP280_ADDR, &[REG_ID], &amp;mut chip_id)
+        .expect("Gagal membaca chip ID");
+    println!("BMP280 Chip ID: 0x{:02X} (harus 0x58)", chip_id[0]);
+
+    // Konfigurasi BMP280: oversampling x16, normal mode
+    i2c.write(BMP280_ADDR, &amp;[REG_CTRL_MEAS, 0b10110111])
+        .expect("Gagal menulis CTRL_MEAS");
+    i2c.write(BMP280_ADDR, &amp;[REG_CONFIG, 0b10000000])
+        .expect("Gagal menulis CONFIG");
+
+    // Baca calibration data
+    let mut cal_data = [0u8; 26];
+    i2c.write_read(BMP280_ADDR, &amp;[0x88], &amp;mut cal_data)
+        .expect("Gagal baca calibration");
+    let dig_t1 = u16::from_le_bytes([cal_data[0], cal_data[1]]);
+    let dig_t2 = i16::from_le_bytes([cal_data[2], cal_data[3]]);
+    let dig_t3 = i16::from_le_bytes([cal_data[4], cal_data[5]]);
+    println!("Calibration: T1={}, T2={}, T3={}", dig_t1, dig_t2, dig_t3);
+
+    // Baca data secara periodik
+    loop {
+        // Baca 6 byte: Pressure (3 byte) + Temperature (3 byte)
+        let mut data = [0u8; 6];
+        i2c.write_read(BMP280_ADDR, &amp;[REG_PRESS_MSB], &amp;mut data)
+            .expect("Gagal baca data");
+
+        // Konversi raw data ke suhu
+        let raw_temp: i32 = ((data[3] as i32) &lt;&lt; 12)
+                           | ((data[4] as i32) &lt;&lt; 4)
+                           | ((data[5] as i32) &gt;&gt; 4);
+
+        // Kompensasi suhu menggunakan formula datasheet
+        let var1 = (((raw_temp &gt;&gt; 3) - ((dig_t1 as i32) &lt;&lt; 1))
+                    * (dig_t2 as i32)) &gt;&gt; 11;
+        let var2 = (((((raw_temp &gt;&gt; 4) - (dig_t1 as i32))
+                    * ((raw_temp &gt;&gt; 4) - (dig_t1 as i32))) &gt;&gt; 12)
+                    * (dig_t3 as i32)) &gt;&gt; 14;
+        let t_fine = var1 + var2;
+        let temp = (t_fine * 5 + 128) &gt;&gt; 8;
+
+        println!("Suhu: {:.1}°C", temp as f32 / 100.0);
+
+        delay.delay_millis(1000);
+    }
+}</code></pre>
+      </div>
+
+      <!-- SECTION 6 -->
+      <h2 id="spi">6. SPI: Komunikasi High Speed</h2>
+
+      <p>SPI (Serial Peripheral Interface) adalah protokol komunikasi serial empat-kabel (MOSI, MISO, SCK, CS) yang mendukung kecepatan hingga 80 MHz di ESP32. SPI cocok untuk SD card, display TFT, RF module, dan komponen high-throughput lainnya.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>#![no_std]
+#![no_main]
+
+use esp_hal::clock::CpuClock;
+use esp_hal::delay::Delay;
+use esp_hal::gpio::{Level, Output};
+use esp_hal::main;
+use esp_hal::spi::master::{Config as SpiConfig, Spi};
+use esp_hal::spi::Mode as SpiMode;
+use esp_hal::time::Rate;
+use esp_println::println;
+
+#[main]
+fn main() -> ! {
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
+    let delay = Delay::new();
+
+    // Chip Select (CS) pin
+    let mut cs = Output::new(peripherals.GPIO5, Level::High);
+
+    // Setup SPI
+    let mut spi = Spi::new(peripherals.SPI2, SpiConfig::default())
+        .with_sck(peripherals.GPIO18)
+        .with_mosi(peripherals.GPIO23)
+        .with_miso(peripherals.GPIO19)
+        .with_baudrate(Rate::from_mhz(10))  // 10 MHz
+        .with_mode(SpiMode::Mode0)           // CPOL=0, CPHA=0
+        .into();
+
+    println!("SPI Master dimulai!");
+
+    // Contoh: Komunikasi dengan SPI flash W25Q64
+    // Read JEDEC ID
+    cs.set_low();
+    spi.transfer_in_place(&amp;mut [0x9F, 0x00, 0x00, 0x00])
+        .expect("SPI transfer gagal");
+    cs.set_high();
+
+    println!("JEDEC ID: {:02X} {:02X} {:02X}", result[1], result[2], result[3]);
+
+    // Baca data dari SPI Flash
+    fn read_flash(spi: &amp;mut ..., cs: &amp;mut Output, addr: u32, buf: &amp;mut [u8]) {
+        let cmd = [
+            0x03,  // Read Data command
+            ((addr &gt;&gt; 16) &amp; 0xFF) as u8,
+            ((addr &gt;&gt; 8) &amp; 0xFF) as u8,
+            (addr &amp; 0xFF) as u8,
+        ];
+
+        cs.set_low();
+        // Kirim command + address
+        for byte in &amp;cmd {
+            let _ = spi.transfer_in_place(&amp;mut [*byte, 0x00]);
+        }
+        // Baca data
+        for byte in buf.iter_mut() {
+            let result = spi.transfer_in_place(&amp;mut [0x00]);
+            *byte = result[0];  // Simplified
+        }
+        cs.set_high();
+    }
+
+    // Tulis data ke SPI TFT display (contoh ILI9341)
+    fn send_command(spi: &amp;mut ..., dc: &amp;mut Output, cmd: u8) {
+        dc.set_low();  // Command mode
+        let _ = spi.transfer_in_place(&amp;mut [cmd, 0x00]);
+    }
+
+    fn send_data(spi: &amp;mut ..., dc: &amp;mut Output, data: u8) {
+        dc.set_high();  // Data mode
+        let _ = spi.transfer_in_place(&amp;mut [data, 0x00]);
+    }
+
+    loop {
+        delay.delay_millis(1000);
+    }
+}</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 7 -->
+      <h2 id="wifi">7. WiFi &amp; HTTP Client</h2>
+
+      <p>WiFi adalah fitur utama ESP32. Dengan <code>esp-idf-svc</code>, kita bisa mengakses WiFi stack yang sama dengan ESP-IDF C framework namun dengan API Rust yang ergonomis.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TOML (Cargo.toml untuk esp-idf)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>[package]
+name = "esp32-wifi-demo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+esp-idf-svc = "0.49"
+esp-idf-hal = "0.45"
+esp-idf-sys = "0.35"
+anyhow = "1"
+log = "0.4"
+esp-println = { version = "0.12", features = ["esp32"] }
+
+[build-dependencies]
+embuild = "0.32"</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — WiFi + HTTP</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>use esp_idf_svc::eventloop::EspSystemEventLoop;
+use esp_idf_svc::hal::prelude::Peripherals;
+use esp_idf_svc::http::client::{EspHttpClient, EspHttpMethod};
+use esp_idf_svc::nvs::EspDefaultNvsPartition;
+use esp_idf_svc::wifi::{AuthMethod, BlockingWifi, ClientConfiguration, EspWifi};
+use std::time::Duration;
+
+fn main() -> anyhow::Result<()> {
+    esp_idf_sys::link_patches();
+
+    let peripherals = Peripherals::take()?;
+    let sys_loop = EspSystemEventLoop::take()?;
+    let nvs = EspDefaultNvsPartition::take()?;
+
+    // Inisialisasi WiFi
+    let mut wifi = BlockingWifi::wrap(
+        EspWifi::new(peripherals.modem, sys_loop.clone(), Some(nvs))?,
+        sys_loop,
+    )?;
+
+    // Konfigurasi WiFi client
+    let wifi_config = ClientConfiguration {
+        ssid: "NamaWifi".try_into().unwrap(),
+        password: "PasswordWifi".try_into().unwrap(),
+        auth_method: AuthMethod::WPA2Personal,
+        ..Default::default()
+    };
+
+    wifi.set_configuration(
+        &amp;esp_idf_svc::wifi::Configuration::Client(wifi_config)
+    )?;
+
+    // Connect ke WiFi
+    wifi.start()?;
+    wifi.connect()?;
+    wifi.wait_netif_up()?;
+
+    println!("WiFi terhubung!");
+    println!("IP Address: {:?}", wifi.sta_netif().get_ip_info()?);
+
+    // HTTP GET request
+    let client = EspHttpClient::new_default()?;
+    let mut response = client.get("https://httpbin.org/get")?;
+
+    println!("Status: {}", response.status());
+    let mut buf = vec![0u8; 1024];
+    let read = response.read(&amp;mut buf)?;
+    let body = std::str::from_utf8(&amp;buf[..read])?;
+    println!("Response: {}", body);
+
+    // HTTP POST request
+    let json = r#"{"temperature": 25.5, "humidity": 60.2}"#;
+    let mut request = EspHttpClient::new_default()?
+        .post("https://httpbin.org/post")?;
+    request.set_header("Content-Type", "application/json");
+    let mut response = request.submit(&amp;mut json.as_bytes())?;
+    println!("POST Status: {}", response.status());
+
+    Ok(())
+}</code></pre>
+      </div>
+
+      <!-- SECTION 8 -->
+      <h2 id="embassy">8. Async dengan Embassy</h2>
+
+      <p><strong>Embassy</strong> adalah framework async/await untuk embedded Rust yang memungkinkan kita menulis kode async tanpa overhead. Embassy menggunakan executor yang sangat ringan dan mendukung timer, GPIO interrupt, SPI/I2C DMA, dan banyak lagi.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — Embassy Async</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>#![no_std]
+#![no_main]
+
+use embassy_executor::Spawner;
+use embassy_time::{Duration, Timer};
+use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{Input, Level, Output, Pull};
+use esp_hal::timer::timg::TimerGroup;
+use esp_println::println;
+
+#[esp_hal_embassy::main]
+async fn main(spawner: Spawner) {
+    // Inisialisasi hardware
+    let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
+    let peripherals = esp_hal::init(config);
+
+    // Inisialisasi embassy timer
+    let timg = TimerGroup::new(peripherals.TIMG0);
+    esp_hal_embassy::TimerExecutor::init(timg.timer0);
+
+    // Spawn async tasks
+    spawner.spawn(blink_led(peripherals.GPIO2)).ok();
+    spawner.spawn(read_button(peripherals.GPIO0)).ok();
+    spawner.spawn(heartbeat()).ok();
+
+    println!("Embassy async dimulai! 🦀");
+}
+
+// Task 1: Blink LED async
+#[embassy_executor::task]
+async fn blink_led(pin: esp_hal::gpio::GpioPin&lt;2&gt;) {
+    let mut led = Output::new(pin, Level::Low);
+    loop {
+        led.toggle();
+        Timer::after(Duration::from_millis(500)).await;
+    }
+}
+
+// Task 2: Button handler async (interrupt-driven)
+#[embassy_executor::task]
+async fn read_button(pin: esp_hal::gpio::GpioPin&lt;0&gt;) {
+    let mut button = Input::new(pin, Pull::Up);
+    loop {
+        // Tunggu hingga tombol ditekan (edge detection)
+        button.wait_for_falling_edge().await;
+        println!("Tombol ditekan!");
+
+        // Debounce 200ms
+        Timer::after(Duration::from_millis(200)).await;
+
+        // Tunggu hingga tombol dilepas
+        button.wait_for_rising_edge().await;
+        println!("Tombol dilepas!");
+    }
+}
+
+// Task 3: Heartbeat / status update
+#[embassy_executor::task]
+async fn heartbeat() {
+    let mut counter = 0u32;
+    loop {
+        counter += 1;
+        println!("Heartbeat #{} | Free heap: {} bytes",
+            counter,
+            esp_alloc::HEAP.free());
+        Timer::after(Duration::from_secs(10)).await;
+    }
+}</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Kelebihan Embassy vs FreeRTOS</div>
+        <p>Embassy menggunakan <strong>cooperative multitasking</strong> dengan zero-cost async/await. Task tidak pernah di-preempt — konteks switching terjadi hanya pada <code>.await</code> point. Ini sangat efisien karena tidak perlu menyimpan context register setiap saat. Memory footprint per task hanya ~200 bytes dibanding ~4KB untuk FreeRTOS task.</p>
+      </div>
+
+      <!-- SECTION 9 -->
+      <h2 id="esp-idf-hal">9. ESP-IDF HAL Overview</h2>
+
+      <p>ESP-IDF HAL (<code>esp-idf-hal</code>, <code>esp-idf-svc</code>) memberikan akses ke seluruh ESP-IDF SDK dari Rust. Ini termasuk WiFi, BLE, NVS (Non-Volatile Storage), OTA update, HTTP server, mDNS, dan banyak lagi.</p>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Crate</th>
+            <th>Fungsi</th>
+            <th>Fitur Utama</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>esp-idf-sys</code></td><td>FFI bindings ke ESP-IDF</td><td>Akses langsung ke C API</td></tr>
+          <tr><td><code>esp-idf-hal</code></td><td>HAL Rust untuk ESP-IDF</td><td>GPIO, I2C, SPI, UART, ADC, PWM</td></tr>
+          <tr><td><code>esp-idf-svc</code></td><td>Service tingkat tinggi</td><td>WiFi, HTTP, MQTT, NVS, Sntp</td></tr>
+          <tr><td><code>esp-idf-ota</code></td><td>OTA Update</td><td>Over-the-air firmware update</td></tr>
+          <tr><td><code>esp-println</code></td><td>Console output</td><td>println! ke UART atau JTAG</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — ESP-IDF MQTT Client</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>use esp_idf_svc::mqtt::client::{EspMqttClient, MqttClientConfiguration};
+use std::time::Duration;
+
+fn mqtt_demo() -> anyhow::Result<()> {
+    let mqtt_config = MqttClientConfiguration::default();
+
+    let mut client = EspMqttClient::new(
+        "mqtt://broker.hivemq.com:1883",
+        &amp;mqtt_config,
+        |event| {
+            match event {
+                Ok(msg) => println!("Diterima: {:?}", msg),
+                Err(e) => println!("Error: {:?}", e),
+            }
+        },
+    )?;
+
+    // Subscribe ke topic
+    client.subscribe("esp32/suhu", esp_idf_svc::mqtt::client::QoS::AtMostOnce)?;
+
+    // Publish data
+    let payload = "{\"temp\":25.5,\"humid\":60}";
+    client.publish(
+        "esp32/data",
+        esp_idf_svc::mqtt::client::QoS::AtLeastOnce,
+        false,
+        payload.as_bytes(),
+    )?;
+
+    Ok(())
+}</code></pre>
+      </div>
+
+      <!-- SECTION 10 -->
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quiz01">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa keunggulan utama Rust dibanding C/C++ untuk embedded?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Lebih cepat dari C++</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Memory safety tanpa garbage collector</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Lebih mudah dari Python</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Tidak memerlukan compiler</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: esp-hal cocok digunakan ketika?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Butuh WiFi dan BLE lengkap</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Ingin binary sangat kecil dan startup cepat</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Ingin menggunakan library Arduino</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Butuh OTA update</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Embassy menggunakan model concurrency apa?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Preemptive multitasking</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Parallel processing</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Cooperative multitasking dengan async/await</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Event-driven tanpa async</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Target Rust untuk ESP32 (original, Xtensa) adalah?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) riscv32imc-unknown-none-elf</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) arm-none-eabi</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) xtensa-esp32-none-elf</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) wasm32-unknown-unknown</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: I2C Fast Mode beroperasi pada kecepatan berapa?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) 100 kHz</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) 400 kHz</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) 1 MHz</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) 3.4 MHz</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="esp32-web-bluetooth.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">ESP32 Web Bluetooth</span>
+        </a>
+        <a href="esp32-camera-streaming.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">ESP32-CAM Streaming</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/esp32-sleep-modes.html" class="related-card">
+          <span class="related-category">IoT</span>
+          <span class="related-title">ESP32 Deep Sleep & Power Management: Hemat Energi Maksimal</span>
+        </a>
+        <a href="/articles/zigbee-thread-matter.html" class="related-card">
+          <span class="related-category">IoT</span>
+          <span class="related-title">Zigbee, Thread, dan Matter: Perbandingan Protokol Smart Home</span>
+        </a>
+        <a href="/articles/cheatsheet-esp32-iot.html" class="related-card">
+          <span class="related-category">IoT</span>
+          <span class="related-title">Cheatsheet ESP32 & IoT: Referensi Cepat Pinout, Command, ...</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

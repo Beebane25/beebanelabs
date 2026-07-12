@@ -1,0 +1,905 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== READING PROGRESS ========== -->
+  <div style="position:fixed;top:64px;left:0;right:0;height:3px;z-index:999;background:transparent;">
+    <div id="readingProgress" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent-primary),var(--accent-cyan));transition:width 0.1s linear;border-radius:0 2px 2px 0;"></div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">›</span>
+        <a href="../index.html#categories">Keamanan</a>
+        <span class="separator">›</span>
+        <span>SSL/TLS</span>
+      </div>
+
+      <h1>SSL/TLS: Mengamankan Komunikasi dengan HTTPS</h1>
+      <span class="access-badge gratis">GRATIS</span>
+
+      <div class="meta-row">
+        <div class="meta-item">📅 25 Juni 2026</div>
+        <div class="meta-item">📖 12 menit baca</div>
+        <div class="meta-item"><span class="difficulty pemula">Pemula</span></div>
+        <div class="meta-item">🔒 Keamanan Web</div>
+      </div>
+    </div>
+  </section>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide" id="ad-slot-top">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li>1. Apa Itu SSL/TLS?</li>
+          <li>2. Bagaimana TLS Bekerja: TLS Handshake</li>
+          <li>3. Jenis-Jenis Sertifikat SSL/TLS</li>
+          <li>4. Setup Let's Encrypt dengan Certbot</li>
+          <li>5. Certificate Renewal Otomatis</li>
+          <li>6. Konfigurasi TLS yang Aman</li>
+          <li>7. HTTP Strict Transport Security (HSTS)</li>
+          <li>8. Testing dan Validasi SSL/TLS</li>
+          <li>9. Quiz: Uji Pemahamanmu</li>
+          <li>Quiz Pemahaman</li>
+        </ol>
+      </div>
+
+
+
+    <!-- ====== 1. APA ITU SSL/TLS ====== -->
+    <h2>1. Apa Itu SSL/TLS?</h2>
+
+    <p>
+      SSL (Secure Sockets Layer) dan TLS (Transport Layer Security) adalah protokol
+      kriptografi yang mengamankan komunikasi di jaringan. Ketika kamu melihat ikon gembok
+      🔒 di address bar browser dan URL dimulai dengan <code>https://</code>, itu artinya
+      koneksi antara browser kamu dan server dilindungi oleh SSL/TLS.
+    </p>
+
+    <p>
+      SSL adalah versi lama yang sekarang sudah usang (deprecated). TLS adalah penerusnya
+      yang terus dikembangkan. Versi terbaru saat ini adalah <strong>TLS 1.3</strong> (RFC 8446)
+      yang dirilis pada tahun 2018. Meskipun orang masih menyebutnya "SSL", yang sebenarnya
+      digunakan adalah TLS.
+    </p>
+
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>Versi</th>
+          <th>Tahun</th>
+          <th>Status</th>
+          <th>Keterangan</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>SSL 2.0</strong></td>
+          <td>1995</td>
+          <td>❌ Deprecated</td>
+          <td>Banyak celah keamanan fatal. Tidak boleh digunakan.</td>
+        </tr>
+        <tr>
+          <td><strong>SSL 3.0</strong></td>
+          <td>1996</td>
+          <td>❌ Deprecated</td>
+          <td>Rentan terhadap serangan POODLE. Tidak boleh digunakan.</td>
+        </tr>
+        <tr>
+          <td><strong>TLS 1.0</strong></td>
+          <td>1999</td>
+          <td>❌ Deprecated</td>
+          <td>Rentan BEAST. Semua browser utama sudah menolak.</td>
+        </tr>
+        <tr>
+          <td><strong>TLS 1.1</strong></td>
+          <td>2006</td>
+          <td>❌ Deprecated</td>
+          <td>Tidak mendukung cipher suite modern. Tidak boleh digunakan.</td>
+        </tr>
+        <tr>
+          <td><strong>TLS 1.2</strong></td>
+          <td>2008</td>
+          <td>✅ Aman</td>
+          <td>Masih banyak digunakan. Mendukung cipher suite kuat.</td>
+        </tr>
+        <tr>
+          <td><strong>TLS 1.3</strong></td>
+          <td>2018</td>
+          <td>✅ Terbaik</td>
+          <td>Handshake lebih cepat (1-RTT), keamanan lebih kuat, cipher suite minimal yang aman.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box info">
+      <div class="info-box-title">💡 Mengapa HTTPS Penting?</div>
+      <p>
+        Tanpa HTTPS, semua data yang dikirim antara browser dan server (termasuk password,
+        nomor kartu kredit, dan data pribadi) dikirim dalam bentuk <strong>plain text</strong>
+        yang bisa disadap oleh siapa saja di jaringan yang sama (public Wi-Fi, ISP, dll).
+        Google juga menggunakan HTTPS sebagai <strong>faktor ranking SEO</strong> — situs
+        tanpa HTTPS akan mendapat penalti di hasil pencarian.
+      </p>
+    </div>
+
+    <!-- ====== 2. BAGAIMANA TLS BEKERJA (HANDSHAKE) ====== -->
+    <h2>2. Bagaimana TLS Bekerja: TLS Handshake</h2>
+
+    <p>
+      TLS handshake adalah proses negosiasi antara client (browser) dan server untuk
+      menentukan parameter enkripsi yang akan digunakan. Proses ini terjadi dalam hitungan
+      milidetik setiap kali kamu mengunjungi situs HTTPS.
+    </p>
+
+    <div class="arch-diagram">
+      <div class="arch-title">📊 TLS 1.3 Handshake (1-RTT)</div>
+      <div class="flow-container">
+        <div class="flow-step">
+          <div class="flow-number">1</div>
+          <div class="flow-content">
+            <div class="flow-icon">🌐</div>
+            <div class="flow-label">Client Hello</div>
+            <div class="flow-desc">Versi TLS, cipher suites, key share</div>
+          </div>
+        </div>
+        <div class="flow-connector">→</div>
+        <div class="flow-step">
+          <div class="flow-number">2</div>
+          <div class="flow-content">
+            <div class="flow-icon">🖥️</div>
+            <div class="flow-label">Server Hello</div>
+            <div class="flow-desc">Cipher suite, sertifikat, key share</div>
+          </div>
+        </div>
+        <div class="flow-connector">→</div>
+        <div class="flow-step">
+          <div class="flow-number">3</div>
+          <div class="flow-content">
+            <div class="flow-icon">🔐</div>
+            <div class="flow-label">Verify &amp; Finish</div>
+            <div class="flow-desc">Verifikasi sertifikat, derive keys</div>
+          </div>
+        </div>
+        <div class="flow-connector">→</div>
+        <div class="flow-step">
+          <div class="flow-number">4</div>
+          <div class="flow-content">
+            <div class="flow-icon">🔒</div>
+            <div class="flow-label">Encrypted</div>
+            <div class="flow-desc">Komunikasi terenkripsi penuh</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Langkah Detail TLS 1.3 Handshake</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Text — TLS 1.3 Handshake Process</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+Client                                              Server
+  |                                                    |
+  |  === 1. Client Hello ===                          |
+  |  • Supported TLS versions (1.3)                   |
+  |  • Cipher suites yang didukung                    |
+  |  • Key share (public key ECDHE/X25519)            |
+  |  • Random bytes (32 bytes)                        |
+  |  • SNI (Server Name Indication)                   |
+  |  -----------------------------------------------> |
+  |                                                    |
+  |  === 2. Server Hello ===                          |
+  |  • TLS version yang dipilih (1.3)                 |
+  |  • Cipher suite yang dipilih                      |
+  |  • Key share (public key server)                  |
+  |  • Random bytes (32 bytes)                        |
+  |  <----------------------------------------------- |
+  |                                                    |
+  |  === 3. Server Encrypted Extensions ===           |
+  |  • Sertifikat X.509 (public key + identitas)      |
+  |  • Certificate Verify (tanda tangan digital)      |
+  |  • Finished (verification data)                   |
+  |  <-----------------------------------------------  |
+  |                                                    |
+  |  === 4. Client Verification ===                   |
+  |  • Verifikasi sertifikat terhadap CA              |
+  |  • Derive session keys dari shared secret         |
+  |  • Finished (verification data)                   |
+  |  -----------------------------------------------> |
+  |                                                    |
+  |  === 5. Encrypted Communication ===               |
+  |  • Data terenkripsi dengan AES-256-GCM            |
+  |  • Atau ChaCha20-Poly1305                        |
+  |  • Forward secrecy (Perfect Forward Secrecy)     |
+  |  <==============================================>  |
+      </code></pre>
+    </div>
+
+    <div class="info-box tip">
+      <div class="info-box-title">✅ Perbedaan TLS 1.2 vs TLS 1.3</div>
+      <p>
+        TLS 1.2 membutuhkan <strong>2 round-trip (2-RTT)</strong> untuk handshake, sedangkan
+        TLS 1.3 hanya <strong>1 round-trip (1-RTT)</strong> — bahkan mendukung
+        <strong>0-RTT</strong> untuk koneksi yang sudah pernah dilakukan sebelumnya.
+        TLS 1.3 juga menghapus cipher suite lemah (RC4, 3DES, RSA key exchange) dan hanya
+        mengizinkan cipher suite yang mendukung Perfect Forward Secrecy (PFS).
+      </p>
+    </div>
+
+    <!-- ====== 3. JENIS SERTIFIKAT ====== -->
+    <h2>3. Jenis-Jenis Sertifikat SSL/TLS</h2>
+
+    <p>
+      Sertifikat SSL/TLS adalah file digital yang mengikat kunci publik ke identitas
+      organisasi atau domain. Certificate Authority (CA) adalah pihak tepercaya yang
+      menerbitkan dan menandatangani sertifikat ini.
+    </p>
+
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>Jenis Sertifikat</th>
+          <th>Validasi</th>
+          <th>Biaya</th>
+          <th>Cocok Untuk</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Domain Validation (DV)</strong></td>
+          <td>Hanya verifikasi kepemilikan domain. Proses cepat (menit).</td>
+          <td>Gratis (Let's Encrypt) atau ~$10/tahun</td>
+          <td>Blog, situs personal, API, development</td>
+        </tr>
+        <tr>
+          <td><strong>Organization Validation (OV)</strong></td>
+          <td>Verifikasi domain + identitas organisasi. Proses 1-3 hari.</td>
+          <td>~$50-200/tahun</td>
+          <td>Website bisnis, e-commerce kecil</td>
+        </tr>
+        <tr>
+          <td><strong>Extended Validation (EV)</strong></td>
+          <td>Verifikasi paling ketat: domain + organisasi + legal existence. Proses 1-2 minggu.</td>
+          <td>~$150-500+/tahun</td>
+          <td>Bank, institusi keuangan, enterprise</td>
+        </tr>
+        <tr>
+          <td><strong>Wildcard Certificate</strong></td>
+          <td>Melindungi domain utama + semua subdomain (*.example.com).</td>
+          <td>Gratis (Let's Encrypt) atau ~$50-300/tahun</td>
+          <td>Website dengan banyak subdomain</td>
+        </tr>
+        <tr>
+          <td><strong>Multi-Domain (SAN)</strong></td>
+          <td>Satu sertifikat untuk beberapa domain berbeda.</td>
+          <td>~$30-300/tahun</td>
+          <td>Multi-site, white-label services</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ====== 4. LET'S ENCRYPT SETUP ====== -->
+    <h2>4. Setup Let's Encrypt dengan Certbot</h2>
+
+    <p>
+      Let's Encrypt adalah Certificate Authority (CA) gratis, otomatis, dan terbuka yang
+      didirikan oleh Internet Security Research Group (ISRG). Dengan Let's Encrypt,
+      siapa pun bisa mendapatkan sertifikat SSL/TLS yang valid tanpa biaya. Ini adalah
+      cara paling populer untuk mengamankan website.
+    </p>
+
+    <h3>Install dan Konfigurasi Certbot</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Bash — Let's Encrypt dengan Certbot (Nginx)</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+#!/bin/bash
+# ============================================
+# Let's Encrypt Setup dengan Certbot
+# Untuk Nginx di Ubuntu/Debian
+# ============================================
+
+# ============================================
+# 1. Install Certbot
+# ============================================
+# Metode snap (recommended)
+sudo snap install --classic certbot
+sudo ln -s /snap/bin/certbot /usr/bin/certbot
+
+# Atau dengan apt
+sudo apt update
+sudo apt install certbot python3-certbot-nginx -y
+
+# ============================================
+# 2. Dapatkan Sertifikat (Nginx plugin)
+# ============================================
+# Certbot akan otomatis konfigurasi Nginx
+sudo certbot --nginx -d example.com -d www.example.com
+
+# Atau tanpa plugin (hanya dapat sertifikat, konfigurasi manual)
+sudo certbot certonly --webroot -w /var/www/html -d example.com -d www.example.com
+
+# ============================================
+# 3. Verifikasi Sertifikat
+# ============================================
+sudo certbot certificates
+# Output:
+# Certificate Name: example.com
+#   Domains: example.com www.example.com
+#   Expiry Date: 2026-09-23 (VALID: 89 days)
+#   Certificate Path: /etc/letsencrypt/live/example.com/fullchain.pem
+#   Private Key Path: /etc/letsencrypt/live/example.com/privkey.pem
+
+# ============================================
+# 4. Test Auto-Renewal
+# ============================================
+sudo certbot renew --dry-run
+# Output: "Congratulations, all simulated renewals succeeded"
+      </code></pre>
+    </div>
+
+    <h3>Konfigurasi Nginx dengan SSL</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Nginx — SSL/TLS Configuration</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# ============================================
+# Nginx SSL/TLS Configuration
+# File: /etc/nginx/sites-available/example.com
+# ============================================
+
+# Redirect HTTP ke HTTPS
+server {
+    listen 80;
+    listen [::]:80;
+    server_name example.com www.example.com;
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS Server Block
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name example.com www.example.com;
+
+    # ============================================
+    # Sertifikat SSL dari Let's Encrypt
+    # ============================================
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+    # ============================================
+    # TLS Protocol Configuration
+    # ============================================
+    # Hanya izinkan TLS 1.2 dan 1.3
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # Cipher suite yang aman (urutkan berdasarkan keamanan)
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384';
+
+    # Gunakan server cipher preference (penting untuk keamanan)
+    ssl_prefer_server_ciphers on;
+
+    # ============================================
+    # SSL Session Configuration
+    # ============================================
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    ssl_session_tickets off;  # Nonaktifkan untuk PFS sempurna
+
+    # ============================================
+    # DH Parameters (Diffie-Hellman)
+    # Generate: openssl dhparam -out /etc/nginx/dhparam.pem 2048
+    # ============================================
+    ssl_dhparam /etc/nginx/dhparam.pem;
+
+    # ============================================
+    # OCSP Stapling (performa + keamanan)
+    # ============================================
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    ssl_trusted_certificate /etc/letsencrypt/live/example.com/chain.pem;
+    resolver 8.8.8.8 8.8.4.4 valid=300s;
+    resolver_timeout 5s;
+
+    # ============================================
+    # Security Headers
+    # ============================================
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Root dan location blocks
+    root /var/www/example.com/html;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+      </code></pre>
+    </div>
+
+    <div class="info-box warning">
+      <div class="info-box-title">⚠️ Penting: Generate DH Parameters</div>
+      <p>
+        Pastikan untuk generate Diffie-Hellman parameters sebelum mengaktifkan
+        <code>ssl_dhparam</code>:
+        <code>openssl dhparam -out /etc/nginx/dhparam.pem 2048</code>
+        Tanpa file ini, Nginx akan gagal restart. Proses generate bisa memakan waktu
+        5-15 menit tergantung spesifikasi server.
+      </p>
+    </div>
+
+    <!-- ====== 5. CERTIFICATE RENEWAL ====== -->
+    <h2>5. Certificate Renewal Otomatis</h2>
+
+    <p>
+      Sertifikat Let's Encrypt memiliki masa berlaku 90 hari. Certbot sudah mengatur
+      auto-renewal secara otomatis saat install, tetapi penting untuk memverifikasi
+      dan menguji proses renewal agar tidak terjadi insiden sertifikat kadaluarsa.
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Bash — Auto-Renewal Configuration</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+#!/bin/bash
+# ============================================
+# Let's Encrypt Auto-Renewal Setup & Testing
+# ============================================
+
+# ============================================
+# 1. Cek timer systemd (sudah dibuat oleh certbot)
+# ============================================
+sudo systemctl status certbot.timer
+# Harus menunjukkan "Active: active (waiting)"
+
+# Lihat jadwal renewal
+sudo systemctl list-timers | grep certbot
+
+# ============================================
+# 2. Test renewal tanpa benar-benar renew
+# ============================================
+sudo certbot renew --dry-run
+
+# ============================================
+# 3. Manual renewal (jika diperlukan)
+# ============================================
+sudo certbot renew
+
+# ============================================
+# 4. Post-renewal hook: Reload web server
+# Certbot sudah membuat hook ini otomatis, tapi
+# jika perlu manual:
+# ============================================
+cat > /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh << 'EOF'
+#!/bin/bash
+nginx -t && systemctl reload nginx
+echo "$(date): Nginx reloaded after cert renewal" >> /var/log/certbot-renewal.log
+EOF
+chmod +x /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+
+# ============================================
+# 5. Monitoring expiry sertifikat
+# ============================================
+# Cek expiry dari command line
+openssl s_client -connect example.com:443 -servername example.com 2>/dev/null \
+    | openssl x509 -noout -dates
+
+# Cek expiry dari jarak jauh
+echo | openssl s_client -connect example.com:443 -servername example.com 2>/dev/null \
+    | openssl x509 -noout -enddate
+
+# Script monitoring sederhana
+cat > /usr/local/bin/check-ssl-expiry.sh << 'SCRIPT'
+#!/bin/bash
+DOMAIN="$1"
+EXPIRY=$(echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" 2>/dev/null \
+    | openssl x509 -noout -enddate | cut -d= -f2)
+EXPIRY_EPOCH=$(date -d "$EXPIRY" +%s)
+NOW_EPOCH=$(date +%s)
+DAYS_LEFT=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
+
+if [ "$DAYS_LEFT" -lt 30 ]; then
+    echo "⚠️ WARNING: Sertifikat $DOMAIN kadaluarsa dalam $DAYS_LEFT hari!"
+    # Kirim notifikasi (opsional)
+    # curl -X POST "https://hooks.slack.com/..." -d "{\"text\":\"SSL $DOMAIN expires in $DAYS_LEFT days\"}"
+fi
+SCRIPT
+chmod +x /usr/local/bin/check-ssl-expiry.sh
+
+# Jalankan pengecekan
+/usr/local/bin/check-ssl-expiry.sh example.com
+      </code></pre>
+    </div>
+
+    <!-- ====== 6. TLS CONFIGURATION ====== -->
+    <h2>6. Konfigurasi TLS yang Aman</h2>
+
+    <p>
+      Konfigurasi TLS yang tepat sangat penting untuk memastikan komunikasi benar-benar
+      aman. Kesalahan konfigurasi dapat membuat enkripsi menjadi lemah atau bahkan tidak
+      efektif sama sekali.
+    </p>
+
+    <h3>Apache SSL Configuration</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Apache — SSL/TLS Configuration</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# ============================================
+# Apache SSL Configuration
+# File: /etc/apache2/sites-available/example-ssl.conf
+# ============================================
+
+&lt;VirtualHost *:443&gt;
+    ServerName example.com
+    ServerAlias www.example.com
+    DocumentRoot /var/www/example.com/html
+
+    # ============================================
+    # Sertifikat SSL
+    # ============================================
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/example.com/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/example.com/privkey.pem
+
+    # ============================================
+    # TLS Protocol &amp; Cipher Configuration
+    # ============================================
+    SSLProtocol -all +TLSv1.2 +TLSv1.3
+    SSLCipherSuite ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384
+    SSLHonorCipherOrder on
+    SSLCompression off
+    SSLSessionTickets off
+
+    # ============================================
+    # OCSP Stapling
+    # ============================================
+    SSLUseStapling on
+    SSLStaplingResponderTimeout 5
+    SSLStaplingReturnResponderErrors off
+
+    # ============================================
+    # Security Headers
+    # ============================================
+    Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+&lt;/VirtualHost&gt;
+
+# Redirect HTTP ke HTTPS
+&lt;VirtualHost *:80&gt;
+    ServerName example.com
+    Redirect permanent / https://example.com/
+&lt;/VirtualHost&gt;
+      </code></pre>
+    </div>
+
+    <div class="info-box tip">
+      <div class="info-box-title">✅ Tips: Mozilla SSL Configuration Generator</div>
+      <p>
+        Gunakan <a href="https://ssl-config.mozilla.org" target="_blank">Mozilla SSL
+        Configuration Generator</a> untuk menghasilkan konfigurasi TLS yang optimal untuk
+        Nginx, Apache, HAProxy, atau server lainnya. Pilih level keamanan:
+        <strong>Modern</strong> (TLS 1.3 saja), <strong>Intermediate</strong> (TLS 1.2+),
+        atau <strong>Old</strong> (kompatibel dengan perangkat lama).
+      </p>
+    </div>
+
+    <!-- ====== 7. HSTS ====== -->
+    <h2>7. HTTP Strict Transport Security (HSTS)</h2>
+
+    <p>
+      HSTS adalah mekanisme keamanan yang memberitahu browser bahwa situs hanya boleh
+      diakses melalui HTTPS. Setelah HSTS diaktifkan, browser akan secara otomatis
+      mengubah semua request HTTP ke HTTPS — bahkan sebelum request pertama dikirim.
+      Ini mencegah serangan <strong>SSL stripping</strong> di mana penyerang menurunkan
+      koneksi HTTPS ke HTTP.
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Nginx — HSTS Configuration</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# ============================================
+# HSTS Header Configuration
+# ============================================
+
+# Langkah 1: Testing mode (max-age pendek — 5 menit)
+# Gunakan ini dulu untuk memastikan tidak ada mixed content
+add_header Strict-Transport-Security "max-age=300" always;
+
+# Langkah 2: Setelah yakin tidak ada masalah, tingkatkan ke 6 bulan
+add_header Strict-Transport-Security "max-age=15768000" always;
+
+# Langkah 3: Full production (2 tahun + subdomains + preload)
+add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+
+# ============================================
+# Preload List Submission
+# ============================================
+# Setelah HSTS aktif dengan preload directive,
+# daftarkan situs ke HSTS Preload List:
+# https://hstspreload.org
+#
+# Manfaat: Browser sudah tahu situs kamu HTTPS-only
+# BAHKAN SEBELUM kunjungan pertama.
+# Chrome, Firefox, Safari, Edge mendukung preload list.
+      </code></pre>
+    </div>
+
+    <div class="info-box danger">
+      <div class="info-box-title">🚨 Peringatan HSTS Preload</div>
+      <p>
+        Setelah situs kamu masuk ke HSTS Preload List, <strong>sangat sulit untuk
+        dihapus</strong>. Pastikan kamu benar-benar yakin ingin menggunakannya.
+        Jika sertifikat SSL kadaluarsa dan kamu tidak bisa memperbarui, pengunjung
+        <strong>tidak akan bisa mengakses situs kamu</strong> karena browser menolak
+        koneksi non-HTTPS. Selalu pastikan auto-renewal berfungsi sebelum submit ke
+        preload list.
+      </p>
+    </div>
+
+    <!-- ====== 8. TESTING SSL ====== -->
+    <h2>8. Testing dan Validasi SSL/TLS</h2>
+
+    <p>
+      Setelah mengkonfigurasi SSL/TLS, sangat penting untuk menguji dan memvalidasi
+      bahwa konfigurasi benar-benar aman dan tidak ada celah yang bisa dieksploitasi.
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Bash — SSL Testing Commands</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# ============================================
+# SSL/TLS Testing &amp; Validation Commands
+# ============================================
+
+# 1. Cek sertifikat dari command line
+openssl s_client -connect example.com:443 -servername example.com
+
+# 2. Cek versi TLS yang didukung
+# Test TLS 1.3
+openssl s_client -connect example.com:443 -tls1_3
+
+# Test TLS 1.2
+openssl s_client -connect example.com:443 -tls1_2
+
+# Cek apakah TLS 1.0/1.1 masih aktif (harusnya ditolak)
+openssl s_client -connect example.com:443 -tls1
+# Harus error: "no protocols available"
+
+# 3. Lihat detail sertifikat
+echo | openssl s_client -connect example.com:443 -servername example.com 2>/dev/null \
+    | openssl x509 -text -noout
+
+# 4. Cek expiry date
+echo | openssl s_client -connect example.com:443 -servername example.com 2>/dev/null \
+    | openssl x509 -noout -dates
+
+# 5. Cek cipher suite yang digunakan
+echo | openssl s_client -connect example.com:443 -servername example.com 2>/dev/null \
+    | grep -i "cipher"
+
+# 6. Test dengan nmap
+nmap --script ssl-enum-ciphers -p 443 example.com
+
+# 7. Scan untuk Heartbleed vulnerability
+nmap --script ssl-heartbleed -p 443 example.com
+
+# 8. Test dari browser
+# Buka: https://www.ssllabs.com/ssltest/analyze.html?d=example.com
+# Target: Grade A atau A+
+      </code></pre>
+    </div>
+
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Penggunaan</th>
+          <th>Akses</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>SSL Labs (Qualys)</strong></td>
+          <td>Testing menyeluruh: cipher suites, protocol support, certificate chain, vulnerabilities. Grade A+ adalah target ideal.</td>
+          <td>Web: ssllabs.com/ssltest</td>
+        </tr>
+        <tr>
+          <td><strong>testssl.sh</strong></td>
+          <td>CLI tool yang sangat lengkap untuk testing SSL/TLS. Dapat dijalankan di server lokal.</td>
+          <td>CLI: github.com/drwetter/testssl.sh</td>
+        </tr>
+        <tr>
+          <td><strong>openssl s_client</strong></td>
+          <td>Built-in di semua Linux. Berguna untuk test cepat koneksi dan sertifikat.</td>
+          <td>CLI: sudah tersedia di Linux</td>
+        </tr>
+        <tr>
+          <td><strong>nmap ssl scripts</strong></td>
+          <td>Port scanner dengan script khusus SSL/TLS untuk mendeteksi cipher lemah dan vulnerabilities.</td>
+          <td>CLI: nmap.org</td>
+        </tr>
+        <tr>
+          <td><strong>Mozilla Observatory</strong></td>
+          <td>Testing header keamanan termasuk HSTS, CSP, dan security headers lainnya.</td>
+          <td>Web: observatory.mozilla.org</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box info">
+      <div class="info-box-title">💡 Checklist Grade A+ SSL Labs</div>
+      <p>
+        Untuk mendapatkan grade <strong>A+</strong> di SSL Labs, pastikan:
+        <strong>1)</strong> Sertifikat valid dan tidak expired, <strong>2)</strong> Hanya
+        TLS 1.2 dan 1.3 yang aktif, <strong>3)</strong> Cipher suite yang aman saja,
+        <strong>4)</strong> OCSP stapling aktif, <strong>5)</strong> HSTS aktif dengan
+        minimal <code>max-age=31536000</code>, <strong>6)</strong> Tidak ada mixed content
+        (semua resource HTTPS), dan <strong>7)</strong> DH parameters minimal 2048-bit.
+      </p>
+    </div>
+
+    <!-- ====== 9. QUIZ ====== -->
+    <h2>9. Quiz: Uji Pemahamanmu</h2>
+
+    <p>
+      Jawab pertanyaan berikut untuk menguji pemahaman kamu tentang SSL/TLS.
+      Pilih satu jawaban terbaik untuk setiap pertanyaan.
+    </p>
+
+    <div class="quiz-container" id="quiz08">
+      <h3>📝 Quiz SSL/TLS</h3>
+
+      <!-- Q1 -->
+      <div class="quiz-question">
+        <h4>1. Berapa round-trip yang dibutuhkan TLS 1.3 untuk menyelesaikan handshake?</h4>
+        <button class="quiz-option" data-question="0" data-answer="a">a. 3 round-trip (3-RTT)</button>
+        <button class="quiz-option" data-question="0" data-answer="b">b. 2 round-trip (2-RTT)</button>
+        <button class="quiz-option" data-question="0" data-answer="c">c. 1 round-trip (1-RTT)</button>
+        <button class="quiz-option" data-question="0" data-answer="d">d. 0 round-trip (0-RTT) selalu</button>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-question">
+        <h4>2. Apa jenis sertifikat SSL yang paling cocok untuk blog personal?</h4>
+        <button class="quiz-option" data-question="1" data-answer="a">a. Extended Validation (EV)</button>
+        <button class="quiz-option" data-question="1" data-answer="b">b. Organization Validation (OV)</button>
+        <button class="quiz-option" data-question="1" data-answer="c">c. Domain Validation (DV) dari Let's Encrypt</button>
+        <button class="quiz-option" data-question="1" data-answer="d">d. Self-signed certificate</button>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-question">
+        <h4>3. Apa fungsi utama header HSTS (HTTP Strict Transport Security)?</h4>
+        <button class="quiz-option" data-question="2" data-answer="a">a. Mengenkripsi data di database</button>
+        <button class="quiz-option" data-question="2" data-answer="b">b. Mempercepat loading halaman</button>
+        <button class="quiz-option" data-question="2" data-answer="c">c. Memaksa browser untuk selalu menggunakan HTTPS dan mencegah SSL stripping</button>
+        <button class="quiz-option" data-question="2" data-answer="d">d. Mengganti password secara otomatis</button>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-question">
+        <h4>4. Berapa lama masa berlaku sertifikat Let's Encrypt?</h4>
+        <button class="quiz-option" data-question="3" data-answer="a">a. 30 hari</button>
+        <button class="quiz-option" data-question="3" data-answer="b">b. 90 hari</button>
+        <button class="quiz-option" data-question="3" data-answer="c">c. 1 tahun</button>
+        <button class="quiz-option" data-question="3" data-answer="d">d. 3 tahun</button>
+      </div>
+
+      <!-- Q5 -->
+      <div class="quiz-question">
+        <h4>5. Mengapa ssl_session_tickets harus dinonaktifkan untuk keamanan sempurna?</h4>
+        <button class="quiz-option" data-question="4" data-answer="a">a. Karena memperlambat koneksi</button>
+        <button class="quiz-option" data-question="4" data-answer="b">b. Karena tidak kompatibel dengan semua browser</button>
+        <button class="quiz-option" data-question="4" data-answer="c">c. Karena session tickets dapat mengkompromikan Perfect Forward Secrecy (PFS)</button>
+        <button class="quiz-option" data-question="4" data-answer="d">d. Karena memakan bandwidth tambahan</button>
+      </div>
+
+      <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+      <div class="quiz-result"></div>
+    </div>
+
+    <!-- ====== AD SLOT BOTTOM ====== -->
+    <div class="ad-slot ad-slot-wide" id="ad-slot-bottom">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+    <!-- ====== ARTICLE NAVIGATION ====== -->
+    <div class="article-nav">
+      <a href="linux-firewall-hardening.html" class="prev">
+        <span class="nav-label">← Sebelumnya</span>
+        <span class="nav-title">Firewall Hardening: Mengamankan Server Linux</span>
+      </a>
+      <a href="network-security.html" class="next">
+        <span class="nav-label">Selanjutnya →</span>
+        <span class="nav-title">Keamanan Jaringan IoT: Firewall, VPN &amp; Enkripsi Data</span>
+      </a>
+    </div>
+
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/linux-security.html" class="related-card">
+          <span class="related-category">Other</span>
+          <span class="related-title">Keamanan Linux: Panduan Dasar untuk Server & IoT</span>
+        </a>
+        <a href="/articles/mikrotik-ospf.html" class="related-card">
+          <span class="related-category">Other</span>
+          <span class="related-title">OSPF Routing pada MikroTik: Konfigurasi & Optimasi</span>
+        </a>
+        <a href="/articles/v-language.html" class="related-card">
+          <span class="related-category">Other</span>
+          <span class="related-title">V Programming Language: Simple, Fast, dan Compiled tanpa ...</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== FOOTER ========== -->

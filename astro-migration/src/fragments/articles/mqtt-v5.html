@@ -1,0 +1,976 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Protokol</a>
+        <span class="separator">/</span>
+        <span class="current">MQTT v5</span>
+      </div>
+      <span class="category-tag">Protokol</span>
+      <h1>MQTT v5: Fitur Terbaru</h1>
+      <p class="article-subtitle">Panduan lengkap MQTT version 5.0 — user properties, shared subscriptions, message expiry interval, topic aliases, reason codes, dan semua peningkatan dari v3.1.1 untuk arsitektur IoT enterprise</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#apa-baru">Apa yang Baru di MQTT v5?</a></li>
+          <li><a href="#user-properties">User Properties</a></li>
+          <li><a href="#shared-subscriptions">Shared Subscriptions</a></li>
+          <li><a href="#message-expiry">Message Expiry Interval</a></li>
+          <li><a href="#topic-aliases">Topic Aliases</a></li>
+          <li><a href="#reason-codes">Reason Codes</a></li>
+          <li><a href="#session-management">Session &amp; Connection Management</a></li>
+          <li><a href="#implementasi">Implementasi dengan Paho MQTT</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1                      -->
+      <!-- ============================== -->
+      <h2 id="apa-baru">1. Apa yang Baru di MQTT v5?</h2>
+
+      <p><strong>MQTT v5.0</strong> dirilis pada Maret 2019 oleh OASIS, membawa peningkatan signifikan dari versi 3.1.1. Versi ini menambahkan fitur-fitur enterprise yang sebelumnya tidak ada, membuat MQTT lebih cocok untuk deployment skala besar dengan kebutuhan manajemen yang lebih baik.</p>
+
+      <h3>Perbandingan MQTT v3.1.1 vs v5.0</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>MQTT v3.1.1</th>
+            <th>MQTT v5.0</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>User Properties</strong></td><td>Tidak ada</td><td>Ya — key-value pairs di setiap packet</td></tr>
+          <tr><td><strong>Shared Subscriptions</strong></td><td>Tidak standar</td><td>Ya — load balancing bawaan</td></tr>
+          <tr><td><strong>Message Expiry</strong></td><td>Tidak</td><td>Ya — TTL per message</td></tr>
+          <tr><td><strong>Topic Aliases</strong></td><td>Tidak</td><td>Ya — numeric alias untuk topic string</td></tr>
+          <tr><td><strong>Reason Codes</strong></td><td>Hanya CONNACK</td><td>Ya — di semua ACK packet</td></tr>
+          <tr><td><strong>Request/Response</strong></td><td>Tidak native</td><td>Ya — Response Topic + Correlation Data</td></tr>
+          <tr><td><strong>Session Management</strong></td><td>Clean Session flag</td><td>Clean Start + Session Expiry Interval</td></tr>
+          <tr><td><strong>Flow Control</strong></td><td>Tidak</td><td>Ya — Receive Maximum</td></tr>
+          <tr><td><strong>Disconnect with reason</strong></td><td>Tidak</td><td>Ya — DISCONNECT payload</td></tr>
+          <tr><td><strong>Server-side disconnect</strong></td><td>Tidak</td><td>Ya — server bisa disconnect client</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Kompatibilitas</div>
+        <p>MQTT v5 <strong>tidak backward-compatible</strong> dengan v3.1.1. Client v5 tidak bisa langsung connect ke broker v3.1.1 dan sebaliknya. Namun, broker modern seperti Mosquitto, EMQX, dan HiveMQ mendukung kedua versi secara simultan. Saat connect, client mengirim versi di CONNECT packet dan broker merespons sesuai.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: User Properties     -->
+      <!-- ============================== -->
+      <h2 id="user-properties">2. User Properties</h2>
+
+      <p><strong>User Properties</strong> adalah fitur paling fleksibel di MQTT v5. Fitur ini memungkinkan developer menambahkan metadata custom dalam bentuk key-value pairs pada hampir semua packet — mirip HTTP headers. User Properties berguna untuk tracing, routing, dan metadata aplikasi.</p>
+
+      <h3>Packet yang Mendukung User Properties</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Packet Type</th>
+            <th>Support User Properties?</th>
+            <th>Penggunaan Umum</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>CONNECT</td><td>✅ Ya</td><td>Client info, version, metadata</td></tr>
+          <tr><td>CONNACK</td><td>✅ Ya</td><td>Server info, assigned client ID</td></tr>
+          <tr><td>PUBLISH</td><td>✅ Ya</td><td>Message metadata, tracing info</td></tr>
+          <tr><td>PUBACK/PUBREC/PUBREL/PUBCOMP</td><td>✅ Ya</td><td>ACK metadata</td></tr>
+          <tr><td>SUBSCRIBE</td><td>✅ Ya</td><td>Subscription metadata</td></tr>
+          <tr><td>SUBACK</td><td>✅ Ya</td><td>Server response metadata</td></tr>
+          <tr><td>DISCONNECT</td><td>✅ Ya</td><td>Disconnect reason details</td></tr>
+          <tr><td>AUTH</td><td>✅ Ya</td><td>Authentication data</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Contoh Penggunaan User Properties</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>
+import paho.mqtt.client as mqtt
+import json
+import uuid
+from datetime import datetime
+
+# ===== PUBLISH dengan User Properties =====
+def publish_with_properties(client):
+    """Publish message dengan user properties untuk tracing"""
+
+    # Payload: data sensor
+    payload = json.dumps({
+        "temperature": 25.3,
+        "humidity": 62.1,
+        "device": "sensor-001"
+    })
+
+    # User properties — metadata tambahan
+    user_properties = {
+        "trace-id": str(uuid.uuid4()),
+        "source": "edge-gateway-01",
+        "content-encoding": "utf-8",
+        "priority": "high",
+        "timestamp": datetime.utcnow().isoformat(),
+        "environment": "production"
+    }
+
+    # Publish dengan properties
+    properties = mqtt.Properties(mqtt.PacketTypes.PUBLISH)
+    properties.UserProperty = [
+        (key, value) for key, value in user_properties.items()
+    ]
+
+    client.publish(
+        topic="factory/sensors/temperature",
+        payload=payload,
+        qos=1,
+        properties=properties
+    )
+
+# ===== SUBSCRIBE dan baca User Properties =====
+def on_message(client, userdata, message):
+    """Callback saat menerima message dengan properties"""
+    payload = json.loads(message.payload.decode())
+
+    # Akses user properties
+    if hasattr(message.properties, 'UserProperty'):
+        for key, value in message.properties.UserProperty:
+            print(f"  {key}: {value}")
+
+            # Contoh: trace request
+            if key == "trace-id":
+                print(f"  → Trace ID: {value}")
+
+    print(f"Topic: {message.topic}")
+    print(f"Payload: {payload}")
+
+# Setup client MQTT v5
+client = mqtt.Client(
+    protocol=mqtt.MQTTv5,
+    client_id="sensor-client-001"
+)
+
+# Connect dengan properties
+connect_properties = mqtt.Properties(mqtt.PacketTypes.CONNECT)
+connect_properties.SessionExpiryInterval = 3600  # 1 jam
+connect_properties.UserProperty = [
+    ("device-type", "gateway"),
+    ("firmware-version", "2.1.0")
+]
+
+client.connect("broker.example.com", 1883, properties=connect_properties)
+client.on_message = on_message
+client.subscribe("factory/sensors/#")
+client.loop_forever()
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Shared Subs         -->
+      <!-- ============================== -->
+      <h2 id="shared-subscriptions">3. Shared Subscriptions</h2>
+
+      <p><strong>Shared Subscriptions</strong> memungkinkan beberapa client berlangganan ke satu topic dengan cara yang load-balanced. Pesan yang dikirim ke topic tersebut akan didistribusikan ke salah satu subscriber dalam grup, bukan ke semua subscriber. Ini sangat berguna untuk <strong>horizontal scaling</strong> consumer.</p>
+
+      <h3>Syntax Shared Subscription</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Text</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>
+# Format Shared Subscription:
+# $share/{share-name}/{topic-filter}
+
+# Contoh:
+# $share/analytics-group/factory/sensors/#
+# $share/alert-handler/factory/alerts/#
+# $share/data-processor/sensor/data/+
+
+# Skema distribusi:
+#
+#                    ┌──→ Consumer A (member grup analytics)
+# Publisher ──Broker─┤
+#                    └──→ Consumer B (member grup analytics)
+#
+# Broker akan memilih A atau B untuk setiap message.
+# Bisa round-robin, random, atau sticky (tergantung implementasi broker).
+#
+# Tanpa shared subscription:
+#                    ┌──→ Consumer A (dapat semua message)
+# Publisher ──Broker─┤
+#                    └──→ Consumer B (dapat semua message juga)
+# → DUPLIKASI! Dengan shared sub: hanya 1 yang dapat.
+</code></pre>
+      </div>
+
+      <h3>Implementasi Shared Subscriptions</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>
+import paho.mqtt.client as mqtt
+import json
+import os
+import threading
+
+# Worker ID unik
+WORKER_ID = f"worker-{os.getpid()}"
+
+def on_connect(client, userdata, flags, rc, properties=None):
+    print(f"[{WORKER_ID}] Connected with rc={rc}")
+
+    # Subscribe ke shared subscription
+    # Semua worker dengan share name "data-processor"
+    # akan menerima message secara bergantian
+    client.subscribe(
+        "$share/data-processor/factory/sensors/#",
+        qos=1
+    )
+    print(f"[{WORKER_ID}] Subscribed to shared group")
+
+def on_message(client, userdata, message):
+    """Setiap message hanya dikirim ke SATU worker dalam grup"""
+    payload = json.loads(message.payload.decode())
+    print(f"[{WORKER_ID}] Processing: {payload}")
+
+    # Simulasi processing
+    import time
+    time.sleep(0.1)
+
+    # Publish hasil processing
+    result = {
+        "worker": WORKER_ID,
+        "processed": True,
+        "original_topic": message.topic,
+        "result": analyze_data(payload)
+    }
+
+    client.publish(
+        "factory/processed/sensors",
+        json.dumps(result),
+        qos=1
+    )
+
+def analyze_data(data):
+    """Analisis data sensor"""
+    temp = data.get("temperature", 0)
+    if temp > 30:
+        return {"status": "warning", "message": "Suhu tinggi"}
+    return {"status": "normal"}
+
+# Setup client MQTT v5
+client = mqtt.Client(
+    protocol=mqtt.MQTTv5,
+    client_id=WORKER_ID
+)
+
+client.on_connect = on_connect
+client.on_message = on_message
+client.connect("broker.example.com", 1883)
+client.loop_forever()
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">📚 Shared Subscription di Berbagai Broker</div>
+        <ul>
+          <li><strong>EMQX</strong>: Mendukung penuh, round-robin default, bisa dikonfigurasi</li>
+          <li><strong>HiveMQ</strong>: Mendukung penuh, round-robin default</li>
+          <li><strong>Mosquitto</strong>: Mendukung dari versi 2.0+</li>
+          <li><strong>RabbitMQ (MQTT plugin)</strong>: Mendukung, distribusi ke queue</li>
+          <li><strong>Amazon IoT Core</strong>: Mendukung penuh</li>
+          <li><strong>Azure IoT Hub</strong>: Mendukung untuk device-to-cloud</li>
+        </ul>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Message Expiry      -->
+      <!-- ============================== -->
+      <h2 id="message-expiry">4. Message Expiry Interval</h2>
+
+      <p><strong>Message Expiry Interval</strong> memungkinkan publisher menentukan berapa lama pesan harus disimpan oleh broker sebelum dianggap kedaluwarsa. Ini sangat penting untuk data real-time yang tidak relevan setelah beberapa waktu — seperti data sensor yang hanya valid untuk beberapa detik.</p>
+
+      <h3>Cara Kerja Message Expiry</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Text</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>
+# Message Expiry Interval dalam aksi:
+
+Publisher                    Broker                    Subscriber (offline)
+  |                           |                           |
+  |--- PUBLISH ------------->|                           |
+  |   topic: sensor/temp     |                           |
+  |   payload: 25.3°C        |  (disimpan karena         |
+  |   expiry: 300 detik      |   subscriber offline)     |
+  |                           |                           |
+  |     ... 60 detik berlalu ...                         |
+  |                           |                           |
+  |                           |  (expiry sekarang = 240s) |
+  |                           |  (dikurangi setiap detik) |
+  |                           |                           |
+  |     ... 300 detik berlalu ...                        |
+  |                           |                           |
+  |                           |  (PESAN DIHAPUS!)         |
+  |                           |  (subscriber tidak        |
+  |                           |   akan pernah menerima)   |
+
+# Perbedaan dengan QoS 1/2 retained message:
+# - Retained message: disimpan selamanya di broker
+# - Expiry: otomatis dihapus setelah TTL habis
+# - Kombinasi: retained + expiry = data selalu up-to-date
+
+# Jika subscriber online:
+# - Broker mengirim message langsung
+# - Expiry interval DIKURANGI waktu penyimpanan
+# - Subscriber menerima message dengan sisa expiry
+</code></pre>
+      </div>
+
+      <h3>Implementasi Message Expiry</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>
+import paho.mqtt.client as mqtt
+import json
+from datetime import datetime
+
+def publish_sensor_data():
+    client = mqtt.Client(protocol=mqtt.MQTTv5, client_id="sensor-publisher")
+    client.connect("broker.example.com", 1883)
+
+    # Data sensor real-time — hanya relevan 60 detik
+    data = {
+        "temperature": 26.8,
+        "humidity": 58.3,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+    # Setup message expiry
+    publish_properties = mqtt.Properties(mqtt.PacketTypes.PUBLISH)
+    publish_properties.MessageExpiryInterval = 60  # 60 detik
+
+    # Publish dengan expiry
+    info = client.publish(
+        topic="factory/sensors/temperature",
+        payload=json.dumps(data),
+        qos=1,
+        properties=publish_properties
+    )
+    info.wait_for_publish()
+    print(f"Message published, expires in 60 seconds")
+
+    # Data alert — relevan lebih lama (5 menit)
+    alert_data = {
+        "alert_type": "high_temperature",
+        "value": 45.2,
+        "threshold": 40.0,
+        "severity": "critical"
+    }
+
+    alert_properties = mqtt.Properties(mqtt.PacketTypes.PUBLISH)
+    alert_properties.MessageExpiryInterval = 300  # 5 menit
+
+    client.publish(
+        topic="factory/alerts/temperature",
+        payload=json.dumps(alert_data),
+        qos=2,  # Exactly once untuk alert kritis
+        properties=alert_properties
+    )
+
+    # Data konfigurasi — tidak expire (0 = tidak pernah expire)
+    config_data = {
+        "sampling_rate": 10,
+        "threshold_high": 40.0,
+        "threshold_low": 10.0
+    }
+
+    config_properties = mqtt.Properties(mqtt.PacketTypes.PUBLISH)
+    config_properties.MessageExpiryInterval = 0  # Tidak pernah expire
+    config_properties.Retain = True
+
+    client.publish(
+        topic="factory/config/sensor-001",
+        payload=json.dumps(config_data),
+        qos=1,
+        properties=config_properties
+    )
+
+    client.disconnect()
+
+publish_sensor_data()
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Topic Aliases       -->
+      <!-- ============================== -->
+      <h2 id="topic-aliases">5. Topic Aliases</h2>
+
+      <p><strong>Topic Aliases</strong> memungkinkan penggantian topic string yang panjang dengan integer 16-bit untuk menghemat bandwidth. Ini sangat bermanfaat untuk perangkat IoT yang mengirim data frekuensi tinggi ke topic yang sama — topic string hanya perlu dikirim sekali, seterusnya cukup gunakan alias numerik.</p>
+
+      <h3>Cara Kerja Topic Alias</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Text</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>
+# Penghematan bandwidth dengan Topic Alias:
+
+# PUBLISH 1 (tanpa alias, topic string lengkap):
+# Topic: "factory/floor-3/production-line-2/station-5/sensors/temperature"
+# → 65 bytes hanya untuk topic!
+
+# PUBLISH 1 (dengan alias establishment):
+# Topic: "factory/floor-3/production-line-2/station-5/sensors/temperature"
+# Topic Alias: 1
+# → Broker menyimpan mapping: alias 1 → topic di atas
+
+# PUBLISH 2+ (menggunakan alias saja):
+# Topic: ""  (kosong!)
+# Topic Alias: 1
+# → Broker mengganti "" dengan topic yang sudah di-map
+# → HEMAT: dari 65 bytes menjadi 0 bytes untuk topic!
+
+# Perhitungan penghematan:
+# Misal: 1 message per detik, topic 65 bytes
+# Tanpa alias: 65 bytes × 86400 detik = 5.6 MB/hari (hanya untuk topic!)
+# Dengan alias: 65 bytes (pertama) + 0 bytes × 83599 = 65 bytes/hari
+# Penghematan: 99.99%
+
+# Broker-side: Topic Alias Maximum ditentukan di CONNACK
+# Client-side: Client menentukan Topic Alias di PUBLISH
+</code></pre>
+      </div>
+
+      <h3>Implementasi Topic Alias</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>
+import paho.mqtt.client as mqtt
+import json
+import time
+
+def publish_with_topic_alias():
+    """Mengirim data sensor dengan topic alias untuk efisiensi bandwidth"""
+
+    client = mqtt.Client(protocol=mqtt.MQTTv5, client_id="alias-demo")
+    client.connect("broker.example.com", 1883)
+
+    topics = {
+        1: "factory/floor-3/line-2/station-5/sensors/temperature",
+        2: "factory/floor-3/line-2/station-5/sensors/humidity",
+        3: "factory/floor-3/line-2/station-5/sensors/pressure",
+    }
+
+    for i in range(100):
+        for alias, topic_name in topics.items():
+            # Publish dengan topic alias
+            props = mqtt.Properties(mqtt.PacketTypes.PUBLISH)
+            props.TopicAlias = alias
+
+            # Pertama kali: sertakan topic string
+            # Setelahnya: topic bisa kosong, cukup alias
+            data = {"value": 25.0 + (i * 0.1), "seq": i}
+
+            effective_topic = topic_name if i == 0 else ""
+
+            client.publish(
+                topic=effective_topic,
+                payload=json.dumps(data),
+                qos=0,
+                properties=props
+            )
+
+        time.sleep(1)  # 1 detik interval
+
+    client.disconnect()
+
+publish_with_topic_alias()
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Reason Codes        -->
+      <!-- ============================== -->
+      <h2 id="reason-codes">6. Reason Codes</h2>
+
+      <p>MQTT v3.1.1 hanya memiliki reason codes di CONNACK. MQTT v5 memperluas ini ke <strong>semua acknowledgment packets</strong>, memberikan informasi detail mengapa suatu operasi berhasil atau gagal. Ini sangat membantu dalam debugging dan error handling.</p>
+
+      <h3>Reason Codes Lengkap</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Nama</th>
+            <th>Packet</th>
+            <th>Deskripsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>0x00</td><td>Success</td><td>CONNACK, PUBACK, SUBACK, dll.</td><td>Operasi berhasil</td></tr>
+          <tr><td>0x01</td><td>Granted QoS 1</td><td>CONNACK, SUBACK</td><td>QoS 1 granted</td></tr>
+          <tr><td>0x02</td><td>Granted QoS 2</td><td>CONNACK, SUBACK</td><td>QoS 2 granted</td></tr>
+          <tr><td>0x04</td><td>Disconnect with Will</td><td>DISCONNECT</td><td>Disconnect, broker publish will message</td></tr>
+          <tr><td>0x10</td><td>No matching subscribers</td><td>PUBACK, PUBREC</td><td>Tidak ada subscriber cocok</td></tr>
+          <tr><td>0x11</td><td>No subscription existed</td><td>UNSUBACK</td><td>Subscription tidak ditemukan</td></tr>
+          <tr><td>0x80</td><td>Unspecified error</td><td>Semua ACK</td><td>Error umum</td></tr>
+          <tr><td>0x81</td><td>Malformed Packet</td><td>CONNACK, DISCONNECT</td><td>Packet format salah</td></tr>
+          <tr><td>0x82</td><td>Protocol Error</td><td>CONNACK, DISCONNECT</td><td>Protocol violation</td></tr>
+          <tr><td>0x83</td><td>Implementation specific error</td><td>CONNACK, SUBACK</td><td>Error spesifik implementasi</td></tr>
+          <tr><td>0x84</td><td>Unsupported Protocol Version</td><td>CONNACK</td><td>Versi protokol tidak didukung</td></tr>
+          <tr><td>0x85</td><td>Client Identifier not valid</td><td>CONNACK</td><td>Client ID tidak valid</td></tr>
+          <tr><td>0x86</td><td>Bad User Name or Password</td><td>CONNACK</td><td>Autentikasi gagal</td></tr>
+          <tr><td>0x87</td><td>Not authorized</td><td>Semua</td><td>Tidak punya izin</td></tr>
+          <tr><td>0x8C</td><td>Topic Name invalid</td><td>PUBLISH error</td><td>Topic format tidak valid</td></tr>
+          <tr><td>0x90</td><td>Topic Name invalid</td><td>SUBACK</td><td>Topic filter tidak valid</td></tr>
+          <tr><td>0x95</td><td>Quota exceeded</td><td>Semua</td><td>Batas quota terlampaui</td></tr>
+          <tr><td>0x9A</td><td>Payload format invalid</td><td>PUBACK, DISCONNECT</td><td>Format payload tidak sesuai</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Session Management  -->
+      <!-- ============================== -->
+      <h2 id="session-management">7. Session &amp; Connection Management</h2>
+
+      <p>MQTT v5 mengganti <code>Clean Session</code> dengan <strong>Clean Start</strong> dan <strong>Session Expiry Interval</strong>, memberikan kontrol yang lebih granular atas session lifecycle.</p>
+
+      <h3>Session Expiry Interval</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Text</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>
+# MQTT v5 Session Management:
+
+# Clean Start = true, Session Expiry = 0:
+# → Session baru, langsung expired saat disconnect
+# → Sama seperti Clean Session = true di v3.1.1
+
+# Clean Start = false, Session Expiry = 0:
+# → Resume session lama, tapi expired saat disconnect
+# → Mirip Clean Session = false di v3.1.1
+
+# Clean Start = false, Session Expiry = 3600:
+# → Resume session lama
+# → Session disimpan 1 jam setelah disconnect
+# → Bisa reconnect dalam 1 jam tanpa kehilangan queued messages
+
+# Clean Start = true, Session Expiry = 86400 (24 jam):
+# → Session baru dimulai, tapi session LAMA (jika ada) disimpan 24 jam
+# → Jika reconnect dalam 24 jam, session lama bisa di-resume
+
+# Session Expiry = 0xFFFFFFFF (max value):
+# → Session TIDAK PERNAH expired
+# → Hanya dihapus secara manual oleh broker
+# → Gunakan dengan hati-hati!
+
+# === Server-side DISCONNECT ===
+# MQTT v5 memungkinkan SERVER mengirim DISCONNECT ke client
+# Contoh: server ingin maintenance, atau client melanggar policy
+# Client menerima DISCONNECT dengan reason code
+# Client bisa reconnect setelah interval tertentu
+</code></pre>
+      </div>
+
+      <h3>Request/Response Pattern</h3>
+
+      <p>Fitur baru yang powerful di MQTT v5: <strong>native request/response</strong> pattern melalui <code>Response Topic</code> dan <code>Correlation Data</code>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>
+import paho.mqtt.client as mqtt
+import json
+import uuid
+
+# ===== SERVICE (menunggu request, mengirim response) =====
+def handle_request(client, userdata, message):
+    """Menerima request dan mengirim response ke Response Topic"""
+    request = json.loads(message.payload.decode())
+
+    # Ambil response topic dan correlation data
+    response_topic = message.properties.ResponseTopic
+    correlation = message.properties.CorrelationData
+
+    # Process request
+    result = process_query(request)
+
+    # Kirim response
+    response_props = mqtt.Properties(mqtt.PacketTypes.PUBLISH)
+    response_props.CorrelationData = correlation
+
+    client.publish(
+        topic=response_topic,
+        payload=json.dumps(result),
+        qos=1,
+        properties=response_props
+    )
+
+# ===== CLIENT (mengirim request, menunggu response) =====
+def send_request(client):
+    """Mengirim request dan subscribe ke response topic"""
+    correlation_id = str(uuid.uuid4()).encode()
+
+    # Subscribe ke unique response topic
+    response_topic = f"responses/{client._client_id.decode()}"
+    client.subscribe(response_topic, qos=1)
+
+    # Kirim request
+    props = mqtt.Properties(mqtt.PacketTypes.PUBLISH)
+    props.ResponseTopic = response_topic
+    props.CorrelationData = correlation_id
+    props.MessageExpiryInterval = 30  # Response harus dalam 30 detik
+
+    client.publish(
+        topic="services/data-query",
+        payload=json.dumps({"query": "SELECT * FROM sensors WHERE temp > 30"}),
+        qos=1,
+        properties=props
+    )
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Implementasi        -->
+      <!-- ============================== -->
+      <h2 id="implementasi">8. Implementasi dengan Paho MQTT</h2>
+
+      <p>Contoh lengkap implementasi MQTT v5 client menggunakan library <strong>Eclipse Paho</strong> untuk Python dengan semua fitur v5.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>
+import paho.mqtt.client as mqtt
+import json
+import time
+import ssl
+import uuid
+
+class MQTTv5Client:
+    """MQTT v5 client lengkap dengan semua fitur"""
+
+    def __init__(self, broker, port, client_id=None):
+        self.broker = broker
+        self.port = port
+        self.client_id = client_id or f"client-{uuid.uuid4().hex[:8]}"
+
+        # Buat client MQTT v5
+        self.client = mqtt.Client(
+            protocol=mqtt.MQTTv5,
+            client_id=self.client_id
+        )
+
+        # Setup TLS
+        self.client.tls_set(
+            cert_reqs=ssl.CERT_REQUIRED,
+            tls_version=ssl.PROTOCOL_TLS
+        )
+
+        # Setup callbacks
+        self.client.on_connect = self._on_connect
+        self.client.on_message = self._on_message
+        self.client.on_disconnect = self._on_disconnect
+
+        # Topic alias mapping
+        self.topic_aliases = {}
+        self.next_alias = 1
+
+    def connect(self, username=None, password=None):
+        """Connect ke broker dengan properties"""
+        if username:
+            self.client.username_pw_set(username, password)
+
+        # Connect properties
+        props = mqtt.Properties(mqtt.PacketTypes.CONNECT)
+        props.SessionExpiryInterval = 3600  # 1 jam
+        props.ReceiveMaximum = 50  # Max inflight messages
+        props.MaximumPacketSize = 65536  # 64KB max
+        props.UserProperty = [
+            ("client-version", "1.0.0"),
+            ("platform", "python")
+        ]
+
+        self.client.connect(
+            self.broker, self.port,
+            keepalive=60,
+            properties=props
+        )
+
+    def subscribe_shared(self, topic, group, qos=1):
+        """Subscribe ke shared subscription"""
+        shared_topic = f"$share/{group}/{topic}"
+        props = mqtt.Properties(mqtt.PacketTypes.SUBSCRIBE)
+        props.UserProperty = [("subscription-type", "shared")]
+        self.client.subscribe(shared_topic, qos, properties=props)
+
+    def publish_with_alias(self, topic, payload, qos=1, expiry=None):
+        """Publish dengan topic alias"""
+        props = mqtt.Properties(mqtt.PacketTypes.PUBLISH)
+
+        # Setup topic alias
+        if topic not in self.topic_aliases:
+            self.topic_aliases[topic] = self.next_alias
+            self.next_alias += 1
+
+        props.TopicAlias = self.topic_aliases[topic]
+
+        # Hanya kirim topic string pertama kali
+        actual_topic = topic if len([t for t in self.topic_aliases if t == topic]) == 1 else topic
+
+        if expiry:
+            props.MessageExpiryInterval = expiry
+
+        self.client.publish(
+            topic=actual_topic,
+            payload=json.dumps(payload),
+            qos=qos,
+            properties=props
+        )
+
+    def _on_connect(self, client, userdata, flags, rc, properties):
+        print(f"Connected: {rc}")
+        if properties:
+            if hasattr(properties, 'TopicAliasMaximum'):
+                print(f"Max Topic Alias: {properties.TopicAliasMaximum}")
+            if hasattr(properties, 'ServerKeepAlive'):
+                print(f"Server Keep Alive: {properties.ServerKeepAlive}s")
+
+    def _on_message(self, client, userdata, message):
+        payload = json.loads(message.payload.decode())
+        props = message.properties
+
+        print(f"\n{'='*40}")
+        print(f"Topic: {message.topic}")
+        print(f"QoS: {message.qos}")
+        print(f"Payload: {json.dumps(payload, indent=2)}")
+
+        if hasattr(props, 'MessageExpiryInterval') and props.MessageExpiryInterval is not None:
+            print(f"Sisa Expiry: {props.MessageExpiryInterval}s")
+        if hasattr(props, 'UserProperty') and props.UserProperty:
+            print(f"User Properties:")
+            for key, value in props.UserProperty:
+                print(f"  {key}: {value}")
+
+    def _on_disconnect(self, client, userdata, rc, properties=None):
+        print(f"Disconnected: {rc}")
+        if properties and hasattr(properties, 'ReasonString'):
+            print(f"Reason: {properties.ReasonString}")
+
+    def loop_forever(self):
+        self.client.loop_forever()
+
+# Usage
+if __name__ == "__main__":
+    client = MQTTv5Client("broker.example.com", 8883)
+    client.connect("user", "password")
+    client.subscribe_shared("factory/sensors/#", "analytics")
+    client.loop_forever()
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- QUIZ SECTION                   -->
+      <!-- ============================== -->
+      <h2 id="quiz">Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quiz-mqttv5">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Fitur apa di MQTT v5 yang memungkinkan menambahkan metadata custom pada PUBLISH packet?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Topic Aliases</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) User Properties</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Reason Codes</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Shared Subscriptions</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Format topic untuk Shared Subscription di MQTT v5 adalah?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) shared/{group}/{topic}</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) $share/{group}/{topic}</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) {topic}@{group}</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) group:{group}/{topic}</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi Message Expiry Interval?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Menentukan berapa lama client harus disconnect</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Menentukan TTL pesan di broker sebelum dihapus</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Menentukan interval keepalive</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Menentukan retry interval</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa yang menggantikan Clean Session di MQTT v5?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Persistent Session</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Clean Start + Session Expiry Interval</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Session Duration</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Auto Reconnect</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa keuntungan utama Topic Aliases?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Enkripsi topik</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Menghemat bandwidth dengan menggantikan topic string dengan integer</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Filter message berdasarkan priority</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Mengatur akses ke topik</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <div class="article-nav">
+        <a href="http2-http3.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">HTTP/2 dan HTTP/3 untuk Developer</span>
+        </a>
+        <a href="websocket-deep-dive.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">WebSocket Deep Dive</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/tls-13-deep-dive.html" class="related-card">
+          <span class="related-category">Protokol</span>
+          <span class="related-title">TLS 1.3 Deep Dive</span>
+        </a>
+        <a href="/articles/rest-api-versioning.html" class="related-card">
+          <span class="related-category">Protokol</span>
+          <span class="related-title">REST API Versioning Strategies</span>
+        </a>
+        <a href="/articles/coap-protocol.html" class="related-card">
+          <span class="related-category">Protokol</span>
+          <span class="related-title">CoAP Protocol untuk IoT</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

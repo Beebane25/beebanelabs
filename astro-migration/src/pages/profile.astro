@@ -1,0 +1,315 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Profil Saya - BeebaneLabs" description="Kelola profil dan langganan BeebaneLabs Anda." canonicalUrl="https://beebanelabs.pages.dev/profile.html">
+
+
+
+
+  <!-- ========== PROFILE CONTENT ========== -->
+  <section class="profile-page">
+    <div class="container profile-container-max">
+
+      <!-- Login Required State -->
+      <div id="loginRequired" class="login-required" style="display:none;">
+        <div class="empty-state">
+          <div class="icon">🔒</div>
+          <h2>Login Diperlukan</h2>
+          <p>Silakan login untuk melihat profil Anda.</p>
+          <button class="btn-save" onclick="AuthSystem.showModal()">👤 Masuk</button>
+        </div>
+      </div>
+
+      <!-- Profile Content (shown after login) -->
+      <div id="profileContent" style="display:none;">
+
+        <!-- Header -->
+        <div class="profile-header">
+          <div class="profile-avatar" id="profileAvatar">U</div>
+          <h1 class="profile-name" id="profileName">User</h1>
+          <p class="profile-email" id="profileEmail">user@email.com</p>
+          <div class="profile-plan free" id="profilePlan">
+            <span>🆓</span> <span id="planText">Free</span>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="profile-tabs">
+          <button class="profile-tab active" onclick="switchTab('overview')">📊 Ringkasan</button>
+          <button class="profile-tab" onclick="switchTab('articles')">📖 Artikel</button>
+          <button class="profile-tab" onclick="switchTab('bookmarks')">🔖 Bookmark</button>
+          <button class="profile-tab" onclick="switchTab('stats')">📈 Statistik</button>
+          <button class="profile-tab" onclick="switchTab('badges')">🏆 Badge</button>
+          <button class="profile-tab" onclick="switchTab('certificate')">🎓 Sertifikat</button>
+          <button class="profile-tab" onclick="switchTab('activity')">📋 Aktivitas</button>
+          <button class="profile-tab" onclick="switchTab('quiz')">📝 Quiz</button>
+          <button class="profile-tab" onclick="switchTab('settings')">⚙️ Pengaturan</button>
+        </div>
+
+        <!-- Tab: Overview -->
+        <div class="profile-section active" id="tab-overview">
+          <!-- Stats -->
+          <div class="stat-grid">
+            <div class="stat-item">
+              <div class="stat-value" id="statUnlocked">0</div>
+              <div class="stat-label">Artikel Dibuka</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value orange" id="statTokensUsed">0</div>
+              <div class="stat-label">Token Terpakai</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value green" id="statTokensLeft">5</div>
+              <div class="stat-label">Token Tersisa</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value blue" id="statMemberDays">0</div>
+              <div class="stat-label">Hari Bergabung</div>
+            </div>
+          </div>
+
+          <!-- Token -->
+          <div class="profile-card">
+            <h3>🔑 Token Saya</h3>
+            <div class="token-bar">
+              <div class="token-bar-header">
+                <span class="token-bar-label">Sisa Token</span>
+                <span class="token-count" id="tokenCount">5</span>
+              </div>
+              <div class="token-progress">
+                <div class="token-progress-fill" id="tokenProgress" style="width:100%"></div>
+              </div>
+              <p class="token-info">Token digunakan untuk membuka artikel. 1 token = 1 artikel.</p>
+            </div>
+          </div>
+
+          <!-- Recent Articles -->
+          <div class="profile-card">
+            <h3>📖 Artikel Terakhir Dibuka</h3>
+            <ul class="unlocked-list" id="recentArticles"></ul>
+            <div class="empty-state" id="emptyRecent" style="display:none;">
+              <div class="icon">📚</div>
+              <p>Belum ada artikel yang dibuka.</p>
+              <a href="index.html#articles" class="btn-save btn-save-link">Jelajahi Artikel</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Articles -->
+        <div class="profile-section" id="tab-articles">
+          <div class="profile-card">
+            <h3>📖 Semua Artikel yang Sudah Dibuka</h3>
+            <ul class="unlocked-list" id="allArticles"></ul>
+            <div class="empty-state" id="emptyArticles" style="display:none;">
+              <div class="icon">📚</div>
+              <p>Belum ada artikel yang dibuka.</p>
+              <a href="index.html#articles" class="btn-save btn-save-link">Jelajahi Artikel</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Activity -->
+        <div class="profile-section" id="tab-activity">
+          <div class="profile-card">
+            <h3>📋 Riwayat Aktivitas</h3>
+            <div id="activityList"></div>
+            <div class="empty-state" id="emptyActivity" style="display:none;">
+              <div class="icon">📋</div>
+              <p>Belum ada aktivitas.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Quiz -->
+        <div class="profile-section" id="tab-quiz">
+          <div class="profile-card">
+            <h3>🏆 Statistik Quiz</h3>
+            <div id="quizStats" class="quiz-stats-grid">
+              <div class="quiz-stat-card blue">
+                <div class="quiz-stat-value blue" id="quizTotalCount">0</div>
+                <div class="quiz-stat-label">Total Quiz</div>
+              </div>
+              <div class="quiz-stat-card green">
+                <div class="quiz-stat-value green" id="quizPassedCount">0</div>
+                <div class="quiz-stat-label">Lulus</div>
+              </div>
+              <div class="quiz-stat-card red">
+                <div class="quiz-stat-value red" id="quizFailedCount">0</div>
+                <div class="quiz-stat-label">Gagal</div>
+              </div>
+              <div class="quiz-stat-card orange">
+                <div class="quiz-stat-value orange" id="quizAvgPercent">0%</div>
+                <div class="quiz-stat-label">Rata-rata</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-card mt-16">
+            <h3>📋 Riwayat Quiz</h3>
+            <div id="quizHistoryList"></div>
+            <div class="empty-state" id="emptyQuizHistory" style="display:none;">
+              <div class="icon">📝</div>
+              <p>Belum ada quiz yang diselesaikan.</p>
+              <a href="index.html#articles" class="btn-save btn-save-link mt-12">Mulai Belajar</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Bookmarks -->
+        <div class="profile-section" id="tab-bookmarks">
+          <div class="profile-card">
+            <h3>🔖 Artikel Tersimpan</h3>
+            <ul class="bookmark-list" id="bookmarkList"></ul>
+            <div class="empty-state" id="emptyBookmarks" style="display:none;">
+              <div class="icon">🔖</div>
+              <p>Belum ada artikel yang di-bookmark.</p>
+              <p class="empty-state-hint">Klik tombol 🔖 di halaman artikel untuk menyimpan.</p>
+              <a href="index.html#articles" class="btn-save btn-save-link mt-12">Jelajahi Artikel</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Statistics -->
+        <div class="profile-section" id="tab-stats">
+          <div class="profile-card">
+            <h3>📈 Statistik Pembelajaran</h3>
+            <div id="statsContent"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Badges -->
+        <div class="profile-section" id="tab-badges">
+          <div class="profile-card">
+            <h3>🏆 Pencapaian Badge</h3>
+            <p class="profile-hint">Kumpulkan badge dengan menyelesaikan tantangan belajar!</p>
+            <div class="badge-grid" id="badgesGrid"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Certificate -->
+        <div class="profile-section" id="tab-certificate">
+          <div class="profile-card">
+            <h3>🎓 Sertifikat Penyelesaian</h3>
+            <p class="profile-hint">Selesaikan semua artikel dalam satu kategori untuk mendapatkan sertifikat.</p>
+            <div class="cert-category-list" id="certificateList"></div>
+          </div>
+          <div class="cert-preview-container" id="certPreviewContainer" style="display:none;">
+            <div class="profile-card">
+              <h3>📜 Pratinjau Sertifikat</h3>
+              <div class="cert-preview-wrapper">
+                <div id="certificatePreviewContent"></div>
+              </div>
+              <div class="cert-download-btn">
+                <button class="btn-save" onclick="downloadCertificate()" id="btnDownloadCert">📥 Unduh PNG</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Settings -->
+        <div class="profile-section" id="tab-settings">
+          <div class="profile-card">
+            <h3>👤 Data Diri</h3>
+            <form id="profileForm" onsubmit="return updateProfile(event)">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="settingsName">Nama Lengkap</label>
+                  <input type="text" id="settingsName" placeholder="Nama Anda">
+                </div>
+                <div class="form-group">
+                  <label for="settingsEmail">Email</label>
+                  <input type="email" id="settingsEmail" placeholder="email@contoh.com" disabled>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="settingsDob">Tanggal Lahir</label>
+                  <input type="date" id="settingsDob">
+                </div>
+                <div class="form-group">
+                  <label for="settingsPlan">Paket</label>
+                  <input type="text" id="settingsRole" disabled>
+                </div>
+              </div>
+              <button type="submit" class="btn-save">💾 Simpan Perubahan</button>
+            </form>
+          </div>
+
+          <div class="profile-card">
+            <h3>🔒 Ubah Password</h3>
+            <form id="passwordForm" onsubmit="return changePassword(event)">
+              <div class="form-group">
+                <label for="oldPassword">Password Lama</label>
+                <input type="password" id="oldPassword" autocomplete="current-password" placeholder="Masukkan password lama" required>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="newPassword">Password Baru</label>
+                  <input type="password" id="newPassword" autocomplete="new-password" placeholder="Minimal 8 karakter" required minlength="8">
+                </div>
+                <div class="form-group">
+                  <label for="confirmPassword">Konfirmasi Password</label>
+                  <input type="password" id="confirmPassword" autocomplete="new-password" placeholder="Ulangi password baru" required minlength="8">
+                </div>
+              </div>
+              <button type="submit" class="btn-save">🔒 Ubah Password</button>
+            </form>
+          </div>
+
+          <!-- Logout All Devices -->
+          <div class="profile-card">
+            <h3>🚪 Keamanan Sesi</h3>
+            <p class="profile-hint-text">Logout dari semua device lain selain yang sedang dipakai.</p>
+            <button class="btn-logout" onclick="logoutAllDevices()">🚪 Logout Semua Device Lain</button>
+          </div>
+
+          <!-- Newsletter Preferences -->
+          <div class="profile-card">
+            <h3>📧 Preferensi Newsletter</h3>
+            <p class="profile-hint-text">Pilih kategori artikel yang ingin kamu terima notifikasinya.</p>
+            <div id="newsletterPrefs" class="newsletter-grid">
+              <label class="newsletter-label"><input type="checkbox" value="iot" class="newsletter-cat"> Internet of Things</label>
+              <label class="newsletter-label"><input type="checkbox" value="networking" class="newsletter-cat"> Networking</label>
+              <label class="newsletter-label"><input type="checkbox" value="programming" class="newsletter-cat"> Programming</label>
+              <label class="newsletter-label"><input type="checkbox" value="security" class="newsletter-cat"> Cybersecurity</label>
+              <label class="newsletter-label"><input type="checkbox" value="dashboard" class="newsletter-cat"> Dashboard & Cloud</label>
+            </div>
+            <button class="btn-save btn-save-sm" onclick="saveNewsletterPrefs()">💾 Simpan Preferensi</button>
+          </div>
+
+          <!-- Login History -->
+          <div class="profile-card">
+            <h3>📋 Riwayat Login</h3>
+            <div id="loginHistoryList">
+              <p class="loading-text">Memuat...</p>
+            </div>
+          </div>
+
+          <!-- Export Data -->
+          <div class="profile-card">
+            <h3>📥 Export Data</h3>
+            <p class="profile-hint-text">Download semua data akun kamu dalam format JSON (GDPR compliance).</p>
+            <button class="btn-save btn-save-sm" onclick="exportUserData()">📥 Download Data Saya</button>
+          </div>
+
+          <div class="profile-card danger">
+            <h3>⚠️ Zona Bahaya</h3>
+            <p class="profile-hint-text">Hapus akun akan menghapus semua data secara permanen.</p>
+            <button class="btn-logout" onclick="confirmDeleteAccount()">🗑️ Hapus Akun</button>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="profile-actions">
+          <a href="index.html" class="btn-back">← Kembali ke Beranda</a>
+          <button class="btn-logout" onclick="handleLogout()">🚪 Keluar</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+
+</Layout>

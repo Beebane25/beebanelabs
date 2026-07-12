@@ -1,0 +1,876 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Dashboard & Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">Nginx Reverse Proxy</span>
+      </div>
+      <span class="category-tag">Dashboard & Cloud</span>
+      <h1>Nginx Reverse Proxy: Load Balancing & SSL Termination</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Tutorial komprehensif membangun reverse proxy menggunakan Nginx untuk aplikasi IoT — dari konfigurasi dasar hingga load balancing, SSL, caching, dan keamanan lanjutan</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 13 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#apa-itu-reverse-proxy">Apa Itu Reverse Proxy?</a></li>
+          <li><a href="#instalasi-nginx">Instalasi Nginx</a></li>
+          <li><a href="#konfigurasi-dasar">Konfigurasi Reverse Proxy Dasar</a></li>
+          <li><a href="#ssl-termination">SSL Termination dengan Let's Encrypt</a></li>
+          <li><a href="#load-balancing">Load Balancing: Round-Robin & Least Connections</a></li>
+          <li><a href="#caching">Caching untuk Performa Optimal</a></li>
+          <li><a href="#rate-limiting">Rate Limiting untuk Keamanan</a></li>
+          <li><a href="#security-headers">Security Headers</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Apa Itu Reverse Proxy -->
+      <!-- ============================== -->
+      <h2 id="apa-itu-reverse-proxy">1. Apa Itu Reverse Proxy?</h2>
+
+      <p>Dalam arsitektur web modern, <strong>reverse proxy</strong> adalah server yang menerima request dari client (browser), lalu meneruskannya ke satu atau lebih backend server. Client tidak pernah berkomunikasi langsung dengan server aplikasi — semua request melewati proxy terlebih dahulu.</p>
+
+      <p>Bayangkan reverse proxy seperti <strong>resepsionis di gedung perkantoran</strong>. Ketika ada tamu yang datang, resepsionis akan memeriksa identitas, lalu mengarahkan tamu ke ruangan yang tepat. Tamu tidak perlu tahu letak ruangan — mereka cukup datang ke resepsionis.</p>
+
+      <h3>Forward Proxy vs Reverse Proxy</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Forward Proxy</th>
+            <th>Reverse Proxy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Siapa yang dilayani</td><td>Client</td><td>Server</td></tr>
+          <tr><td>Tujuan utama</td><td>Menyembunyikan identitas client</td><td>Menyembunyikan server backend</td></tr>
+          <tr><td>Konfigurasi</td><td>Di sisi client</td><td>Di sisi server</td></tr>
+          <tr><td>Contoh penggunaan</td><td>VPN, web filter kantor</td><td>Load balancer, SSL offloading</td></tr>
+          <tr><td>Arah request</td><td>Client → Proxy → Internet</td><td>Client → Proxy → Backend Server</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Mengapa Reverse Proxy Penting untuk IoT?</h3>
+      <p>Ketika kamu membangun sistem IoT dengan dashboard web, API server, atau MQTT broker, reverse proxy memberikan banyak keuntungan:</p>
+      <ul>
+        <li><strong>SSL Termination</strong> — Satu sertifikat SSL di proxy, tidak perlu di setiap backend</li>
+        <li><strong>Load Balancing</strong> — Distribusi traffic ke beberapa server agar tidak overload</li>
+        <li><strong>Keamanan</strong> — Backend server tidak terekspos langsung ke internet</li>
+        <li><strong>Caching</strong> — Response statis disimpan di proxy sehingga backend tidak terbebani</li>
+        <li><strong>Kompressi</strong> — Gzip/Brotli compression untuk mempercepat transfer data</li>
+        <li><strong>Single Entry Point</strong> — Semua layanan (API, dashboard, MQTT WebSocket) di satu domain</li>
+      </ul>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Contoh Use Case IoT</div>
+        <p><strong>Smart Farming Dashboard:</strong> Kamu punya API server Node.js di port 3000 dan Grafana dashboard di port 3000. Dengan Nginx reverse proxy, kamu bisa mengakses keduanya dari satu domain — <code>api.smartfarm.com</code> dan <code>dashboard.smartfarm.com</code> — dengan SSL otomatis dan keamanan yang ketat.</p>
+      </div>
+
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Arsitektur Nginx Reverse Proxy</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 261.015625px;" viewBox="0 0 261.015625 278" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M130.508,62L130.508,66.167C130.508,70.333,130.508,78.667,130.508,86.333C130.508,94,130.508,101,130.508,104.5L130.508,108" id="L_N0_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N2_0" data-points="W3sieCI6MTMwLjUwNzgxMjUsInkiOjYyfSx7IngiOjEzMC41MDc4MTI1LCJ5Ijo4N30seyJ4IjoxMzAuNTA3ODEyNSwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M130.508,166L130.508,170.167C130.508,174.333,130.508,182.667,130.508,190.333C130.508,198,130.508,205,130.508,208.5L130.508,212" id="L_N2_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N1_0" data-points="W3sieCI6MTMwLjUwNzgxMjUsInkiOjE2Nn0seyJ4IjoxMzAuNTA3ODEyNSwieSI6MTkxfSx7IngiOjEzMC41MDc4MTI1LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(130.5078125, 35)"><rect class="basic label-container" style="" x="-99.3671875" y="-27" width="198.734375" height="54"/><g class="label" style="" transform="translate(-69.3671875, -12)"><rect/><foreignObject width="138.734375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Nginx (Port 80/443)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(130.5078125, 243)"><rect class="basic label-container" style="" x="-122.5078125" y="-27" width="245.015625" height="54"/><g class="label" style="" transform="translate(-92.5078125, -12)"><rect/><foreignObject width="185.015625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Grafana Dashboard :3000</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(130.5078125, 139)"><rect class="basic label-container" style="" x="-114.328125" y="-27" width="228.65625" height="54"/><g class="label" style="" transform="translate(-84.328125, -12)"><rect/><foreignObject width="168.65625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Node.js API :3000 ▼ ▼</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Instalasi Nginx     -->
+      <!-- ============================== -->
+      <h2 id="instalasi-nginx">2. Instalasi Nginx</h2>
+
+      <p>Nginx tersedia di hampir semua distribusi Linux. Berikut cara instalasi di berbagai platform:</p>
+
+      <h3>Instalasi di Ubuntu/Debian</h3>
+
+      </div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 1515.71875px;" viewBox="0 0 1515.71875 198" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M614.965,59.409L524.882,68.007C434.799,76.606,254.634,93.803,164.551,105.901C74.469,118,74.469,125,74.469,128.5L74.469,132" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6NjE0Ljk2NDg0Mzc1LCJ5Ijo1OS40MDg3MjI1NTI2ODA3OX0seyJ4Ijo3NC40Njg3NSwieSI6MTExfSx7IngiOjc0LjQ2ODc1LCJ5IjoxMzZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M614.965,63.64L553.296,71.533C491.628,79.426,368.29,95.213,306.622,106.607C244.953,118,244.953,125,244.953,128.5L244.953,132" id="L_N0_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N2_0" data-points="W3sieCI6NjE0Ljk2NDg0Mzc1LCJ5Ijo2My42Mzk2MTAwMDkxNDA0MX0seyJ4IjoyNDQuOTUzMTI1LCJ5IjoxMTF9LHsieCI6MjQ0Ljk1MzEyNSwieSI6MTM2fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M614.965,73.575L584.451,79.812C553.938,86.05,492.91,98.525,462.396,108.262C431.883,118,431.883,125,431.883,128.5L431.883,132" id="L_N0_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N3_0" data-points="W3sieCI6NjE0Ljk2NDg0Mzc1LCJ5Ijo3My41NzQ1MDQ5ODQ0NjY0M30seyJ4Ijo0MzEuODgyODEyNSwieSI6MTExfSx7IngiOjQzMS44ODI4MTI1LCJ5IjoxMzZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M683.811,86L677.277,90.167C670.744,94.333,657.676,102.667,651.143,110.333C644.609,118,644.609,125,644.609,128.5L644.609,132" id="L_N0_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N4_0" data-points="W3sieCI6NjgzLjgxMDcyOTk4MDQ2ODgsInkiOjg2fSx7IngiOjY0NC42MDkzNzUsInkiOjExMX0seyJ4Ijo2NDQuNjA5Mzc1LCJ5IjoxMzZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M806.119,86L812.653,90.167C819.186,94.333,832.253,102.667,838.787,110.333C845.32,118,845.32,125,845.32,128.5L845.32,132" id="L_N0_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N5_0" data-points="W3sieCI6ODA2LjExODk1NzUxOTUzMTIsInkiOjg2fSx7IngiOjg0NS4zMjAzMTI1LCJ5IjoxMTF9LHsieCI6ODQ1LjMyMDMxMjUsInkiOjEzNn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M874.965,73.425L905.774,79.687C936.583,85.95,998.202,98.475,1029.011,108.237C1059.82,118,1059.82,125,1059.82,128.5L1059.82,132" id="L_N0_N6_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N6_0" data-points="W3sieCI6ODc0Ljk2NDg0Mzc1LCJ5Ijo3My40MjQ4MjI4OTc0MTA3Nn0seyJ4IjoxMDU5LjgyMDMxMjUsInkiOjExMX0seyJ4IjoxMDU5LjgyMDMxMjUsInkiOjEzNn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M874.965,62.81L941.007,70.842C1007.049,78.873,1139.134,94.937,1205.176,106.468C1271.219,118,1271.219,125,1271.219,128.5L1271.219,132" id="L_N0_N7_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N7_0" data-points="W3sieCI6ODc0Ljk2NDg0Mzc1LCJ5Ijo2Mi44MDk4NTg4OTM1NjUyMn0seyJ4IjoxMjcxLjIxODc1LCJ5IjoxMTF9LHsieCI6MTI3MS4yMTg3NSwieSI6MTM2fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M874.965,58.828L970.532,67.524C1066.099,76.219,1257.233,93.609,1352.8,105.805C1448.367,118,1448.367,125,1448.367,128.5L1448.367,132" id="L_N0_N8_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N8_0" data-points="W3sieCI6ODc0Ljk2NDg0Mzc1LCJ5Ijo1OC44MjgyMjMzMTE5MTU4NTZ9LHsieCI6MTQ0OC4zNjcxODc1LCJ5IjoxMTF9LHsieCI6MTQ0OC4zNjcxODc1LCJ5IjoxMzZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N0_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N0_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N0_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N0_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N0_N6_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N0_N7_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N0_N8_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(744.96484375, 47)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>No. Struktur direktori Nginx di Ubuntu/Debian:</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(74.46875, 163)"><rect class="basic label-container" style="" x="-66.46875" y="-27" width="132.9375" height="54"/><g class="label" style="" transform="translate(-36.46875, -12)"><rect/><foreignObject width="72.9375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>nginx.conf</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(244.953125, 163)"><rect class="basic label-container" style="" x="-54.015625" y="-27" width="108.03125" height="54"/><g class="label" style="" transform="translate(-24.015625, -12)"><rect/><foreignObject width="48.03125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>conf.d/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(431.8828125, 163)"><rect class="basic label-container" style="" x="-82.9140625" y="-27" width="165.828125" height="54"/><g class="label" style="" transform="translate(-52.9140625, -12)"><rect/><foreignObject width="105.828125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>sites-available/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(644.609375, 163)"><rect class="basic label-container" style="" x="-79.8125" y="-27" width="159.625" height="54"/><g class="label" style="" transform="translate(-49.8125, -12)"><rect/><foreignObject width="99.625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>sites-enabled/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(845.3203125, 163)"><rect class="basic label-container" style="" x="-70.8984375" y="-27" width="141.796875" height="54"/><g class="label" style="" transform="translate(-40.8984375, -12)"><rect/><foreignObject width="81.796875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>mime.types</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N6-6" transform="translate(1059.8203125, 163)"><rect class="basic label-container" style="" x="-93.6015625" y="-27" width="187.203125" height="54"/><g class="label" style="" transform="translate(-63.6015625, -12)"><rect/><foreignObject width="127.203125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>modules-enabled/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N7-7" transform="translate(1271.21875, 163)"><rect class="basic label-container" style="" x="-67.796875" y="-27" width="135.59375" height="54"/><g class="label" style="" transform="translate(-37.796875, -12)"><rect/><foreignObject width="75.59375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>access.log</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N8-8" transform="translate(1448.3671875, 163)"><rect class="basic label-container" style="" x="-59.3515625" y="-27" width="118.703125" height="54"/><g class="label" style="" transform="translate(-29.3515625, -12)"><rect/><foreignObject width="58.703125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>error.log</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <p>Setelah instalasi, buka browser dan akses <code>http://YOUR_SERVER_IP</code>. Kamu akan melihat halaman selamat datang Nginx.</p>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Firewall</div>
+        <p>Pastikan port 80 dan 443 dibuka di firewall. Untuk UFW: <code>sudo ufw allow 'Nginx Full'</code>. Untuk iptables: <code>sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT</code> dan <code>sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT</code>.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Konfigurasi Dasar   -->
+      <!-- ============================== -->
+      <h2 id="konfigurasi-dasar">3. Konfigurasi Reverse Proxy Dasar</h2>
+
+      <p>Konfigurasi Nginx menggunakan blok <code>server</code> yang mendefinisikan bagaimana Nginx menangani request. Setiap blok server mendengarkan di port tertentu dan meneruskan request ke backend.</p>
+
+      <h3>Contoh Konfigurasi Sederhana</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — /etc/nginx/sites-available/iot-api</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('server {\n    listen 80;\n    server_name api.iotkamu.com;\n\n    location / {\n        proxy_pass http://127.0.0.1:3000;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto $scheme;\n    }\n}')">Salin</button>
+        </div>
+<pre><code>server {
+    listen 80;
+    server_name api.iotkamu.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</code></pre>
+      </div>
+
+      <p>Penjelasan direktif penting:</p>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Direktif</th>
+            <th>Fungsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>proxy_pass</code></td><td>Alamat backend yang dituju (bisa IP:port atau upstream)</td></tr>
+          <tr><td><code>proxy_http_version</code></td><td>Versi HTTP yang digunakan (1.1 mendukung keep-alive)</td></tr>
+          <tr><td><code>proxy_set_header Host</code></td><td>Meneruskan header Host asli dari client</td></tr>
+          <tr><td><code>X-Real-IP</code></td><td>IP asli client (bukan IP proxy)</td></tr>
+          <tr><td><code>X-Forwarded-For</code></td><td>Daftar IP yang dilalui request</td></tr>
+          <tr><td><code>X-Forwarded-Proto</code></td><td>Protokol asli (http/https) dari client</td></tr>
+          <tr><td><code>Upgrade & Connection</code></td><td>Mendukung WebSocket (penting untuk IoT real-time)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Aktifkan Konfigurasi</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Aktifkan Virtual Host</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Buat symlink ke sites-enabled\nsudo ln -s /etc/nginx/sites-available/iot-api /etc/nginx/sites-enabled/\n\n# Test konfigurasi syntax\nsudo nginx -t\n\n# Reload Nginx\nsudo systemctl reload nginx')">Salin</button>
+        </div>
+<pre><code># Buat symlink ke sites-enabled
+sudo ln -s /etc/nginx/sites-available/iot-api /etc/nginx/sites-enabled/
+
+# Hapus default site (opsional)
+sudo rm /etc/nginx/sites-enabled/default
+
+# Test konfigurasi syntax
+sudo nginx -t
+# Output: nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+# Output: nginx: configuration file /etc/nginx/nginx.conf test is successful
+
+# Reload Nginx (tanpa memutus koneksi yang sedang berjalan)
+sudo systemctl reload nginx</code></pre>
+      </div>
+
+      <h3>Multiple Backend dengan Location</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — Multi-Location Reverse Proxy</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('server {\n    listen 80;\n    server_name iotkamu.com;\n\n    # API Server\n    location /api/ {\n        proxy_pass http://127.0.0.1:3000/;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n\n    # Grafana Dashboard\n    location /dashboard/ {\n        proxy_pass http://127.0.0.1:3001/;\n        proxy_set_header Host $host;\n    }\n\n    # Grafana WebSocket\n    location /dashboard/api/live/ {\n        proxy_pass http://127.0.0.1:3001/api/live/;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n    }\n\n    # Static files\n    location /public/ {\n        alias /var/www/iot/public/;\n        expires 30d;\n        add_header Cache-Control \"public, immutable\";\n    }\n}')">Salin</button>
+        </div>
+<pre><code>server {
+    listen 80;
+    server_name iotkamu.com;
+
+    # API Server
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # Grafana Dashboard
+    location /dashboard/ {
+        proxy_pass http://127.0.0.1:3001/;
+        proxy_set_header Host $host;
+    }
+
+    # Grafana WebSocket
+    location /dashboard/api/live/ {
+        proxy_pass http://127.0.0.1:3001/api/live/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    # Static files
+    location /public/ {
+        alias /var/www/iot/public/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+}</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips: Trailing Slash</div>
+        <p>Perhatikan perbedaan antara <code>proxy_pass http://127.0.0.1:3000/</code> (dengan trailing slash) dan tanpa trailing slash. Dengan trailing slash, path <code>/api/users</code> akan diteruskan ke <code>/users</code> di backend. Tanpa trailing slash, path tetap <code>/api/users</code>.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: SSL Termination     -->
+      <!-- ============================== -->
+      <h2 id="ssl-termination">4. SSL Termination dengan Let's Encrypt</h2>
+
+      <p><strong>SSL Termination</strong> berarti proses enkripsi/dekripsi HTTPS dilakukan di Nginx, bukan di backend server. Backend server cukup berjalan di HTTP biasa di jaringan internal. Ini mengurangi beban CPU di server aplikasi.</p>
+
+      <h3>Instalasi Certbot</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Instalasi Certbot</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Instalasi Certbot dan plugin Nginx\nsudo apt install -y certbot python3-certbot-nginx\n\n# Dapatkan sertifikat SSL\nsudo certbot --nginx -d api.iotkamu.com -d dashboard.iotkamu.com\n\n# Atau tanpa auto-config Nginx:\nsudo certbot certonly --nginx -d api.iotkamu.com')">Salin</button>
+        </div>
+<pre><code># Instalasi Certbot dan plugin Nginx
+sudo apt install -y certbot python3-certbot-nginx
+
+# Dapatkan sertifikat SSL (otomatis mengubah konfigurasi Nginx)
+sudo certbot --nginx -d api.iotkamu.com -d dashboard.iotkamu.com
+
+# Atau tanpa auto-config Nginx:
+sudo certbot certonly --nginx -d api.iotkamu.com</code></pre>
+      </div>
+
+      <h3>Konfigurasi Nginx dengan SSL</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — Konfigurasi SSL Lengkap</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Redirect HTTP ke HTTPS\nserver {\n    listen 80;\n    server_name api.iotkamu.com;\n    return 301 https://$host$request_uri;\n}\n\n# HTTPS Server\nserver {\n    listen 443 ssl http2;\n    server_name api.iotkamu.com;\n\n    # Sertifikat SSL\n    ssl_certificate /etc/letsencrypt/live/api.iotkamu.com/fullchain.pem;\n    ssl_certificate_key /etc/letsencrypt/live/api.iotkamu.com/privkey.pem;\n\n    # SSL Security Settings\n    ssl_protocols TLSv1.2 TLSv1.3;\n    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256;\n    ssl_prefer_server_ciphers on;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 10m;\n\n    # HSTS\n    add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains\" always;\n\n    location / {\n        proxy_pass http://127.0.0.1:3000;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto https;\n    }\n}')">Salin</button>
+        </div>
+<pre><code># Redirect HTTP ke HTTPS
+server {
+    listen 80;
+    server_name api.iotkamu.com;
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS Server
+server {
+    listen 443 ssl http2;
+    server_name api.iotkamu.com;
+
+    # Sertifikat SSL
+    ssl_certificate /etc/letsencrypt/live/api.iotkamu.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.iotkamu.com/privkey.pem;
+
+    # SSL Security Settings
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # HSTS - Paksa browser menggunakan HTTPS
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}</code></pre>
+      </div>
+
+      <h3>Auto-Renewal SSL</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Auto-Renewal Let's Encrypt</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Cek renewal berjalan\nsudo certbot renew --dry-run\n\n# Tambahkan cron job (biasanya sudah otomatis)\nsudo crontab -e\n\n# Tambahkan baris berikut:\n0 3 * * * certbot renew --quiet --post-hook \"systemctl reload nginx\"')">Salin</button>
+        </div>
+<pre><code># Cek renewal berjalan
+sudo certbot renew --dry-run
+
+# Tambahkan cron job untuk auto-renewal (biasanya sudah terpasang otomatis)
+sudo crontab -e
+
+# Tambahkan baris berikut:
+0 3 * * * certbot renew --quiet --post-hook "systemctl reload nginx"</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Load Balancing       -->
+      <!-- ============================== -->
+      <h2 id="load-balancing">5. Load Balancing: Round-Robin & Least Connections</h2>
+
+      <p>Ketika aplikasi IoT kamu mulai menerima banyak traffic dari ribuan device, satu server tidak lagi cukup. <strong>Load balancing</strong> mendistribusikan request ke beberapa backend server sehingga beban merata.</p>
+
+      <h3>Definisi Upstream</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — Definisi Upstream Server</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('upstream iot_api_servers {\n    # Round-Robin (default)\n    server 192.168.1.10:3000;\n    server 192.168.1.11:3000;\n    server 192.168.1.12:3000;\n}\n\nserver {\n    listen 443 ssl;\n    server_name api.iotkamu.com;\n\n    # ... SSL config ...\n\n    location / {\n        proxy_pass http://iot_api_servers;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n}')">Salin</button>
+        </div>
+<pre><code>upstream iot_api_servers {
+    # Round-Robin (default) - request didistribusikan bergantian
+    server 192.168.1.10:3000;
+    server 192.168.1.11:3000;
+    server 192.168.1.12:3000;
+}
+
+server {
+    listen 443 ssl;
+    server_name api.iotkamu.com;
+
+    # ... SSL config ...
+
+    location / {
+        proxy_pass http://iot_api_servers;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}</code></pre>
+      </div>
+
+      <h3>Metode Load Balancing</h3>
+
+      <p>Nginx mendukung beberapa metode load balancing:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — Round-Robin (Default)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Round-Robin: Request didistribusikan secara bergantian\n# Request 1 → Server A\n# Request 2 → Server B\n# Request 3 → Server C\n# Request 4 → Server A (ulang)\n\nupstream backend_roundrobin {\n    server 192.168.1.10:3000;\n    server 192.168.1.11:3000;\n    server 192.168.1.12:3000;\n}')">Salin</button>
+        </div>
+<pre><code># Round-Robin: Request didistribusikan secara bergantian
+# Request 1 → Server A
+# Request 2 → Server B
+# Request 3 → Server C
+# Request 4 → Server A (ulang)
+
+upstream backend_roundrobin {
+    server 192.168.1.10:3000;
+    server 192.168.1.11:3000;
+    server 192.168.1.12:3000;
+}</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — Least Connections</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Least Connections: Request dikirim ke server dengan koneksi paling sedikit\n# Cocok untuk IoT di mana request durasinya bervariasi\n\nupstream backend_leastconn {\n    least_conn;\n    server 192.168.1.10:3000;\n    server 192.168.1.11:3000;\n    server 192.168.1.12:3000;\n}')">Salin</button>
+        </div>
+<pre><code># Least Connections: Request dikirim ke server dengan koneksi paling sedikit
+# Cocok untuk IoT di mana request durasinya bervariasi
+# Misalnya upload data sensor lama vs request API cepat
+
+upstream backend_leastconn {
+    least_conn;
+    server 192.168.1.10:3000;
+    server 192.168.1.11:3000;
+    server 192.168.1.12:3000;
+}</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — IP Hash (Sticky Sessions)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# IP Hash: IP yang sama selalu dikirim ke server yang sama\n# Cocok untuk WebSocket persistent connection\n\nupstream backend_iphash {\n    ip_hash;\n    server 192.168.1.10:3000;\n    server 192.168.1.11:3000;\n    server 192.168.1.12:3000;\n}')">Salin</button>
+        </div>
+<pre><code># IP Hash: IP yang sama selalu dikirim ke server yang sama
+# Cocok untuk WebSocket persistent connection dari device IoT
+
+upstream backend_iphash {
+    ip_hash;
+    server 192.168.1.10:3000;
+    server 192.168.1.11:3000;
+    server 192.168.1.12:3000;
+}</code></pre>
+      </div>
+
+      <h3>Weight & Health Check</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — Weight & Failover</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('upstream backend_weighted {\n    least_conn;\n\n    # Server utama: 70% traffic\n    server 192.168.1.10:3000 weight=7;\n\n    # Server backup: 20% traffic\n    server 192.168.1.11:3000 weight=2;\n\n    # Server cadangan: 10% traffic, skip jika error\n    server 192.168.1.12:3000 weight=1 backup;\n\n    # Jika server error selama 3x, skip 30 detik\n    # server 192.168.1.10:3000 max_fails=3 fail_timeout=30s;\n}')">Salin</button>
+        </div>
+<pre><code>upstream backend_weighted {
+    least_conn;
+
+    # Server utama: menerima 70% traffic
+    server 192.168.1.10:3000 weight=7;
+
+    # Server secondary: menerima 20% traffic
+    server 192.168.1.11:3000 weight=2;
+
+    # Server backup: menerima 10% traffic, aktif hanya jika server lain down
+    server 192.168.1.12:3000 weight=1 backup;
+
+    # Jika server gagal 3x berturut-turut, nonaktifkan selama 30 detik
+    server 192.168.1.10:3000 max_fails=3 fail_timeout=30s;
+}</code></pre>
+      </div>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Metode</th>
+            <th>Cara Kerja</th>
+            <th>Cocok Untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Round-Robin</td><td>Bergantian ke setiap server</td><td>Traffic merata, request seragam</td></tr>
+          <tr><td>Least Connections</td><td>Ke server dengan koneksi paling sedikit</td><td>Durasi request bervariasi</td></tr>
+          <tr><td>IP Hash</td><td>IP yang sama → server yang sama</td><td>WebSocket, sticky session</td></tr>
+          <tr><td>Weight</td><td>Proporsional sesuai bobot yang ditetapkan</td><td>Server dengan kapasitas berbeda</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Caching              -->
+      <!-- ============================== -->
+      <h2 id="caching">6. Caching untuk Performa Optimal</h2>
+
+      <p>Caching menyimpan response di Nginx sehingga request berikutnya tidak perlu ke backend. Ini sangat berguna untuk data IoT yang sering diakses tapi jarang berubah, seperti konfigurasi device atau data historis.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — Konfigurasi Proxy Cache</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Di blok http {} di nginx.conf\n\n# Definisikan cache zone\nproxy_cache_path /var/cache/nginx/iot_cache \\\n    levels=1:2 \\\n    keys_zone=iot_cache:10m \\\n    max_size=1g \\\n    inactive=60m \\\n    use_temp_path=off;\n\nserver {\n    listen 443 ssl;\n    server_name api.iotkamu.com;\n\n    # Cache untuk GET request\n    location /api/sensors/ {\n        proxy_pass http://iot_api_servers;\n\n        # Aktifkan cache\n        proxy_cache iot_cache;\n        proxy_cache_valid 200 5m;       # Cache response 200 selama 5 menit\n        proxy_cache_valid 404 1m;       # Cache response 404 selama 1 menit\n        proxy_cache_use_stale error timeout updating;\n        proxy_cache_lock on;\n\n        # Header untuk debugging\n        add_header X-Cache-Status $upstream_cache_status;\n    }\n\n    # Tidak cache untuk endpoint yang sering berubah\n    location /api/realtime/ {\n        proxy_pass http://iot_api_servers;\n        proxy_cache off;\n    }\n}')">Salin</button>
+        </div>
+<pre><code># Di blok http {} di nginx.conf
+
+# Definisikan zone cache
+proxy_cache_path /var/cache/nginx/iot_cache
+    levels=1:2
+    keys_zone=iot_cache:10m     # 10MB untuk metadata cache
+    max_size=1g                 # Maksimal 1GB disk untuk cache
+    inactive=60m                # Hapus cache jika tidak diakses 60 menit
+    use_temp_path=off;
+
+server {
+    listen 443 ssl;
+    server_name api.iotkamu.com;
+
+    # Cache untuk API sensor data (tidak berubah setelah ditulis)
+    location /api/sensors/ {
+        proxy_pass http://iot_api_servers;
+
+        # Aktifkan cache
+        proxy_cache iot_cache;
+        proxy_cache_valid 200 5m;       # Cache response 200 selama 5 menit
+        proxy_cache_valid 404 1m;       # Cache response 404 selama 1 menit
+        proxy_cache_use_stale error timeout updating;
+        proxy_cache_lock on;
+
+        # Header X-Cache-Status untuk debugging (HIT, MISS, BYPASS)
+        add_header X-Cache-Status $upstream_cache_status;
+    }
+
+    # Tidak cache untuk endpoint real-time
+    location /api/realtime/ {
+        proxy_pass http://iot_api_servers;
+        proxy_cache off;
+    }
+}</code></pre>
+      </div>
+
+      <h3>Gzip Compression</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — Gzip Compression</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Di blok http {}\ngzip on;\ngzip_vary on;\ngzip_proxied any;\ngzip_comp_level 6;\ngzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;\ngzip_min_length 256;')">Salin</button>
+        </div>
+<pre><code># Di blok http {} - mengurangi ukuran response hingga 70%
+gzip on;
+gzip_vary on;
+gzip_proxied any;
+gzip_comp_level 6;
+gzip_types text/plain text/css application/json application/javascript
+           text/xml application/xml application/xml+rss text/javascript
+           image/svg+xml;
+gzip_min_length 256;</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Rate Limiting        -->
+      <!-- ============================== -->
+      <h2 id="rate-limiting">7. Rate Limiting untuk Keamanan</h2>
+
+      <p>Rate limiting membatasi jumlah request dari satu IP dalam periode waktu tertentu. Ini sangat penting untuk API IoT agar tidak diserang oleh brute force atau DDoS dari device yang terkompromi.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — Konfigurasi Rate Limiting</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# Di blok http {}\n\n# Rate limit zone: 10 request per detik per IP\nlimit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;\n\n# Rate limit zone untuk login: 5 request per menit per IP\nlimit_req_zone $binary_remote_addr zone=login_limit:10m rate=5r/m;\n\nserver {\n    listen 443 ssl;\n    server_name api.iotkamu.com;\n\n    # API: 10 req/detik, burst 20\n    location /api/ {\n        limit_req zone=api_limit burst=20 nodelay;\n        limit_req_status 429;\n\n        proxy_pass http://iot_api_servers;\n        proxy_set_header X-Real-IP $remote_addr;\n    }\n\n    # Login: 5 req/menit\n    location /api/auth/login {\n        limit_req zone=login_limit burst=3 nodelay;\n        limit_req_status 429;\n\n        proxy_pass http://iot_api_servers;\n    }\n}')">Salin</button>
+        </div>
+<pre><code># Di blok http {}
+
+# Rate limit zone: 10 request per detik per IP (10MB shared memory)
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+
+# Rate limit zone untuk login: 5 request per menit per IP
+limit_req_zone $binary_remote_addr zone=login_limit:10m rate=5r/m;
+
+server {
+    listen 443 ssl;
+    server_name api.iotkamu.com;
+
+    # API endpoint: 10 req/detik, burst 20 tanpa delay
+    location /api/ {
+        limit_req zone=api_limit burst=20 nodelay;
+        limit_req_status 429;
+
+        proxy_pass http://iot_api_servers;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # Login endpoint: 5 req/menit (anti brute force)
+    location /api/auth/login {
+        limit_req zone=login_limit burst=3 nodelay;
+        limit_req_status 429;
+
+        proxy_pass http://iot_api_servers;
+    }
+}</code></pre>
+      </div>
+
+      <p>Penjelasan parameter:</p>
+      <ul>
+        <li><code>rate=10r/s</code> — Maksimal 10 request per detik per IP</li>
+        <li><code>burst=20</code> — Izinkan hingga 20 request sekaligus (untuk traffic spike)</li>
+        <li><code>nodelay</code> — Jangan tunda request burst, langsung proses</li>
+        <li><code>limit_req_status 429</code> — HTTP status code saat limit terlewati</li>
+      </ul>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Device IoT dengan IP Sama</div>
+        <p>Jika semua device IoT kamu berada di belakang NAT (satu IP publik), rate limiting per IP bisa memblokir device yang sah. Pertimbangkan untuk menggunakan API key per device di backend, atau whitelist IP tertentu dengan <code>geo</code> module Nginx.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Security Headers     -->
+      <!-- ============================== -->
+      <h2 id="security-headers">8. Security Headers</h2>
+
+      <p>Security headers adalah HTTP header yang ditambahkan oleh Nginx untuk melindungi aplikasi dari serangan web umum seperti XSS, clickjacking, dan MIME sniffing.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — Security Headers Lengkap</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('server {\n    listen 443 ssl http2;\n    server_name api.iotkamu.com;\n\n    # 1. X-Frame-Options: Cegah clickjacking\n    add_header X-Frame-Options \"SAMEORIGIN\" always;\n\n    # 2. X-Content-Type-Options: Cegah MIME sniffing\n    add_header X-Content-Type-Options \"nosniff\" always;\n\n    # 3. X-XSS-Protection: Aktifkan filter XSS browser\n    add_header X-XSS-Protection \"1; mode=block\" always;\n\n    # 4. Referrer-Control: Kirim referrer hanya untuk origin yang sama\n    add_header Referrer-Policy \"strict-origin-when-cross-origin\" always;\n\n    # 5. Content-Security-Policy: Batasi sumber konten\n    add_header Content-Security-Policy \"default-src \\\"self\\\"; script-src \\\"self\\\"; style-src \\\"self\\\" \\\"unsafe-inline\\\"; img-src \\\"self\\\" data:; connect-src \\\"self\\\" wss:\" always;\n\n    # 6. Permissions-Policy: Nonaktifkan fitur browser yang tidak perlu\n    add_header Permissions-Policy \"camera=(), microphone=(), geolocation=(self)\" always;\n\n    # 7. HSTS: Paksa HTTPS selama 1 tahun\n    add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;\n\n    # ... proxy_pass config ...\n}')">Salin</button>
+        </div>
+<pre><code>server {
+    listen 443 ssl http2;
+    server_name api.iotkamu.com;
+
+    # 1. X-Frame-Options: Cegah clickjacking
+    add_header X-Frame-Options "SAMEORIGIN" always;
+
+    # 2. X-Content-Type-Options: Cegah MIME sniffing
+    add_header X-Content-Type-Options "nosniff" always;
+
+    # 3. X-XSS-Protection: Aktifkan XSS filter di browser
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # 4. Referrer-Policy: Kontrol informasi referrer
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # 5. Content-Security-Policy: Batasi sumber konten yang diizinkan
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss:" always;
+
+    # 6. Permissions-Policy: Nonaktifkan fitur browser yang tidak perlu
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(self)" always;
+
+    # 7. HSTS: Paksa browser menggunakan HTTPS selama 1 tahun
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+    # ... proxy_pass config ...
+}</code></pre>
+      </div>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Header</th>
+            <th>Fungsi</th>
+            <th>Serangan yang Dicegah</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>X-Frame-Options</td><td>Mencegah halaman dimuat dalam iframe</td><td>Clickjacking</td></tr>
+          <tr><td>X-Content-Type-Options</td><td>Mencegah browser menebak tipe konten</td><td>MIME Sniffing</td></tr>
+          <tr><td>X-XSS-Protection</td><td>Mengaktifkan filter XSS browser</td><td>Cross-Site Scripting</td></tr>
+          <tr><td>Content-Security-Policy</td><td>Membatasi sumber konten yang diizinkan</td><td>XSS, Data Injection</td></tr>
+          <tr><td>Referrer-Policy</td><td>Mengontrol informasi referrer</td><td>Information Leakage</td></tr>
+          <tr><td>HSTS</td><td>Memaksa koneksi HTTPS</td><td>SSL Strip Attack</td></tr>
+          <tr><td>Permissions-Policy</td><td>Membatasi fitur browser (kamera, mic, dll)</td><td>Unauthorized Access</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Cek Security Headers</div>
+        <p>Setelah menerapkan konfigurasi di atas, cek skor keamanan di <strong>https://securityheaders.com</strong>. Masukkan domain kamu dan pastikan mendapat skor A atau A+. Perbaiki header yang masih kurang sesuai rekomendasi.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                 -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Nginx Reverse Proxy:</p>
+
+      <div class="quiz-container" id="quizNginx01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa perbedaan utama antara forward proxy dan reverse proxy?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Forward proxy melindungi server, reverse proxy melindungi client</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Forward proxy melindungi client, reverse proxy melindungi server</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Keduanya sama, hanya nama berbeda</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Forward proxy untuk HTTP, reverse proxy untuk HTTPS</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa fungsi dari SSL termination di Nginx?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Menghapus semua koneksi SSL</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Memproses enkripsi/dekripsi HTTPS di Nginx sehingga backend cukup HTTP</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Mengenkripsi data di database</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Membuat SSL certificate secara otomatis</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Metode load balancing mana yang paling cocok untuk WebSocket persistent connection dari device IoT?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Round-Robin</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Least Connections</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) IP Hash</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Random</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari direktif <code>proxy_cache_valid 200 5m</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Menghapus cache setiap 5 menit</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Menyimpan response dengan status 200 selama 5 menit</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Membatasi request hanya 5 per menit</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Mengatur timeout koneksi 5 menit</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Security header apa yang mencegah serangan clickjacking?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Content-Security-Policy</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) X-Content-Type-Options</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) X-Frame-Options</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Strict-Transport-Security</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="grafana-influxdb.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Grafana + InfluxDB</span>
+        </a>
+        <a href="firebase-auth-firestore.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Firebase Auth & Firestore</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/thingsboard-platform.html" class="related-card">
+          <span class="related-category">Dashboard & Cloud</span>
+          <span class="related-title">ThingsBoard IoT Platform: Panduan Lengkap</span>
+        </a>
+        <a href="/articles/vps-deployment.html" class="related-card">
+          <span class="related-category">Dashboard & Cloud</span>
+          <span class="related-title">Deploy ke VPS: Panduan Lengkap untuk Developer IoT</span>
+        </a>
+        <a href="/articles/firebase-auth-firestore.html" class="related-card">
+          <span class="related-category">Dashboard & Cloud</span>
+          <span class="related-title">Firebase Auth & Firestore untuk Aplikasi IoT</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

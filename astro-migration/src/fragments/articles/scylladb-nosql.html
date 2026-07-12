@@ -1,0 +1,796 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Database</a>
+        <span class="separator">/</span>
+        <span class="current">ScyllaDB</span>
+      </div>
+      <span class="category-tag">Database</span>
+      <h1>ScyllaDB: High Performance NoSQL Database</h1>
+      <p class="article-subtitle">Tutorial komprehensif ScyllaDB — rewrite C++ dari Cassandra dengan performa 10x lebih cepat. Pelajari CQL, compaction strategies, repair mechanisms, Change Data Capture (CDC), dan Alternator API untuk DynamoDB compatibility</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan ScyllaDB</a></li>
+          <li><a href="#instalasi">Instalasi &amp; Cluster Setup</a></li>
+          <li><a href="#cql">CQL (Cassandra Query Language)</a></li>
+          <li><a href="#compaction">Compaction Strategies</a></li>
+          <li><a href="#repair">Repair Mechanisms</a></li>
+          <li><a href="#cdc">Change Data Capture (CDC)</a></li>
+          <li><a href="#alternator">Alternator API</a></li>
+          <li><a href="#optimasi">Tuning &amp; Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan ScyllaDB</h2>
+
+      <p><strong>ScyllaDB</strong> adalah open-source NoSQL database yang ditulis dalam C++ sebagai drop-in replacement untuk Apache Cassandra. ScyllaDB menggunakan <strong>seastar framework</strong> untuk memanfaatkan semua core CPU secara efisien tanpa context switching, menghasilkan performa hingga 10x lebih cepat dari Cassandra pada hardware yang sama.</p>
+
+      <p>ScyllaDB menggunakan arsitektur <strong>shared-nothing</strong> di mana setiap core CPU memiliki thread-nya sendiri dan mengelola data tertentu secara independen. Desain ini mengeliminasi lock contention dan memungkinkan throughput yang luar biasa tinggi — hingga jutaan operasi per detik per node.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Arsitektur ScyllaDB</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">📱</div>
+            <div class="arch-label">Client Application</div>
+            <div class="arch-desc">CQL driver atau<br>DynamoDB API</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box info">
+            <div class="arch-icon">🔀</div>
+            <div class="arch-label">Coordinator Node</div>
+            <div class="arch-desc">Routing berdasarkan<br>token range</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">⚙️</div>
+            <div class="arch-label">Seastar Framework</div>
+            <div class="arch-desc">Per-core threading,<br>zero-copy networking</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box success">
+            <div class="arch-icon">💾</div>
+            <div class="arch-label">Commit Log + SSTable</div>
+            <div class="arch-desc">LSM tree storage<br>dengan compaction</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Keunggulan ScyllaDB</h3>
+      <ul>
+        <li><strong>Performa Tinggi:</strong> 10x throughput dibanding Cassandra dengan latensi P99 yang rendah</li>
+        <li><strong>Cassandra Compatible:</strong> Drop-in replacement, menggunakan driver Cassandra yang sama</li>
+        <li><strong>Shard-per-Core:</strong> Setiap CPU core mengelola datanya sendiri tanpa lock</li>
+        <li><strong>Automatic Tuning:</strong> ScyllaDB otomatis mengkonfigurasi parameter berdasarkan hardware</li>
+        <li><strong>Alternator API:</strong> Kompatibel dengan AWS DynamoDB API</li>
+        <li><strong>Low Latency:</strong> P99 latency konsisten karena eliminasi GC pauses</li>
+      </ul>
+
+      <h3>1.2 ScyllaDB vs Cassandra</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Aspek</th><th>ScyllaDB</th><th>Cassandra</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Bahasa</td><td>C++</td><td>Java</td></tr>
+          <tr><td>Threading</td><td>Per-core (seastar)</td><td>Thread-per-connection</td></tr>
+          <tr><td>GC Pauses</td><td>Tidak ada (no JVM)</td><td>Bisa terjadi</td></tr>
+          <tr><td>Throughput per node</td><td>~1M ops/detik</td><td>~100K ops/detik</td></tr>
+          <tr><td>API Compatibility</td><td>CQL + DynamoDB</td><td>CQL</td></tr>
+          <tr><td>Latency</td><td>P99 rendah &amp; konsisten</td><td>P99 bisa tinggi</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="instalasi">2. Instalasi &amp; Cluster Setup</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Instalasi ScyllaDB</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Metode 1: Docker (recommended untuk testing)
+docker run -d --name scylla-node1 \
+    -p 9042:9042 \
+    -p 10000:10000 \
+    -v ~/scylla-data:/var/lib/scylla \
+    scylladb/scylla:5.4 \
+    --smp 2 --memory 4G --overprovisioned 1
+
+# Tunggu beberapa detik sampai node ready
+sleep 10
+
+# Koneksi ke ScyllaDB
+docker exec -it scylla-node1 cqlsh
+
+# Metode 2: Ubuntu/Debian
+sudo apt-get install -y apt-transport-https gnupg2 curl
+curl -fsSL https://downloads.scylladb.com/deb/debian/scylla-5.4-x86_64.asc | \
+    sudo gpg --dearmor -o /usr/share/keyrings/scylladb.gpg
+
+echo "deb [signed-by=/usr/share/keyrings/scylladb.gpg] https://downloads.scylladb.com/deb/debian stable main" | \
+    sudo tee /etc/apt/sources.list.d/scylla.list
+
+sudo apt-get update
+sudo apt-get install -y scylla
+sudo systemctl start scylla-server
+sudo systemctl enable scylla-server
+
+# Verifikasi
+nodetool status
+cqlsh -e "SELECT release_version FROM system.local;"
+</code></pre>
+      </div>
+
+      <h3>2.1 Multi-Node Cluster</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Docker — 3-Node ScyllaDB Cluster</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Node 1 (seed node)
+docker run -d --name scylla1 --hostname scylla1 \
+    -p 9042:9042 \
+    scylladb/scylla:5.4 \
+    --smp 1 --memory 2G \
+    --overprovisioned 1 \
+    --seeds scylla1
+
+# Tunggu node 1 ready
+sleep 15
+
+# Node 2
+docker run -d --name scylla2 --hostname scylla2 \
+    scylladb/scylla:5.4 \
+    --smp 1 --memory 2G \
+    --overprovisioned 1 \
+    --seeds scylla1
+
+# Node 3
+docker run -d --name scylla3 --hostname scylla3 \
+    scylladb/scylla:5.4 \
+    --smp 1 --memory 2G \
+    --overprovisioned 1 \
+    --seeds scylla1
+
+# Cek cluster status dari node 1
+docker exec -it scylla1 nodetool status
+
+# Output:
+# Datacenter: datacenter1
+# =======================
+# Status=Up/Down
+# |/ State=Normal/Leaving/Joining/Moving
+# --  Address    Load       Tokens  Owns    Host ID   Rack
+# UN  172.17.0.2  256 KB    256     33.3%   xxx       rack1
+# UN  172.17.0.3  256 KB    256     33.3%   xxx       rack1
+# UN  172.17.0.4  256 KB    256     33.3%   xxx       rack1
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 ScyllaDB Manager</div>
+        <p>ScyllaDB menyediakan <strong>ScyllaDB Manager</strong> untuk mengelola cluster — termasuk scheduled repairs, backup, health check, dan monitoring. Manager bisa diakses melalui <code>sctool</code> CLI atau REST API di port 10000.</p>
+      </div>
+
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide"></div>
+
+      <!-- SECTION 3 -->
+      <h2 id="cql">3. CQL (Cassandra Query Language)</h2>
+
+      <p>CQL adalah bahasa query yang digunakan ScyllaDB (dan Cassandra). CQL mirip SQL tetapi dirancang untuk data model berbasis <strong>partition key</strong> dan <strong>clustering key</strong>.</p>
+
+      <h3>3.1 Keyspace &amp; Table</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CQL — Keyspace dan Tabel</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Membuat keyspace (analog dengan database)
+CREATE KEYSPACE IF NOT EXISTS myapp
+WITH replication = {
+    'class': 'NetworkTopologyStrategy',
+    'datacenter1': 3
+}
+AND durable_writes = true;
+
+-- Gunakan keyspace
+USE myapp;
+
+-- Membuat tabel
+CREATE TABLE IF NOT EXISTS users (
+    user_id UUID PRIMARY KEY,
+    username TEXT,
+    email TEXT,
+    created_at TIMESTAMP,
+    profile MAP<TEXT, TEXT>
+);
+
+-- Tabel dengan composite primary key
+CREATE TABLE IF NOT EXISTS messages (
+    channel_id UUID,
+    message_id TIMEUUID,
+    author_id UUID,
+    content TEXT,
+    attachments LIST<TEXT>,
+    reactions MAP<TEXT, INT>,
+    PRIMARY KEY (channel_id, message_id)
+) WITH CLUSTERING ORDER BY (message_id DESC);
+
+-- Tabel dengan multiple clustering columns
+CREATE TABLE IF NOT EXISTS sensor_readings (
+    sensor_id UUID,
+    date TEXT,
+    reading_time TIMESTAMP,
+    temperature DOUBLE,
+    humidity DOUBLE,
+    location TEXT,
+    PRIMARY KEY ((sensor_id, date), reading_time)
+) WITH CLUSTERING ORDER BY (reading_time DESC)
+  AND default_time_to_live = 7776000;  -- TTL 90 hari
+</code></pre>
+      </div>
+
+      <h3>3.2 CRUD Operations</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CQL — Operasi CRUD</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- INSERT
+INSERT INTO users (user_id, username, email, created_at)
+VALUES (uuid(), 'budi_santoso', 'budi@example.com', toTimestamp(now()));
+
+-- INSERT dengan TTL (data otomatis hilang setelah 86400 detik = 1 hari)
+INSERT INTO users (user_id, username, email)
+VALUES (550e8400-e29b-41d4-a716-446655440000, 'temp_user', 'temp@example.com')
+USING TTL 86400;
+
+-- INSERT dengan IF NOT EXISTS (lightweight transaction)
+INSERT INTO users (user_id, username, email)
+VALUES (uuid(), 'unique_user', 'unique@example.com')
+IF NOT EXISTS;
+
+-- SELECT
+SELECT * FROM users WHERE user_id = 550e8400-e29b-41d4-a716-446655440000;
+
+-- SELECT dengan token range (untuk range scan)
+SELECT * FROM users WHERE token(user_id) > 0 AND token(user_id) < 1000000;
+
+-- SELECT dengan clustering key
+SELECT * FROM messages
+WHERE channel_id = 123e4567-e89b-12d3-a456-426614174000
+AND message_id > maxTimeuuid('2026-01-01 00:00:00')
+AND message_id < minTimeuuid('2026-12-31 23:59:59')
+LIMIT 50;
+
+-- UPDATE
+UPDATE users SET email = 'budi@new.com', profile['city'] = 'Jakarta'
+WHERE user_id = 550e8400-e29b-41d4-a716-446655440000;
+
+-- DELETE
+DELETE FROM users
+WHERE user_id = 550e8400-e29b-41d4-a716-446655440000;
+
+-- DELETE kolom tertentu
+DELETE profile['city'] FROM users
+WHERE user_id = 550e8400-e29b-41d4-a716-446655440000;
+
+-- BATCH (multi-table atomic)
+BEGIN BATCH
+    INSERT INTO users (user_id, username, email)
+    VALUES (uuid(), 'new_user', 'new@example.com');
+    INSERT INTO user_stats (user_id, login_count, last_login)
+    VALUES (uuid(), 1, toTimestamp(now()));
+APPLY BATCH;
+</code></pre>
+      </div>
+
+      <h3>3.3 Data Model Design Principles</h3>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Query-Driven Modeling</div>
+        <p>Berbeda dengan RDBMS yang men-normalize data dulu lalu query, ScyllaDB menggunakan <strong>query-driven modeling</strong>: tentukan query yang dibutuhkan terlebih dahulu, lalu desain tabel berdasarkan pola query tersebut. Satu tabel per query pattern adalah hal yang umum di ScyllaDB — denormalisasi adalah fitur, bukan masalah.</p>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CQL — Data Model untuk Berbagai Query Pattern</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Pattern 1: Cari user by email
+CREATE TABLE users_by_email (
+    email TEXT PRIMARY KEY,
+    user_id UUID,
+    username TEXT,
+    created_at TIMESTAMP
+);
+
+-- Pattern 2: Cari pesan per channel (urut terbaru)
+CREATE TABLE messages_by_channel (
+    channel_id UUID,
+    created_at TIMEUUID,
+    message_id UUID,
+    author_id UUID,
+    content TEXT,
+    PRIMARY KEY (channel_id, created_at)
+) WITH CLUSTERING ORDER BY (created_at DESC);
+
+-- Pattern 3: Cari user berdasarkan role
+CREATE TABLE users_by_role (
+    role TEXT,
+    user_id UUID,
+    username TEXT,
+    email TEXT,
+    PRIMARY KEY (role, user_id)
+);
+
+-- Materialized view (di ScyllaDB lebih mirip auto-sync secondary table)
+CREATE MATERIALIZED VIEW users_by_username AS
+    SELECT * FROM users
+    WHERE username IS NOT NULL AND user_id IS NOT NULL
+    PRIMARY KEY (username, user_id);
+
+-- Secondary index (gunakan hati-hati, hanya untuk low cardinality)
+CREATE INDEX ON users (email);
+-- Alternatif: SSTable Attached Secondary Index (SASI)
+CREATE CUSTOM INDEX ON users (username)
+USING 'StorageAttachedIndex';
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="compaction">4. Compaction Strategies</h2>
+
+      <p>ScyllaDB menggunakan <strong>LSM tree</strong> storage — data ditulis pertama ke memtable lalu di-flush ke SSTable di disk. <strong>Compaction</strong> adalah proses background yang menggabungkan SSTable lama menjadi SSTable baru yang lebih efisien.</p>
+
+      <h3>4.1 Jenis Compaction</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>Strategy</th><th>Cocok Untuk</th><th>Karakteristik</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>SizeTieredCompactionStrategy</code></td><td>Write-heavy workload</td><td>Default, compaction berdasarkan ukuran SSTable</td></tr>
+          <tr><td><code>LeveledCompactionStrategy</code></td><td>Read-heavy workload</td><td>Lebih sedikit SSTable overlap, read lebih cepat</td></tr>
+          <tr><td><code>IncrementalCompactionStrategy</code></td><td>Large datasets</td><td>Compaction bertahap, mengurangi disk space usage</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CQL — Konfigurasi Compaction</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Mengubah compaction strategy
+ALTER TABLE users WITH compaction = {
+    'class': 'LeveledCompactionStrategy',
+    'sstable_size_in_mb': 160
+};
+
+-- SizeTieredCompactionStrategy dengan parameter
+ALTER TABLE sensor_readings WITH compaction = {
+    'class': 'SizeTieredCompactionStrategy',
+    'min_sstable_size': 50,
+    'min_threshold': 4,
+    'max_threshold': 32,
+    'bucket_high': 1.5,
+    'bucket_low': 0.5
+};
+
+-- Menggunakan IncrementalCompactionStrategy
+ALTER TABLE large_table WITH compaction = {
+    'class': 'IncrementalCompactionStrategy',
+    'space_amplification_goal': 1.1
+};
+
+-- Monitoring compaction
+-- nodetool compactionstats
+-- nodetool compactionhistory
+
+-- Memaksa compaction (hanya untuk testing/ops)
+-- nodetool compact myapp users
+</code></pre>
+      </div>
+
+      <h3>4.2 TTL &amp; Tombstones</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CQL — TTL dan gc_grace_seconds</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- TTL: data otomatis dihapus setelah N detik
+INSERT INTO sensor_readings (sensor_id, date, reading_time, temperature, humidity)
+VALUES (uuid(), '2026-06-29', now(), 25.5, 60.0)
+USING TTL 2592000;  -- 30 hari
+
+-- Mengubah TTL tabel
+ALTER TABLE sensor_readings
+WITH default_time_to_live = 7776000;  -- 90 hari
+
+-- gc_grace_seconds: waktu sebelum tombstone di-cleanup
+-- Default 10 hari. Turunkan untuk tabel dengan banyak DELETE
+ALTER TABLE temp_data WITH gc_grace_seconds = 86400;  -- 1 hari
+
+-- Tips: Hindari tombstone heavy scan
+-- Tambahkan tombstone_warn_threshold untuk monitoring
+ALTER TABLE messages WITH tombstone_warn_threshold = 1000;
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 5 -->
+      <h2 id="repair">5. Repair Mechanisms</h2>
+
+      <p><strong>Repair</strong> adalah proses kritis di ScyllaDB untuk memastikan semua replica memiliki data yang konsisten. Karena ScyllaDB menggunakan eventual consistency, repair memperbaiki inkonsistensi yang bisa terjadi karena node failure atau network partition.</p>
+
+      <h3>5.1 Jenis Repair</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Repair Operations</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Full repair: membandingkan semua data
+nodetool repair myapp users
+
+# Subrange repair (untuk tabel besar)
+nodetool repair -st 0 -et 1000000 myapp users
+
+# Repair dengan range spesifik
+nodetool repair -full myapp
+
+# Incremental repair (hanya repair data yang belum di-repair)
+nodetool repair -inc myapp
+
+# Parallel repair
+nodetool repair -par myapp users
+
+# ScyllaDB Manager: scheduled repair
+sctool repair add --cluster my-cluster --keyspace myapp --interval 3d
+
+# Cek repair status
+sctool repair list --cluster my-cluster
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 ScyllaDB Manager Repair</div>
+        <p>ScyllaDB Manager secara otomatis mengelola repair — memecah repair menjadi subrange, memparallel-kan proses, dan menghindari overlap. Sangat direkomendasikan untuk production dibanding <code>nodetool repair</code> manual. Atur repair interval sekitar <code>gc_grace_seconds</code> / 2 untuk memastikan semua tombstone ter-repair.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="cdc">6. Change Data Capture (CDC)</h2>
+
+      <p><strong>CDC</strong> memungkinkan Anda melacak dan mengirimkan perubahan data secara real-time. Setiap INSERT, UPDATE, atau DELETE pada tabel yang CDC-enabled akan menghasilkan log yang bisa di-stream ke sistem eksternal.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CQL — Mengaktifkan &amp; Menggunakan CDC</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Aktifkan CDC pada tabel
+ALTER TABLE users WITH cdc = {
+    'enabled': true,
+    'preimage': true,    -- Ambil data sebelum perubahan
+    'postimage': true,   -- Ambil data setelah perubahan
+    'ttl': 86400         -- TTL untuk CDC log (1 hari)
+};
+
+-- CDC log tersimpan di tabel terpisah: &lt;tabel&gt;_scylla_cdc_log
+-- Contoh: users_scylla_cdc_log
+
+-- Melihat CDC log
+SELECT * FROM users_scylla_cdc_log
+WHERE cluster_clock > minTimeuuid('2026-06-29 00:00:00')
+LIMIT 10;
+
+-- Kolom di CDC log:
+-- - cdc$stream_id: ID stream
+-- - cdc$time: timestamp perubahan
+-- - cdc$batch_seq_no: nomor sequence dalam batch
+-- - cdc$operation: tipe operasi (1=insert, 2=update, 3=row_delete, 4=partition_delete)
+-- - cdc$ttl: TTL dari data
+-- - &lt;kolom&gt;_cdc$pre: nilai sebelum perubahan (jika preimage=true)
+-- - &lt;kolom&gt;_cdc$pro: nilai setelah perubahan (jika postimage=true)
+
+-- Menggunakan CDC dengan ScyllaDB CDC Connector (Kafka)
+-- Data di-stream ke Kafka topic secara otomatis
+-- Konfigurasi di connector:
+-- {
+--   "name": "scylla-cdc-connector",
+--   "config": {
+--     "scylla.host": "scylla1",
+--     "scylla.port": "9042",
+--     "scylla.keyspace": "myapp",
+--     "scylla.table": "users",
+--     "kafka.bootstrap.servers": "kafka:9092",
+--     "kafka.topic": "scylla-cdc-users"
+--   }
+-- }
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 7 -->
+      <h2 id="alternator">7. Alternator API</h2>
+
+      <p><strong>Alternator</strong> adalah fitur ScyllaDB yang menyediakan kompatibilitas dengan <strong>AWS DynamoDB API</strong>. Ini memungkinkan aplikasi yang dirancang untuk DynamoDB untuk menggunakan ScyllaDB tanpa perubahan kode, baik on-premise maupun di cloud lain.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Mengaktifkan Alternator</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Mengaktifkan Alternator pada ScyllaDB node
+# Tambahkan flag berikut saat menjalankan ScyllaDB:
+# --alternator-port 8000
+# --alternator-write-isolation=only_rmw_uses_lwt
+
+docker run -d --name scylla-alt \
+    -p 9042:9042 -p 8000:8000 \
+    scylladb/scylla:5.4 \
+    --alternator-port 8000 \
+    --alternator-write-isolation=only_rmw_uses_lwt
+
+# Menggunakan AWS CLI untuk berinteraksi dengan Alternator
+# (mengarahkan endpoint ke ScyllaDB)
+aws dynamodb create-table \
+    --endpoint-url http://localhost:8000 \
+    --table-name Music \
+    --attribute-definitions \
+        AttributeName=Artist,AttributeType=S \
+        AttributeName=SongTitle,AttributeType=S \
+    --key-schema \
+        AttributeName=Artist,KeyType=HASH \
+        AttributeName=SongTitle,KeyType=RANGE \
+    --billing-mode PAY_PER_REQUEST
+
+# Insert item
+aws dynamodb put-item \
+    --endpoint-url http://localhost:8000 \
+    --table-name Music \
+    --item '{
+        "Artist": {"S": "Band Indonesia"},
+        "SongTitle": {"S": "Judul Lagu"},
+        "Album": {"S": "Album Pertama"},
+        "Year": {"N": "2026"}
+    }'
+
+# Query
+aws dynamodb query \
+    --endpoint-url http://localhost:8000 \
+    --table-name Music \
+    --key-condition-expression "Artist = :a" \
+    --expression-attribute-values '{":a": {"S": "Band Indonesia"}}'
+
+# Scan
+aws dynamodb scan \
+    --endpoint-url http://localhost:8000 \
+    --table-name Music
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Alternator Write Isolation</div>
+        <p>Alternator mendukung beberapa mode write isolation: <code>forbid_rmw</code> (hanya conditional writes), <code>only_rmw_uses_lwt</code> (LWT hanya untuk read-modify-write), <code>always_use_lwt</code> (semua writes menggunakan LWT). <code>only_rmw_uses_lwt</code> adalah pilihan terbaik untuk keseimbangan performa dan konsistensi.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="optimasi">8. Tuning &amp; Best Practices</h2>
+
+      <h3>8.1 Monitoring</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Monitoring ScyllaDB</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Cluster status
+nodetool status
+
+# Latency statistics
+nodetool tablestats myapp users
+nodetool tablehistograms myapp users
+
+# Compaction status
+nodetool compactionstats
+
+# Thread pool statistics (per-core)
+nodetool tpstats
+
+# Read repair statistics
+nodetool proxyhistograms
+
+# Grafana monitoring
+# ScyllaDB menyediakan Grafana dashboard bawaan
+# akses di http://scylla-node:3000
+# atau gunakan ScyllaDB Monitoring Stack:
+docker run -d --name scylla-monitoring \
+    -p 3000:3000 \
+    -v /var/lib/scylla-monitoring:/etc/scylla-monitoring \
+    scylladb/scylla-monitoring:latest
+</code></pre>
+      </div>
+
+      <h3>8.2 Best Practices</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Aspek</th><th>Rekomendasi</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Data Model</td><td>Query-driven, denormalisasi, satu tabel per query pattern</td></tr>
+          <tr><td>Partition Key</td><td>Pilih yang menghasilkan distribusi merata, hindari hot partitions</td></tr>
+          <tr><td>Partition Size</td><td>Maksimal 100MB per partition</td></tr>
+          <tr><td>Replication</td><td>RF=3 untuk production, gunakan NetworkTopologyStrategy</td></tr>
+          <tr><td>Repair</td><td>Minimal setiap gc_grace_seconds / 2</td></tr>
+          <tr><td>Compaction</td><td>LCS untuk read-heavy, STCS/IWCS untuk write-heavy</td></tr>
+          <tr><td>Backup</td><td>Gunakan ScyllaDB Manager atau nodetool snapshot</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 9 -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quiz3">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Mengapa ScyllaDB lebih cepat dari Cassandra?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Karena menggunakan SSD secara eksklusif</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Karena arsitektur shard-per-core dengan seastar framework dalam C++</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Karena mengurangi fitur yang didukung</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Karena menggunakan protocol yang berbeda</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa fungsi dari partition key di ScyllaDB?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Mengurutkan data dalam cluster</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Menentukan node mana yang menyimpan data</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Mengenkripsi data saat transit</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Menentukan TTL untuk data</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Kapan menggunakan LeveledCompactionStrategy?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Untuk workload write-heavy dengan banyak INSERT</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Untuk workload read-heavy yang butuh read latency konsisten</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Untuk tabel yang sangat kecil</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Selalu lebih baik dari strategy lain</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa yang dilakukan Alternator di ScyllaDB?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Mengubah data menjadi JSON format</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Menyediakan kompatibilitas dengan AWS DynamoDB API</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Mengelola automatic backup</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Mengkonfigurasi firewall</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa repair sangat penting di ScyllaDB?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Untuk mengkompresi data di disk</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Untuk memastikan konsistensi antara replica yang bisa inkonsisten akibat node failure</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Untuk menghapus data yang tidak dipakai</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Untuk mengupgrade versi ScyllaDB</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="clickhouse-analytics.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">ClickHouse untuk Real-time Analytics</span>
+        </a>
+        <a href="turso-edge-database.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Turso: Edge Database</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/sql-query-optimization-2.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">SQL Query Optimization Advanced</span>
+        </a>
+        <a href="/articles/vector-database-pinecone.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">Vector Databases: Pinecone — Embeddings, Similarity Searc...</span>
+        </a>
+        <a href="/articles/postgresql-dasar.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">PostgreSQL untuk Developer: Panduan Lengkap</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial Database terbaru langsung di inbox kamu.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

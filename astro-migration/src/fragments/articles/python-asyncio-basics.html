@@ -1,0 +1,1058 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">asyncio</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>Python asyncio: Async Programming dari Nol</h1>
+      <p class="article-subtitle">Tutorial lengkap asyncio — event loop, coroutines, tasks, semaphores, queues, dan membangun aplikasi asynchronous yang efisien</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 20 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan asyncio</a></li>
+          <li><a href="#coroutines">Coroutines &amp; async/await</a></li>
+          <li><a href="#event-loop">Event Loop</a></li>
+          <li><a href="#tasks">Tasks &amp; Futures</a></li>
+          <li><a href="#gather">asyncio.gather &amp; Konkurensi</a></li>
+          <li><a href="#semaphore">Semaphore &amp; Throttling</a></li>
+          <li><a href="#queues">Queues &amp; Producer-Consumer</a></li>
+          <li><a href="#timeout">Timeout &amp; Error Handling</a></li>
+          <li><a href="#http">Async HTTP &amp; Database</a></li>
+          <li><a href="#best-practices">Best Practices &amp; Pitfalls</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan asyncio</h2>
+
+      <p><strong>asyncio</strong> adalah library standar Python untuk menulis kode yang bersifat <strong>concurrent</strong> menggunakan model <em>single-threaded, cooperative multitasking</em>. Berbeda dengan threading yang menggunakan preemptive multitasking, asyncio memungkinkan satu thread menangani ribuan operasi I/O secara bersamaan tanpa blocking.</p>
+
+      <p>Bayangkan kamu sedang memesan makanan di restoran. Dengan pendekatan <strong>synchronous</strong>, kamu menunggu pesanan selesai sebelum melakukan apapun. Dengan <strong>async</strong>, kamu pesan makanan, lalu sambil menunggu kamu bisa cek HP, ngobrol, atau pesan minuman — begitu makanan siap, kamu langsung mengambilnya.</p>
+
+      <h3>Kapan Menggunakan asyncio?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Skenario</th>
+            <th>Gunakan asyncio?</th>
+            <th>Alasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>HTTP requests massal</td><td>✅ Sangat cocok</td><td>Menunggu response = I/O bound</td></tr>
+          <tr><td>Database queries</td><td>✅ Sangat cocok</td><td>Menunggu hasil query = I/O bound</td></tr>
+          <tr><td>File I/O</td><td>⚠️ Cukup</td><td>Lebih baik gunakan aiofiles</td></tr>
+          <tr><td>Kalkulasi CPU intensif</td><td>❌ Tidak cocok</td><td>Gunakan multiprocessing</td></tr>
+          <tr><td>Web scraping massal</td><td>✅ Sangat cocok</td><td>Ribuan request sekaligus</td></tr>
+          <tr><td>WebSocket server</td><td>✅ Sangat cocok</td><td>Long-lived connections</td></tr>
+        </tbody>
+      </table>
+
+      <h3>asyncio vs Threading vs Multiprocessing</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>asyncio</th>
+            <th>Threading</th>
+            <th>Multiprocessing</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Mekanisme</td><td>Single thread, cooperative</td><td>Multi thread, preemptive</td><td>Multi process</td></tr>
+          <tr><td>Overhead</td><td>🟢 Rendah</td><td>🟡 Sedang</td><td>🔴 Tinggi</td></tr>
+          <tr><td>Cocok untuk</td><td>I/O bound</td><td>I/O bound</td><td>CPU bound</td></tr>
+          <tr><td>GIL Impact</td><td>Tidak masalah</td><td>Dibatasi GIL</td><td>Tidak terpengaruh</td></tr>
+          <tr><td>Scalability</td><td>10K+ tasks</td><td>100-an threads</td><td>Sejumlah core</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: asyncio Event Loop</div>
+<div class="diagram-box">
+        
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">asyncio Event Loop</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 222.6875px;" viewBox="0 0 222.6875 278" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M111.344,62L111.344,66.167C111.344,70.333,111.344,78.667,111.344,86.333C111.344,94,111.344,101,111.344,104.5L111.344,108" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTExLjM0Mzc1LCJ5Ijo2Mn0seyJ4IjoxMTEuMzQzNzUsInkiOjg3fSx7IngiOjExMS4zNDM3NSwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M111.344,166L111.344,170.167C111.344,174.333,111.344,182.667,111.344,190.333C111.344,198,111.344,205,111.344,208.5L111.344,212" id="L_N2_N0_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N0_0" data-points="W3sieCI6MTExLjM0Mzc1LCJ5IjoxNjZ9LHsieCI6MTExLjM0Mzc1LCJ5IjoxOTF9LHsieCI6MTExLjM0Mzc1LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N0_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(111.34375, 243)"><rect class="basic label-container" style="" x="-102.0234375" y="-27" width="204.046875" height="54"/><g class="label" style="" transform="translate(-72.0234375, -12)"><rect/><foreignObject width="144.046875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Task C (await sleep)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(111.34375, 35)"><rect class="basic label-container" style="" x="-92.6875" y="-27" width="185.375" height="54"/><g class="label" style="" transform="translate(-62.6875, -12)"><rect/><foreignObject width="125.375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Task A (await DB)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(111.34375, 139)"><rect class="basic label-container" style="" x="-103.34375" y="-27" width="206.6875" height="54"/><g class="label" style="" transform="translate(-73.34375, -12)"><rect/><foreignObject width="146.6875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Task B (await HTTP)</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Coroutines          -->
+      <!-- ============================== -->
+      <h2 id="coroutines">2. Coroutines &amp; async/await</h2>
+
+      <p>Coroutines adalah fungsi spesial yang didefinisikan dengan <code>async def</code>. Coroutine tidak langsung dieksekusi saat dipanggil — ia mengembalikan sebuah <em>coroutine object</em> yang harus di-<code>await</code> atau dijalankan melalui event loop.</p>
+
+      <pre><code class="language-python"># Coroutine sederhana
+import asyncio
+
+async def sapa(nama: str) -> str:
+    """Coroutine sederhana yang menyapa"""
+    print(f"Halo, {nama}!")
+    await asyncio.sleep(1)  # Simulasi operasi async
+    return f"Selamat datang, {nama}"
+
+# Menjalankan coroutine
+async def main():
+    # Method 1: await langsung
+    hasil = await sapa("Budi")
+    print(hasil)
+
+    # Method 2: Menggunakan asyncio.run()
+asyncio.run(main())</code></pre>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Perbedaan Penting</div>
+        <p>Memanggil fungsi <code>async def</code> tanpa <code>await</code> TIDAK menjalankan fungsi tersebut! Kamu hanya membuat coroutine object. Ini adalah kesalahan paling umum pemula asyncio.</p>
+      </div>
+
+      <pre><code class="language-python"># ❌ SALAH: Coroutine tidak berjalan
+async def ambil_data():
+    print("Mengambil data...")
+    await asyncio.sleep(1)
+    return "data"
+
+# Ini hanya membuat coroutine object, tidak menjalankan apapun!
+coro = ambil_data()  # Tidak ada output!
+
+# ✅ BENAR: Await coroutine
+async def main():
+    hasil = await ambil_data()  # Sekarang berjalan
+    print(hasil)
+
+# atau jalankan dengan asyncio.run()
+asyncio.run(ambil_data())</code></pre>
+
+      <h3>Nested Coroutines</h3>
+      <pre><code class="language-python">import asyncio
+import time
+
+async def ambil_data_api(url: str) -> dict:
+    """Simulasi fetch dari API"""
+    print(f"  Fetching {url}...")
+    await asyncio.sleep(1)  # Simulasi network delay
+    return {"url": url, "status": 200, "data": [1, 2, 3]}
+
+async def proses_data(data: dict) -> str:
+    """Proses data yang sudah diambil"""
+    print(f"  Processing {data['url']}...")
+    await asyncio.sleep(0.5)  # Simulasi processing
+    return f"Processed: {len(data['data'])} items"
+
+async def pipeline(url: str) -> str:
+    """Pipeline: ambil data → proses → return"""
+    data = await ambil_data_api(url)   # Step 1
+    hasil = await proses_data(data)    # Step 2
+    return hasil
+
+async def main():
+    mulai = time.time()
+    hasil = await pipeline("https://api.example.com/users")
+    selesai = time.time()
+    print(f"Hasil: {hasil}")
+    print(f"Waktu: {selesai - mulai:.2f}s")
+
+asyncio.run(main())</code></pre>
+
+      <h3>Coroutine Lifecycle</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>PENDING</code></td><td>Coroutine belum selesai</td></tr>
+          <tr><td><code>RUNNING</code></td><td>Sedang dieksekusi</td></tr>
+          <tr><td><code>DONE</code></td><td>Selesai (sukses atau error)</td></tr>
+          <tr><td><code>CANCELLED</code></td><td>Dibatalkan</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Event Loop          -->
+      <!-- ============================== -->
+      <h2 id="event-loop">3. Event Loop</h2>
+
+      <p>Event loop adalah jantung dari asyncio — sebuah infinite loop yang menjadwalkan dan mengeksekusi coroutines, callbacks, dan I/O operations. Event loop memantau semua task dan menjalankan yang sudah siap.</p>
+
+      <pre><code class="language-python">import asyncio
+
+async def tugas(nama, durasi):
+    print(f"[{nama}] Mulai, durasi {durasi}s")
+    await asyncio.sleep(durasi)
+    print(f"[{nama}] Selesai!")
+    return f"Hasil dari {nama}"
+
+async def main():
+    # Mendapatkan event loop saat ini
+    loop = asyncio.get_running_loop()
+    print(f"Event loop type: {type(loop)}")
+
+    # Menjalankan beberapa task sekaligus
+    task_a = loop.create_task(tugas("A", 2))
+    task_b = loop.create_task(tugas("B", 1))
+    task_c = loop.create_task(tugas("C", 3))
+
+    # Menunggu semua selesai
+    hasil = await asyncio.gather(task_a, task_b, task_c)
+    print(f"Semua hasil: {hasil}")
+
+asyncio.run(main())</code></pre>
+
+      <h3>Jalankan Blocking Code di Event Loop</h3>
+      <pre><code class="language-python">import asyncio
+import time
+
+def operasi_blocking():
+    """Fungsi biasa yang blocking (tidak async)"""
+    time.sleep(3)
+    return "Selesai dari blocking"
+
+async def main():
+    loop = asyncio.get_running_loop()
+
+    # Jalankan fungsi blocking di executor (thread pool)
+    # Agar event loop tidak ter-block
+    hasil = await loop.run_in_executor(None, operasi_blocking)
+    print(hasil)
+
+    # Dengan custom executor
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [
+            loop.run_in_executor(executor, operasi_blocking)
+            for _ in range(4)
+        ]
+        hasil = await asyncio.gather(*futures)
+        print(f"Semua selesai: {hasil}")
+
+asyncio.run(main())</code></pre>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Gunakan <code>run_in_executor()</code> untuk menjalankan library synchronous (seperti <code>requests</code> atau <code>time.sleep</code>) tanpa mem-block event loop. Default executor menggunakan <code>ThreadPoolExecutor</code>.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Tasks & Futures     -->
+      <!-- ============================== -->
+      <h2 id="tasks">4. Tasks &amp; Futures</h2>
+
+      <p><strong>Task</strong> adalah wrapper untuk coroutine yang menjadwalkan eksekusinya di event loop. Task memungkinkan beberapa coroutine berjalan secara concurrent. <strong>Future</strong> adalah objek yang mewakili hasil yang belum tersedia — Task adalah subclass dari Future.</p>
+
+      <pre><code class="language-python">import asyncio
+
+async def hitung_faktorial(n: int) -> int:
+    """Hitung faktorial secara async dengan delay kecil"""
+    hasil = 1
+    for i in range(1, n + 1):
+        hasil *= i
+        if i % 5 == 0:
+            await asyncio.sleep(0)  # Yield control ke event loop
+    return hasil
+
+async def main():
+    # Membuat tasks dari coroutines
+    tasks = []
+    for i in range(5, 15):
+        task = asyncio.create_task(hitung_faktorial(i), name=f"fact-{i}")
+        tasks.append(task)
+
+    print(f"Dibuat {len(tasks)} tasks")
+
+    # Menunggu semua task selesai
+    hasil = await asyncio.gather(*tasks)
+
+    for i, h in enumerate(hasil):
+        print(f"  {i+5}! = {h}")
+
+asyncio.run(main())</code></pre>
+
+      <h3>Melihat Status Task</h3>
+      <pre><code class="language-python">import asyncio
+
+async def tugas_lama(nama, durasi):
+    await asyncio.sleep(durasi)
+    return f"{nama} selesai"
+
+async def main():
+    task = asyncio.create_task(tugas_lama("API Call", 5), name="api-task")
+
+    # Cek status sebelum selesai
+    print(f"Task name: {task.get_name()}")
+    print(f"Done? {task.done()}")       # False
+    print(f"Cancelled? {task.cancelled()}")  # False
+
+    # Tunggu selesai
+    hasil = await task
+
+    print(f"Done? {task.done()}")       # True
+    print(f"Hasil: {hasil}")
+
+    # Akses exception jika ada
+    print(f"Exception: {task.exception()}")  # None
+
+asyncio.run(main())</code></pre>
+
+      <h3>Membatalkan Task</h3>
+      <pre><code class="language-python">import asyncio
+
+async def tugas_panjang():
+    try:
+        print("Tugas panjang mulai...")
+        await asyncio.sleep(60)  # Tidur 60 detik
+        return "Selesai"
+    except asyncio.CancelledError:
+        print("Tugas dibatalkan! Membersihkan...")
+        await asyncio.sleep(0.1)  # Cleanup
+        raise  # Re-raise agar status CANCELLED
+
+async def main():
+    task = asyncio.create_task(tugas_panjang())
+
+    # Batalkan setelah 2 detik
+    await asyncio.sleep(2)
+    task.cancel()
+
+    try:
+        await task
+    except asyncio.CancelledError:
+        print(f"Task dibatalkan: {task.cancelled()}")
+
+asyncio.run(main())</code></pre>
+
+      <h3>Futures</h3>
+      <pre><code class="language-python">import asyncio
+
+async def main():
+    loop = asyncio.get_running_loop()
+
+    # Buat future
+    future = loop.create_future()
+
+    # Simulasi callback yang men-set nilai future
+    async def set_future_value():
+        await asyncio.sleep(2)
+        future.set_result(42)  # Set hasil
+        print("Future value set!")
+
+    # Jalankan setter dan tunggu future
+    asyncio.create_task(set_future_value())
+    hasil = await future  # Tunggu sampai value di-set
+    print(f"Future result: {hasil}")
+
+asyncio.run(main())</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: gather              -->
+      <!-- ============================== -->
+      <h2 id="gather">5. asyncio.gather &amp; Konkurensi</h2>
+
+      <p><code>asyncio.gather()</code> adalah cara paling umum untuk menjalankan beberapa coroutine secara concurrent dan menunggu semuanya selesai. Ini sangat powerful untuk operasi I/O yang bisa dilakukan paralel.</p>
+
+      <pre><code class="language-python">import asyncio
+import time
+
+async def fetch_api(nama: str, delay: float) -> str:
+    """Simulasi API call"""
+    print(f"[{nama}] Memulai request...")
+    await asyncio.sleep(delay)
+    print(f"[{nama}] Selesai dalam {delay}s")
+    return f"Response dari {nama}"
+
+async def main():
+    mulai = time.time()
+
+    # ❌ SEQUENTIAL: Total 6 detik
+    # a = await fetch_api("API-1", 2)
+    # b = await fetch_api("API-2", 2)
+    # c = await fetch_api("API-3", 2)
+
+    # ✅ CONCURRENT: Total 2 detik!
+    a, b, c = await asyncio.gather(
+        fetch_api("API-1", 2),
+        fetch_api("API-2", 2),
+        fetch_api("API-3", 2),
+    )
+
+    selesai = time.time()
+    print(f"\nSemua selesai dalam {selesai - mulai:.2f}s")
+    print(f"Hasil: {a}, {b}, {c}")
+
+asyncio.run(main())</code></pre>
+
+      <h3>TaskGroup (Python 3.11+)</h3>
+      <pre><code class="language-python">import asyncio
+
+async def ambil_data(url: str) -> dict:
+    await asyncio.sleep(1)
+    return {"url": url, "data": "ok"}
+
+async def main():
+    urls = [
+        "https://api.example.com/users",
+        "https://api.example.com/posts",
+        "https://api.example.com/comments",
+        "https://api.example.com/albums",
+    ]
+
+    # TaskGroup: Lebih aman, batalkan semua jika ada error
+    async with asyncio.TaskGroup() as tg:
+        tasks = [tg.create_task(ambil_data(url)) for url in urls]
+
+    # Semua task sudah selesai di sini
+    for task in tasks:
+        print(task.result())
+
+asyncio.run(main())</code></pre>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ gather vs TaskGroup</div>
+        <p><code>gather()</code>: Jika satu task gagal, task lain tetap berjalan. <code>TaskGroup</code>: Jika satu task gagal, semua task lain dibatalkan. Gunakan <code>TaskGroup</code> untuk perilaku yang lebih aman.</p>
+      </div>
+
+      <h3>as_completed: Proses Hasil Seiring Tersedia</h3>
+      <pre><code class="language-python">import asyncio
+
+async def tugas(nama, durasi):
+    await asyncio.sleep(durasi)
+    return f"{nama} selesai dalam {durasi}s"
+
+async def main():
+    tasks = [
+        tugas("Cepat", 1),
+        tugas("Sedang", 3),
+        tugas("Lambat", 5),
+    ]
+
+    # Proses seiring selesai (tidak perlu tunggu semua)
+    for coro in asyncio.as_completed(tasks):
+        hasil = await coro
+        print(f"✓ {hasil}")  # Yang cepat diproses duluan
+
+asyncio.run(main())</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Semaphore           -->
+      <!-- ============================== -->
+      <h2 id="semaphore">6. Semaphore &amp; Throttling</h2>
+
+      <p><strong>Semaphore</strong> membatasi jumlah task yang bisa berjalan secara concurrent. Ini sangat penting untuk menghindari overwhelming API server, membatasi koneksi database, atau mencegah resource exhaustion.</p>
+
+      <pre><code class="language-python">import asyncio
+import time
+
+async def akses_api(id: int, semaphore: asyncio.Semaphore):
+    async with semaphore:  # Batasi concurrent access
+        print(f"[{id}] Mulai akses API...")
+        await asyncio.sleep(1)  # Simulasi API call
+        print(f"[{id}] Selesai!")
+        return f"Data-{id}"
+
+async def main():
+    # Batasi hanya 3 request bersamaan
+    semaphore = asyncio.Semaphore(3)
+    mulai = time.time()
+
+    # Buat 10 tasks, tapi hanya 3 yang jalan sekaligus
+    tasks = [akses_api(i, semaphore) for i in range(10)]
+    hasil = await asyncio.gather(*tasks)
+
+    selesai = time.time()
+    print(f"\n10 requests selesai dalam {selesai - mulai:.2f}s")
+    # Seharusnya ~4 detik (3 batch × 1 detik + 1 batch)
+    print(f"Semua data: {len(hasil)} item")
+
+asyncio.run(main())</code></pre>
+
+      <h3>BoundedSemaphore untuk Keamanan Ekstra</h3>
+      <pre><code class="language-python">import asyncio
+
+async def main():
+    # BoundedSemaphore tidak bisa di-release melebihi nilai awal
+    sem = asyncio.BoundedSemaphore(2)
+
+    async def tugas(n):
+        async with sem:
+            print(f"  Task {n} masuk")
+            await asyncio.sleep(1)
+            print(f"  Task {n} keluar")
+
+    await asyncio.gather(*[tugas(i) for i in range(5)])
+
+asyncio.run(main())</code></pre>
+
+      <h3>Rate Limiter Custom</h3>
+      <pre><code class="language-python">import asyncio
+import time
+
+class RateLimiter:
+    """Rate limiter: max N request per detik"""
+
+    def __init__(self, max_rate: int):
+        self.semaphore = asyncio.Semaphore(max_rate)
+        self.max_rate = max_rate
+
+    async def acquire(self):
+        await self.semaphore.acquire()
+
+    async def release(self):
+        await asyncio.sleep(1.0 / self.max_rate)
+        self.semaphore.release()
+
+    async def __aenter__(self):
+        await self.acquire()
+        return self
+
+    async def __aexit__(self, *args):
+        await self.release()
+
+async def fetch_with_rate_limit(url: str, limiter: RateLimiter):
+    async with limiter:
+        print(f"[{time.time():.1f}] Fetching {url}")
+        await asyncio.sleep(0.1)
+        return f"Data dari {url}"
+
+async def main():
+    limiter = RateLimiter(5)  # Max 5 per detik
+    urls = [f"https://api.example.com/page/{i}" for i in range(20)]
+
+    tasks = [fetch_with_rate_limit(u, limiter) for u in urls]
+    hasil = await asyncio.gather(*tasks)
+    print(f"Selesai: {len(hasil)} requests")
+
+asyncio.run(main())</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Queues              -->
+      <!-- ============================== -->
+      <h2 id="queues">7. Queues &amp; Producer-Consumer</h2>
+
+      <p><strong>asyncio.Queue</strong> memungkinkan pattern producer-consumer dimana satu sisi memproduksi data dan sisi lain mengkonsumsinya — cocok untuk pipeline processing, task workers, dan data streaming.</p>
+
+      <pre><code class="language-python">import asyncio
+import random
+
+async def producer(queue: asyncio.Queue, nama: str, jumlah: int):
+    """Menghasilkan item dan memasukkannya ke queue"""
+    for i in range(jumlah):
+        item = f"{nama}-item-{i}"
+        await asyncio.sleep(random.uniform(0.1, 0.5))
+        await queue.put(item)
+        print(f"  📦 [{nama}] Produksi: {item}")
+    print(f"  ✅ [{nama}] Selesai memproduksi")
+
+async def consumer(queue: asyncio.Queue, nama: str):
+    """Mengambil dan memproses item dari queue"""
+    while True:
+        item = await queue.get()
+        if item is None:  # Poison pill = stop signal
+            break
+        print(f"  ⚙️ [{nama}] Proses: {item}")
+        await asyncio.sleep(random.uniform(0.2, 0.6))
+        queue.task_done()
+    print(f"  ✅ [{nama}] Consumer selesai")
+
+async def main():
+    queue = asyncio.Queue(maxsize=5)  # Buffer size 5
+
+    # 2 producers, 3 consumers
+    producers = [
+        asyncio.create_task(producer(queue, "P1", 5)),
+        asyncio.create_task(producer(queue, "P2", 5)),
+    ]
+    consumers = [
+        asyncio.create_task(consumer(queue, f"C{i}"))
+        for i in range(3)
+    ]
+
+    # Tunggu producers selesai
+    await asyncio.gather(*producers)
+    print("\nSemua producer selesai, menunggu queue kosong...")
+
+    # Tunggu semua item diproses
+    await queue.join()
+
+    # Kirim poison pills untuk stop consumers
+    for _ in consumers:
+        await queue.put(None)
+    await asyncio.gather(*consumers)
+
+    print("\n✅ Pipeline selesai!")
+
+asyncio.run(main())</code></pre>
+
+      <h3>Tipe Queue Lainnya</h3>
+      <pre><code class="language-python">import asyncio
+
+async def main():
+    # 1. LIFO Queue: Last In First Out
+    lifo = asyncio.LifoQueue()
+    await lifo.put("pertama")
+    await lifo.put("kedua")
+    await lifo.put("ketiga")
+    print(await lifo.get())  # "ketiga" (yang terakhir masuk)
+
+    # 2. Priority Queue: Item dengan prioritas terendah duluan
+    pq = asyncio.PriorityQueue()
+    await pq.put((3, "Prioritas rendah"))
+    await pq.put((1, "Prioritas tinggi"))
+    await pq.put((2, "Prioritas sedang"))
+
+    while not pq.empty():
+        prio, item = await pq.get()
+        print(f"  [{prio}] {item}")
+    # Output: Prioritas tinggi, sedang, rendah
+
+asyncio.run(main())</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Timeout & Error     -->
+      <!-- ============================== -->
+      <h2 id="timeout">8. Timeout &amp; Error Handling</h2>
+
+      <p>Timeout sangat penting dalam async programming untuk mencegah task yang tidak pernah selesai (hang). asyncio menyediakan beberapa mekanisme timeout yang robust.</p>
+
+      <pre><code class="language-python">import asyncio
+
+async def operasi_lambat():
+    """Operasi yang bisa sangat lambat"""
+    await asyncio.sleep(100)  # Akan timeout sebelum selesai
+    return "data"
+
+async def main():
+    # Method 1: asyncio.timeout (Python 3.11+)
+    try:
+        async with asyncio.timeout(3):
+            await operasi_lambat()
+    except TimeoutError:
+        print("⏰ Timeout! Operasi terlalu lambat")
+
+    # Method 2: asyncio.wait_for
+    try:
+        hasil = await asyncio.wait_for(operasi_lambat(), timeout=3)
+    except TimeoutError:
+        print("⏰ Timeout via wait_for!")
+
+    # Method 3: asyncio.timeout_at (deadline-based)
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + 3
+    try:
+        async with asyncio.timeout_at(deadline):
+            await operasi_lambat()
+    except TimeoutError:
+        print("⏰ Deadline terlewat!")
+
+asyncio.run(main())</code></pre>
+
+      <h3>Menangani Exception di Multiple Tasks</h3>
+      <pre><code class="language-python">import asyncio
+
+async def tugas_aman(n):
+    await asyncio.sleep(1)
+    return f"Task {n} OK"
+
+async def tugas_error(n):
+    await asyncio.sleep(0.5)
+    raise ValueError(f"Error di task {n}!")
+
+async def main():
+    # gather dengan return_exceptions=True
+    hasil = await asyncio.gather(
+        tugas_aman(1),
+        tugas_error(2),
+        tugas_aman(3),
+        return_exceptions=True  # Error sebagai hasil, bukan raise
+    )
+
+    for i, h in enumerate(hasil):
+        if isinstance(h, Exception):
+            print(f"  ❌ Task {i+1}: {h}")
+        else:
+            print(f"  ✅ Task {i+1}: {h}")
+
+    # Dengan TaskGroup (Python 3.11+)
+    try:
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(tugas_aman(1))
+            tg.create_task(tugas_error(2))  # Ini akan membatalkan semua
+            tg.create_task(tugas_aman(3))
+    except* ValueError as eg:
+        for exc in eg.exceptions:
+            print(f"  Caught: {exc}")
+
+asyncio.run(main())</code></pre>
+
+      <h3>Shield: Lindungi Task dari Pembatalan</h3>
+      <pre><code class="language-python">import asyncio
+
+async def operasi_penting():
+    """Operasi yang TIDAK boleh dibatalkan"""
+    print("  Menyimpan data ke database...")
+    await asyncio.sleep(3)
+    print("  ✅ Data tersimpan!")
+    return "Tersimpan"
+
+async def main():
+    try:
+        # shield melindungi inner coroutine dari CancelledError
+        hasil = await asyncio.wait_for(
+            asyncio.shield(operasi_penting()),
+            timeout=2
+        )
+    except TimeoutError:
+        print("⏰ Timeout, tapi operasi_penting tetap berjalan!")
+        # Tunggu sebentar untuk membuktikan operasi_penting selesai
+        await asyncio.sleep(2)
+
+asyncio.run(main())</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Async HTTP & DB     -->
+      <!-- ============================== -->
+      <h2 id="http">9. Async HTTP &amp; Database</h2>
+
+      <p>Salah satu use case terbaik asyncio adalah concurrent HTTP requests dan database queries. Berikut contoh menggunakan library populer.</p>
+
+      <pre><code class="language-python"># Install: pip install aiohttp
+import asyncio
+import aiohttp
+
+async def fetch(session, url):
+    """Fetch satu URL"""
+    async with session.get(url) as response:
+        data = await response.json()
+        return {"url": url, "status": response.status, "data": data}
+
+async def fetch_sem(session, url, semaphore):
+    """Fetch dengan semaphore untuk limit concurrent"""
+    async with semaphore:
+        return await fetch(session, url)
+
+async def main():
+    urls = [
+        "https://jsonplaceholder.typicode.com/posts/1",
+        "https://jsonplaceholder.typicode.com/posts/2",
+        "https://jsonplaceholder.typicode.com/posts/3",
+        "https://jsonplaceholder.typicode.com/users/1",
+        "https://jsonplaceholder.typicode.com/todos/1",
+    ]
+
+    semaphore = asyncio.Semaphore(3)  # Max 3 concurrent
+
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_sem(session, url, semaphore) for url in urls]
+        hasil = await asyncio.gather(*tasks, return_exceptions=True)
+
+    for h in hasil:
+        if isinstance(h, Exception):
+            print(f"  ❌ Error: {h}")
+        else:
+            print(f"  ✅ {h['url']}: {h['status']}")
+
+asyncio.run(main())</code></pre>
+
+      <pre><code class="language-python"># Async Database dengan aiosqlite
+# Install: pip install aiosqlite
+import asyncio
+import aiosqlite
+
+async def main():
+    async with aiosqlite.connect("example.db") as db:
+        # Create table
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY,
+                nama TEXT,
+                email TEXT
+            )
+        """)
+
+        # Insert data
+        await db.execute(
+            "INSERT INTO users (nama, email) VALUES (?, ?)",
+            ("Budi", "budi@email.com")
+        )
+        await db.commit()
+
+        # Select data
+        async with db.execute("SELECT * FROM users") as cursor:
+            async for row in cursor:
+                print(f"  User: {row}")
+
+asyncio.run(main())</code></pre>
+
+      <h3>Async Web Scraper</h3>
+      <pre><code class="language-python"># Web scraper dengan concurrency control
+import asyncio
+import aiohttp
+from dataclasses import dataclass
+
+@dataclass
+class PageResult:
+    url: str
+    title: str
+    status: int
+    size: int
+
+async def scrape_page(session, url, semaphore):
+    async with semaphore:
+        try:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                html = await resp.text()
+                # Simple title extraction
+                start = html.find("<title>") + 7
+                end = html.find("</title>")
+                title = html[start:end] if start > 6 else "No title"
+                return PageResult(url, title.strip(), resp.status, len(html))
+        except Exception as e:
+            return PageResult(url, f"Error: {e}", 0, 0)
+
+async def main():
+    urls = [f"https://httpbin.org/delay/{i%3}" for i in range(10)]
+    sem = asyncio.Semaphore(5)
+
+    async with aiohttp.ClientSession() as session:
+        tasks = [scrape_page(session, url, sem) for url in urls]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    for r in results:
+        if isinstance(r, PageResult):
+            print(f"  [{r.status}] {r.url} — {r.title} ({r.size} bytes)")
+
+asyncio.run(main())</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Best Practices     -->
+      <!-- ============================== -->
+      <h2 id="best-practices">10. Best Practices &amp; Common Pitfalls</h2>
+
+      <h3>✅ Yang Harus Dilakukan</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Praktik</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Gunakan <code>async with</code></td><td>Memastikan resource dibersihkan dengan benar</td></tr>
+          <tr><td>Batasi concurrency</td><td>Gunakan Semaphore agar tidak overwhelm server</td></tr>
+          <tr><td>Set timeout</td><td>Selalu pasang timeout untuk network operations</td></tr>
+          <tr><td>Gunakan <code>asyncio.run()</code></td><td>Cara terbaik untuk memulai event loop di main</td></tr>
+          <tr><td>Gunakan <code>TaskGroup</code></td><td>Lebih aman dari <code>gather()</code> untuk error handling</td></tr>
+          <tr><td>Handle <code>CancelledError</code></td><td>Bersihkan resource dengan tepat saat task dibatalkan</td></tr>
+        </tbody>
+      </table>
+
+      <h3>❌ Pitfalls yang Harus Dihindari</h3>
+      <pre><code class="language-python">import asyncio
+
+# ❌ PITFALL 1: Lupa await
+async def pitfall_1():
+    # Coroutine tidak berjalan tanpa await!
+    result = asyncio.sleep(1)  # Hanya membuat coroutine object!
+    print(result)  # &lt;coroutine object sleep at 0x...&gt;
+
+# ❌ PITFALL 2: Menggunakan library blocking di async code
+async def pitfall_2():
+    import time
+    time.sleep(5)  # MEMBLOCK seluruh event loop!
+    # ✅ Gunakan: await asyncio.sleep(5)
+
+# ❌ PITFALL 3: Menggunakan requests library
+async def pitfall_3():
+    import requests
+    resp = requests.get("https://api.example.com")  # BLOCKING!
+    # ✅ Gunakan: aiohttp atau httpx dengan async client
+
+# ❌ PITFALL 4: Tidak handle exception di gather
+async def pitfall_4():
+    # Jika satu task gagal, error hanya muncul saat await
+    tasks = [asyncio.sleep(1) for _ in range(10)]
+    # ✅ Gunakan return_exceptions=True atau TaskGroup
+
+# ❌ PITFALL 5: Membuat task tapi tidak referensi
+async def pitfall_5():
+    asyncio.create_task(some_coroutine())  # Task bisa di-GC!
+    # ✅ Simpan referensi: task = asyncio.create_task(...)
+    # atau gunakan TaskGroup
+
+print("Semua pitfall dijelaskan!")</code></pre>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Cheat Sheet asyncio</div>
+        <p><code>asyncio.run(coro)</code> — Jalankan coroutine di main<br>
+        <code>await asyncio.sleep(n)</code> — Non-blocking sleep<br>
+        <code>asyncio.create_task(coro)</code> — Buat task concurrent<br>
+        <code>asyncio.gather(*coros)</code> — Jalankan semua bersamaan<br>
+        <code>asyncio.wait_for(coro, timeout)</code> — Dengan timeout<br>
+        <code>asyncio.Semaphore(n)</code> — Batasi concurrency<br>
+        <code>asyncio.Queue()</code> — Producer-consumer queue<br>
+        <code>asyncio.TaskGroup()</code> — Structured concurrency (3.11+)</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Quiz               -->
+      <!-- ============================== -->
+      <h2 id="quiz">11. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quizAsyncio">
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1.</strong> Apa yang terjadi jika kamu memanggil fungsi <code>async def</code> tanpa <code>await</code>?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q1" value="a"> Fungsi langsung berjalan</label>
+            <label><input type="radio" name="q1" value="b"> Membuat coroutine object, fungsi tidak berjalan</label>
+            <label><input type="radio" name="q1" value="c"> Error SyntaxError</label>
+            <label><input type="radio" name="q1" value="d"> Fungsi berjalan di background</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2.</strong> Fungsi mana yang digunakan untuk menjalankan beberapa coroutine bersamaan?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q2" value="a"> asyncio.run()</label>
+            <label><input type="radio" name="q2" value="b"> asyncio.wait()</label>
+            <label><input type="radio" name="q2" value="c"> asyncio.gather()</label>
+            <label><input type="radio" name="q2" value="d"> asyncio.execute()</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3.</strong> Apa fungsi dari Semaphore dalam asyncio?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q3" value="a"> Membatasi jumlah task yang berjalan bersamaan</label>
+            <label><input type="radio" name="q3" value="b"> Menghentikan event loop</label>
+            <label><input type="radio" name="q3" value="c"> Mengubah urutan eksekusi task</label>
+            <label><input type="radio" name="q3" value="d"> Menghapus task yang error</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4.</strong> Kenapa menggunakan <code>time.sleep()</code> dalam kode asyncio sangat berbahaya?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q4" value="a"> Menghabiskan memory</label>
+            <label><input type="radio" name="q4" value="b"> Menyebabkan infinite loop</label>
+            <label><input type="radio" name="q4" value="c"> Menghapus event loop</label>
+            <label><input type="radio" name="q4" value="d"> Mem-block seluruh event loop, semua task berhenti</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>5.</strong> Apa perbedaan utama antara <code>gather()</code> dan <code>TaskGroup</code>?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q5" value="a"> gather() lebih cepat dari TaskGroup</label>
+            <label><input type="radio" name="q5" value="b"> TaskGroup membatalkan semua task jika satu gagal</label>
+            <label><input type="radio" name="q5" value="c"> gather() tidak mendukung async/await</label>
+            <label><input type="radio" name="q5" value="d"> Tidak ada perbedaan</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARTICLE NAVIGATION -->
+      <div class="article-nav">
+        <a href="python-pemula.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Python untuk Pemula</span>
+        </a>
+        <a href="python-pre-commit-hooks.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Python Pre-commit Hooks</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/python-requests-http.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">Python Requests: HTTP Client Lengkap</span>
+        </a>
+        <a href="/articles/flask-pemula.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">Flask: Micro Web Framework Python</span>
+        </a>
+        <a href="/articles/python-argparse-cli.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">Python Argparse: Membangun CLI Tools</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

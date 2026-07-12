@@ -1,0 +1,942 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">DevOps & Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">CI/CD GitHub Actions</span>
+      </div>
+      <span class="category-tag">DevOps & Cloud</span>
+      <h1>CI/CD dengan GitHub Actions</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Panduan lengkap membangun CI/CD pipeline dengan GitHub Actions — dari konsep dasar, workflow syntax, hingga deployment otomatis ke berbagai cloud provider</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 11 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-cicd">Pengenalan CI/CD</a></li>
+          <li><a href="#workflow-syntax">Workflow Syntax</a></li>
+          <li><a href="#jobs-steps">Jobs dan Steps</a></li>
+          <li><a href="#triggers">Triggers: Events yang Memicu Workflow</a></li>
+          <li><a href="#secrets">Mengelola Secrets</a></li>
+          <li><a href="#caching">Caching Dependencies</a></li>
+          <li><a href="#deploy-cloud">Deploy ke Cloud</a></li>
+          <li><a href="#matrix-builds">Matrix Builds</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan CI/CD     -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-cicd">1. Pengenalan CI/CD</h2>
+
+      <p><strong>CI/CD</strong> (Continuous Integration / Continuous Deployment) adalah praktik DevOps yang mengotomatiskan proses build, test, dan deployment aplikasi. <strong>GitHub Actions</strong> adalah platform CI/CD yang terintegrasi langsung dengan GitHub, memungkinkan Anda membuat workflow otomatis tanpa memerlukan tool eksternal.</p>
+
+      <p>Diperkenalkan pada November 2019, GitHub Actions dengan cepat menjadi salah satu platform CI/CD paling populer karena integrasinya yang mulus dengan repository GitHub, marketplace actions yang luas, dan kemudahan konfigurasi menggunakan YAML.</p>
+
+      <h3>Konsep Dasar CI/CD</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Konsep</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Continuous Integration (CI)</strong></td><td>Developer sering merge kode ke branch utama. Setiap merge otomatis menjalankan build dan test untuk mendeteksi error lebih awal</td></tr>
+          <tr><td><strong>Continuous Delivery (CD)</strong></td><td>Setiap perubahan yang lolos CI otomatis di-deploy ke staging environment. Deployment ke production masih butuh approval manual</td></tr>
+          <tr><td><strong>Continuous Deployment (CD)</strong></td><td>Seperti Continuous Delivery, tapi deployment ke production juga otomatis tanpa approval manual</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Mengapa GitHub Actions?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Keunggulan</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Terintegrasi GitHub</td><td>Tidak perlu tool terpisah — langsung di repository GitHub Anda</td></tr>
+          <tr><td>Gratis untuk Public Repo</td><td>2000 menit/bulan untuk private repo, unlimited untuk public</td></tr>
+          <tr><td>Marketplace Luas</td><td>Ribuan pre-built actions siap pakai dari komunitas</td></tr>
+          <tr><td>Multi-OS</td><td>Runner tersedia untuk Ubuntu, Windows, macOS, dan ARM</td></tr>
+          <tr><td>Konfigurasi YAML</td><td>Workflow didefinisikan dalam YAML — mudah di-version control</td></tr>
+          <tr><td>Matrix Builds</td><td>Jalankan test di beberapa versi OS/bahasa secara paralel</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: CI/CD Pipeline Flow</div>
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: CI/CD PIPELINE WITH GITHUB ACTIONS</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 246.890625px;" viewBox="0 0 246.890625 382" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:Inter,system-ui,sans-serif;font-size:16px;fill:#ccc;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#a44141;}#mermaid-svg .error-text{fill:#ddd;stroke:#ddd;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#3ecf8e;stroke:#3ecf8e;}#mermaid-svg .marker.cross{stroke:#3ecf8e;}#mermaid-svg svg{font-family:Inter,system-ui,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:Inter,system-ui,sans-serif;color:#E7E8F5;}#mermaid-svg .cluster-label text{fill:#3ecf8e;}#mermaid-svg .cluster-label span{color:#3ecf8e;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#E7E8F5;color:#E7E8F5;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#1f2020;stroke:#ccc;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#3ecf8e!important;stroke-width:0;stroke:#3ecf8e;}#mermaid-svg .arrowheadPath{fill:lightgrey;}#mermaid-svg .edgePath .path{stroke:#3ecf8e;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#3ecf8e;fill:none;}#mermaid-svg .edgeLabel{background-color:#0f1011;text-align:center;}#mermaid-svg .edgeLabel p{background-color:#0f1011;}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:#0f1011;fill:#0f1011;}#mermaid-svg .labelBkg{background-color:rgba(15, 16, 17, 0.5);}#mermaid-svg .cluster rect{fill:rgba(62, 207, 142, 0.08);stroke:#3ecf8e;stroke-width:1px;}#mermaid-svg .cluster text{fill:#3ecf8e;}#mermaid-svg .cluster span{color:#3ecf8e;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:Inter,system-ui,sans-serif;font-size:12px;background:#1a1f2e;border:1px solid rgba(255, 255, 255, 0.25);border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#ccc;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:#0f1011;text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:#0f1011;padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:#0f1011;fill:#0f1011;}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:Inter,system-ui,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M123.445,62L123.445,66.167C123.445,70.333,123.445,78.667,123.445,86.333C123.445,94,123.445,101,123.445,104.5L123.445,108" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTIzLjQ0NTMxMjUsInkiOjYyfSx7IngiOjEyMy40NDUzMTI1LCJ5Ijo4N30seyJ4IjoxMjMuNDQ1MzEyNSwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M123.445,166L123.445,170.167C123.445,174.333,123.445,182.667,123.445,190.333C123.445,198,123.445,205,123.445,208.5L123.445,212" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTIzLjQ0NTMxMjUsInkiOjE2Nn0seyJ4IjoxMjMuNDQ1MzEyNSwieSI6MTkxfSx7IngiOjEyMy40NDUzMTI1LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M123.445,270L123.445,274.167C123.445,278.333,123.445,286.667,123.445,294.333C123.445,302,123.445,309,123.445,312.5L123.445,316" id="L_N2_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N3_0" data-points="W3sieCI6MTIzLjQ0NTMxMjUsInkiOjI3MH0seyJ4IjoxMjMuNDQ1MzEyNSwieSI6Mjk1fSx7IngiOjEyMy40NDUzMTI1LCJ5IjozMjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(123.4453125, 35)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="-95.7265625" y="-27" width="191.453125" height="54"/><g class="label" style="" transform="translate(-65.7265625, -12)"><rect/><foreignObject width="131.453125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>TEST Unit + E2E</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(123.4453125, 139)"><rect class="basic label-container" style="" x="-115.4453125" y="-27" width="230.890625" height="54"/><g class="label" style="" transform="translate(-85.4453125, -12)"><rect/><foreignObject width="170.890625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>PRODUCTION (Cloud)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(123.4453125, 243)"><rect class="basic label-container" style="" x="-77.34375" y="-27" width="154.6875" height="54"/><g class="label" style="" transform="translate(-47.34375, -12)"><rect/><foreignObject width="94.6875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>BUILD Code</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(123.4453125, 347)"><rect class="basic label-container" style="" x="-62.3671875" y="-27" width="124.734375" height="54"/><g class="label" style="" transform="translate(-32.3671875, -12)"><rect/><foreignObject width="64.734375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>git push</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Workflow Syntax      -->
+      <!-- ============================== -->
+      <h2 id="workflow-syntax">2. Workflow Syntax</h2>
+
+      <p>Workflow GitHub Actions didefinisikan dalam file YAML yang disimpan di direktori <code>.github/workflows/</code>. Setiap file YAML merepresentasikan satu workflow yang bisa dipicu oleh berbagai events di repository.</p>
+
+      <h3>Struktur File Workflow</h3>
+      </div>
+<div class="diagram-box">
+
+        <div class="diagram-label">Diagram: Job Dependencies</div>
+<div class="diagram-box">
+        
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Job Dependencies</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 374" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:Inter,system-ui,sans-serif;font-size:16px;fill:#ccc;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#a44141;}#mermaid-svg .error-text{fill:#ddd;stroke:#ddd;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#3ecf8e;stroke:#3ecf8e;}#mermaid-svg .marker.cross{stroke:#3ecf8e;}#mermaid-svg svg{font-family:Inter,system-ui,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:Inter,system-ui,sans-serif;color:#E7E8F5;}#mermaid-svg .cluster-label text{fill:#3ecf8e;}#mermaid-svg .cluster-label span{color:#3ecf8e;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#E7E8F5;color:#E7E8F5;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#1f2020;stroke:#ccc;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#3ecf8e!important;stroke-width:0;stroke:#3ecf8e;}#mermaid-svg .arrowheadPath{fill:lightgrey;}#mermaid-svg .edgePath .path{stroke:#3ecf8e;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#3ecf8e;fill:none;}#mermaid-svg .edgeLabel{background-color:#0f1011;text-align:center;}#mermaid-svg .edgeLabel p{background-color:#0f1011;}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:#0f1011;fill:#0f1011;}#mermaid-svg .labelBkg{background-color:rgba(15, 16, 17, 0.5);}#mermaid-svg .cluster rect{fill:rgba(62, 207, 142, 0.08);stroke:#3ecf8e;stroke-width:1px;}#mermaid-svg .cluster text{fill:#3ecf8e;}#mermaid-svg .cluster span{color:#3ecf8e;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:Inter,system-ui,sans-serif;font-size:12px;background:#1a1f2e;border:1px solid rgba(255, 255, 255, 0.25);border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#ccc;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:#0f1011;text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:#0f1011;padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:#0f1011;fill:#0f1011;}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:Inter,system-ui,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,86L138,90.167C138,94.333,138,102.667,138,110.333C138,118,138,125,138,128.5L138,132" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTM4LCJ5Ijo4Nn0seyJ4IjoxMzgsInkiOjExMX0seyJ4IjoxMzgsInkiOjEzNn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,214L138,218.167C138,222.333,138,230.667,138,238.333C138,246,138,253,138,256.5L138,260" id="L_N2_N0_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N0_0" data-points="W3sieCI6MTM4LCJ5IjoyMTR9LHsieCI6MTM4LCJ5IjoyMzl9LHsieCI6MTM4LCJ5IjoyNjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N0_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 315)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>lint ► test coverage upload Parallel within job...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 47)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>test lint unit coverage ► needs</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 175)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>build docker push ► deploy needs ssh deploy</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Setiap job berjalan di VM terpisah, sehingga file yang dihasilkan di satu job tidak tersedia di job lain. Gunakan <code>actions/upload-artifact</code> dan <code>actions/download-artifact</code> untuk berbagi file antar jobs.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Triggers             -->
+      <!-- ============================== -->
+      <h2 id="triggers">4. Triggers: Events yang Memicu Workflow</h2>
+
+      <p>GitHub Actions bisa dipicu oleh berbagai events di repository maupun secara manual. Kunci <code>on</code> di workflow YAML mendefinisikan kapan workflow akan dijalankan.</p>
+
+      <h3>Berbagai Jenis Trigger</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Trigger Examples</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === PUSH & PULL REQUEST ===
+on:
+  push:
+    branches: [main, develop, 'release/**']
+    paths: ['src/**', 'tests/**']  # Hanya jika file ini berubah
+    paths-ignore: ['docs/**', '*.md']
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+# === SCHEDULE (CRON) ===
+on:
+  schedule:
+    # Setiap hari jam 2 pagi UTC (cron syntax)
+    - cron: '0 2 * * *'
+    # Setiap Senin jam 9 pagi UTC
+    - cron: '0 9 * * 1'
+
+# === WORKFLOW DISPATCH (Manual) ===
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy target'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version tag'
+        required: false
+
+# === REPOSITORY DISPATCH ===
+on:
+  repository_dispatch:
+    types: [deploy-command]
+
+# === MULTIPLE TRIGGERS ===
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 0'  # Setiap Minggu
+  workflow_dispatch:
+
+# === RELEASE ===
+on:
+  release:
+    types: [published, edited]
+
+# === ISSUE & COMMENTS ===
+on:
+  issues:
+    types: [opened, edited, labeled]
+  issue_comment:
+    types: [created]
+</code></pre>
+      </div>
+
+      <h3>Filter dengan Paths dan Tags</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Advanced Triggers</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Trigger hanya saat file di folder tertentu berubah
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'package*.json'
+      - '!src/**/*.test.js'  # Kecuali file test
+
+# Trigger saat tag di-push (untuk release)
+on:
+  push:
+    tags:
+      - 'v*'  # Cocokkan v1.0, v2.3.1, dll
+
+# Filter berdasarkan file yang diubah
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'api/**'
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Secrets              -->
+      <!-- ============================== -->
+      <h2 id="secrets">5. Mengelola Secrets</h2>
+
+      <p><strong>GitHub Secrets</strong> memungkinkan Anda menyimpan data sensitif seperti API keys, password, dan tokens secara aman. Secrets tidak akan tampil di log workflow dan tidak bisa diakses oleh fork repository.</p>
+
+      <h3>Menambahkan Secrets</h3>
+      <ol>
+        <li>Buka repository di GitHub</li>
+        <li>Klik <strong>Settings</strong> → <strong>Secrets and variables</strong> → <strong>Actions</strong></li>
+        <li>Klik <strong>New repository secret</strong></li>
+        <li>Masukkan nama (misal: <code>DOCKER_PASSWORD</code>) dan value</li>
+      </ol>
+
+      <h3>Menggunakan Secrets di Workflow</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Secrets Usage</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Menggunakan secret sebagai environment variable
+      - name: Deploy
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "Deploying..."
+          aws s3 sync ./dist s3://my-bucket
+
+      # Menggunakan secret dengan action
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      # Menggunakan secret untuk SSH
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/app && git pull && docker compose up -d
+
+# === ENVIRONMENT SECRETS ===
+# Secrets bisa dibatasi per environment
+# (Settings → Environments → pilih environment → Add secret)
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: production  # Hanya akses secrets di environment ini
+    steps:
+      - run: echo "Deploying to ${{ secrets.DEPLOY_URL }}"
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Jangan pernah mencetak secrets ke log! Jangan gunakan <code>echo ${{ secrets.MY_SECRET }}</code> — meskipun GitHub akan otomatis menyensor output, lebih baik hindari sama sekali. Gunakan secrets hanya di environment variables atau input action.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Caching              -->
+      <!-- ============================== -->
+      <h2 id="caching">6. Caching Dependencies</h2>
+
+      <p>Setiap kali workflow berjalan, runner memulai dengan environment yang bersih — semua dependencies harus di-download ulang. <strong>Caching</strong> memungkinkan Anda menyimpan dependencies agar tidak perlu di-download setiap kali, mempercepat workflow secara signifikan.</p>
+
+      <h3>Cara Cache dengan actions/cache</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Caching</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === METHOD 1: Built-in cache di setup actions ===
+# Node.js
+- uses: actions/setup-node@v4
+  with:
+    node-version: '20'
+    cache: 'npm'  # Otomatis cache node_modules
+
+# Python
+- uses: actions/setup-python@v5
+  with:
+    python-version: '3.12'
+    cache: 'pip'  # Otomatis cache pip packages
+
+# === METHOD 2: actions/cache (lebih fleksibel) ===
+- name: Cache dependencies
+  uses: actions/cache@v4
+  with:
+    path: |
+      ~/.npm
+      node_modules
+    key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      ${{ runner.os }}-node-
+
+# === METHOD 3: Docker layer caching ===
+- name: Build Docker image
+  uses: docker/build-push-action@v5
+  with:
+    context: .
+    push: false
+    tags: myapp:latest
+    cache-from: type=gha
+    cache-to: type=gha,mode=max
+
+# === METHOD 4: Cache Gradle (Java) ===
+- uses: actions/setup-java@v4
+  with:
+    java-version: '21'
+    distribution: 'temurin'
+    cache: 'gradle'
+</code></pre>
+      </div>
+
+      <h3>Strategi Cache Key</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Strategi</th>
+            <th>Key Pattern</th>
+            <th>Kapan Cache Miss</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Lockfile hash</td><td><code>${{ hashFiles('**/package-lock.json') }}</code></td><td>Saat dependencies berubah</td></tr>
+          <tr><td>Date-based</td><td><code>${{ runner.os }}-${{ github.run_id }}</code></td><td>Setiap run (tidak efektif)</td></tr>
+          <tr><td>Branch-specific</td><td><code>${{ runner.os }}-${{ github.ref }}</code></td><td>Per branch</td></tr>
+          <tr><td>Fallback</td><td>Gunakan <code>restore-keys</code></td><td>Cache parsial jika miss</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Deploy ke Cloud      -->
+      <!-- ============================== -->
+      <h2 id="deploy-cloud">7. Deploy ke Cloud</h2>
+
+      <p>Salah satu kekuatan utama GitHub Actions adalah kemampuan deploy ke berbagai cloud provider secara otomatis. Berikut contoh deployment ke beberapa platform populer:</p>
+
+      <h3>Deploy ke AWS (S3 + CloudFront)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Deploy to AWS</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>name: Deploy Frontend to AWS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-1
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync ./dist s3://my-frontend-bucket \
+            --delete \
+            --cache-control "max-age=31536000"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_ID }} \
+            --paths "/*"
+</code></pre>
+      </div>
+
+      <h3>Deploy ke VPS dengan SSH</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Deploy to VPS</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            set -e
+            cd /opt/myapp
+
+            # Pull kode terbaru
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Build dan restart
+            docker compose build --no-cache
+            docker compose down
+            docker compose up -d
+
+            # Cleanup
+            docker system prune -f
+
+            echo "✅ Deploy berhasil!"
+</code></pre>
+      </div>
+
+      <h3>Deploy ke Docker Hub + Server</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Docker Hub Deploy</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>name: Build & Push Docker Image
+
+on:
+  push:
+    tags: ['v*']  # Hanya saat tag version di-push
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            myuser/myapp:latest
+            myuser/myapp:${{ steps.version.outputs.VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Matrix Builds        -->
+      <!-- ============================== -->
+      <h2 id="matrix-builds">8. Matrix Builds</h2>
+
+      <p><strong>Matrix builds</strong> memungkinkan Anda menjalankan job yang sama dengan beberapa kombinasi parameter (misalnya: berbagai versi Node.js, OS, atau database). Ini sangat berguna untuk memastikan kompatibilitas lintas platform.</p>
+
+      <h3>Contoh Matrix Build</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Matrix Build</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>name: Test Matrix
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Node ${{ matrix.node-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+        os: [ubuntu-latest, windows-latest]
+        exclude:
+          # Kecualikan kombinasi tertentu
+          - node-version: 18
+            os: windows-latest
+        include:
+          # Tambahkan kombinasi ekstra
+          - node-version: 20
+            os: macos-latest
+            experimental: true
+      fail-fast: false  # Jangan stop jika satu matrix gagal
+
+    continue-on-error: ${{ matrix.experimental || false }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm test
+
+      # Upload coverage hanya untuk satu kombinasi
+      - name: Upload coverage
+        if: matrix.node-version == 20 && matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+</code></pre>
+      </div>
+
+      <h3>Contoh Matrix dengan Database</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Matrix + Services</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>jobs:
+  test:
+    name: Test with ${{ matrix.db }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        db: [postgres, mysql]
+
+    services:
+      # Service container otomatis dijalankan
+      postgres:
+        image: postgres:16
+        if: matrix.db == 'postgres'
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      mysql:
+        image: mysql:8
+        if: matrix.db == 'mysql'
+        env:
+          MYSQL_ROOT_PASSWORD: testpass
+          MYSQL_DATABASE: testdb
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: pytest tests/ -v
+        env:
+          DATABASE_TYPE: ${{ matrix.db }}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Best Practices       -->
+      <!-- ============================== -->
+      <h2 id="best-practices">9. Best Practices GitHub Actions</h2>
+
+      <p>Mengikuti best practices saat menggunakan GitHub Actions sangat penting untuk keamanan, performa, dan maintainability pipeline CI/CD Anda.</p>
+
+      <h3>Keamanan</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Praktik</th>
+            <th>Alasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Pin action versions</td><td>Gunakan SHA commit, bukan tag — <code>uses: actions/checkout@abc123</code></td></tr>
+          <tr><td>Least privilege</td><td>Berikan permissions hanya yang dibutuhkan: <code>permissions: contents: read</code></td></tr>
+          <tr><td>Audit third-party actions</td><td>Review kode source sebelum menggunakan action dari marketplace</td></tr>
+          <tr><td>Environment secrets</td><td>Gunakan environment-level secrets untuk production credentials</td></tr>
+          <tr><td>Tidak print secrets</td><td>Jangan pernah echo atau print nilai secrets</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Performa</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — Best Practices</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># 1. Gunakan permissions minimal
+permissions:
+  contents: read
+  packages: write
+
+# 2. Set timeout untuk mencegah job berjalan terlalu lama
+jobs:
+  test:
+    timeout-minutes: 15  # Maksimal 15 menit
+
+# 3. Gunakan concurrency untuk cancel run lama
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# 4. Pisahkan workflow untuk CI dan CD
+# .github/workflows/ci.yml  → Jalankan di setiap push/PR
+# .github/workflows/deploy.yml → Hanya di merge ke main
+
+# 5. Gunakan reusable workflows
+# .github/workflows/reusable-deploy.yml
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+# 6. Conditional steps untuk efisiensi
+steps:
+  - name: Deploy only on main
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    run: ./deploy.sh
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Gunakan <code>concurrency</code> untuk membatalkan workflow yang sudah tidak relevan — misalnya saat Anda push commit baru ke PR yang sama, workflow dari commit sebelumnya otomatis dibatalkan. Ini menghemat menit GitHub Actions.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang CI/CD dengan GitHub Actions:</p>
+
+      <div class="quiz-container" id="quizCICD01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Di direktori mana file workflow GitHub Actions harus disimpan?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) .github/actions/</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) .github/workflows/</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) .actions/workflows/</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) .ci/workflows/</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa perbedaan antara Continuous Delivery dan Continuous Deployment?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Tidak ada perbedaan</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Delivery otomatis, Deployment manual</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Delivery butuh approval manual ke production, Deployment sepenuhnya otomatis</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Delivery untuk frontend, Deployment untuk backend</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Bagaimana cara menjalankan jobs secara sequential di GitHub Actions?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Gunakan keyword <code>order: sequential</code></div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Gunakan <code>needs</code> untuk mendefinisikan dependensi</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Jobs selalu berjalan sequential secara default</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Gunakan <code>depends_on</code></div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari <code>concurrency</code> di GitHub Actions workflow?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Menjalankan jobs secara bersamaan</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Membatalkan workflow lama yang sudah tidak relevan</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Mengatur jumlah runner</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Mengenkripsi data workflow</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa disarankan menggunakan SHA commit daripada tag untuk pin action versions?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) SHA lebih pendek dari tag</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) SHA lebih cepat dieksekusi</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Tag bisa diubah/di-overwrite oleh maintainer, SHA immutable</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) SHA menghemat menit GitHub Actions</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="docker-dasar.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Docker untuk Developer: Panduan Praktis</span>
+        </a>
+        <a href="cloud-aws-dasar.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">AWS untuk Pemula: Memulai Cloud Computing</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/linux-server-admin.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <span class="related-title">Linux Server Administration</span>
+        </a>
+        <a href="/articles/opentelemetry.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <span class="related-title">OpenTelemetry: Observability untuk Developer</span>
+        </a>
+        <a href="/articles/aws-s3-storage.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <span class="related-title">AWS S3: Object Storage</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

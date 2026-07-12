@@ -1,0 +1,895 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">ESP32</a>
+        <span class="separator">/</span>
+        <span class="current">Deep Sleep</span>
+      </div>
+      <span class="category-tag">ESP32 &amp; ESP8266</span>
+      <h1>ESP32 Deep Sleep: Hemat Baterai Hingga Setahun</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Tutorial komprehensif mode tidur ESP32 untuk proyek battery-powered — dari timer wake, GPIO wake, hingga ULP coprocessor</p>
+      <div class="article-meta">
+        <span>📅 20 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#mengapa-deep-sleep">Mengapa Deep Sleep? Perbandingan Daya &amp; Umur Baterai</a></li>
+          <li><a href="#mode-daya">Mode Daya ESP32 (Active, Modem, Light Sleep, Deep Sleep, Hibernate)</a></li>
+          <li><a href="#timer-wakeup">Deep Sleep dengan Timer Wakeup</a></li>
+          <li><a href="#gpio-wakeup">Deep Sleep dengan GPIO Wakeup (Touch/Button)</a></li>
+          <li><a href="#ulp-coprocessor">Deep Sleep dengan ULP Coprocessor</a></li>
+          <li><a href="#mengukur-daya">Mengukur Konsumsi Daya (Multimeter &amp; INA219)</a></li>
+          <li><a href="#flush-sebelum-tidur">Mengirim Data Sebelum Tidur (WiFi Flush &amp; MQTT Disconnect)</a></li>
+          <li><a href="#proyek-sensor-suhu">Proyek: Sensor Suhu Battery-Powered 1 Tahun</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Mengapa Deep Sleep   -->
+      <!-- ============================== -->
+      <h2 id="mengapa-deep-sleep">1. Mengapa Deep Sleep? Perbandingan Daya &amp; Umur Baterai</h2>
+
+      <p>ESP32 adalah mikrokontroler yang sangat powerful dengan WiFi dan Bluetooth built-in, namun kemampuan tersebut datang dengan konsumsi daya yang relatif besar jika dibandingkan mikrokontroler sederhana seperti ATtiny85. Saat mode aktif penuh dengan WiFi aktif, ESP32 bisa mengonsumsi <strong>hingga 240 mA</strong> — jumlah yang cukup untuk menghabiskan baterai AAA dalam waktu kurang dari dua hari.</p>
+
+      <p>Inilah mengapa ESP32 menyediakan fitur <strong>Deep Sleep</strong>: mode tidur ultra-rendah daya yang hanya mengonsumsi sekitar <strong>5-10 µA</strong>. Selisihnya luar biasa — hampir <strong>50.000 kali</strong> lebih hemat daya dibanding mode aktif!</p>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Skenario</th>
+            <th>Konsumsi Daya</th>
+            <th>Umur Baterai 1000mAh</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>WiFi aktif (RX/TX)</td><td>240 mA</td><td>~4 jam</td></tr>
+          <tr><td>WiFi idle, aktif</td><td>150 mA</td><td>~6.7 jam</td></tr>
+          <tr><td>Modem Sleep (CPU on)</td><td>20 mA</td><td>~50 jam</td></tr>
+          <tr><td>Light Sleep</td><td>0.8 mA</td><td>~52 hari</td></tr>
+          <tr><td>Deep Sleep</td><td>0.005 mA (5 µA)</td><td><strong>~22 tahun*</strong></td></tr>
+          <tr><td>Hibernate</td><td>0.0025 mA (2.5 µA)</td><td><strong>~45 tahun*</strong></td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Perhatian</div>
+        <p>*Umur baterai pada Deep Sleep dihitung secara teoretis tanpa memperhitungkan self-discharge baterai (sekitar 5-20% per tahun), arus bocor regulator tegangan, dan arus sensor yang terpasang. Umur baterai nyata biasanya <strong>1-3 tahun</strong> untuk proyek IoT sederhana yang bangun setiap 5-15 menit sekali.</p>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Analogi Sederhana</div>
+        <p>Bayangkan ESP32 seperti manusia. Mode aktif adalah saat berlari maraton (boros energi). Deep Sleep adalah tidur nyenyak di malam hari — tubuh tetap hidup tapi konsumsi energi sangat minimal. Setiap kali terbangun, ESP32 perlu "pemanasan" sebentar sebelum bisa beraktivitas kembali.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Mode Daya ESP32     -->
+      <!-- ============================== -->
+      <h2 id="mode-daya">2. Mode Daya ESP32</h2>
+
+      <p>ESP32 memiliki lima mode operasi utama, masing-masing menawarkan keseimbangan berbeda antara fungsionalitas dan efisiensi daya. Memahami perbedaan masing-masing mode adalah kunci untuk merancang proyek IoT hemat daya yang efektif.</p>
+
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Perbandingan Mode Daya ESP32</div>
+<pre><code>Konsumsi Daya (mA)
+■ Active Mode (WiFi ON) ≈ 240 mA
+██████████████████████████████████████████████████████
+■ Active Mode (WiFi OFF) ≈ 24 mA
+██████
+■ Modem Sleep ≈ 20 mA
+█████
+■ Light Sleep ≈ 0.8 mA
+▏
+■ Deep Sleep ≈ 0.005 mA (5 µA)
+·
+■ Hibernate ≈ 0.0025 mA (2.5 µA)
+·</code></pre>
+      </div>
+
+      <h3>2.1 Active Mode (Mode Aktif)</h3>
+      <p>Dalam mode aktif, kedua core CPU berjalan penuh. Modul WiFi dan/atau Bluetooth bisa aktif atau dimatikan. Mode ini cocok untuk perhitungan berat atau komunikasi real-time, tetapi <strong>paling boros daya</strong>. Gunakan hanya saat benar-benar diperlukan.</p>
+
+      <h3>2.2 Modem Sleep</h3>
+      <p>CPU tetap berjalan tetapi modul WiFi/Bluetooth dimatikan saat tidak digunakan. ESP32 akan mematikan modem secara otomatis saat tidak ada paket data yang ditransmisikan. Mode ini sangat berguna untuk aplikasi yang memproses data secara lokal tanpa komunikasi konstan.</p>
+
+      <h3>2.3 Light Sleep</h3>
+      <p>CPU berhenti sementara clock dimatikan, namun semua RAM tetap terisi. ESP32 bisa terbangun dari timer, GPIO, atau peripheral lainnya. Kekurangannya: waktu wake-up relatif cepat dan semua state tetap tersimpan, tetapi konsumsi daya masih terlalu tinggi untuk baterai kecil.</p>
+
+      <h3>2.4 Deep Sleep</h3>
+      <p>Mode yang paling banyak digunakan untuk proyek hemat daya. CPU, WiFi, Bluetooth, dan sebagian besar peripheral dimatikan. Yang tetap aktif hanyalah:</p>
+      <ul>
+        <li><strong>RTC (Real-Time Clock)</strong> — untuk timer wakeup</li>
+        <li><strong>RTC Memory</strong> — hingga 8 KB data bisa disimpan</li>
+        <li><strong>ULP Coprocessor</strong> — bisa menjalankan program sederhana</li>
+        <li><strong>GPIO wake pin</strong> — untuk membangunkan dari tombol/touch</li>
+      </ul>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Yang Hilang di Deep Sleep</div>
+        <p>Saat masuk Deep Sleep, semua isi SRAM hilang. Program akan dimulai ulang dari awal (seperti reboot). Inilah sebabnya kita perlu menyimpan data penting di <strong>RTC Memory</strong> atau <strong>EEPROM/SPIFFS</strong> sebelum tidur.</p>
+      </div>
+
+      <h3>2.5 Hibernate</h3>
+      <p>Mode paling hemat daya. Hampir semua komponen dimatikan termasuk RTC. Hanya skema wake-up eksternal yang tetap aktif. ESP32 harus boot ulang dari awal setiap kali terbangun — tidak ada RTC memory yang tersimpan. Cocok untuk skenario wake-up eksternal yang sangat jarang.</p>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>CPU</th>
+            <th>WiFi/BT</th>
+            <th>RAM</th>
+            <th>Wake Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Active</td><td>✅ Running</td><td>✅ Bisa ON/OFF</td><td>✅ Full</td><td>-</td></tr>
+          <tr><td>Modem Sleep</td><td>✅ Running</td><td>❌ Dimatikan</td><td>✅ Full</td><td>-</td></tr>
+          <tr><td>Light Sleep</td><td>❌ Dijeda</td><td>❌ Dimatikan</td><td>✅ Full</td><td>Timer, GPIO, UART</td></tr>
+          <tr><td><strong>Deep Sleep</strong></td><td>❌ Mati</td><td>❌ Mati</td><td>⚠️ RTC only</td><td>Timer, GPIO, Touch, ULP</td></tr>
+          <tr><td>Hibernate</td><td>❌ Mati</td><td>❌ Mati</td><td>❌ Hilang</td><td>GPIO eksternal</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Timer Wakeup        -->
+      <!-- ============================== -->
+      <h2 id="timer-wakeup">3. Deep Sleep dengan Timer Wakeup</h2>
+
+      <p>Mode wakeup paling sederhana dan paling sering digunakan. ESP32 akan bangun secara otomatis setelah interval waktu tertentu yang ditentukan. Ini cocok untuk aplikasi seperti sensor lingkungan yang membaca data secara berkala.</p>
+
+      <h3>Cara Kerja Timer Wakeup</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Siklus Timer Wakeup</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 1054" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,62L138,66.167C138,70.333,138,78.667,138,86.333C138,94,138,101,138,104.5L138,108" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTM4LCJ5Ijo2Mn0seyJ4IjoxMzgsInkiOjg3fSx7IngiOjEzOCwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,166L138,170.167C138,174.333,138,182.667,138,190.333C138,198,138,205,138,208.5L138,212" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTM4LCJ5IjoxNjZ9LHsieCI6MTM4LCJ5IjoxOTF9LHsieCI6MTM4LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,270L138,274.167C138,278.333,138,286.667,138,294.333C138,302,138,309,138,312.5L138,316" id="L_N2_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N3_0" data-points="W3sieCI6MTM4LCJ5IjoyNzB9LHsieCI6MTM4LCJ5IjoyOTV9LHsieCI6MTM4LCJ5IjozMjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,374L138,378.167C138,382.333,138,390.667,138,398.333C138,406,138,413,138,416.5L138,420" id="L_N3_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N4_0" data-points="W3sieCI6MTM4LCJ5IjozNzR9LHsieCI6MTM4LCJ5IjozOTl9LHsieCI6MTM4LCJ5Ijo0MjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,478L138,482.167C138,486.333,138,494.667,138,502.333C138,510,138,517,138,520.5L138,524" id="L_N4_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N4_N5_0" data-points="W3sieCI6MTM4LCJ5Ijo0Nzh9LHsieCI6MTM4LCJ5Ijo1MDN9LHsieCI6MTM4LCJ5Ijo1Mjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,582L138,586.167C138,590.333,138,598.667,138,606.333C138,614,138,621,138,624.5L138,628" id="L_N5_N6_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N5_N6_0" data-points="W3sieCI6MTM4LCJ5Ijo1ODJ9LHsieCI6MTM4LCJ5Ijo2MDd9LHsieCI6MTM4LCJ5Ijo2MzJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,686L138,690.167C138,694.333,138,702.667,138,710.333C138,718,138,725,138,728.5L138,732" id="L_N6_N7_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N6_N7_0" data-points="W3sieCI6MTM4LCJ5Ijo2ODZ9LHsieCI6MTM4LCJ5Ijo3MTF9LHsieCI6MTM4LCJ5Ijo3MzZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,790L138,794.167C138,798.333,138,806.667,138,814.333C138,822,138,829,138,832.5L138,836" id="L_N7_N8_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N7_N8_0" data-points="W3sieCI6MTM4LCJ5Ijo3OTB9LHsieCI6MTM4LCJ5Ijo4MTV9LHsieCI6MTM4LCJ5Ijo4NDB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,918L138,922.167C138,926.333,138,934.667,138,942.333C138,950,138,957,138,960.5L138,964" id="L_N8_N9_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N8_N9_0" data-points="W3sieCI6MTM4LCJ5Ijo5MTh9LHsieCI6MTM4LCJ5Ijo5NDN9LHsieCI6MTM4LCJ5Ijo5Njh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N4_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N5_N6_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N6_N7_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N7_N8_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N8_N9_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 35)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="-52.671875" y="-27" width="105.34375" height="54"/><g class="label" style="" transform="translate(-22.671875, -12)"><rect/><foreignObject width="45.34375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>BOOT</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 139)"><rect class="basic label-container" style="" x="-53.1171875" y="-27" width="106.234375" height="54"/><g class="label" style="" transform="translate(-23.1171875, -12)"><rect/><foreignObject width="46.234375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>(reset)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 243)"><rect class="basic label-container" style="" x="-117.6015625" y="-27" width="235.203125" height="54"/><g class="label" style="" transform="translate(-87.6015625, -12)"><rect/><foreignObject width="175.203125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>▶ Bekerja ▶ Deep Sleep</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(138, 347)"><rect class="basic label-container" style="" x="-86.9296875" y="-27" width="173.859375" height="54"/><g class="label" style="" transform="translate(-56.9296875, -12)"><rect/><foreignObject width="113.859375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>(baca &amp; (tunggu</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(138, 451)"><rect class="basic label-container" style="" x="-88.65625" y="-27" width="177.3125" height="54"/><g class="label" style="" transform="translate(-58.65625, -12)"><rect/><foreignObject width="117.3125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>◀ kirim) ◀ timer)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(138, 555)"><rect class="basic label-container" style="" x="-37.921875" y="-27" width="75.84375" height="54"/><g class="label" style="" transform="translate(-7.921875, -12)"><rect/><foreignObject width="15.84375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>▲</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N6-6" transform="translate(138, 659)"><rect class="basic label-container" style="" x="-82.3203125" y="-27" width="164.640625" height="54"/><g class="label" style="" transform="translate(-52.3203125, -12)"><rect/><foreignObject width="104.640625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Waktu: T wake</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N7-7" transform="translate(138, 763)"><rect class="basic label-container" style="" x="-82.765625" y="-27" width="165.53125" height="54"/><g class="label" style="" transform="translate(-52.765625, -12)"><rect/><foreignObject width="105.53125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Waktu: T sleep</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N8-8" transform="translate(138, 879)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Rasio duty cycle = T_sleep / (T_wake + T_sleep)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N9-9" transform="translate(138, 1007)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Contoh: 300 detik sleep, 5 detik wake = 98.3% d...</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+
+      <p>Library ESP32 Arduino menyediakan fungsi bawaan yang sangat mudah digunakan:</p>
+
+      </div>
+<pre class="mermaid">
+flowchart TD
+    N0["ESP32 Tombol"]
+    N1["Pin 1"]
+
+    N0 --> N1
+</pre>
+    </div>
+      </div>
+
+      </div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 579.59375px;" viewBox="0 0 579.59375 1100.734375" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M289.797,62L289.797,68.167C289.797,74.333,289.797,86.667,289.797,98.333C289.797,110,289.797,121,289.797,126.5L289.797,132" id="L_A_B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_B_0" data-points="W3sieCI6Mjg5Ljc5Njg3NSwieSI6NjJ9LHsieCI6Mjg5Ljc5Njg3NSwieSI6OTl9LHsieCI6Mjg5Ljc5Njg3NSwieSI6MTM2fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M289.797,214L289.797,220.167C289.797,226.333,289.797,238.667,289.797,250.333C289.797,262,289.797,273,289.797,278.5L289.797,284" id="L_B_C_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_C_0" data-points="W3sieCI6Mjg5Ljc5Njg3NSwieSI6MjE0fSx7IngiOjI4OS43OTY4NzUsInkiOjI1MX0seyJ4IjoyODkuNzk2ODc1LCJ5IjoyODh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M289.797,342L289.797,346.167C289.797,350.333,289.797,358.667,289.797,366.333C289.797,374,289.797,381,289.797,384.5L289.797,388" id="L_C_D_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_C_D_0" data-points="W3sieCI6Mjg5Ljc5Njg3NSwieSI6MzQyfSx7IngiOjI4OS43OTY4NzUsInkiOjM2N30seyJ4IjoyODkuNzk2ODc1LCJ5IjozOTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M289.797,470L289.797,474.167C289.797,478.333,289.797,486.667,289.797,494.333C289.797,502,289.797,509,289.797,512.5L289.797,516" id="L_D_E_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_D_E_0" data-points="W3sieCI6Mjg5Ljc5Njg3NSwieSI6NDcwfSx7IngiOjI4OS43OTY4NzUsInkiOjQ5NX0seyJ4IjoyODkuNzk2ODc1LCJ5Ijo1MjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M289.797,598L289.797,602.167C289.797,606.333,289.797,614.667,289.797,622.333C289.797,630,289.797,637,289.797,640.5L289.797,644" id="L_E_F_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_E_F_0" data-points="W3sieCI6Mjg5Ljc5Njg3NSwieSI6NTk4fSx7IngiOjI4OS43OTY4NzUsInkiOjYyM30seyJ4IjoyODkuNzk2ODc1LCJ5Ijo2NDh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M243.688,766.625L226.073,780.477C208.459,794.328,173.229,822.031,155.615,841.383C138,860.734,138,871.734,138,877.234L138,882.734" id="L_F_G_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_F_G_0" data-points="W3sieCI6MjQzLjY4Nzk1NjQ3MzgyNTI0LCJ5Ijo3NjYuNjI1NDU2NDczODI1Mn0seyJ4IjoxMzgsInkiOjg0OS43MzQzNzV9LHsieCI6MTM4LCJ5Ijo4ODYuNzM0Mzc1fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M335.906,766.625L353.52,780.477C371.135,794.328,406.364,822.031,423.979,843.383C441.594,864.734,441.594,879.734,441.594,887.234L441.594,894.734" id="L_F_H_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_F_H_0" data-points="W3sieCI6MzM1LjkwNTc5MzUyNjE3NDc2LCJ5Ijo3NjYuNjI1NDU2NDczODI1Mn0seyJ4Ijo0NDEuNTkzNzUsInkiOjg0OS43MzQzNzV9LHsieCI6NDQxLjU5Mzc1LCJ5Ijo4OTguNzM0Mzc1fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M441.594,952.734L441.594,958.901C441.594,965.068,441.594,977.401,441.594,987.068C441.594,996.734,441.594,1003.734,441.594,1007.234L441.594,1010.734" id="L_H_I_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_H_I_0" data-points="W3sieCI6NDQxLjU5Mzc1LCJ5Ijo5NTIuNzM0Mzc1fSx7IngiOjQ0MS41OTM3NSwieSI6OTg5LjczNDM3NX0seyJ4Ijo0NDEuNTkzNzUsInkiOjEwMTQuNzM0Mzc1fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel" transform="translate(289.796875, 99)"><g class="label" data-id="L_A_B_0" transform="translate(-46.25, -12)"><foreignObject width="92.5" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Probe merah</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(289.796875, 251)"><g class="label" data-id="L_B_C_0" transform="translate(-43.1328125, -12)"><foreignObject width="86.265625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Probe hitam</p></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_C_D_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_D_E_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_E_F_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(138, 849.734375)"><g class="label" data-id="L_F_G_0" transform="translate(-9.1953125, -12)"><foreignObject width="18.390625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Ya</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(441.59375, 849.734375)"><g class="label" data-id="L_F_H_0" transform="translate(-19.265625, -12)"><foreignObject width="38.53125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Tidak</p></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_H_I_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-A-0" transform="translate(289.796875, 35)"><rect class="basic label-container" style="" x="-79.796875" y="-27" width="159.59375" height="54"/><g class="label" style="" transform="translate(-49.796875, -12)"><rect/><foreignObject width="99.59375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🔋 Baterai (+)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-B-1" transform="translate(289.796875, 175)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>📡 Multimeter\n(mode Amperemeter)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-C-3" transform="translate(289.796875, 315)"><rect class="basic label-container" style="" x="-82.6875" y="-27" width="165.375" height="54"/><g class="label" style="" transform="translate(-52.6875, -12)"><rect/><foreignObject width="105.375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>⚡ VIN ESP32</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-D-5" transform="translate(289.796875, 431)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>🔧 ESP32 beroperasi normal</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-E-7" transform="translate(289.796875, 559)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>📊 Baca arus di display multimeter</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-F-9" transform="translate(289.796875, 730.3671875)"><polygon points="82.3671875,0 164.734375,-82.3671875 82.3671875,-164.734375 0,-82.3671875" class="label-container" transform="translate(-81.8671875, 82.3671875)"/><g class="label" style="" transform="translate(-55.3671875, -12)"><rect/><foreignObject width="110.734375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Arus &gt; 150mA?</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-G-11" transform="translate(138, 925.734375)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>⚠️ Cek komponen\nboros daya</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-H-13" transform="translate(441.59375, 925.734375)"><rect class="basic label-container" style="" x="-123.59375" y="-27" width="247.1875" height="54"/><g class="label" style="" transform="translate(-93.59375, -12)"><rect/><foreignObject width="187.1875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>✅ Konsumsi daya normal</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-I-15" transform="translate(441.59375, 1053.734375)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>📝 Catat untuk baseline\ndeep sleep</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <p><strong>Langkah-langkah pengukuran:</strong></p>
+      <ol>
+        <li>Putuskan kabel positif (+) dari baterai ke ESP32</li>
+        <li>Hubungkan probe merah multimeter ke kabel dari baterai (+)</li>
+        <li>Hubungkan probe hitam multimeter ke pin VIN ESP32</li>
+        <li>Atur multimeter ke range yang sesuai (mulai dari 200mA, turunkan jika perlu)</li>
+        <li>Pastikan kabel probe terpasang ke terminal COM dan mA (bukan 10A!)</li>
+      </ol>
+
+      <h3>6.2 Menggunakan Modul INA219</h3>
+
+      <p>Modul <strong>INA219</strong> adalah sensor arus/t tegangan I2C yang populer dan murah (sekitar Rp 15-25rb). Modul ini bisa mengukur tegangan bus (0-26V), arus (±3.2A), dan menghitung daya secara real-time — cocok untuk monitoring konsumsi daya proyek IoT.</p>
+
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Rangkaian INA219 untuk Monitoring Daya ESP32</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 624.53125px;" viewBox="0 0 624.53125 582" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M319.156,62L319.156,68.167C319.156,74.333,319.156,86.667,319.156,98.333C319.156,110,319.156,121,319.156,126.5L319.156,132" id="L_A_B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_B_0" data-points="W3sieCI6MzE5LjE1NjI1LCJ5Ijo2Mn0seyJ4IjozMTkuMTU2MjUsInkiOjk5fSx7IngiOjMxOS4xNTYyNSwieSI6MTM2fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M251.578,214L240.892,220.167C230.207,226.333,208.836,238.667,210.605,250.715C212.373,262.764,237.282,274.528,249.736,280.41L262.191,286.292" id="L_B_C_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_C_0" data-points="W3sieCI6MjUxLjU3Nzc2NTIxMzgxNTc4LCJ5IjoyMTR9LHsieCI6MTg3LjQ2NDg0Mzc1LCJ5IjoyNTF9LHsieCI6MjY1LjgwNzU1NjE1MjM0Mzc1LCJ5IjoyODh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M316.408,214L315.974,220.167C315.539,226.333,314.67,238.667,315.025,250.34C315.38,262.013,316.959,273.027,317.748,278.534L318.538,284.04" id="L_B_C_2" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_C_2" data-points="W3sieCI6MzE2LjQwODA0ODkzMDkyMTA0LCJ5IjoyMTR9LHsieCI6MzEzLjgwMDc4MTI1LCJ5IjoyNTF9LHsieCI6MzE5LjEwNTUyOTc4NTE1NjI1LCJ5IjoyODh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M385.159,214L395.596,220.167C406.032,226.333,426.905,238.667,425.909,250.696C424.914,262.725,402.05,274.45,390.618,280.312L379.186,286.175" id="L_B_C_3" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_C_3" data-points="W3sieCI6Mzg1LjE1OTE3OTY4NzUsInkiOjIxNH0seyJ4Ijo0NDcuNzc3MzQzNzUsInkiOjI1MX0seyJ4IjozNzUuNjI2ODkyMDg5ODQzNzUsInkiOjI4OH1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M322.977,342L322.977,346.167C322.977,350.333,322.977,358.667,322.977,366.333C322.977,374,322.977,381,322.977,384.5L322.977,388" id="L_C_D_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_C_D_0" data-points="W3sieCI6MzIyLjk3NjU2MjUsInkiOjM0Mn0seyJ4IjozMjIuOTc2NTYyNSwieSI6MzY3fSx7IngiOjMyMi45NzY1NjI1LCJ5IjozOTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M192.977,468.545L177.71,472.954C162.443,477.363,131.909,486.182,116.642,494.091C101.375,502,101.375,509,101.375,512.5L101.375,516" id="L_D_E_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_D_E_0" data-points="W3sieCI6MTkyLjk3NjU2MjUsInkiOjQ2OC41NDQ4NjE2MjUyNDI0fSx7IngiOjEwMS4zNzUsInkiOjQ5NX0seyJ4IjoxMDEuMzc1LCJ5Ijo1MjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M322.977,470L322.977,474.167C322.977,478.333,322.977,486.667,322.977,494.333C322.977,502,322.977,509,322.977,512.5L322.977,516" id="L_D_F_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_D_F_0" data-points="W3sieCI6MzIyLjk3NjU2MjUsInkiOjQ3MH0seyJ4IjozMjIuOTc2NTYyNSwieSI6NDk1fSx7IngiOjMyMi45NzY1NjI1LCJ5Ijo1MjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M451.488,470L465.218,474.167C478.948,478.333,506.407,486.667,520.137,494.333C533.867,502,533.867,509,533.867,512.5L533.867,516" id="L_D_G_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_D_G_0" data-points="W3sieCI6NDUxLjQ4ODAzNzEwOTM3NSwieSI6NDcwfSx7IngiOjUzMy44NjcxODc1LCJ5Ijo0OTV9LHsieCI6NTMzLjg2NzE4NzUsInkiOjUyMH1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel" transform="translate(319.15625, 99)"><g class="label" data-id="L_A_B_0" transform="translate(-43.7890625, -12)"><foreignObject width="87.578125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>VCC + GND</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(187.46484375, 251)"><g class="label" data-id="L_B_C_0" transform="translate(-48.9765625, -12)"><foreignObject width="97.953125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>VOUT + GND</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(313.82112, 251.14185)"><g class="label" data-id="L_B_C_2" transform="translate(-57.359375, -12)"><foreignObject width="114.71875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>SDA → GPIO21</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(447.77734375, 251)"><g class="label" data-id="L_B_C_3" transform="translate(-56.6171875, -12)"><foreignObject width="113.234375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>SCL → GPIO22</p></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_C_D_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_D_E_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_D_F_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_D_G_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-A-0" transform="translate(319.15625, 35)"><rect class="basic label-container" style="" x="-120.5" y="-27" width="241" height="54"/><g class="label" style="" transform="translate(-90.5, -12)"><rect/><foreignObject width="181" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🔋 Baterai 18650\n(3.7V)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-B-1" transform="translate(319.15625, 175)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>📡 Modul INA219\n(I2C Sensor)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-C-3" transform="translate(322.9765625, 315)"><rect class="basic label-container" style="" x="-92.9140625" y="-27" width="185.828125" height="54"/><g class="label" style="" transform="translate(-62.9140625, -12)"><rect/><foreignObject width="125.828125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>⚡ ESP32 DevKit</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-D-9" transform="translate(322.9765625, 431)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>📊 Baca data INA219\nvia I2C</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-E-11" transform="translate(101.375, 547)"><rect class="basic label-container" style="" x="-93.375" y="-27" width="186.75" height="54"/><g class="label" style="" transform="translate(-63.375, -12)"><rect/><foreignObject width="126.75" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Tegangan Bus 📈</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-F-13" transform="translate(322.9765625, 547)"><rect class="basic label-container" style="" x="-78.2265625" y="-27" width="156.453125" height="54"/><g class="label" style="" transform="translate(-48.2265625, -12)"><rect/><foreignObject width="96.453125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Arus (mA) 📉</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-G-15" transform="translate(533.8671875, 547)"><rect class="basic label-container" style="" x="-82.6640625" y="-27" width="165.328125" height="54"/><g class="label" style="" transform="translate(-52.6640625, -12)"><rect/><foreignObject width="105.328125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Daya (mW) ⚡</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — baca_ina219.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Membaca konsumsi daya ESP32 menggunakan INA219
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include &lt;Wire.h&gt;
+#include &lt;Adafruit_INA219.h&gt;
+
+Adafruit_INA219 ina219;
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("=== INA219 Power Monitor ===");
+
+  if (!ina219.begin()) {
+    Serial.println("ERROR: INA219 tidak terdeteksi!");
+    while (1) { delay(1000); }
+  }
+
+  Serial.println("INA219 siap!");
+  Serial.println();
+}
+
+void loop() {
+  // Baca tegangan bus (tegangan baterai)
+  float teganganBus = ina219.getBusVoltage_V();
+
+  // Baca tegangan shunt (untuk hitung arus)
+  float teganganShunt = ina219.getShuntVoltage_mV();
+
+  // Baca arus dalam mA
+  float arus = ina219.getCurrent_mA();
+
+  // Hitung daya dalam mW
+  float daya = ina219.getPower_mW();
+
+  // Tampilkan hasil
+  Serial.println("--- Pembacaan Daya ---");
+  Serial.print("Tegangan Bus  : ");
+  Serial.print(teganganBus, 3);
+  Serial.println(" V");
+
+  Serial.print("Tegangan Shunt: ");
+  Serial.print(teganganShunt, 3);
+  Serial.println(" mV");
+
+  Serial.print("Arus          : ");
+  Serial.print(arus, 1);
+  Serial.println(" mA");
+
+  Serial.print("Daya          : ");
+  Serial.print(daya, 1);
+  Serial.println(" mW");
+  Serial.println();
+
+  delay(2000);
+}
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Pengukuran</div>
+        <p>Untuk pengukuran Deep Sleep yang akurat, pastikan modul USB-to-serial (CH340/CP2102) dilepas atau dinonaktifkan karena modul tersebut bisa menarik arus 20-30 mA. Gunakan baterai langsung untuk pengukuran yang representatif terhadap kondisi operasi nyata.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Kirim Data Sebelum  -->
+      <!-- ============================== -->
+      <h2 id="flush-sebelum-tidur">7. Mengirim Data Sebelum Tidur (WiFi Flush &amp; MQTT Disconnect)</h2>
+
+      <p>Salah satu kesalahan paling umum dalam proyek Deep Sleep adalah masuk sleep tanpa memastikan semua data sudah terkirim. Jika ESP32 masuk Deep Sleep saat WiFi atau MQTT masih dalam proses pengiriman, data bisa hilang atau koneksi broker menjadi ghost connection.</p>
+
+      <h3>Urutan Shutdown yang Benar</h3>
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Urutan Shutdown WiFi &amp; MQTT yang Benar</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 487.46875px;" viewBox="0 0 487.46875 1142" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M250.844,86L250.844,90.167C250.844,94.333,250.844,102.667,250.844,110.333C250.844,118,250.844,125,250.844,128.5L250.844,132" id="L_A_B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_B_0" data-points="W3sieCI6MjUwLjg0Mzc1LCJ5Ijo4Nn0seyJ4IjoyNTAuODQzNzUsInkiOjExMX0seyJ4IjoyNTAuODQzNzUsInkiOjEzNn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M250.844,214L250.844,218.167C250.844,222.333,250.844,230.667,250.844,238.333C250.844,246,250.844,253,250.844,256.5L250.844,260" id="L_B_C_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_C_0" data-points="W3sieCI6MjUwLjg0Mzc1LCJ5IjoyMTR9LHsieCI6MjUwLjg0Mzc1LCJ5IjoyMzl9LHsieCI6MjUwLjg0Mzc1LCJ5IjoyNjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M191.696,482.852L179.826,498.877C167.956,514.901,144.216,546.951,132.346,568.475C120.477,590,120.477,601,120.477,606.5L120.477,612" id="L_C_D_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_C_D_0" data-points="W3sieCI6MTkxLjY5NTY0MzQwODEzNDYzLCJ5Ijo0ODIuODUxODkzNDA4MTM0NjN9LHsieCI6MTIwLjQ3NjU2MjUsInkiOjU3OX0seyJ4IjoxMjAuNDc2NTYyNSwieSI6NjE2fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M309.992,482.852L321.862,498.877C333.732,514.901,357.471,546.951,369.341,568.475C381.211,590,381.211,601,381.211,606.5L381.211,612" id="L_C_E_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_C_E_0" data-points="W3sieCI6MzA5Ljk5MTg1NjU5MTg2NTM3LCJ5Ijo0ODIuODUxODkzNDA4MTM0NjN9LHsieCI6MzgxLjIxMDkzNzUsInkiOjU3OX0seyJ4IjozODEuMjEwOTM3NSwieSI6NjE2fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M120.477,670L120.477,674.167C120.477,678.333,120.477,686.667,130.303,694.753C140.13,702.839,159.784,710.679,169.611,714.598L179.438,718.518" id="L_D_F_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_D_F_0" data-points="W3sieCI6MTIwLjQ3NjU2MjUsInkiOjY3MH0seyJ4IjoxMjAuNDc2NTYyNSwieSI6Njk1fSx7IngiOjE4My4xNTMwOTQ5NTE5MjMxLCJ5Ijo3MjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M381.211,670L381.211,674.167C381.211,678.333,381.211,686.667,371.384,694.753C361.557,702.839,341.903,710.679,332.077,714.598L322.25,718.518" id="L_E_F_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_E_F_0" data-points="W3sieCI6MzgxLjIxMDkzNzUsInkiOjY3MH0seyJ4IjozODEuMjEwOTM3NSwieSI6Njk1fSx7IngiOjMxOC41MzQ0MDUwNDgwNzY5LCJ5Ijo3MjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M250.844,774L250.844,778.167C250.844,782.333,250.844,790.667,250.844,798.333C250.844,806,250.844,813,250.844,816.5L250.844,820" id="L_F_G_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_F_G_0" data-points="W3sieCI6MjUwLjg0Mzc1LCJ5Ijo3NzR9LHsieCI6MjUwLjg0Mzc1LCJ5Ijo3OTl9LHsieCI6MjUwLjg0Mzc1LCJ5Ijo4MjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M250.844,902L250.844,906.167C250.844,910.333,250.844,918.667,250.844,926.333C250.844,934,250.844,941,250.844,944.5L250.844,948" id="L_G_H_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_G_H_0" data-points="W3sieCI6MjUwLjg0Mzc1LCJ5Ijo5MDJ9LHsieCI6MjUwLjg0Mzc1LCJ5Ijo5Mjd9LHsieCI6MjUwLjg0Mzc1LCJ5Ijo5NTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M250.844,1006L250.844,1010.167C250.844,1014.333,250.844,1022.667,250.844,1030.333C250.844,1038,250.844,1045,250.844,1048.5L250.844,1052" id="L_H_I_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_H_I_0" data-points="W3sieCI6MjUwLjg0Mzc1LCJ5IjoxMDA2fSx7IngiOjI1MC44NDM3NSwieSI6MTAzMX0seyJ4IjoyNTAuODQzNzUsInkiOjEwNTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_A_B_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_B_C_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(120.4765625, 579)"><g class="label" data-id="L_C_D_0" transform="translate(-9.1953125, -12)"><foreignObject width="18.390625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Ya</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(381.2109375, 579)"><g class="label" data-id="L_C_E_0" transform="translate(-19.265625, -12)"><foreignObject width="38.53125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Tidak</p></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_D_F_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_E_F_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_F_G_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_G_H_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_H_I_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-A-0" transform="translate(250.84375, 47)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>📤 1. Kirim semua data sensor</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-B-1" transform="translate(250.84375, 175)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>🔄 2. mqtt.loop + delay(500)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-C-3" transform="translate(250.84375, 403)"><polygon points="139,0 278,-139 139,-278 0,-139" class="label-container" transform="translate(-138.5, 139)"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel ">3. MQTT masih\nconnected?</span></div></foreignObject></g></g><g class="node default  " id="flowchart-D-5" transform="translate(120.4765625, 643)"><rect class="basic label-container" style="" x="-112.4765625" y="-27" width="224.953125" height="54"/><g class="label" style="" transform="translate(-82.4765625, -12)"><rect/><foreignObject width="164.953125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🔌 4. mqtt.disconnect()</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-E-7" transform="translate(381.2109375, 643)"><rect class="basic label-container" style="" x="-98.2578125" y="-27" width="196.515625" height="54"/><g class="label" style="" transform="translate(-68.2578125, -12)"><rect/><foreignObject width="136.515625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>⏭️ Skip disconnect</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-F-9" transform="translate(250.84375, 747)"><rect class="basic label-container" style="" x="-126.6953125" y="-27" width="253.390625" height="54"/><g class="label" style="" transform="translate(-96.6953125, -12)"><rect/><foreignObject width="193.390625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📶 5. WiFi.disconnect(true)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-G-13" transform="translate(250.84375, 863)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>❌ 6. WiFi.mode(WIFI_OFF)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-H-15" transform="translate(250.84375, 979)"><rect class="basic label-container" style="" x="-96.0234375" y="-27" width="192.046875" height="54"/><g class="label" style="" transform="translate(-66.0234375, -12)"><rect/><foreignObject width="132.046875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>💤 7. Serial.flush()</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-I-17" transform="translate(250.84375, 1095)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>😴 8. esp_deep_sleep_start()</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — shutdown_wifi_mqtt.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Fungsi shutdown yang benar untuk WiFi &amp; MQTT
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include &lt;WiFi.h&gt;
+#include &lt;PubSubClient.h&gt;
+
+// Konfigurasi WiFi
+const char* ssid     = "WiFi_Indonesia";
+const char* password  = "password123";
+
+// Konfigurasi MQTT
+const char* mqttServer = "broker.hivemq.com";
+const int   mqttPort   = 1883;
+const char* mqttTopic  = "iothub/sensor/suhu";
+
+WiFiClient wifiClient;
+PubSubClient mqttClient(wifiClient);
+
+// --- Fungsi Terhubung WiFi ---
+void sambungWifi() {
+  Serial.print("Menghubungkan WiFi");
+  WiFi.begin(ssid, password);
+
+  int percobaan = 0;
+  while (WiFi.status() != WL_CONNECTED &amp;&amp; percobaan &lt; 20) {
+    delay(500);
+    Serial.print(".");
+    percobaan++;
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWiFi terhubung!");
+    Serial.print("IP: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("\nGagal terhubung WiFi!");
+  }
+}
+
+// --- Fungsi Terhubung MQTT ---
+void sambungMQTT() {
+  mqttClient.setServer(mqttServer, mqttPort);
+
+  int percobaan = 0;
+  while (!mqttClient.connected() &amp;&amp; percobaan &lt; 3) {
+    Serial.print("Menghubungkan MQTT...");
+    if (mqttClient.connect("ESP32DeepSleep")) {
+      Serial.println("OK!");
+    } else {
+      Serial.print("Gagal, rc=");
+      Serial.println(mqttClient.state());
+      delay(1000);
+      percobaan++;
+    }
+  }
+}
+
+// --- Fungsi Kirim Data ---
+bool kirimData(float suhu, float kelembaban) {
+  if (!mqttClient.connected()) return false;
+
+  // Format data sebagai JSON
+  char payload[128];
+  snprintf(payload, sizeof(payload),
+    "{\"suhu\":%.1f,\"kelembaban\":%.1f,\"uptime\":%lu}",
+    suhu, kelembaban, millis());
+
+  // Kirim data
+  bool berhasil = mqttClient.publish(mqttTopic, payload);
+
+  if (berhasil) {
+    Serial.print("Data terkirim: ");
+    Serial.println(payload);
+  } else {
+    Serial.println("Gagal mengirim data!");
+  }
+
+  return berhasil;
+}
+
+// --- Fungsi Shutdown Aman ---
+void shutdownAman() {
+  Serial.println("=== Memulai Shutdown ===");
+
+  // Langkah 1: Pastikan semua paket MQTT terkirim
+  Serial.println("[1/6] Flush MQTT...");
+  mqttClient.loop();  // Proses callback &amp; pending
+  delay(500);         // Tunggu TX buffer kosong
+
+  // Langkah 2: Putuskan MQTT
+  Serial.println("[2/6] Disconnect MQTT...");
+  if (mqttClient.connected()) {
+    mqttClient.disconnect();
+    delay(100);
+  }
+
+  // Langkah 3: Disconnect WiFi
+  Serial.println("[3/6] Disconnect WiFi...");
+  WiFi.disconnect(true);
+  delay(100);
+
+  // Langkah 4: Matikan modul WiFi
+  Serial.println("[4/6] WiFi OFF...");
+  WiFi.mode(WIFI_OFF);
+  delay(100);
+
+  // Langkah 5: Putuskan radio WiFi
+  Serial.println("[5/6] WiFi radio OFF...");
+  esp_wifi_disconnect();
+  delay(100);
+
+  // Langkah 6: Flush serial
+  Serial.println("[6/6] Serial flush...");
+  Serial.flush();
+
+  Serial.println("=== Shutdown Selesai ===");
+  delay(100);
+}
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Jangan Lupa!</div>
+        <p>Selalu panggil <code>shutdownAman()</code> sebelum <code>esp_deep_sleep_start()</code>. Tanpa fungsi ini, data yang dikirim via MQTT bisa hilang, atau WiFi connection bisa menjadi "ghost" yang memboroskan daya karena broker tetap mencoba mengirim data ke perangkat yang sudah tidur.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Proyek Sensor Suhu  -->
+      <!-- ============================== -->
+      <h2 id="proyek-sensor-suhu">8. Proyek: Sensor Suhu Battery-Powered 1 Tahun</h2>
+
+      <p>Sekarang kita akan menggabungkan semua konsep yang sudah dipelajari menjadi proyek nyata: sensor suhu yang bisa bertahan hampir setahun menggunakan satu baterai LiPo 18650 (3400mAh).</p>
+
+      <h3>Spesifikasi Proyek</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Nilai</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Sensor</td><td>DHT22 / DS18B20 (akurat &amp; hemat daya)</td></tr>
+          <tr><td>Interval pembacaan</td><td>15 menit</td></tr>
+          <tr><td>Protokol kirim data</td><td>MQTT ke broker HiveMQ / Mosquitto</td></tr>
+          <tr><td>Baterai</td><td>LiPo 18650 — 3.7V 3400mAh</td></tr>
+          <tr><td>Target umur baterai</td><td>Minimal 10 bulan</td></tr>
+          <tr><td>Metode hemat daya</td><td>Deep Sleep + Timer Wakeup</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Kalkulasi Daya</h3>
+      
+
+      <p>Untuk mencapai target 1 tahun, kita bisa menggunakan baterai ganda (2× 18650 paralel = 6800mAh) atau interval 30 menit. Dengan 6800mAh dan interval 15 menit, baterai bertahan sekitar 338 hari — cukup untuk mencapai target 1 tahun.</p>
+
+      <h3>Kode Program Lengkap</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — sensor_suhu_battery_1tahun.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Sensor Suhu Battery-Powered 1 Tahun
+// ESP32 Deep Sleep + MQTT + DHT22
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include &lt;WiFi.h&gt;
+#include &lt;PubSubClient.h&gt;
+#include &lt;DHT.h&gt;
+
+// ===== KONFIGURASI =====
+#define SLEEP_DURATION   900LL          // 15 menit (dalam detik)
+#define DHT_PIN          4              // GPIO4
+#define DHT_TYPE         DHT22          // Gunakan DHT22 untuk akurasi
+#define LED_INDICATOR    2              // GPIO2 (LED internal)
+#define BAT_ADC_PIN      34             // GPIO34 untuk baca tegangan baterai
+#define BAT_VOLT_DIV     2.0            // Rasio voltage divider
+
+// WiFi credentials
+const char* WIFI_SSID     = "WiFi_Indonesia";
+const char* WIFI_PASS     = "password123";
+
+// MQTT credentials
+const char* MQTT_SERVER   = "broker.hivemq.com";
+const int   MQTT_PORT     = 1883;
+const char* MQTT_USER     = "";
+const char* MQTT_PASS_MQTT = "";
+const char* MQTT_TOPIC    = "iothub/suhu/esp32-01";
+const char* MQTT_CLIENT   = "ESP32-Suhu-01";
+
+// ===== OBJEK GLOBAL =====
+DHT dht(DHT_PIN, DHT_TYPE);
+WiFiClient wifiClient;
+PubSubClient mqtt(wifiClient);
+
+// ===== RTC MEMORY =====
+RTC_DATA_ATTR int wakeCount     = 0;
+RTC_DATA_ATTR int errConnect    = 0;
+RTC_DATA_ATTR float lastSuhu    = 0.0;
+RTC_DATA_ATTR float lastHumidity = 0.0;
+
+// ===== FUNGSI SETUP =====
+void setup() {
+  Serial.begin(115200);
+  Serial.flush();
+
+  wakeCount++;
+
+  // LED indikator
+  pinMode(LED_INDICATOR, OUTPUT);
+  digitalWrite(LED_INDICATOR, HIGH);
+
+  Serial.println();
+  Serial.println("╔══════════════════════════════════════╗");
+  Serial.println("║  Sensor Suhu Battery-Powered 1 Tahun ║");
+  Serial.println("║  ESP32 Deep Sleep + MQTT             ║");
+  Serial.println("╚══════════════════════════════════════╝");
+  Serial.print("Wake-up ke-: ");
+  Serial.println(wakeCount);
+
+  // Baca tegangan baterai
+  float teganganBaterai = bacaTeganganBaterai();
+  Serial.print("Tegangan baterai: ");
+  Serial.print(teganganBaterai, 2);
+  Serial.println(" V");
+
+  // Cek apakah baterai masih cukup (minimum 3.3V)
+  if (teganganBaterai &lt; 3.3) {
+    Serial.println("PERINGATAN: Baterai lemah! Interval diperpanjang.");
+    // Jika baterai lemah, sleep lebih lama (30 menit)
+    sleepDanBangun(SLEEP_DURATION * 2);
+  }
+
+  // Baca sensor suhu
+  dht.begin();
+  delay(2000);  // Tunggu sensor stabil
+
+  float suhu     = dht.readTemperature();
+  float kelembaban = dht.readHumidity();
+
+  if (isnan(suhu) || isnan(kelembaban)) {
+    Serial.println("ERROR: Gagal baca sensor DHT22!");
+    // Gunakan data terakhir dari RTC memory
+    suhu       = lastSuhu;
+    kelembaban = lastHumidity;
+    Serial.println("Menggunakan data terakhir dari RTC memory.");
+  } else {
+    Serial.print("Suhu      : ");
+    Serial.print(suhu, 1);
+    Serial.println(" °C");
+    Serial.print("Kelembaban: ");
+    Serial.print(kelembaban, 1);
+    Serial.println(" %");
+    lastSuhu     = suhu;
+    lastHumidity = kelembaban;
+  }
+
+  // Kirim data via MQTT
+  if (suhu != 0.0 || kelembaban != 0.0) {
+    bool terkirim = kirimDataMQTT(suhu, kelembaban, teganganBaterai);
+    if (terkirim) {
+      Serial.println("Data berhasil dikirim!");
+    } else {
+      Serial.println("Gagal mengirim data.");
+      errConnect++;
+    }
+  }
+
+  // Shutdown dan masuk Deep Sleep
+  shutdownAman();
+  Serial.print("Tidur selama ");
+  Serial.print(SLEEP_DURATION);
+  Serial.println(" detik...");
+  sleepDanBangun(SLEEP_DURATION);
+}
+
+// ===== FUNGSI LOOP =====
+void loop() {
+  // Tidak digunakan — ESP32 selalu bangun dari setup()
+}
+
+// ===== FUNGSI-FUNGSI PEMBANTU =====
+
+float bacaTeganganBaterai() {
+  // Baca ADC dan konversi ke tegangan
+  int adcValue = analogRead(BAT_ADC_PIN);
+  float tegangan = (adcValue / 4095.0) * 3.3 * BAT_VOLT_DIV;
+  return tegangan;
+}
+
+bool kirimDataMQTT(float suhu, float kelembaban, float tegangan) {
+  // Sambung WiFi
+  Serial.print("Menghubungkan WiFi...");
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+
+  int coba = 0;
+  while (WiFi.status() != WL_CONNECTED &amp;&amp; coba &lt; 20) {
+    delay(500);
+    Serial.print(".");
+    coba++;
+  }
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("\nWiFi gagal!");
+    return false;
+  }
+  Serial.println(" OK!");
+
+  // Sambung MQTT
+  mqtt.setServer(MQTT_SERVER, MQTT_PORT);
+  coba = 0;
+  while (!mqtt.connected() &amp;&amp; coba &lt; 3) {
+    Serial.print("MQTT...");
+    if (mqtt.connect(MQTT_CLIENT, MQTT_USER, MQTT_PASS_MQTT)) {
+      Serial.println("OK!");
+    } else {
+      Serial.print("Gagal (");
+      Serial.print(mqtt.state());
+      Serial.println(")");
+      delay(1000);
+      coba++;
+    }
+  }
+
+  if (!mqtt.connected()) {
+    Serial.println("MQTT tidak terhubung!");
+    return false;
+  }
+
+  // Siapkan payload JSON
+  char payload[256];
+  snprintf(payload, sizeof(payload),
+    "{"
+    "\"device\":\"ESP32-01\","
+    "\"suhu\":%.1f,"
+    "\"kelembaban\":%.1f,"
+    "\"baterai\":%.2f,"
+    "\"wake\":%d,"
+    "\"uptime\":%lu"
+    "}",
+    suhu, kelembaban, tegangan, wakeCount, millis()
+  );
+
+  // Publish
+  bool hasil = mqtt.publish(MQTT_TOPIC, payload);
+  mqtt.loop();
+  delay(200);
+
+  return hasil;
+}
+
+void shutdownAman() {
+  Serial.println("Shutdown...");
+  mqtt.loop();
+  delay(500);
+  if (mqtt.connected()) mqtt.disconnect();
+  delay(100);
+  WiFi.disconnect(true);
+  delay(100);
+  WiFi.mode(WIFI_OFF);
+  delay(100);
+  Serial.flush();
+  digitalWrite(LED_INDICATOR, LOW);
+  delay(100);
+}
+
+void sleepDanBangun(long long detikTidur) {
+  esp_sleep_enable_timer_wakeup(detikTidur * 1000000ULL);
+  esp_deep_sleep_start();
+}
+</code></pre>
+      </div>
+
+      <h3>Rangkaian Fisik</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Rangkaian Lengkap Proyek Sensor Suhu Battery</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Rangkaian Lengkap Proyek Sensor Suhu Battery</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 817.9375px;" viewBox="0 0 817.9375 654" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M491.082,86L491.082,92.167C491.082,98.333,491.082,110.667,491.082,122.333C491.082,134,491.082,145,491.082,150.5L491.082,156" id="L_A_B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_B_0" data-points="W3sieCI6NDkxLjA4MjAzMTI1LCJ5Ijo4Nn0seyJ4Ijo0OTEuMDgyMDMxMjUsInkiOjEyM30seyJ4Ijo0OTEuMDgyMDMxMjUsInkiOjE2MH1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M398.168,203.842L354.807,211.701C311.445,219.561,224.723,235.281,181.361,248.64C138,262,138,273,138,278.5L138,284" id="L_B_C_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_C_0" data-points="W3sieCI6Mzk4LjE2Nzk2ODc1LCJ5IjoyMDMuODQxNjk1MzM5MDM0NjN9LHsieCI6MTM4LCJ5IjoyNTF9LHsieCI6MTM4LCJ5IjoyODh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M466.453,214L460.828,220.167C455.203,226.333,443.953,238.667,438.328,252.333C432.703,266,432.703,281,432.703,288.5L432.703,296" id="L_B_D_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_D_0" data-points="W3sieCI6NDY2LjQ1MzQzMDE3NTc4MTI1LCJ5IjoyMTR9LHsieCI6NDMyLjcwMzEyNSwieSI6MjUxfSx7IngiOjQzMi43MDMxMjUsInkiOjMwMH1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M432.703,354L432.703,362.167C432.703,370.333,432.703,386.667,432.703,400.333C432.703,414,432.703,425,432.703,430.5L432.703,436" id="L_D_E_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_D_E_0" data-points="W3sieCI6NDMyLjcwMzEyNSwieSI6MzU0fSx7IngiOjQzMi43MDMxMjUsInkiOjQwM30seyJ4Ijo0MzIuNzAzMTI1LCJ5Ijo0NDB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M432.703,518L432.703,524.167C432.703,530.333,432.703,542.667,432.703,554.333C432.703,566,432.703,577,432.703,582.5L432.703,588" id="L_E_F_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_E_F_0" data-points="W3sieCI6NDMyLjcwMzEyNSwieSI6NTE4fSx7IngiOjQzMi43MDMxMjUsInkiOjU1NX0seyJ4Ijo0MzIuNzAzMTI1LCJ5Ijo1OTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M548.24,214L561.294,220.167C574.348,226.333,600.457,238.667,621.323,252.532C642.188,266.397,657.809,281.795,665.62,289.493L673.43,297.192" id="L_B_G_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_G_0" data-points="W3sieCI6NTQ4LjIzOTUwMTk1MzEyNSwieSI6MjE0fSx7IngiOjYyNi41NjY0MDYyNSwieSI6MjUxfSx7IngiOjY3Ni4yNzkxNDI2ODA5MjEsInkiOjMwMH1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M722.126,300L727.708,291.833C733.29,283.667,744.454,267.333,722.08,252.403C699.706,237.473,643.795,223.946,615.839,217.183L587.884,210.42" id="L_G_B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_G_B_0" data-points="W3sieCI6NzIyLjEyNjEzMDc1NjU3OSwieSI6MzAwfSx7IngiOjc1NS42MTcxODc1LCJ5IjoyNTF9LHsieCI6NTgzLjk5NjA5Mzc1LCJ5IjoyMDkuNDc5MDUzNzY0NzExMX1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel" transform="translate(491.08203125, 123)"><g class="label" data-id="L_A_B_0" transform="translate(-40.234375, -12)"><foreignObject width="80.46875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>VIN + GND</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(138, 251)"><g class="label" data-id="L_B_C_0" transform="translate(-77.359375, -12)"><foreignObject width="154.71875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>GPIO4 + VCC + GND</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(432.703125, 251)"><g class="label" data-id="L_B_D_0" transform="translate(-45.3359375, -12)"><foreignObject width="90.671875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>WiFi 2.4GHz</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(432.703125, 403)"><g class="label" data-id="L_D_E_0" transform="translate(-54.0859375, -12)"><foreignObject width="108.171875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>MQTT Protocol</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(432.703125, 555)"><g class="label" data-id="L_E_F_0" transform="translate(-16.8984375, -12)"><foreignObject width="33.796875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Data</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(618.96034, 247.40705)"><g class="label" data-id="L_B_G_0" transform="translate(-51.421875, -12)"><foreignObject width="102.84375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Timer Wakeup</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(698.65046, 237.21782)"><g class="label" data-id="L_G_B_0" transform="translate(-32.46875, -12)"><foreignObject width="64.9375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>300 detik</p></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-A-0" transform="translate(491.08203125, 47)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>🔋 LiPo 18650\n(3.7V, 3400mAh)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-B-1" transform="translate(491.08203125, 187)"><rect class="basic label-container" style="" x="-92.9140625" y="-27" width="185.828125" height="54"/><g class="label" style="" transform="translate(-62.9140625, -12)"><rect/><foreignObject width="125.828125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>⚡ ESP32 DevKit</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-C-3" transform="translate(138, 327)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>🌡️ Sensor DHT22\n(Suhu &amp; Kelembaban)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-D-5" transform="translate(432.703125, 327)"><rect class="basic label-container" style="" x="-114.703125" y="-27" width="229.40625" height="54"/><g class="label" style="" transform="translate(-84.703125, -12)"><rect/><foreignObject width="169.40625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📡 Router/Access Point</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-E-7" transform="translate(432.703125, 479)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>🖥️ Broker MQTT (Mosquitto)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-F-9" transform="translate(432.703125, 619)"><rect class="basic label-container" style="" x="-102.2578125" y="-27" width="204.515625" height="54"/><g class="label" style="" transform="translate(-72.2578125, -12)"><rect/><foreignObject width="144.515625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>💾 Database/Server</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-G-11" transform="translate(703.671875, 327)"><rect class="basic label-container" style="" x="-106.265625" y="-27" width="212.53125" height="54"/><g class="label" style="" transform="translate(-76.265625, -12)"><rect/><foreignObject width="152.53125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>💤 Deep Sleep Mode</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Daya Tahan 1 Tahun</div>
+        <ul>
+          <li><strong>Baterai lebih besar</strong> = umur lebih lama. Gunakan 2× 18650 paralel untuk 6800mAh.</li>
+          <li><strong>Interval lebih lama</strong> = menghemat daya signifikan. 30 menit masih cukup untuk monitoring suhu ruangan.</li>
+          <li><strong>Gunakan DS18B20</strong> sebagai alternatif DHT22 — lebih hemat daya saat pembacaan.</li>
+          <li><strong>Matikan semua LED</strong> pada modul selain LED indikator sesaat.</li>
+          <li><strong>Hapus voltage regulator</strong> dan jalankan ESP32 langsung dari 3.7V LiPo (lihat datasheet untuk batas tegangan).</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang ESP32 Deep Sleep:</p>
+
+      <div class="quiz-container" id="quiz16">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Berapa konsumsi daya ESP32 dalam mode Deep Sleep?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Sekitar 5-10 µA (mikroampere)</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Sekitar 0.8 mA</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Sekitar 20 mA</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Sekitar 150 mA</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Komponen mana yang TETAP aktif saat ESP32 dalam Deep Sleep?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) CPU utama Xtensa LX6</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Modul WiFi 802.11</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) RTC (Real-Time Clock) dan RTC Memory</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) SRAM utama sebesar 520 KB</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa yang harus dilakukan SEBELUM memanggil esp_deep_sleep_start()?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Menghapus semua data dari RTC Memory</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Menyalakan semua LED untuk indikasi</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Memastikan WiFi/MQTT terputus dan serial di-flush</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Mengatur ulang semua GPIO ke mode INPUT</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Mode mana yang paling hemat daya pada ESP32?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Light Sleep — semua RAM masih tersimpan</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Modem Sleep — WiFi dimatikan, CPU tetap jalan</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Deep Sleep — hanya RTC yang aktif</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Hibernate — hampir semua komponen dimatikan termasuk RTC</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa kegunaan atribut RTC_DATA_ATTR pada variabel ESP32?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Menyimpan data agar tetap tersimpan meskipun ESP32 dalam Deep Sleep</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Membuat variabel berukuran lebih kecil di SRAM</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Mengunci variabel agar tidak bisa diubah</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Menyimpan variabel ke EEPROM secara otomatis</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="iot-protocols-comparison.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Perbandingan Protokol IoT</span>
+        </a>
+        <a href="arduino-ide-setup.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Instalasi Arduino IDE</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/machine-learning-dasar.html" class="related-card">
+          <span class="related-category">AI & Data Science</span>
+          <span class="related-title">Machine Learning Dasar: Pengenalan & Konsep</span>
+        </a>
+        <a href="/articles/incident-response.html" class="related-card">
+          <span class="related-category">Keamanan</span>
+          <span class="related-title">Incident Response & Forensik Digital</span>
+        </a>
+        <a href="/articles/esp8266-nodemcu.html" class="related-card">
+          <span class="related-category">ESP32 &amp; ESP8266</span>
+          <span class="related-title">Panduan Lengkap ESP8266 (NodeMCU): Dari Nol Hingga Proyek...</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

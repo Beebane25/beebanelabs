@@ -1,0 +1,1037 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Database</a>
+        <span class="separator">/</span>
+        <span class="current">SQL Table Partitioning</span>
+      </div>
+      <span class="category-tag">Database</span>
+      <h1>SQL Table Partitioning: Range, List &amp; Hash Partitioning</h1>
+      <p class="article-subtitle">Pelajari cara membagi tabel besar menjadi partisi yang lebih kecil untuk meningkatkan performa query, memudahkan manajemen data, dan skalabilitas database</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Table Partitioning</a></li>
+          <li><a href="#range-partitioning">Range Partitioning</a></li>
+          <li><a href="#list-partitioning">List Partitioning</a></li>
+          <li><a href="#hash-partitioning">Hash Partitioning</a></li>
+          <li><a href="#subpartitioning">Sub-Partitioning (Composite)</a></li>
+          <li><a href="#manajemen-partisi">Manajemen Partisi</a></li>
+          <li><a href="#partition-pruning">Partition Pruning &amp; Query Optimization</a></li>
+          <li><a href="#best-practices">Best Practices &amp; Kapan Menggunakan</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Table Partitioning</h2>
+
+      <p><strong>Table Partitioning</strong> adalah teknik membagi satu tabel besar menjadi beberapa bagian yang lebih kecil (partisi) berdasarkan aturan tertentu. Secara logik, tabel tetap terlihat sebagai satu tabel utuh, tetapi secara fisik data disimpan dalam partisi-partisi terpisah.</p>
+
+      <p>Bayangkan Anda punya tabel <code>transactions</code> dengan 500 juta baris. Tanpa partisi, setiap query harus memindai tabel utuh. Dengan partisi berdasarkan tahun, query yang hanya butuh data 2026 hanya memindai satu partisi — bukan 500 juta baris.</p>
+
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Tabel Tanpa vs Dengan Partitioning</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 374" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,86L138,90.167C138,94.333,138,102.667,138,110.333C138,118,138,125,138,128.5L138,132" id="L_N0_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N2_0" data-points="W3sieCI6MTM4LCJ5Ijo4Nn0seyJ4IjoxMzgsInkiOjExMX0seyJ4IjoxMzgsInkiOjEzNn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,214L138,218.167C138,222.333,138,230.667,138,238.333C138,246,138,253,138,256.5L138,260" id="L_N2_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N1_0" data-points="W3sieCI6MTM4LCJ5IjoyMTR9LHsieCI6MTM4LCJ5IjoyMzl9LHsieCI6MTM4LCJ5IjoyNjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 47)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>transactions (500M rows) id customer amount dat...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 315)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>p_2020 (50M rows) p_2021 (55M rows) p_2022 (60M...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 175)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>id customer amount date status 1 1234 50000 202...</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      </div>
+
+      <h3>Manfaat Table Partitioning</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Manfaat</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Performa Query</strong></td><td>Partition pruning — query hanya memindai partisi yang relevan</td></tr>
+          <tr><td><strong>Maintenance Mudah</strong></td><td>Hapus data lama dengan DROP PARTITION — jauh lebih cepat dari DELETE</td></tr>
+          <tr><td><strong>Parallel Processing</strong></td><td>Beberapa partisi bisa diquery secara paralel</td></tr>
+          <tr><td><strong>Storage Management</strong></td><td>Beda partisi bisa di storage berbeda (tablespace)</td></tr>
+          <tr><td><strong>Availability</strong></td><td>Maintenance pada satu partisi tidak mengganggu partisi lain</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Jenis Partitioning</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Jenis</th>
+            <th>Berdasarkan</th>
+            <th>Cocok Untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Range</strong></td><td>Rentang nilai (tanggal, angka)</td><td>Data time-series, log, transaksi</td></tr>
+          <tr><td><strong>List</strong></td><td>Daftar nilai eksplisit</td><td>Data per wilayah, kategori, status</td></tr>
+          <tr><td><strong>Hash</strong></td><td>Hash dari kolom</td><td>Distribusi data merata tanpa pola natural</td></tr>
+          <tr><td><strong>Key</strong></td><td>Similar hash (MySQL)</td><td>Distribusi merata, mendukung multi-kolom</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Range Partitioning   -->
+      <!-- ============================== -->
+      <h2 id="range-partitioning">2. Range Partitioning</h2>
+
+      <p><strong>Range Partitioning</strong> membagi data berdasarkan rentang nilai. Ini adalah jenis partisi paling umum untuk data time-series — setiap partisi mewakili satu periode waktu (hari, bulan, tahun).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Range Partitioning (PostgreSQL)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- RANGE PARTITIONING (PostgreSQL 10+)
+-- =============================================
+
+-- Buat tabel utama (PARTITIONED TABLE)
+CREATE TABLE transactions (
+    id              BIGSERIAL,
+    customer_id     INT NOT NULL,
+    amount          DECIMAL(12,2) NOT NULL,
+    transaction_date DATE NOT NULL,
+    status          VARCHAR(20) DEFAULT 'completed',
+    description     TEXT
+) PARTITION BY RANGE (transaction_date);
+
+
+-- =============================================
+-- Buat partisi per tahun
+-- =============================================
+CREATE TABLE transactions_2023
+    PARTITION OF transactions
+    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+CREATE TABLE transactions_2024
+    PARTITION OF transactions
+    FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
+
+CREATE TABLE transactions_2025
+    PARTITION OF transactions
+    FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
+
+CREATE TABLE transactions_2026
+    PARTITION OF transactions
+    FOR VALUES FROM ('2026-01-01') TO ('2027-01-01');
+
+-- Default partition untuk data di luar range
+CREATE TABLE transactions_default
+    PARTITION OF transactions DEFAULT;
+
+
+-- =============================================
+-- Sub-partisi per kuartal (lebih granular)
+-- =============================================
+CREATE TABLE transactions_q1_2026
+    PARTITION OF transactions
+    FOR VALUES FROM ('2026-01-01') TO ('2026-04-01');
+
+CREATE TABLE transactions_q2_2026
+    PARTITION OF transactions
+    FOR VALUES FROM ('2026-04-01') TO ('2026-07-01');
+
+CREATE TABLE transactions_q3_2026
+    PARTITION OF transactions
+    FOR VALUES FROM ('2026-07-01') TO ('2026-10-01');
+
+CREATE TABLE transactions_q4_2026
+    PARTITION OF transactions
+    FOR VALUES FROM ('2026-10-01') TO ('2027-01-01');
+
+
+-- =============================================
+-- Query — partition pruning otomatis!
+-- =============================================
+-- Query ini HANYA memindai partisi 2026:
+EXPLAIN SELECT * FROM transactions
+WHERE transaction_date >= '2026-01-01'
+  AND transaction_date < '2027-01-01';
+
+-- Output: hanya partisi transactions_2026 yang di-scan
+
+
+-- =============================================
+-- Index pada partisi
+-- =============================================
+-- PostgreSQL otomatis membuat index pada semua partisi
+-- ketika Anda membuat index pada tabel induk:
+CREATE INDEX idx_transactions_customer
+ON transactions(customer_id);
+
+CREATE INDEX idx_transactions_date
+ON transactions(transaction_date);
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Range Partitioning (MySQL)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- RANGE PARTITIONING (MySQL 8+)
+-- =============================================
+
+CREATE TABLE transactions (
+    id              BIGINT AUTO_INCREMENT,
+    customer_id     INT NOT NULL,
+    amount          DECIMAL(12,2) NOT NULL,
+    transaction_date DATE NOT NULL,
+    status          VARCHAR(20) DEFAULT 'completed',
+    PRIMARY KEY (id, transaction_date),
+    INDEX idx_customer (customer_id),
+    INDEX idx_date (transaction_date)
+)
+PARTITION BY RANGE (YEAR(transaction_date)) (
+    PARTITION p2022 VALUES LESS THAN (2023),
+    PARTITION p2023 VALUES LESS THAN (2024),
+    PARTITION p2024 VALUES LESS THAN (2025),
+    PARTITION p2025 VALUES LESS THAN (2026),
+    PARTITION p2026 VALUES LESS THAN (2027),
+    PARTITION pmax  VALUES LESS THAN MAXVALUE
+);
+
+
+-- =============================================
+-- RANGE COLUMNS (langsung pakai DATE)
+-- =============================================
+CREATE TABLE logs (
+    id          BIGINT AUTO_INCREMENT,
+    log_level   VARCHAR(10),
+    message     TEXT,
+    log_date    DATE NOT NULL,
+    PRIMARY KEY (id, log_date)
+)
+PARTITION BY RANGE COLUMNS(log_date) (
+    PARTITION p_jan VALUES LESS THAN ('2026-02-01'),
+    PARTITION p_feb VALUES LESS THAN ('2026-03-01'),
+    PARTITION p_mar VALUES LESS THAN ('2026-04-01'),
+    PARTITION p_apr VALUES LESS THAN ('2026-05-01'),
+    PARTITION p_may VALUES LESS THAN ('2026-06-01'),
+    PARTITION p_jun VALUES LESS THAN ('2026-07-01'),
+    PARTITION p_max VALUES LESS THAN MAXVALUE
+);
+
+
+-- =============================================
+-- CATATAN PENTING MySQL:
+-- =============================================
+-- 1. PRIMARY KEY HARUS mencakup kolom partisi
+--    PRIMARY KEY (id, transaction_date) ✅
+--    PRIMARY KEY (id) ❌ (error!)
+--
+-- 2. UNIQUE INDEX juga harus mencakup kolom partisi
+--
+-- 3. Kolom partisi harus bagian dari semua index
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Catatan MySQL Partitioning</div>
+        <p>Di MySQL, kolom partisi <strong>harus menjadi bagian dari PRIMARY KEY dan semua UNIQUE INDEX</strong>. Ini berbeda dari PostgreSQL yang lebih fleksibel. Pastikan hal ini tidak mengganggu desain schema Anda sebelum memilih MySQL partitioning.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: List Partitioning    -->
+      <!-- ============================== -->
+      <h2 id="list-partitioning">3. List Partitioning</h2>
+
+      <p><strong>List Partitioning</strong> membagi data berdasarkan daftar nilai yang sudah ditentukan. Cocok untuk data dengan kategori tetap — seperti wilayah, kota, atau tipe produk.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — List Partitioning</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- LIST PARTITIONING (PostgreSQL)
+-- =============================================
+
+CREATE TABLE customers (
+    id          SERIAL,
+    nama        VARCHAR(100) NOT NULL,
+    email       VARCHAR(150),
+    wilayah     VARCHAR(20) NOT NULL,
+    kota        VARCHAR(50),
+    created_at  TIMESTAMP DEFAULT NOW()
+) PARTITION BY LIST (wilayah);
+
+-- Partisi per wilayah Indonesia
+CREATE TABLE customers_jawa
+    PARTITION OF customers
+    FOR VALUES IN ('DKI Jakarta', 'Jawa Barat', 'Jawa Tengah',
+                   'Jawa Timur', 'Yogyakarta', 'Banten');
+
+CREATE TABLE customers_sumatera
+    PARTITION OF customers
+    FOR VALUES IN ('Sumatera Utara', 'Sumatera Barat', 'Sumatera Selatan',
+                   'Riau', 'Lampung', 'Aceh', 'Bengkulu', 'Jambi');
+
+CREATE TABLE customers_kalimantan
+    PARTITION OF customers
+    FOR VALUES IN ('Kalimantan Barat', 'Kalimantan Tengah',
+                   'Kalimantan Selatan', 'Kalimantan Timur',
+                   'Kalimantan Utara');
+
+CREATE TABLE customers_sulawesi
+    PARTITION OF customers
+    FOR VALUES IN ('Sulawesi Utara', 'Sulawesi Tengah',
+                   'Sulawesi Selatan', 'Sulawesi Barat',
+                   'Sulawesi Tenggara', 'Gorontalo');
+
+CREATE TABLE customers_indonesia_timur
+    PARTITION OF customers
+    FOR VALUES IN ('Bali', 'NTB', 'NTT', 'Maluku', 'Maluku Utara',
+                   'Papua', 'Papua Barat');
+
+-- Default partisi untuk wilayah tidak dikenal
+CREATE TABLE customers_lainnya
+    PARTITION OF customers DEFAULT;
+
+
+-- =============================================
+-- Query dengan partition pruning
+-- =============================================
+
+-- Hanya scan partisi Jawa!
+SELECT * FROM customers
+WHERE wilayah IN ('DKI Jakarta', 'Jawa Barat');
+
+-- Hanya scan partisi Sulawesi
+SELECT nama, email FROM customers
+WHERE wilayah = 'Sulawesi Selatan';
+
+
+-- =============================================
+-- LIST PARTITIONING (MySQL)
+-- =============================================
+
+CREATE TABLE orders_by_region (
+    id          BIGINT AUTO_INCREMENT,
+    customer_id INT NOT NULL,
+    region      VARCHAR(20) NOT NULL,
+    amount      DECIMAL(12,2),
+    order_date  DATE,
+    PRIMARY KEY (id, region),
+    INDEX idx_customer (customer_id)
+)
+PARTITION BY LIST COLUMNS(region) (
+    PARTITION p_jakarta   VALUES IN ('Jakarta'),
+    PARTITION p_bandung   VALUES IN ('Bandung'),
+    PARTITION p_surabaya  VALUES IN ('Surabaya'),
+    PARTITION p_medan     VALUES IN ('Medan'),
+    PARTITION p_makassar  VALUES IN ('Makassar'),
+    PARTITION p_other     VALUES IN ('Denpasar', 'Semarang', 'Yogyakarta')
+);
+</code></pre>
+      </div>
+
+      <h3>Perbandingan Range vs List</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Range</th>
+            <th>List</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Kolom partisi</td><td>Numerik / tanggal</td><td>Kategori / string</td></tr>
+          <tr><td>Aturan</td><td>Rentang nilai (FROM - TO)</td><td>Daftar nilai eksplisit (IN)</td></tr>
+          <tr><td>Cocok untuk</td><td>Data time-series</td><td>Data kategorikal</td></tr>
+          <tr><td>Partisi baru</td><td>Tambah range baru</td><td>Tambah daftar nilai baru</td></tr>
+          <tr><td>Default partition</td><td>MAXVALUE</td><td>DEFAULT</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Hash Partitioning    -->
+      <!-- ============================== -->
+      <h2 id="hash-partitioning">4. Hash Partitioning</h2>
+
+      <p><strong>Hash Partitioning</strong> mendistribusikan data secara merata ke beberapa partisi menggunakan fungsi hash. Tidak seperti range dan list, hash partitioning tidak berdasarkan logika bisnis — tujuannya adalah distribusi data yang seimbang.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Hash Partitioning</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- HASH PARTITIONING (PostgreSQL)
+-- =============================================
+
+CREATE TABLE user_sessions (
+    session_id  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     INT NOT NULL,
+    ip_address  INET,
+    user_agent  TEXT,
+    started_at  TIMESTAMP DEFAULT NOW(),
+    ended_at    TIMESTAMP
+) PARTITION BY HASH (user_id);
+
+-- Buat 8 partisi (jumlah ideal: power of 2)
+CREATE TABLE user_sessions_p0 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 0);
+CREATE TABLE user_sessions_p1 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 1);
+CREATE TABLE user_sessions_p2 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 2);
+CREATE TABLE user_sessions_p3 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 3);
+CREATE TABLE user_sessions_p4 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 4);
+CREATE TABLE user_sessions_p5 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 5);
+CREATE TABLE user_sessions_p6 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 6);
+CREATE TABLE user_sessions_p7 PARTITION OF user_sessions FOR VALUES WITH (MODULUS 8, REMAINDER 7);
+
+
+-- =============================================
+-- HASH PARTITIONING (MySQL)
+-- =============================================
+
+CREATE TABLE user_sessions_mysql (
+    session_id  VARCHAR(36) NOT NULL,
+    user_id     INT NOT NULL,
+    ip_address  VARCHAR(45),
+    user_agent  TEXT,
+    started_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ended_at    TIMESTAMP NULL,
+    PRIMARY KEY (session_id, user_id)
+)
+PARTITION BY HASH (user_id)
+PARTITIONS 8;
+
+-- MySQL juga mendukung LINEAR HASH untuk distribusi lebih merata
+CREATE TABLE user_events (
+    event_id    BIGINT AUTO_INCREMENT,
+    user_id     INT NOT NULL,
+    event_type  VARCHAR(50),
+    event_data  JSON,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (event_id, user_id)
+)
+PARTITION BY LINEAR HASH (user_id)
+PARTITIONS 16;
+
+
+-- =============================================
+-- Partition pruning pada Hash
+-- =============================================
+
+-- Query ini bisa pruning karena hash(user_id) diketahui:
+SELECT * FROM user_sessions WHERE user_id = 1234;
+-- Hanya 1 partisi yang di-scan
+
+-- Tapi range query TIDAK bisa pruning:
+SELECT * FROM user_sessions WHERE user_id BETWEEN 100 AND 200;
+-- Semua partisi tetap di-scan!
+</code></pre>
+      </div>
+
+      <h3>Kapan Menggunakan Hash?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Situasi</th>
+            <th>Pilihan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Data tersebar merata tanpa pola natural</td><td>✅ Hash</td></tr>
+          <tr><td>Sering query berdasarkan kolom hash</td><td>✅ Hash</td></tr>
+          <tr><td>Sering query range pada kolom lain</td><td>❌ Range lebih baik</td></tr>
+          <tr><td>Data punya kategori natural</td><td>❌ List lebih baik</td></tr>
+          <tr><td>Butuh jumlah partisi tetap</td><td>✅ Hash</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Sub-Partitioning     -->
+      <!-- ============================== -->
+      <h2 id="subpartitioning">5. Sub-Partitioning (Composite)</h2>
+
+      <p><strong>Sub-partitioning</strong> menggabungkan dua jenis partisi — misalnya range di level pertama dan hash di level kedua. Ini cocok untuk tabel sangat besar yang butuh pembagian lebih granular.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Sub-Partitioning (PostgreSQL)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- SUB-PARTITIONING (PostgreSQL)
+-- =============================================
+
+-- Tabel induk: partition by RANGE
+CREATE TABLE events (
+    id          BIGSERIAL,
+    user_id     INT NOT NULL,
+    event_type  VARCHAR(50),
+    payload     JSONB,
+    event_date  DATE NOT NULL
+) PARTITION BY RANGE (event_date);
+
+-- Partisi tahunan: partition by HASH
+CREATE TABLE events_2026
+    PARTITION OF events
+    FOR VALUES FROM ('2026-01-01') TO ('2027-01-01')
+    PARTITION BY HASH (user_id);
+
+-- Sub-partisi per hash
+CREATE TABLE events_2026_p0
+    PARTITION OF events_2026
+    FOR VALUES WITH (MODULUS 4, REMAINDER 0);
+CREATE TABLE events_2026_p1
+    PARTITION OF events_2026
+    FOR VALUES WITH (MODULUS 4, REMAINDER 1);
+CREATE TABLE events_2026_p2
+    PARTITION OF events_2026
+    FOR VALUES WITH (MODULUS 4, REMAINDER 2);
+CREATE TABLE events_2026_p3
+    PARTITION OF events_2026
+    FOR VALUES WITH (MODULUS 4, REMAINDER 3);
+
+-- Hasil: events → events_2026 → events_2026_p0..p3
+-- Query by date → pruning di level pertama
+-- Query by user_id → pruning di level kedua
+
+
+-- =============================================
+-- MySQL: PARTITION + SUBPARTITION
+-- =============================================
+CREATE TABLE large_events (
+    id          BIGINT AUTO_INCREMENT,
+    user_id     INT NOT NULL,
+    event_type  VARCHAR(50),
+    event_date  DATE NOT NULL,
+    PRIMARY KEY (id, event_date, user_id)
+)
+PARTITION BY RANGE (YEAR(event_date))
+SUBPARTITION BY HASH (user_id)
+SUBPARTITIONS 4 (
+    PARTITION p2024 VALUES LESS THAN (2025),
+    PARTITION p2025 VALUES LESS THAN (2026),
+    PARTITION p2026 VALUES LESS THAN (2027),
+    PARTITION pmax  VALUES LESS THAN MAXVALUE
+);
+-- Total: 4 partitions × 4 subpartitions = 16 physical tables
+</code></pre>
+      </div>
+
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Sub-Partitioning Structure</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 537.453125px;" viewBox="0 0 537.453125 430" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M188.366,62L170.012,68.167C151.658,74.333,114.95,86.667,96.596,98.333C78.242,110,78.242,121,78.242,126.5L78.242,132" id="L_A_B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_B_0" data-points="W3sieCI6MTg4LjM2NTk2Njc5Njg3NSwieSI6NjJ9LHsieCI6NzguMjQyMTg3NSwieSI6OTl9LHsieCI6NzguMjQyMTg3NSwieSI6MTM2fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M268.727,62L268.727,68.167C268.727,74.333,268.727,86.667,268.727,98.333C268.727,110,268.727,121,268.727,126.5L268.727,132" id="L_A_C_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_C_0" data-points="W3sieCI6MjY4LjcyNjU2MjUsInkiOjYyfSx7IngiOjI2OC43MjY1NjI1LCJ5Ijo5OX0seyJ4IjoyNjguNzI2NTYyNSwieSI6MTM2fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M349.087,62L367.441,68.167C385.795,74.333,422.503,86.667,440.857,98.333C459.211,110,459.211,121,459.211,126.5L459.211,132" id="L_A_D_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_D_0" data-points="W3sieCI6MzQ5LjA4NzE1ODIwMzEyNSwieSI6NjJ9LHsieCI6NDU5LjIxMDkzNzUsInkiOjk5fSx7IngiOjQ1OS4yMTA5Mzc1LCJ5IjoxMzZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M78.242,190L78.242,196.167C78.242,202.333,78.242,214.667,78.242,226.333C78.242,238,78.242,249,78.242,254.5L78.242,260" id="L_B_B1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_B1_0" data-points="W3sieCI6NzguMjQyMTg3NSwieSI6MTkwfSx7IngiOjc4LjI0MjE4NzUsInkiOjIyN30seyJ4Ijo3OC4yNDIxODc1LCJ5IjoyNjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M268.727,190L268.727,196.167C268.727,202.333,268.727,214.667,268.727,226.333C268.727,238,268.727,249,268.727,254.5L268.727,260" id="L_C_C1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_C_C1_0" data-points="W3sieCI6MjY4LjcyNjU2MjUsInkiOjE5MH0seyJ4IjoyNjguNzI2NTYyNSwieSI6MjI3fSx7IngiOjI2OC43MjY1NjI1LCJ5IjoyNjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M459.211,190L459.211,196.167C459.211,202.333,459.211,214.667,459.211,226.333C459.211,238,459.211,249,459.211,254.5L459.211,260" id="L_D_D1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_D_D1_0" data-points="W3sieCI6NDU5LjIxMDkzNzUsInkiOjE5MH0seyJ4Ijo0NTkuMjEwOTM3NSwieSI6MjI3fSx7IngiOjQ1OS4yMTA5Mzc1LCJ5IjoyNjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M78.242,318L78.242,322.167C78.242,326.333,78.242,334.667,94.181,343.184C110.12,351.702,141.998,360.405,157.937,364.756L173.876,369.107" id="L_B1_E_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B1_E_0" data-points="W3sieCI6NzguMjQyMTg3NSwieSI6MzE4fSx7IngiOjc4LjI0MjE4NzUsInkiOjM0M30seyJ4IjoxNzcuNzM0Mzc1LCJ5IjozNzAuMTYwMjAwMTQ3NjQ5OX1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M268.727,318L268.727,322.167C268.727,326.333,268.727,334.667,268.727,342.333C268.727,350,268.727,357,268.727,360.5L268.727,364" id="L_C1_E_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_C1_E_0" data-points="W3sieCI6MjY4LjcyNjU2MjUsInkiOjMxOH0seyJ4IjoyNjguNzI2NTYyNSwieSI6MzQzfSx7IngiOjI2OC43MjY1NjI1LCJ5IjozNjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M459.211,318L459.211,322.167C459.211,326.333,459.211,334.667,443.272,343.184C427.333,351.702,395.455,360.405,379.516,364.756L363.578,369.107" id="L_D1_E_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_D1_E_0" data-points="W3sieCI6NDU5LjIxMDkzNzUsInkiOjMxOH0seyJ4Ijo0NTkuMjEwOTM3NSwieSI6MzQzfSx7IngiOjM1OS43MTg3NSwieSI6MzcwLjE2MDIwMDE0NzY0OTl9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel" transform="translate(78.2421875, 99)"><g class="label" data-id="L_A_B_0" transform="translate(-28.453125, -12)"><foreignObject width="56.90625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>RANGE</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(268.7265625, 99)"><g class="label" data-id="L_A_C_0" transform="translate(-28.453125, -12)"><foreignObject width="56.90625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>RANGE</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(459.2109375, 99)"><g class="label" data-id="L_A_D_0" transform="translate(-28.453125, -12)"><foreignObject width="56.90625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>RANGE</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(78.2421875, 227)"><g class="label" data-id="L_B_B1_0" transform="translate(-50.6875, -12)"><foreignObject width="101.375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>HASH user_id</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(268.7265625, 227)"><g class="label" data-id="L_C_C1_0" transform="translate(-50.6875, -12)"><foreignObject width="101.375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>HASH user_id</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(459.2109375, 227)"><g class="label" data-id="L_D_D1_0" transform="translate(-50.6875, -12)"><foreignObject width="101.375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>HASH user_id</p></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_B1_E_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_C1_E_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_D1_E_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-A-0" transform="translate(268.7265625, 35)"><rect class="basic label-container" style="" x="-112.78125" y="-27" width="225.5625" height="54"/><g class="label" style="" transform="translate(-82.78125, -12)"><rect/><foreignObject width="165.5625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📋 Tabel Utama events</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-B-1" transform="translate(78.2421875, 163)"><rect class="basic label-container" style="" x="-68.921875" y="-27" width="137.84375" height="54"/><g class="label" style="" transform="translate(-38.921875, -12)"><rect/><foreignObject width="77.84375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📅 p_2024</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-C-3" transform="translate(268.7265625, 163)"><rect class="basic label-container" style="" x="-68.921875" y="-27" width="137.84375" height="54"/><g class="label" style="" transform="translate(-38.921875, -12)"><rect/><foreignObject width="77.84375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📅 p_2025</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-D-5" transform="translate(459.2109375, 163)"><rect class="basic label-container" style="" x="-68.921875" y="-27" width="137.84375" height="54"/><g class="label" style="" transform="translate(-38.921875, -12)"><rect/><foreignObject width="77.84375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📅 p_2026</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-B1-7" transform="translate(78.2421875, 291)"><rect class="basic label-container" style="" x="-70.2421875" y="-27" width="140.484375" height="54"/><g class="label" style="" transform="translate(-40.2421875, -12)"><rect/><foreignObject width="80.484375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🔢 Sub 0-3</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-C1-9" transform="translate(268.7265625, 291)"><rect class="basic label-container" style="" x="-70.2421875" y="-27" width="140.484375" height="54"/><g class="label" style="" transform="translate(-40.2421875, -12)"><rect/><foreignObject width="80.484375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🔢 Sub 0-3</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-D1-11" transform="translate(459.2109375, 291)"><rect class="basic label-container" style="" x="-70.2421875" y="-27" width="140.484375" height="54"/><g class="label" style="" transform="translate(-40.2421875, -12)"><rect/><foreignObject width="80.484375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🔢 Sub 0-3</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-E-13" transform="translate(268.7265625, 395)"><rect class="basic label-container" style="" x="-90.9921875" y="-27" width="181.984375" height="54"/><g class="label" style="" transform="translate(-60.9921875, -12)"><rect/><foreignObject width="121.984375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>💾 16 Tabel Fisik</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Manajemen Partisi    -->
+      <!-- ============================== -->
+      <h2 id="manajemen-partisi">6. Manajemen Partisi</h2>
+
+      <p>Salah satu keuntungan terbesar partisi adalah kemudahan manajemen — menambah, menghapus, atau memindahkan partisi tanpa mempengaruhi tabel utuh.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Manajemen Partisi</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- MENAMBAH PARTISI BARU
+-- =============================================
+
+-- PostgreSQL:
+CREATE TABLE transactions_2027
+    PARTITION OF transactions
+    FOR VALUES FROM ('2027-01-01') TO ('2028-01-01');
+
+-- MySQL: ALTER TABLE
+ALTER TABLE transactions
+ADD PARTITION (
+    PARTITION p2027 VALUES LESS THAN (2028)
+);
+
+
+-- =============================================
+-- MENGHAPUS PARTISI (SANGAT CEPAT!)
+-- =============================================
+
+-- PostgreSQL:
+DROP TABLE transactions_2023;
+-- atau detach dulu:
+ALTER TABLE transactions DETACH PARTITION transactions_2023;
+DROP TABLE transactions_2023;
+
+-- MySQL:
+ALTER TABLE transactions DROP PARTITION p2022;
+-- Data di p2022 langsung hilang, TANPA scan!
+
+-- ⚡ DROP PARTITION vs DELETE:
+-- DROP PARTITION: milidetik (hapus file fisik)
+-- DELETE jutaan baris: menit sampai jam (scan + lock)
+
+
+-- =============================================
+-- MEMINDAHKAN PARTISI (Detach/Attach)
+-- =============================================
+
+-- PostgreSQL: Lepas partisi untuk archive
+ALTER TABLE transactions DETACH PARTITION transactions_2023;
+
+-- Simpan di archive table
+CREATE TABLE transactions_archive_2023 (LIKE transactions_2023);
+INSERT INTO transactions_archive_2023 SELECT * FROM transactions_2023;
+
+-- Atau attach kembali
+ALTER TABLE transactions ATTACH PARTITION transactions_2023
+    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+
+-- =============================================
+-- MERGE PARTISI (gabungkan partisi kecil)
+-- =============================================
+
+-- PostgreSQL: buat tabel baru, migrate data, swap
+CREATE TABLE transactions_2024_h1 (
+    LIKE transactions INCLUDING DEFAULTS INCLUDING CONSTRAINTS
+);
+INSERT INTO transactions_2024_h1
+SELECT * FROM transactions_2024
+WHERE transaction_date < '2024-07-01';
+
+-- =============================================
+-- CEK PARTISI YANG ADA
+-- =============================================
+
+-- PostgreSQL:
+SELECT
+    schemaname, tablename,
+    pg_size_pretty(pg_relation_size(schemaname||'.'||tablename)) AS size
+FROM pg_tables
+WHERE tablename LIKE 'transactions%'
+ORDER BY tablename;
+
+-- MySQL:
+SHOW CREATE TABLE transactions;
+SELECT TABLE_NAME, TABLE_ROWS, DATA_LENGTH
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_NAME = 'transactions'
+  AND TABLE_SCHEMA = 'database_name';
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Partition Pruning    -->
+      <!-- ============================== -->
+      <h2 id="partition-pruning">7. Partition Pruning &amp; Query Optimization</h2>
+
+      <p><strong>Partition Pruning</strong> adalah mekanisme dimana optimizer secara otomatis mengeliminasi partisi yang tidak relevan dengan query. Ini adalah sumber utama peningkatan performa dari partitioning.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Partition Pruning</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- PARTITION PRUNING — PostgreSQL
+-- =============================================
+
+-- Set enable_partition_pruning = on; (default)
+
+-- Query dengan filter tanggal — pruning aktif!
+EXPLAIN SELECT * FROM transactions
+WHERE transaction_date = '2026-06-15';
+-- Output: hanya "transactions_2026" yang di-scan ✅
+
+-- Query TANPA filter — scan semua partisi
+EXPLAIN SELECT * FROM transactions;
+-- Output: Append → scan semua partisi ❌
+
+-- Query dengan parameter — optimizer cek runtime
+PREPARE q AS SELECT * FROM transactions
+WHERE transaction_date = $1;
+EXECUTE q('2026-03-15');
+-- PostgreSQL 11+ bisa prune partisi dari prepared statement ✅
+
+
+-- =============================================
+-- PARTITION PRUNING — MySQL
+-- =============================================
+
+-- Pruning dengan YEAR()
+EXPLAIN SELECT * FROM transactions
+WHERE YEAR(transaction_date) = 2026;
+-- Optimizer bisa pruning ke p2026 ✅
+
+-- Pruning dengan range
+EXPLAIN SELECT * FROM transactions
+WHERE transaction_date >= '2026-01-01'
+  AND transaction_date < '2026-07-01';
+-- Pruning ke p2026 ✅
+
+
+-- =============================================
+-- CEK partisi mana yang di-scan
+-- =============================================
+
+-- PostgreSQL: EXPLAIN VERBOSE
+EXPLAIN (ANALYZE, VERBOSE, BUFFERS)
+SELECT * FROM transactions
+WHERE transaction_date >= '2026-06-01'
+  AND transaction_date < '2026-07-01'
+  AND customer_id = 1234;
+
+-- Output akan menunjukkan:
+-- -> Index Scan using transactions_2026_customer_id_idx on transactions_2026
+--    Index Cond: (customer_id = 1234)
+--    Filter: (transaction_date >= ... AND transaction_date < ...)
+
+
+-- =============================================
+-- TIPS: Pastikan query bisa pruning
+-- =============================================
+
+-- ✅ Kolom partisi ada di WHERE
+SELECT * FROM transactions WHERE transaction_date = '2026-01-15';
+
+-- ✅ Kolom partisi dengan range
+SELECT * FROM transactions
+WHERE transaction_date BETWEEN '2026-01-01' AND '2026-03-31';
+
+-- ❌ Function pada kolom partisi — pruning GAGAL di PG
+-- (MySQL kadang masih bisa karena optimizer lebih agresif)
+SELECT * FROM transactions
+WHERE EXTRACT(MONTH FROM transaction_date) = 6;
+
+-- ✅ Solusi: gunakan range langsung
+SELECT * FROM transactions
+WHERE transaction_date >= '2026-06-01'
+  AND transaction_date < '2026-07-01';
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Best Practices       -->
+      <!-- ============================== -->
+      <h2 id="best-practices">8. Best Practices &amp; Kapan Menggunakan</h2>
+
+      <h3>✅ Kapan Sebaiknya Menggunakan Partitioning?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Situasi</th>
+            <th>Rekomendasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Tabel &gt; 100 juta baris</td><td>✅ Sangat dianjurkan</td></tr>
+          <tr><td>Data time-series (log, transaksi)</td><td>✅ Range partitioning</td></tr>
+          <tr><td>Perlu hapus data lama secara rutin</td><td>✅ DROP PARTITION vs DELETE</td></tr>
+          <tr><td>Query selalu filter berdasarkan kolom tertentu</td><td>✅ Partition by kolom tersebut</td></tr>
+          <tr><td>Tabel kecil (&lt; 1 juta baris)</td><td>❌ Index biasa sudah cukup</td></tr>
+          <tr><td>Tidak ada kolom yang jadi filter rutin</td><td>❌ Hash partitioning bisa dipertimbangkan</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Best Practices</h3>
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Partitioning</div>
+        <ul>
+          <li><strong>Pilih kolom partisi yang paling sering muncul di WHERE</strong> — ini kunci partition pruning</li>
+          <li><strong>Range per bulan atau tahun</strong> — jangan terlalu kecil (ribuan partisi = overhead metadata)</li>
+          <li><strong>Siapkan default partition</strong> — menangkap data yang tidak masuk range</li>
+          <li><strong>Auto-create partisi</strong> — gunakan pg_partman (PostgreSQL) atau event scheduler (MySQL)</li>
+          <li><strong>Monitor ukuran partisi</strong> — pastikan distribusi merata</li>
+          <li><strong>Test pruning</strong> — selalu EXPLAIN untuk verifikasi pruning bekerja</li>
+          <li><strong>Index pada setiap partisi</strong> — partisi tanpa index tetap lambat</li>
+          <li><strong>Hindari partition yang terlalu banyak</strong> — &gt; 1000 partisi bisa menurunkan performa DDL</li>
+        </ul>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Auto-Create Partitions (pg_partman)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- AUTO-CREATE PARTITIONS dengan pg_partman
+-- =============================================
+
+-- Install extension (PostgreSQL)
+CREATE EXTENSION pg_partman;
+
+-- Setup auto-partitioning per bulan
+SELECT partman.create_parent(
+    p_parent_table := 'public.transactions',
+    p_control := 'transaction_date',
+    p_type := 'range',
+    p_interval := '1 month',
+    p_premake := 3  -- Buat 3 bulan ke depan otomatis
+);
+
+-- Jalankan maintenance untuk membuat partisi baru
+SELECT partman.run_maintenance();
+
+-- Atau schedule via pg_cron:
+-- SELECT cron.schedule('partman-maintenance', '0 0 1 * *',
+--     'SELECT partman.run_maintenance()');
+
+
+-- =============================================
+-- MySQL: Auto-create dengan Event Scheduler
+-- =============================================
+
+DELIMITER //
+CREATE EVENT create_monthly_partition
+ON SCHEDULE EVERY 1 MONTH
+STARTS '2026-01-01 00:00:00'
+DO
+BEGIN
+    SET @next_month = DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 1 MONTH), '%Y%m');
+    SET @sql = CONCAT(
+        'ALTER TABLE transactions ADD PARTITION (',
+        'PARTITION p_', @next_month,
+        ' VALUES LESS THAN (', YEAR(DATE_ADD(NOW(), INTERVAL 2 MONTH)), '))'
+    );
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END //
+DELIMITER ;
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                 -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz Pemahaman</h2>
+
+      <p>Uji pemahaman Anda tentang SQL Table Partitioning!</p>
+
+      <div class="quiz-container">
+        <div class="quiz-question" data-correct="1">
+          <p><strong>1. Jenis partisi apa yang cocok untuk tabel log dengan kolom timestamp?</strong></p>
+          <label><input type="radio" name="q1" value="0"> Hash Partitioning</label>
+          <label><input type="radio" name="q1" value="1"> Range Partitioning</label>
+          <label><input type="radio" name="q1" value="2"> List Partitioning</label>
+          <label><input type="radio" name="q1" value="3"> Tidak perlu partisi</label>
+        </div>
+
+        <div class="quiz-question" data-correct="2">
+          <p><strong>2. Apa yang dimaksud dengan partition pruning?</strong></p>
+          <label><input type="radio" name="q2" value="0"> Menghapus partisi yang tidak diperlukan</label>
+          <label><input type="radio" name="q2" value="1"> Menggabungkan beberapa partisi menjadi satu</label>
+          <label><input type="radio" name="q2" value="2"> Optimizer hanya memindai partisi yang relevan dengan filter query</label>
+          <label><input type="radio" name="q2" value="3"> Membagi partisi menjadi sub-partisi</label>
+        </div>
+
+        <div class="quiz-question" data-correct="0">
+          <p><strong>3. Mengapa DROP PARTITION lebih cepat dari DELETE jutaan baris?</strong></p>
+          <label><input type="radio" name="q3" value="0"> DROP PARTITION menghapus file fisik langsung tanpa scan data</label>
+          <label><input type="radio" name="q3" value="1"> DROP PARTITION menghapus data satu per satu</label>
+          <label><input type="radio" name="q3" value="2"> DELETE lebih cepat karena menggunakan index</label>
+          <label><input type="radio" name="q3" value="3"> Keduanya sama cepatnya</label>
+        </div>
+
+        <div class="quiz-question" data-correct="3">
+          <p><strong>4. Di MySQL, apa syarat untuk PRIMARY KEY pada tabel yang di-partisi?</strong></p>
+          <label><input type="radio" name="q4" value="0"> PRIMARY KEY harus auto-increment</label>
+          <label><input type="radio" name="q4" value="1"> PRIMARY KEY harus bertipe INT</label>
+          <label><input type="radio" name="q4" value="2"> PRIMARY KEY harus satu kolom</label>
+          <label><input type="radio" name="q4" value="3"> PRIMARY KEY harus mencakup kolom partisi</label>
+        </div>
+
+        <div class="quiz-question" data-correct="2">
+          <p><strong>5. Hash partitioning cocok digunakan ketika...</strong></p>
+          <label><input type="radio" name="q5" value="0"> Data selalu diquery dengan range tanggal</label>
+          <label><input type="radio" name="q5" value="1"> Data punya kategori natural</label>
+          <label><input type="radio" name="q5" value="2"> Data perlu didistribusikan merata tanpa pola natural</label>
+          <label><input type="radio" name="q5" value="3"> Data perlu dihapus berdasarkan waktu</label>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <h3>Rangkuman</h3>
+      <div class="info-box info">
+        <div class="info-box-title">📝 Poin Penting</div>
+        <ul>
+          <li><strong>Range Partitioning</strong> — terbaik untuk data time-series (tanggal, angka berurutan)</li>
+          <li><strong>List Partitioning</strong> — cocok untuk data kategorikal (wilayah, tipe)</li>
+          <li><strong>Hash Partitioning</strong> — distribusi merata, cocok untuk data tanpa pola natural</li>
+          <li><strong>Partition Pruning</strong> — optimizer otomatis skip partisi tidak relevan</li>
+          <li><strong>DROP PARTITION</strong> — jauh lebih cepat dari DELETE untuk data lama</li>
+          <li><strong>Sub-partitioning</strong> — gabungkan 2 jenis untuk tabel sangat besar</li>
+          <li><strong>Pg_partman</strong> — auto-create partisi baru secara otomatis</li>
+        </ul>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/redis-streams.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">Redis Streams untuk Event Sourcing</span>
+        </a>
+        <a href="/articles/clickhouse-analytics.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">ClickHouse untuk Real-time Analytics</span>
+        </a>
+        <a href="/articles/mongodb-dasar.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">MongoDB untuk Pemula: Database NoSQL</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <script src="../js/app.js?v=19.2"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    primaryColor: '#0f2a1f', primaryTextColor: '#e4e4e7',
+    primaryBorderColor: '#3ecf8e', lineColor: '#8b8b8b',
+    secondaryColor: '#0f1d3a', tertiaryColor: '#2a1f0a',
+    background: '#0a0a12', mainBkg: '#0a0a12',
+    nodeBorder: '#3ecf8e', clusterBkg: '#0a0a12',
+    titleColor: '#e4e4e7', edgeLabelBackground: '#0a0a12'
+  },
+  flowchart: { curve: 'basis', padding: 15, htmlLabels: true },
+  sequence: { mirrorActors: false, messageAlign: 'center' }
+});
+</script>

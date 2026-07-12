@@ -1,0 +1,1277 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">Error Handling Rust</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>⚠️ Error Handling di Rust</h1>
+      <p class="article-subtitle">Pelajari cara menangani error dengan elegan di Rust — Result, Option, unwrap, custom errors, ? operator, dan best practices</p>
+      <div class="article-meta">
+        <span>📅 27 Juni 2026</span>
+        <span>📖 13 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#dua-jenis-error">Dua Jenis Error di Rust</a></li>
+          <li><a href="#panic">Panic! — Unrecoverable Errors</a></li>
+          <li><a href="#result">Result&lt;T, E&gt; — Recoverable Errors</a></li>
+          <li><a href="#unwrap">Unwrap dan Expect</a></li>
+          <li><a href="#option">Option&lt;T&gt; — Nilai Nullable</a></li>
+          <li><a href="#operator-tanya">Operator ? — Error Propagation</a></li>
+          <li><a href="#custom-errors">Custom Error Types</a></li>
+          <li><a href="#from-trait">From Trait dan Konversi Error</a></li>
+          <li><a href="#thiserror-anyhow">thiserror dan Anyhow</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Dua Jenis Error     -->
+      <!-- ============================== -->
+      <h2 id="dua-jenis-error">1. Dua Jenis Error di Rust</h2>
+
+      <p>Rust membagi error menjadi dua kategori utama, dan masing-masing ditangani dengan cara yang berbeda. Ini berbeda dari bahasa seperti Java atau Python yang menggunakan exception untuk semua jenis error.</p>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Kategori</th>
+            <th>Contoh</th>
+            <th>Penanganan</th>
+            <th>Tipe Rust</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Unrecoverable</strong></td><td>Bug programmer, data corrupt</td><td>Program berhenti (panic)</td><td><code>panic!</code></td></tr>
+          <tr><td><strong>Recoverable</strong></td><td>File tidak ditemukan, jaringan putus</td><td>Ditangani oleh programmer</td><td><code>Result&lt;T, E&gt;</code></td></tr>
+          <tr><td><strong>Nilai Kosong</strong></td><td>Elemen tidak ada, pencarian gagal</td><td>Ditangani dengan Option</td><td><code>Option&lt;T&gt;</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Strategi Error Handling Rust</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 222" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,86L138,90.167C138,94.333,138,102.667,138,110.333C138,118,138,125,138,128.5L138,132" id="L_N1_N0_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N0_0" data-points="W3sieCI6MTM4LCJ5Ijo4Nn0seyJ4IjoxMzgsInkiOjExMX0seyJ4IjoxMzgsInkiOjEzNn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N1_N0_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 175)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Recoverable Error (Bisa dipulihkan) ResultT, E ...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 47)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Unrecoverable Error (Bug / Kritis) panic!('mess...</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      </div>
+
+      <p>Filosofi Rust: <strong>error adalah bagian dari tipe fungsi</strong>. Jika sebuah fungsi bisa gagal, tipe return-nya harus mencerminkan hal itu. Ini memaksa programmer untuk menangani error secara eksplisit.</p>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Panic               -->
+      <!-- ============================== -->
+      <h2 id="panic">2. Panic! — Unrecoverable Errors</h2>
+
+      <p><code>panic!</code> adalah macro yang menyebabkan program berhenti seketika (crash). Gunakan hanya untuk error yang benar-benar tidak bisa dipulihkan — seperti bug programmer atau kondisi yang seharusnya tidak pernah terjadi.</p>
+
+      <h3>Kapan Menggunakan panic!</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — panic!</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>fn main() {
+    // panic! langsung — program crash dengan pesan
+    // panic!("Terjadi kesalahan kritis!");
+
+    // Contoh panic yang terjadi otomatis:
+    let v = vec![1, 2, 3];
+    // v[99]; // panic: index out of bounds
+
+    // Unwrap pada None
+    let x: Option&lt;i32&gt; = None;
+    // x.unwrap(); // panic: called `Option::unwrap()` on a `None` value
+
+    // Unwrap pada Err
+    let result: Result&lt;i32, &str&gt; = Err("gagal");
+    // result.unwrap(); // panic: called `Result::unwrap()` on an `Err` value
+
+    // Panic dengan format string
+    let umur = -5;
+    if umur < 0 {
+        panic!("Umur tidak boleh negatif: {}", umur);
+    }
+}
+
+// Contoh fungsi yang valid menggunakan panic:
+fn bagi(a: f64, b: f64) -> f64 {
+    if b == 0.0 {
+        panic!("Tidak bisa membagi dengan nol!");
+    }
+    a / b
+}
+
+// Lebih baik gunakan Result untuk kasus yang bisa dipulihkan:
+fn bagi_am(a: f64, b: f64) -> Result&lt;f64, String&gt; {
+    if b == 0.0 {
+        Err(String::from("Pembagian dengan nol"))
+    } else {
+        Ok(a / b)
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>Backtrace — Melacak Lokasi Panic</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Backtrace</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Jalankan dengan RUST_BACKTRACE=1 untuk melihat stack trace
+RUST_BACKTRACE=1 cargo run
+
+# Output:
+# thread 'main' panicked at 'index out of bounds', src/main.rs:5:5
+# stack backtrace:
+#    0: rust_begin_unwind
+#    1: core::panicking::panic_fmt
+#    2: core::panicking::panic_bounds_check
+#    3: my_project::main
+#    ...
+
+# Untuk backtrace lengkap:
+RUST_BACKTRACE=full cargo run
+</code></pre>
+      </div>
+
+      <h3>Panic vs Abort</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TOML — Cargo.toml</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Default: panic = "unwind" (stack unwinding, cleanup dijalankan)
+# Untuk binary yang lebih kecil: panic = "abort" (langsung berhenti)
+
+[profile.release]
+panic = "abort"  # Binary lebih kecil, tidak ada cleanup
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Kapan Harus Panic?</div>
+        <ul>
+          <li><strong>Boleh panic:</strong> contoh, prototyping, test, kondisi yang mustahil terjadi</li>
+          <li><strong>Hindari panic:</strong> di library yang digunakan orang lain, di kode produksi</li>
+          <li><strong>Selalu gunakan Result:</strong> untuk operasi I/O, network, parsing, dan input pengguna</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Result              -->
+      <!-- ============================== -->
+      <h2 id="result">3. Result&lt;T, E&gt; — Recoverable Errors</h2>
+
+      <p><code>Result</code> adalah enum bawaan Rust yang digunakan untuk menangani error yang bisa dipulihkan. Ini adalah cara utama untuk menangani error di Rust.</p>
+
+      <h3>Definisi Result</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — Result Definition</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Result sudah didefinisikan di standard library:
+// enum Result&lt;T, E&gt; {
+//     Ok(T),    // Operasi berhasil, berisi nilai
+//     Err(E),   // Operasi gagal, berisi error
+// }
+
+use std::fs::File;
+use std::io::{self, Read};
+
+fn main() {
+    // Membuka file — bisa berhasil atau gagal
+    let hasil = File::open("data.txt");
+
+    // Match untuk menangani kedua kemungkinan
+    match hasil {
+        Ok(file) => println!("File berhasil dibuka: {:?}", file),
+        Err(error) => println!("Gagal membuka file: {}", error),
+    }
+
+    // Lebih spesifik: match berdasarkan jenis error
+    let hasil = File::open("data.txt");
+    match hasil {
+        Ok(file) => println!("File dibuka"),
+        Err(error) => match error.kind() {
+            io::ErrorKind::NotFound => println!("File tidak ditemukan"),
+            io::ErrorKind::PermissionDenied => println!("Akses ditolak"),
+            _ => println!("Error lain: {}", error),
+        },
+    }
+}
+
+// Fungsi yang mengembalikan Result
+fn baca_file_ke_string(path: &str) -> Result&lt;String, io::Error&gt; {
+    let mut file = File::open(path)?;
+    let mut konten = String::new();
+    file.read_to_string(&mut konten)?;
+    Ok(konten)
+}
+</code></pre>
+      </div>
+
+      <h3>Method pada Result</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — Result Methods</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>fn main() {
+    let ok_value: Result&lt;i32, &str&gt; = Ok(42);
+    let err_value: Result&lt;i32, &str&gt; = Err("gagal");
+
+    // is_ok() dan is_err()
+    println!("ok is_ok: {}", ok_value.is_ok());     // true
+    println!("err is_err: {}", err_value.is_err());  // true
+
+    // map — transformasi nilai Ok
+    let mapped = ok_value.map(|x| x * 2);
+    println!("mapped: {:?}", mapped); // Ok(84)
+
+    // map_err — transformasi error
+    let mapped_err = err_value.map_err(|e| format!("Error: {}", e));
+    println!("mapped_err: {:?}", mapped_err); // Err("Error: gagal")
+
+    // and_then (flatmap) — operasi berantai yang bisa gagal
+    let hasil: Result&lt;i32, &str&gt; = Ok(10)
+        .and_then(|x| if x > 0 { Ok(x * 2) } else { Err("negatif") });
+    println!("and_then: {:?}", hasil); // Ok(20)
+
+    // unwrap_or — nilai default jika Err
+    let nilai = err_value.unwrap_or(0);
+    println!("unwrap_or: {}", nilai); // 0
+
+    // unwrap_or_else — closure untuk nilai default
+    let nilai = err_value.unwrap_or_else(|e| {
+        println!("Warning: {}, menggunakan default", e);
+        0
+    });
+
+    // unwrap_or_default — default dari Default trait
+    let nilai: i32 = err_value.unwrap_or_default();
+    println!("unwrap_or_default: {}", nilai); // 0
+
+    // map_or — unwrap dengan transformasi
+    let hasil = ok_value.map_or(0, |x| x * 10);
+    println!("map_or: {}", hasil); // 420
+
+    // transpose — Result&lt;Option&lt;T&gt;&gt; → Option&lt;Result&lt;T&gt;&gt;
+    let x: Result&lt;Option&lt;i32&gt;, &str&gt; = Ok(Some(5));
+    let y: Option&lt;Result&lt;i32, &str&gt;&gt; = x.transpose();
+    println!("transpose: {:?}", y); // Some(Ok(5))
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Unwrap & Expect     -->
+      <!-- ============================== -->
+      <h2 id="unwrap">4. Unwrap dan Expect</h2>
+
+      <p><code>unwrap()</code> dan <code>expect()</code> adalah cara cepat untuk mengekstrak nilai dari <code>Result</code> atau <code>Option</code>, tetapi keduanya <strong>akan panic</strong> jika nilai tidak tersedia.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — Unwrap & Expect</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>use std::fs;
+
+fn main() {
+    // unwrap — ambil nilai, panic jika Err/None
+    let ok: Result&lt;i32, &str&gt; = Ok(42);
+    let nilai = ok.unwrap(); // 42
+    println!("unwrap: {}", nilai);
+
+    // let err: Result&lt;i32, &str&gt; = Err("gagal");
+    // err.unwrap(); // PANIC: "called `Result::unwrap()` on an `Err` value: gagal"
+
+    // expect — seperti unwrap tapi dengan pesan panic custom
+    let ok: Result&lt;i32, &str&gt; = Ok(42);
+    let nilai = ok.expect("Harusnya berhasil"); // 42
+
+    // let err: Result&lt;i32, &str&gt; = Err("gagal");
+    // err.expect("Operasi kritis gagal!"); // PANIC: "Operasi kritis gagal!: gagal"
+
+    // unwrap_or — aman, berikan nilai default
+    let err: Result&lt;i32, &str&gt; = Err("gagal");
+    let nilai = err.unwrap_or(0); // 0, TIDAK panic
+    println!("unwrap_or: {}", nilai);
+
+    // unwrap_or_default — nilai default dari tipe
+    let nama: Option&lt;String&gt; = None;
+    let nama = nama.unwrap_or_default(); // String::from("")
+    println!("nama kosong: '{}'", nama);
+
+    // Kapan menggunakan unwrap/expect?
+    // ✅ OK: prototyping, contoh, test
+    // ✅ OK: ketika Anda YAKIN tidak akan gagal
+    // ❌ HINDARI: di kode produksi, di library
+    // ❌ HINDARI: untuk operasi yang bisa gagal secara realistis
+
+    // Contoh OK:
+    let pesan = "42";
+    let angka: i32 = pesan.parse().expect("pesan harus angka");
+
+    // Contoh HARUS dihindari:
+    // let isi = fs::read_to_string("config.txt").unwrap(); // bisa gagal!
+    // Lebih baik:
+    match fs::read_to_string("config.txt") {
+        Ok(isi) => println!("Config: {}", isi),
+        Err(e) => eprintln!("Gagal baca config: {}", e),
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>Kapan Aman Menggunakan Unwrap</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — Safe Unwrap</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>fn main() {
+    // ✅ Saat Anda TAHU pasti nilainya Ok/Some
+    let angka: i32 = "42".parse().unwrap(); // Selalu berhasil untuk "42"
+
+    // ✅ Dengan validasi sebelumnya
+    let data = vec![1, 2, 3];
+    if !data.is_empty() {
+        let pertama = data.first().unwrap(); // Pasti Some karena tidak kosong
+        println!("Pertama: {}", pertama);
+    }
+
+    // ✅ Regex compile (pasti valid)
+    // let re = regex::Regex::new(r"\d+").unwrap();
+
+    // ✅ Dalam unit test
+    #[test]
+    fn test_parsing() {
+        let nilai: i32 = "42".parse().unwrap();
+        assert_eq!(nilai, 42);
+    }
+
+    // Alternatif yang lebih aman daripada unwrap:
+    let input = "bukan angka";
+    match input.parse::<i32>() {
+        Ok(n) => println!("Angka: {}", n),
+        Err(e) => println!("Bukan angka: {}", e),
+    }
+
+    // Atau dengan if let
+    if let Ok(n) = input.parse::<i32>() {
+        println!("Angka: {}", n);
+    }
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Option              -->
+      <!-- ============================== -->
+      <h2 id="option">5. Option&lt;T&gt; — Nilai Nullable</h2>
+
+      <p><code>Option</code> adalah enum bawaan Rust untuk menangani kasus di mana nilai mungkin tidak ada. Ini menggantikan <code>null</code> atau <code>nil</code> dari bahasa lain, dengan cara yang lebih aman.</p>
+
+      <h3>Definisi dan Penggunaan</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — Option</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Option sudah didefinisikan di standard library:
+// enum Option&lt;T&gt; {
+//     Some(T),   // Ada nilainya
+//     None,      // Tidak ada nilai
+// }
+
+fn cari(data: &[i32], target: i32) -> Option&lt;usize&gt; {
+    for (i, &val) in data.iter().enumerate() {
+        if val == target {
+            return Some(i);
+        }
+    }
+    None
+}
+
+fn bagi(a: f64, b: f64) -> Option&lt;f64&gt; {
+    if b == 0.0 {
+        None
+    } else {
+        Some(a / b)
+    }
+}
+
+fn main() {
+    let angka = vec![10, 20, 30, 40, 50];
+
+    // match dengan Option
+    match cari(&angka, 30) {
+        Some(idx) => println!("Ditemukan di index {}", idx),
+        None => println!("Tidak ditemukan"),
+    }
+
+    // if let — shorthand
+    if let Some(idx) = cari(&angka, 40) {
+        println!("Index 40: {}", idx);
+    }
+
+    // Method pada Option
+    let hasil = cari(&angka, 30);
+    println!("is_some: {}", hasil.is_some()); // true
+    println!("is_none: {}", hasil.is_none()); // false
+
+    // map — transformasi inner value
+    let doubled = hasil.map(|idx| idx * 2);
+    println!("doubled: {:?}", doubled); // Some(4)
+
+    // and_then — chain operasi yang mengembalikan Option
+    let hasil = cari(&angka, 30)
+        .and_then(|idx| angka.get(idx + 1)); // ambil elemen berikutnya
+    println!("berikutnya: {:?}", hasil); // Some(40)
+
+    // filter
+    let x = Some(42);
+    let filtered = x.filter(|&v| v > 50);
+    println!("filtered: {:?}", filtered); // None (42 tidak > 50)
+
+    // unwrap_or
+    let tidak_ada = cari(&angka, 99);
+    println!("unwrap_or: {}", tidak_ada.unwrap_or(0)); // 0
+
+    // unwrap_or_else
+    let nilai = tidak_ada.unwrap_or_else(|| {
+        println!("Tidak ditemukan, menggunakan default");
+        -1
+    });
+    println!("nilai: {}", nilai);
+}
+</code></pre>
+      </div>
+
+      <h3>Option dan Result Conversion</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — Option ↔ Result</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>fn main() {
+    // Option → Result
+    let some_val: Option&lt;i32&gt; = Some(42);
+    let none_val: Option&lt;i32&gt; = None;
+
+    // ok_or: Option → Result (dengan error value)
+    let result = some_val.ok_or("Tidak ada nilai");
+    println!("{:?}", result); // Ok(42)
+
+    let result = none_val.ok_or("Tidak ada nilai");
+    println!("{:?}", result); // Err("Tidak ada nilai")
+
+    // ok_or_else: dengan closure
+    let result = none_val.ok_or_else(|| format!("Error: nilai hilang"));
+
+    // Result → Option
+    let ok: Result&lt;i32, &str&gt; = Ok(42);
+    let err: Result&lt;i32, &str&gt; = Err("gagal");
+
+    println!("ok: {:?}", ok.ok());    // Some(42)
+    println!("err: {:?}", err.ok());  // None
+
+    println!("ok: {:?}", ok.err());    // None
+    println!("err: {:?}", err.err());  // Some("gagal")
+
+    // flatten — Option&lt;Option&lt;T&gt;&gt; → Option&lt;T&gt;
+    let nested: Option&lt;Option&lt;i32&gt;&gt; = Some(Some(42));
+    let flat: Option&lt;i32&gt; = nested.flatten();
+    println!("flat: {:?}", flat); // Some(42)
+
+    // zip — gabungkan dua Option menjadi tuple
+    let a = Some(1);
+    let b = Some("hello");
+    let zipped = a.zip(b);
+    println!("zipped: {:?}", zipped); // Some((1, "hello"))
+
+    // get_or_insert — untuk mutable Option
+    let mut x: Option&lt;i32&gt; = None;
+    x.get_or_insert(42);
+    println!("x: {:?}", x); // Some(42)
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Operator ?          -->
+      <!-- ============================== -->
+      <h2 id="operator-tanya">6. Operator ? — Error Propagation</h2>
+
+      <p>Operator <code>?</code> adalah shorthand yang sangat powerful untuk menyebarkan (propagate) error ke pemanggil fungsi. Ini menggantikan pattern match yang berulang-ulang.</p>
+
+      <h3>Cara Kerja Operator ?</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — Operator ?</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>use std::fs::File;
+use std::io::{self, Read};
+
+// TANPA operator ? — verbose dan berulang
+fn baca_file_tanpa_tanda(path: &str) -> Result&lt;String, io::Error&gt; {
+    let file_result = File::open(path);
+    let mut file = match file_result {
+        Ok(f) => f,
+        Err(e) => return Err(e),  // return Err secara manual
+    };
+
+    let mut konten = String::new();
+    match file.read_to_string(&mut konten) {
+        Ok(_) => Ok(konten),
+        Err(e) => Err(e),         // return Err secara manual
+    }
+}
+
+// DENGAN operator ? — bersih dan ringkas
+fn baca_file(path: &str) -> Result&lt;String, io::Error&gt; {
+    let mut file = File::open(path)?;  // Err → return Err(e)
+    let mut konten = String::new();
+    file.read_to_string(&mut konten)?; // Err → return Err(e)
+    Ok(konten)
+}
+
+// Bisa di-chain:
+fn baca_file_chain(path: &str) -> Result&lt;String, io::Error&gt; {
+    let mut konten = String::new();
+    File::open(path)?.read_to_string(&mut konten)?;
+    Ok(konten)
+}
+
+// Lebih singkat lagi:
+fn baca_file_singkat(path: &str) -> Result&lt;String, io::Error&gt; {
+    std::fs::read_to_string(path)
+}
+
+fn main() {
+    match baca_file("data.txt") {
+        Ok(isi) => println!("Isi: {}", isi),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>Operator ? dengan Berbagai Tipe</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — ? dengan Tipe Berbeda</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// ? pada Option — mengembalikan None jika None
+fn kata_pertama(teks: &str) -> Option&lt;&str&gt; {
+    let pos = teks.find(' ')?; // None jika tidak ada spasi
+    Some(&teks[..pos])
+}
+
+fn ambil_karakter_ke(teks: &str, index: usize) -> Option&lt;char&gt; {
+    teks.chars().nth(index)?  // None jika index di luar batas
+}
+
+// ? pada Result — mengembalikan Err jika Err
+fn parse_angka_dan_kali(input: &str, faktor: i32) -> Result&lt;i32, std::num::ParseIntError&gt; {
+    let angka: i32 = input.parse()?;  // Err jika gagal parse
+    Ok(angka * faktor)
+}
+
+// Menggabungkan Result dan Option dengan ?
+fn cari_angka_pertama(teks: &str) -> Option&lt;i32&gt; {
+    let digit_str = teks.chars()
+        .find(|c| c.is_ascii_digit())?;
+    Some(digit_str.to_digit(10)? as i32)
+}
+
+fn main() {
+    // ? pada Option
+    let hasil = kata_pertama("Hello Rust World");
+    println!("Kata pertama: {:?}", hasil); // Some("Hello")
+
+    let hasil = kata_pertama("NoSpace");
+    println!("Kata pertama: {:?}", hasil); // None
+
+    // ? pada Result
+    let hasil = parse_angka_dan_kali("21", 2);
+    println!("21 × 2 = {:?}", hasil); // Ok(42)
+
+    let hasil = parse_angka_dan_kali("abc", 2);
+    println!("Error: {:?}", hasil); // Err(ParseIntError)
+
+    // Gabungan
+    let hasil = cari_angka_pertama("abc3def");
+    println!("Angka: {:?}", hasil); // Some(3)
+}
+</code></pre>
+      </div>
+
+      <h3>Aturan Penggunaan Operator ?</h3>
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Aturan Operator ?</div>
+        <ul>
+          <li>Hanya bisa digunakan di fungsi yang return type-nya <code>Result</code>, <code>Option</code>, atau tipe lain yang implement <code>Try</code></li>
+          <li><code>?</code> pada <code>Result</code> mengembalikan <code>Err(e)</code> ke pemanggil</li>
+          <li><code>?</code> pada <code>Option</code> mengembalikan <code>None</code> ke pemanggil</li>
+          <li><strong>Tidak bisa</strong> digunakan di <code>fn main()</code> kecuali return type-nya <code>Result</code></li>
+        </ul>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — main dengan Result</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>use std::fs;
+
+// main bisa mengembalikan Result!
+fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let isi = fs::read_to_string("config.txt")?;  // ? di main!
+    println!("Config: {}", isi);
+
+    let angka: i32 = "42".parse()?;  // ? di main!
+    println!("Angka: {}", angka);
+
+    Ok(())  // main mengembalikan Ok jika berhasil
+}
+
+// Alternatif: menggunakan anyhow di main
+// fn main() -> anyhow::Result&lt;()&gt; { ... }
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Custom Errors       -->
+      <!-- ============================== -->
+      <h2 id="custom-errors">7. Custom Error Types</h2>
+
+      <p>Untuk aplikasi dan library yang lebih besar, Anda perlu membuat tipe error custom yang bisa mewakili berbagai jenis error yang mungkin terjadi.</p>
+
+      <h3>Enum Error</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — Custom Error Enum</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>use std::fmt;
+use std::io;
+use std::num::ParseIntError;
+
+// Definisi custom error enum
+#[derive(Debug)]
+enum AppError {
+    IoError(io::Error),
+    ParseError(ParseIntError),
+    NotFound(String),
+    Validation { field: String, message: String },
+    Custom(String),
+}
+
+// Implement Display untuk pesan error yang user-friendly
+impl fmt::Display for AppError {
+    fn fmt(&self, f: &mut fmt::Formatter&lt;'_&gt;) -> fmt::Result {
+        match self {
+            AppError::IoError(e) => write!(f, "IO Error: {}", e),
+            AppError::ParseError(e) => write!(f, "Parse Error: {}", e),
+            AppError::NotFound(item) => write!(f, "Tidak ditemukan: {}", item),
+            AppError::Validation { field, message } => {
+                write!(f, "Validasi gagal pada '{}': {}", field, message)
+            }
+            AppError::Custom(msg) => write!(f, "{}", msg),
+        }
+    }
+}
+
+// Implement Error trait
+impl std::error::Error for AppError {
+    fn source(&self) -> Option&lt;&(dyn std::error::Error + 'static)&gt; {
+        match self {
+            AppError::IoError(e) => Some(e),
+            AppError::ParseError(e) => Some(e),
+            _ => None,
+        }
+    }
+}
+
+fn proses_data(path: &str) -> Result&lt;i32, AppError&gt; {
+    let konten = std::fs::read_to_string(path)
+        .map_err(AppError::IoError)?;
+
+    let angka: i32 = konten.trim().parse()
+        .map_err(AppError::ParseError)?;
+
+    if angka < 0 {
+        return Err(AppError::Validation {
+            field: "angka".to_string(),
+            message: "Tidak boleh negatif".to_string(),
+        });
+    }
+
+    Ok(angka)
+}
+
+fn main() {
+    match proses_data("data.txt") {
+        Ok(n) => println!("Hasil: {}", n),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>Struct Error Sederhana</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — Struct Error</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>use std::fmt;
+
+// Struct error sederhana
+#[derive(Debug)]
+struct ValidationError {
+    field: String,
+    message: String,
+}
+
+impl fmt::Display for ValidationError {
+    fn fmt(&self, f: &mut fmt::Formatter&lt;'_&gt;) -> fmt::Result {
+        write!(f, "Error pada '{}': {}", self.field, self.message)
+    }
+}
+
+impl std::error::Error for ValidationError {}
+
+// Helper function untuk membuat error dengan mudah
+fn validation_error(field: &str, message: &str) -> ValidationError {
+    ValidationError {
+        field: field.to_string(),
+        message: message.to_string(),
+    }
+}
+
+fn validasi_umur(umur: i32) -> Result&lt;i32, ValidationError&gt; {
+    if umur < 0 {
+        Err(validation_error("umur", "Tidak boleh negatif"))
+    } else if umur > 150 {
+        Err(validation_error("umur", "Tidak valid (> 150)"))
+    } else {
+        Ok(umur)
+    }
+}
+
+fn validasi_nama(nama: &str) -> Result&lt;&str, ValidationError&gt; {
+    if nama.is_empty() {
+        Err(validation_error("nama", "Tidak boleh kosong"))
+    } else if nama.len() < 2 {
+        Err(validation_error("nama", "Minimal 2 karakter"))
+    } else {
+        Ok(nama)
+    }
+}
+
+fn main() {
+    let nama = validasi_nama("Budi");
+    let umur = validasi_umur(25);
+
+    println!("Nama: {:?}", nama);  // Ok("Budi")
+    println!("Umur: {:?}", umur);  // Ok(25)
+
+    let umur_invalid = validasi_umur(-5);
+    println!("Umur invalid: {:?}", umur_invalid);
+    // Err(ValidationError { field: "umur", message: "Tidak boleh negatif" })
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: From Trait          -->
+      <!-- ============================== -->
+      <h2 id="from-trait">8. From Trait dan Konversi Error</h2>
+
+      <p>Implementasi <code>From</code> trait memungkinkan operator <code>?</code> mengonversi berbagai tipe error ke tipe error Anda secara otomatis.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — From Trait</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>use std::io;
+use std::num::ParseIntError;
+use std::fmt;
+
+#[derive(Debug)]
+enum AppError {
+    Io(io::Error),
+    Parse(ParseIntError),
+    Custom(String),
+}
+
+impl fmt::Display for AppError {
+    fn fmt(&self, f: &mut fmt::Formatter&lt;'_&gt;) -> fmt::Result {
+        match self {
+            AppError::Io(e) => write!(f, "IO: {}", e),
+            AppError::Parse(e) => write!(f, "Parse: {}", e),
+            AppError::Custom(msg) => write!(f, "{}", msg),
+        }
+    }
+}
+
+impl std::error::Error for AppError {}
+
+// Implement From — operator ? akan otomatis memanggil ini
+impl From&lt;io::Error&gt; for AppError {
+    fn from(error: io::Error) -> Self {
+        AppError::Io(error)
+    }
+}
+
+impl From&lt;ParseIntError&gt; for AppError {
+    fn from(error: ParseIntError) -> Self {
+        AppError::Parse(error)
+    }
+}
+
+// Sekarang ? bisa otomatis mengonversi error!
+fn proses_file(path: &str) -> Result&lt;i32, AppError&gt; {
+    let konten = std::fs::read_to_string(path)?;  // io::Error → AppError::Io
+    let angka: i32 = konten.trim().parse()?;        // ParseIntError → AppError::Parse
+    Ok(angka * 2)
+}
+
+fn main() {
+    match proses_file("data.txt") {
+        Ok(n) => println!("Hasil: {}", n),
+        Err(AppError::Io(e)) => println!("File error: {}", e),
+        Err(AppError::Parse(e)) => println!("Parse error: {}", e),
+        Err(AppError::Custom(msg)) => println!("Custom: {}", msg),
+    }
+}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: thiserror & anyhow  -->
+      <!-- ============================== -->
+      <h2 id="thiserror-anyhow">9. thiserror dan Anyhow</h2>
+
+      <p>Dua crate populer untuk error handling di Rust adalah <strong>thiserror</strong> (untuk library) dan <strong>anyhow</strong> (untuk aplikasi).</p>
+
+      <h3>thiserror — Library Errors</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TOML — Cargo.toml</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>[dependencies]
+thiserror = "1"
+anyhow = "1"
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — thiserror</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>use thiserror::Error;
+
+// thiserror otomatis implement Display dan Error
+#[derive(Error, Debug)]
+enum AppError {
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("Parse error: {0}")]
+    Parse(#[from] std::num::ParseIntError),
+
+    #[error("Tidak ditemukan: {0}")]
+    NotFound(String),
+
+    #[error("Validasi gagal pada '{field}': {message}")]
+    Validation { field: String, message: String },
+}
+
+// #[from] otomatis implement From trait!
+// Jadi ? langsung bekerja
+
+fn proses_data(path: &str) -> Result&lt;i32, AppError&gt; {
+    let konten = std::fs::read_to_string(path)?;  // otomatis konversi
+    let angka: i32 = konten.trim().parse()?;        // otomatis konversi
+
+    if angka < 0 {
+        return Err(AppError::Validation {
+            field: "nilai".to_string(),
+            message: "Tidak boleh negatif".to_string(),
+        });
+    }
+
+    Ok(angka)
+}
+</code></pre>
+      </div>
+
+      <h3>anyhow — Aplikasi Errors</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Rust — anyhow</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>use anyhow::{Context, Result, bail, ensure};
+
+// anyhow::Result menggantikan Result&lt;T, Box&lt;dyn Error&gt;&gt;
+fn baca_config(path: &str) -> Result&lt;String&gt; {
+    let isi = std::fs::read_to_string(path)
+        .with_context(|| format!("Gagal membuka file: {}", path))?;
+    Ok(isi)
+}
+
+fn proses_angka(input: &str) -> Result&lt;i32&gt; {
+    let angka: i32 = input.parse()
+        .context("Gagal parsing angka")?;
+
+    ensure!(angka >= 0, "Angka harus positif, dapat: {}", angka);
+
+    if angka > 1000 {
+        bail!("Angka terlalu besar: {}", angka);
+    }
+
+    Ok(angka)
+}
+
+// Main dengan anyhow::Result
+fn main() -> Result&lt;()&gt; {
+    let config = baca_config("config.txt")?;
+    println!("Config: {}", config);
+
+    let n = proses_angka("42")?;
+    println!("Angka: {}", n);
+
+    Ok(())
+}
+
+// anyhow cocok untuk:
+// ✅ Aplikasi (bukan library)
+// ✅ Prototyping
+// ✅ CLI tools
+// ✅ Kode yang membutuhkan error handling cepat
+
+// thiserror cocok untuk:
+// ✅ Library yang dipublikasikan
+// ✅ Kode yang perlu tipe error spesifik
+// ✅ API yang perlu dipanggil dengan match
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Best Practices     -->
+      <!-- ============================== -->
+      <h2 id="best-practices">10. Best Practices</h2>
+
+      <p>Berikut ringkasan best practices untuk error handling di Rust:</p>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Praktik</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Gunakan <code>Result</code></td><td>Untuk semua operasi yang bisa gagal di kode produksi</td></tr>
+          <tr><td>Hindari <code>unwrap()</code></td><td>Kecuali dalam prototyping atau ketika Anda yakin 100% tidak gagal</td></tr>
+          <tr><td>Gunakan <code>?</code> operator</td><td>Untuk propagate error secara ringkas</td></tr>
+          <tr><td>Buat custom error</td><td>Untuk library, gunakan enum error yang informatif</td></tr>
+          <tr><td>Gunakan <code>thiserror</code></td><td>Untuk mengurangi boilerplate error di library</td></tr>
+          <tr><td>Gunakan <code>anyhow</code></td><td>Untuk error handling cepat di aplikasi</td></tr>
+          <tr><td>Tambahkan context</td><td>Gunakan <code>.context()</code> untuk menambah info saat propagate</td></tr>
+          <tr><td><code>panic!</code> untuk bug</td><td>Hanya untuk kondisi yang mustahil terjadi</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Ringkasan Strategi</div>
+        <p><strong>Untuk library:</strong> buat custom error enum + implement <code>std::error::Error</code> + <code>Display</code>. Gunakan <code>thiserror</code> untuk mengurangi boilerplate. <strong>Untuk aplikasi:</strong> gunakan <code>anyhow::Result</code> dan <code>.context()</code> untuk pesan error yang deskriptif.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- QUIZ                           -->
+      <!-- ============================== -->
+      <h2 id="quiz">📝 Quiz Pemahaman Error Handling</h2>
+      <p>Uji pemahaman Anda tentang error handling di Rust!</p>
+
+      <div class="quiz-container" id="quizRust03">
+        <!-- Question 1 -->
+        <div class="quiz-question">
+          <h3>1. Apa perbedaan utama antara <code>panic!</code> dan <code>Result</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Tidak ada perbedaan, keduanya sama</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) <code>panic!</code> untuk error recoverable, <code>Result</code> untuk unrecoverable</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) <code>panic!</code> crash program, <code>Result</code> memungkinkan penanganan error</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) <code>Result</code> lebih cepat dari <code>panic!</code></div>
+          </div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="quiz-question">
+          <h3>2. Apa yang dilakukan <code>unwrap()</code> jika nilai adalah <code>Err</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Mengembalikan nilai default</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Mengabaikan error</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Program panic (crash)</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Mengembalikan <code>None</code></div>
+          </div>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="quiz-question">
+          <h3>3. Apa fungsi operator <code>?</code> pada <code>Result</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Mengonversi Result ke Option</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Mengabaikan error</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Meng-propagate error ke pemanggil fungsi</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Menjalankan unwrap secara otomatis</div>
+          </div>
+        </div>
+
+        <!-- Question 4 -->
+        <div class="quiz-question">
+          <h3>4. Kapan sebaiknya menggunakan <code>panic!</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Untuk semua error di program</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Untuk input pengguna yang salah</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Untuk kondisi yang mustahil terjadi dan bug programmer</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Sebaiknya tidak pernah digunakan</div>
+          </div>
+        </div>
+
+        <!-- Question 5 -->
+        <div class="quiz-question">
+          <h3>5. Crate mana yang cocok untuk error handling di <strong>library</strong> Rust?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) <code>anyhow</code></div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) <code>thiserror</code></div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) <code>serde</code></div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) <code>tokio</code></div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="rust-ownership.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">🔐 Ownership & Borrowing</span>
+        </a>
+        <a href="rust-concurrency.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">⚡ Rust Concurrency: Threads & Async</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/python-dataclasses.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">Python Dataclasses: Data Classes</span>
+        </a>
+        <a href="/articles/java-spring-boot.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">🍃 Spring Boot: REST API Modern</span>
+        </a>
+        <a href="/articles/python-multiprocessing.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">Python Multiprocessing: Panduan Lengkap</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

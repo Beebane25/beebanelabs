@@ -1,0 +1,726 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Database</a><span class="separator">/</span><span class="current">Supabase</span></div>
+      <span class="category-tag">Database</span>
+      <h1>Supabase Realtime Features</h1>
+      <p class="article-subtitle">Tutorial komprehensif Supabase Realtime — channel broadcast untuk komunikasi client-to-client, presence tracking, database changes streaming, Row Level Security (RLS), dan Edge Functions untuk backend serverless</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Supabase Realtime</a></li>
+          <li><a href="#broadcast">Broadcast Channels</a></li>
+          <li><a href="#presence">Presence Tracking</a></li>
+          <li><a href="#db-changes">Database Changes</a></li>
+          <li><a href="#rls">Row Level Security (RLS)</a></li>
+          <li><a href="#edge-functions">Edge Functions</a></li>
+          <li><a href="#patterns">Real-time Patterns</a></li>
+          <li><a href="#best-practices">Best Practices &amp; Limits</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan Supabase Realtime</h2>
+
+      <p><strong>Supabase</strong> adalah platform Backend-as-a-Service (BaaS) open-source yang dibangun di atas PostgreSQL. Salah satu fitur paling powerful dari Supabase adalah <strong>Realtime</strong> — kemampuan untuk mendengarkan perubahan data dan mengirimkan update ke client secara real-time melalui WebSocket.</p>
+
+      <p>Supabase Realtime memiliki tiga fitur utama: <strong>Broadcast</strong> (komunikasi client-to-client), <strong>Presence</strong> (tracking status user), dan <strong>Database Changes</strong> (streaming perubahan tabel PostgreSQL). Ketiganya diakses melalui channel system yang berjalan di atas WebSocket.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Arsitektur Supabase Realtime</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">📱</div>
+            <div class="arch-label">Client Apps</div>
+            <div class="arch-desc">Browser, mobile,<br>server</div>
+          </div>
+          <div class="arch-arrow">→ WebSocket →</div>
+          <div class="arch-box info">
+            <div class="arch-icon">⚡</div>
+            <div class="arch-label">Realtime Server</div>
+            <div class="arch-desc">Broadcast, Presence,<br>DB Changes</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">🐘</div>
+            <div class="arch-label">PostgreSQL</div>
+            <div class="arch-desc">Logical replication<br>+ RLS</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box success">
+            <div class="arch-icon">🔒</div>
+            <div class="arch-label">RLS Policies</div>
+            <div class="arch-desc">Authorization per-row<br>sebelum data dikirim</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Setup</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Setup Supabase Client</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Install
+// npm install @supabase/supabase-js
+
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://your-project.supabase.co';
+const supabaseAnonKey = 'your-anon-key';
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    realtime: {
+        params: {
+            eventsPerSecond: 10  // Rate limit events
+        }
+    }
+});
+
+// Cek koneksi realtime
+const channel = supabase.channel('test-connection');
+channel.subscribe((status) => {
+    console.log('Realtime status:', status);
+    // 'SUBSCRIBED' = connected
+    // 'TIMED_OUT' = timeout
+    // 'CLOSED' = disconnected
+    // 'CHANNEL_ERROR' = error
+});
+</code></pre>
+      </div>
+
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="broadcast">2. Broadcast Channels</h2>
+
+      <p><strong>Broadcast</strong> memungkinkan komunikasi client-to-client secara real-time tanpa menyimpan data di database. Cocok untuk fitur seperti live cursor, chat sementara, notifikasi instan, dan collaborative editing.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Broadcast untuk Real-time Communication</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Membuat channel broadcast
+const chatChannel = supabase.channel('room-1', {
+    config: {
+        broadcast: {
+            self: true,     // Terima pesan dari diri sendiri
+            ack: true       // Tunggu acknowledgement dari server
+        }
+    }
+});
+
+// Subscribe ke channel
+chatChannel
+    .on('broadcast', { event: 'message' }, (payload) => {
+        console.log('Pesan baru:', payload);
+        const { sender, text, timestamp } = payload.payload;
+        appendMessage(sender, text, timestamp);
+    })
+    .on('broadcast', { event: 'typing' }, (payload) => {
+        showTypingIndicator(payload.payload.user);
+    })
+    .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+            console.log('Terhubung ke room chat!');
+        }
+    });
+
+// Mengirim pesan
+await chatChannel.send({
+    type: 'broadcast',
+    event: 'message',
+    payload: {
+        sender: 'Budi',
+        text: 'Halo semua!',
+        timestamp: new Date().toISOString()
+    }
+});
+
+// Typing indicator
+await chatChannel.send({
+    type: 'broadcast',
+    event: 'typing',
+    payload: { user: 'Budi' }
+});
+
+// Unsubscribe saat komponen unmount
+// chatChannel.unsubscribe();
+
+// ========================================
+// Collaborative cursor (live cursor)
+// ========================================
+const docChannel = supabase.channel('doc-collab');
+
+docChannel
+    .on('broadcast', { event: 'cursor_move' }, (payload) => {
+        const { userId, x, y } = payload.payload;
+        updateCursorUI(userId, x, y);
+    })
+    .subscribe();
+
+// Mengirim posisi cursor (throttle!)
+function onCursorMove(x, y) {
+    docChannel.send({
+        type: 'broadcast',
+        event: 'cursor_move',
+        payload: { userId: myUserId, x, y }
+    });
+}
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 3 -->
+      <h2 id="presence">3. Presence Tracking</h2>
+
+      <p><strong>Presence</strong> melacak status online/offline user dalam channel. Cocok untuk fitur "who's online", status availability, dan real-time user lists.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Presence untuk Online Status</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Channel dengan presence
+const roomChannel = supabase.channel('room-1', {
+    config: {
+        presence: {
+            key: user.id,  // Unique key per user
+        }
+    }
+});
+
+// Listen untuk perubahan presence
+roomChannel
+    .on('presence', { event: 'sync' }, () => {
+        const state = roomChannel.presenceState();
+        console.log('Online users:', state);
+        // Format: { 'user-1': [{ ... }, ...], 'user-2': [{ ... }] }
+        updateOnlineUsersList(state);
+    })
+    .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log(`${key} joined:`, newPresences);
+        showNotification(`${newPresences[0].username} joined the room`);
+    })
+    .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log(`${key} left:`, leftPresences);
+    })
+    .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+            // Track presence setelah subscribe
+            await roomChannel.track({
+                user_id: user.id,
+                username: user.name,
+                avatar_url: user.avatar,
+                online_at: new Date().toISOString(),
+                status: 'active'  // active, idle, away
+            });
+        }
+    });
+
+// Update status
+async function setStatus(newStatus) {
+    await roomChannel.track({
+        user_id: user.id,
+        username: user.name,
+        status: newStatus,
+        updated_at: new Date().toISOString()
+    });
+}
+
+// Mendapatkan state saat ini
+const currentState = roomChannel.presenceState();
+const onlineCount = Object.keys(currentState).length;
+
+// Cleanup: untrack saat user keluar
+// window.addEventListener('beforeunload', () => {
+//     roomChannel.untrack();
+// });
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Presence Adalah Ephemeral</div>
+        <p>Presence data <strong>tidak disimpan di database</strong> — hanya berada di memory Realtime server. Jika user disconnect, presence-nya akan hilang setelah timeout. Gunakan presence untuk status sementara (online/offline, cursor), bukan untuk data penting.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="db-changes">4. Database Changes</h2>
+
+      <p><strong>Database Changes</strong> memungkinkan Anda mendengarkan perubahan pada tabel PostgreSQL secara real-time. Setiap INSERT, UPDATE, atau DELETE pada tabel yang di-subscribe akan mengirimkan event ke client melalui WebSocket.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Listening Database Changes</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Subscribe ke perubahan pada tabel 'messages'
+const messagesChannel = supabase
+    .channel('db-messages')
+    .on(
+        'postgres_changes',
+        {
+            event: '*',              // '*', 'INSERT', 'UPDATE', 'DELETE'
+            schema: 'public',
+            table: 'messages'
+        },
+        (payload) => {
+            console.log('Change received!', payload);
+            const { eventType, new: newRow, old: oldRow } = payload;
+
+            switch (eventType) {
+                case 'INSERT':
+                    appendMessage(newRow);
+                    break;
+                case 'UPDATE':
+                    updateMessage(newRow);
+                    break;
+                case 'DELETE':
+                    removeMessage(oldRow.id);
+                    break;
+            }
+        }
+    )
+    .subscribe();
+
+// Filter hanya INSERT tertentu
+supabase
+    .channel('new-orders')
+    .on(
+        'postgres_changes',
+        {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'orders',
+            filter: 'status=eq.pending'  // Filter dari RLS atau payload
+        },
+        (payload) => {
+            showNewOrderNotification(payload.new);
+        }
+    )
+    .subscribe();
+
+// Filter berdasarkan user_id
+supabase
+    .channel('my-notifications')
+    .on(
+        'postgres_changes',
+        {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${currentUser.id}`
+        },
+        (payload) => {
+            showNotification(payload.new);
+        }
+    )
+    .subscribe();
+
+// Multiple tables
+const allChangesChannel = supabase
+    .channel('all-db-changes')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, handleNewPost)
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts' }, handleUpdatePost)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, handleCommentChange)
+    .subscribe();
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Database Changes Requirements</div>
+        <p>Database Changes membutuhkan <strong>Realtime replication</strong> yang diaktifkan pada tabel. Di Supabase Dashboard → Database → Replication → aktifkan untuk tabel yang dibutuhkan. Setiap tabel yang di-subscribe menggunakan <strong>one database connection</strong> — terlalu banyak subscriptions bisa menghabiskan connection pool.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 5 -->
+      <h2 id="rls">5. Row Level Security (RLS)</h2>
+
+      <p><strong>Row Level Security (RLS)</strong> adalah fitur PostgreSQL yang diintegrasikan erat dengan Supabase. RLS memungkinkan Anda membuat policies yang menentukan baris mana yang bisa diakses oleh setiap user — sangat penting untuk keamanan ketika client langsung berinteraksi dengan database.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Row Level Security Policies</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Aktifkan RLS pada tabel
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+
+-- Policy: user bisa membaca pesan di channel yang mereka ikuti
+CREATE POLICY "Users can read messages in their channels"
+ON messages FOR SELECT
+USING (
+    channel_id IN (
+        SELECT channel_id FROM channel_members
+        WHERE user_id = auth.uid()
+    )
+);
+
+-- Policy: user bisa menginsert pesan di channel yang mereka ikuti
+CREATE POLICY "Users can insert messages in their channels"
+ON messages FOR INSERT
+WITH CHECK (
+    channel_id IN (
+        SELECT channel_id FROM channel_members
+        WHERE user_id = auth.uid()
+    )
+    AND sender_id = auth.uid()
+);
+
+-- Policy: user hanya bisa menghapus pesan sendiri
+CREATE POLICY "Users can delete their own messages"
+ON messages FOR DELETE
+USING (sender_id = auth.uid());
+
+-- Policy: user hanya bisa mengupdate pesan sendiri
+CREATE POLICY "Users can update their own messages"
+ON messages FOR UPDATE
+USING (sender_id = auth.uid())
+WITH CHECK (sender_id = auth.uid());
+
+-- Tabel profiles: semua bisa baca, hanya sendiri yang bisa update
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public profiles are viewable by everyone"
+ON profiles FOR SELECT USING (true);
+
+CREATE POLICY "Users can update own profile"
+ON profiles FOR UPDATE USING (auth.uid() = id);
+
+-- Service role bypass RLS (untuk server-side operations)
+-- Supabase client dengan service_role key bypass RLS
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="edge-functions">6. Edge Functions</h2>
+
+      <p><strong>Edge Functions</strong> adalah serverless functions yang berjalan di edge (Deno runtime) — cocok untuk API endpoints, webhooks, scheduled tasks, dan logic yang terlalu kompleks untuk client-side.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TypeScript — Edge Function</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// supabase/functions/process-order/index.ts
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+serve(async (req) => {
+    const { order_id } = await req.json();
+
+    // Buat Supabase client dengan service_role
+    const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    // 1. Ambil data order
+    const { data: order, error } = await supabase
+        .from('orders')
+        .select('*, items(*)')
+        .eq('id', order_id)
+        .single();
+
+    if (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+
+    // 2. Proses order (contoh: validasi stok)
+    for (const item of order.items) {
+        const { data: product } = await supabase
+            .from('products')
+            .select('stock')
+            .eq('id', item.product_id)
+            .single();
+
+        if (product!.stock < item.quantity) {
+            return new Response(JSON.stringify({
+                error: `Insufficient stock for product ${item.product_id}`
+            }), { status: 400 });
+        }
+    }
+
+    // 3. Update status order
+    await supabase
+        .from('orders')
+        .update({ status: 'processing', processed_at: new Date().toISOString() })
+        .eq('id', order_id);
+
+    // 4. Kurangi stok
+    for (const item of order.items) {
+        await supabase.rpc('decrement_stock', {
+            p_id: item.product_id,
+            p_qty: item.quantity
+        });
+    }
+
+    return new Response(JSON.stringify({
+        success: true,
+        order_id,
+        status: 'processing'
+    }), {
+        headers: { 'Content-Type': 'application/json' }
+    });
+});
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Deploy Edge Function</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Login ke Supabase
+supabase login
+
+# Inisialisasi project
+supabase init
+
+# Buat edge function
+supabase functions new process-order
+
+# Test locally
+supabase functions serve process-order --env-file ./supabase/.env.local
+
+# Deploy ke Supabase
+supabase functions deploy process-order
+
+# Memanggil edge function dari client
+curl -X POST https://your-project.supabase.co/functions/v1/process-order \
+    -H "Authorization: Bearer your-anon-key" \
+    -H "Content-Type: application/json" \
+    -d '{"order_id": "123"}'
+
+# Dari JavaScript:
+# const { data, error } = await supabase.functions.invoke('process-order', {
+#     body: { order_id: '123' }
+# });
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 7 -->
+      <h2 id="patterns">7. Real-time Patterns</h2>
+
+      <h3>7.1 Chat Application</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Complete Chat Implementation</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Chat dengan kombinasi DB changes + broadcast + presence
+const channel = supabase.channel(`chat:${roomId}`, {
+    config: { presence: { key: userId } }
+});
+
+// 1. Real-time messages dari database
+channel.on('postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'messages',
+      filter: `room_id=eq.${roomId}` },
+    (payload) => {
+        renderMessage(payload.new);
+        scrollToBottom();
+    }
+);
+
+// 2. Typing indicator via broadcast
+channel.on('broadcast', { event: 'typing' }, ({ payload }) => {
+    if (payload.user_id !== userId) {
+        showTypingIndicator(payload.username);
+    }
+});
+
+// 3. Online users via presence
+channel.on('presence', { event: 'sync' }, () => {
+    const state = channel.presenceState();
+    updateOnlineCount(Object.keys(state).length);
+});
+
+// Subscribe
+channel.subscribe(async (status) => {
+    if (status === 'SUBSCRIBED') {
+        await channel.track({ user_id: userId, username, online_at: new Date() });
+    }
+});
+
+// Send message (insert ke DB, trigger realtime ke semua client)
+async function sendMessage(text) {
+    await supabase.from('messages').insert({
+        room_id: roomId,
+        user_id: userId,
+        text: text
+    });
+}
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="best-practices">8. Best Practices &amp; Limits</h2>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>Aspek</th><th>Rekomendasi</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Broadcast vs DB Changes</td><td>Gunakan broadcast untuk data ephemeral, DB changes untuk data persisten</td></tr>
+          <tr><td>Channel Cleanup</td><td>Selalu unsubscribe saat komponen unmount</td></tr>
+          <tr><td>RLS Policies</td><td>Selalu aktifkan RLS untuk tabel yang diakses client langsung</td></tr>
+          <tr><td>Filter Specific Events</td><td>Filter event (INSERT/UPDATE/DELETE) dan filter column untuk mengurangi noise</td></tr>
+          <tr><td>Connection Limits</td><td>Batasi jumlah concurrent channels (free: 200, pro: 500)</td></tr>
+          <tr><td>Rate Limiting</td><td>Atur eventsPerSecond untuk mencegah flooding</td></tr>
+          <tr><td>Error Handling</td><td>Implementasi reconnection logic untuk channel yang disconnect</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 9 -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quiz9">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa perbedaan antara Broadcast dan Database Changes di Supabase Realtime?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Tidak ada perbedaan</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Broadcast untuk komunikasi client-to-client (ephemeral), Database Changes untuk streaming perubahan dari tabel PostgreSQL</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Broadcast lebih lambat</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Database Changes tidak mendukung filter</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa fungsi dari Row Level Security (RLS)?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Mengenkripsi data di database</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Menentukan baris mana yang bisa diakses oleh setiap user</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Mengelola backup database</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Mengoptimalkan query performance</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa yang terjadi jika user disconnect saat menggunakan Presence?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Data presence tetap di database selamanya</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Presence data hilang setelah timeout (ephemeral)</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) User harus login ulang</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Semua user lain ter-disconnect</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa runtime yang digunakan oleh Supabase Edge Functions?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Node.js</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Python</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Deno</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Go</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa RLS sangat penting di Supabase?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Karena mempercepat query</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Karena client berinteraksi langsung dengan database — tanpa RLS semua data terbuka</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Karena wajib oleh PostgreSQL</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Karena mengurangi biaya hosting</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="redis-streams.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Redis Streams untuk Event Sourcing</span>
+        </a>
+        <a href="cockroachdb-distributed.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">CockroachDB: Distributed SQL</span>
+        </a>
+      </div>
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/database-migration-flyway.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">Database Migration dengan Flyway</span>
+        </a>
+        <a href="/articles/sql-window-functions.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">SQL Window Functions: Panduan Lengkap</span>
+        </a>
+        <a href="/articles/cassandra-basics.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">Apache Cassandra: NoSQL Distributed Database</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial Database terbaru langsung di inbox kamu.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

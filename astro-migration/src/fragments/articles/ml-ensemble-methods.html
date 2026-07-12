@@ -1,0 +1,975 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">AI & Data Science</a>
+        <span class="separator">/</span>
+        <span class="current">Ensemble Methods</span>
+      </div>
+      <span class="category-tag">AI & Data Science</span>
+      <h1>Ensemble Methods: Bagging, Boosting &amp; Kombinasi Model</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Panduan lengkap Ensemble Methods — konsep bagging vs boosting, Random Forest, AdaBoost, Gradient Boosting, XGBoost, Voting, dan Stacking dengan implementasi Python</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 20 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Ensemble Methods</a></li>
+          <li><a href="#bagging">Bagging (Bootstrap Aggregating)</a></li>
+          <li><a href="#random-forest">Random Forest</a></li>
+          <li><a href="#boosting">Boosting: AdaBoost, Gradient Boosting</a></li>
+          <li><a href="#xgboost">XGBoost — Extreme Gradient Boosting</a></li>
+          <li><a href="#voting-stacking">Voting &amp; Stacking</a></li>
+          <li><a href="#perbandingan">Perbandingan Semua Metode</a></li>
+          <li><a href="#hyperparameter">Hyperparameter Tuning Ensemble</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Ensemble Methods</h2>
+
+      <p><strong>Ensemble Methods</strong> adalah teknik machine learning yang menggabungkan beberapa model (disebut <strong>base learner</strong> atau <strong>weak learner</strong>) untuk menghasilkan satu model yang lebih kuat dan akurat. Prinsip dasarnya: <em>"Wisdom of the Crowd"</em> — keputusan kolektif dari banyak model lebih baik daripada satu model tunggal.</p>
+
+      <p>Analogi sederhana: Jika Anda bertanya kepada 100 orang tentang harga sebuah rumah, rata-rata jawaban mereka kemungkinan lebih akurat daripada satu perkiraan individu — meskipun masing-masing orang bisa salah.</p>
+
+      <h3>Mengapa Ensemble Bekerja?</h3>
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Intuisi Ensemble Methods</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 540.125px;" viewBox="0 0 540.125 406" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M170.695,62L155.36,66.167C140.026,70.333,109.357,78.667,94.022,86.333C78.688,94,78.688,101,78.688,104.5L78.688,108" id="L_A_B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_B_0" data-points="W3sieCI6MTcwLjY5NDcxMTUzODQ2MTU1LCJ5Ijo2Mn0seyJ4Ijo3OC42ODc1LCJ5Ijo4N30seyJ4Ijo3OC42ODc1LCJ5IjoxMTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M270.063,62L270.063,66.167C270.063,70.333,270.063,78.667,270.063,86.333C270.063,94,270.063,101,270.063,104.5L270.063,108" id="L_A_C_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_C_0" data-points="W3sieCI6MjcwLjA2MjUsInkiOjYyfSx7IngiOjI3MC4wNjI1LCJ5Ijo4N30seyJ4IjoyNzAuMDYyNSwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M369.43,62L384.765,66.167C400.099,70.333,430.768,78.667,446.103,86.333C461.438,94,461.438,101,461.438,104.5L461.438,108" id="L_A_D_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_D_0" data-points="W3sieCI6MzY5LjQzMDI4ODQ2MTUzODQ1LCJ5Ijo2Mn0seyJ4Ijo0NjEuNDM3NSwieSI6ODd9LHsieCI6NDYxLjQzNzUsInkiOjExMn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M78.688,166L78.688,170.167C78.688,174.333,78.688,182.667,93.379,190.825C108.07,198.984,137.452,206.967,152.143,210.959L166.835,214.951" id="L_B_E_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_E_0" data-points="W3sieCI6NzguNjg3NSwieSI6MTY2fSx7IngiOjc4LjY4NzUsInkiOjE5MX0seyJ4IjoxNzAuNjk0NzExNTM4NDYxNTUsInkiOjIxNn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M270.063,166L270.063,170.167C270.063,174.333,270.063,182.667,270.063,190.333C270.063,198,270.063,205,270.063,208.5L270.063,212" id="L_C_E_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_C_E_0" data-points="W3sieCI6MjcwLjA2MjUsInkiOjE2Nn0seyJ4IjoyNzAuMDYyNSwieSI6MTkxfSx7IngiOjI3MC4wNjI1LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M461.438,166L461.438,170.167C461.438,174.333,461.438,182.667,446.746,190.825C432.055,198.984,402.673,206.967,387.982,210.959L373.29,214.951" id="L_D_E_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_D_E_0" data-points="W3sieCI6NDYxLjQzNzUsInkiOjE2Nn0seyJ4Ijo0NjEuNDM3NSwieSI6MTkxfSx7IngiOjM2OS40MzAyODg0NjE1Mzg0NSwieSI6MjE2fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M270.063,270L270.063,274.167C270.063,278.333,270.063,286.667,270.063,294.333C270.063,302,270.063,309,270.063,312.5L270.063,316" id="L_E_F_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_E_F_0" data-points="W3sieCI6MjcwLjA2MjUsInkiOjI3MH0seyJ4IjoyNzAuMDYyNSwieSI6Mjk1fSx7IngiOjI3MC4wNjI1LCJ5IjozMjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_A_B_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_A_C_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_A_D_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_B_E_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_C_E_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_D_E_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_E_F_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-A-0" transform="translate(270.0625, 35)"><rect class="basic label-container" style="" x="-120.0234375" y="-27" width="240.046875" height="54"/><g class="label" style="" transform="translate(-90.0234375, -12)"><rect/><foreignObject width="180.046875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🎯 MASALAH PREDIKSI</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-B-1" transform="translate(78.6875, 139)"><rect class="basic label-container" style="" x="-70.6875" y="-27" width="141.375" height="54"/><g class="label" style="" transform="translate(-40.6875, -12)"><rect/><foreignObject width="81.375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🌳 Model 1</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-C-2" transform="translate(270.0625, 139)"><rect class="basic label-container" style="" x="-70.6875" y="-27" width="141.375" height="54"/><g class="label" style="" transform="translate(-40.6875, -12)"><rect/><foreignObject width="81.375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🌳 Model 2</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-D-3" transform="translate(461.4375, 139)"><rect class="basic label-container" style="" x="-70.6875" y="-27" width="141.375" height="54"/><g class="label" style="" transform="translate(-40.6875, -12)"><rect/><foreignObject width="81.375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🌳 Model 3</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-E-4" transform="translate(270.0625, 243)"><rect class="basic label-container" style="" x="-106.5703125" y="-27" width="213.140625" height="54"/><g class="label" style="" transform="translate(-76.5703125, -12)"><rect/><foreignObject width="153.140625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📊 Voting / Averaging</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-F-5" transform="translate(270.0625, 359)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>✅ Prediksi Final Lebih Akurat</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+
+      <h3>Kategori Utama Ensemble Methods</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Kategori</th>
+            <th>Prinsip</th>
+            <th>Contoh Algoritma</th>
+            <th>Analogi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Bagging</td><td>Training paralel pada subset data berbeda</td><td>Random Forest</td><td>Ujian dengan soal acak, jawaban dirata-rata</td></tr>
+          <tr><td>Boosting</td><td>Training sekuensial, model berikutnya perbaiki error model sebelumnya</td><td>AdaBoost, XGBoost</td><td>Siswa belajar dari kesalahan ujian sebelumnya</td></tr>
+          <tr><td>Stacking</td><td>Gunakan output model sebagai input untuk meta-model</td><td>Stacked Generalization</td><td>Guru mengoreksi jawaban semua murid</td></tr>
+          <tr><td>Voting</td><td>Kombinasi prediksi dari berbagai jenis model</td><td>Voting Classifier</td><td>Voting demokrasi — mayoritas menang</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Bagging             -->
+      <!-- ============================== -->
+      <h2 id="bagging">2. Bagging (Bootstrap Aggregating)</h2>
+
+      <p><strong>Bagging</strong> (Bootstrap Aggregating) adalah teknik ensemble yang dikembangkan oleh <strong>Leo Breiman</strong> (1996). Bagging mengurangi <strong>variance</strong> dari model dengan melatih banyak model pada subset data yang di-bootstrap (sampling dengan pengembalian).</p>
+
+      <h3>Cara Kerja Bagging</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Proses Bagging</div>
+<div class="diagram-box">
+        
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Proses Bagging</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 302" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,62L138,66.167C138,70.333,138,78.667,138,86.333C138,94,138,101,138,104.5L138,108" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTM4LCJ5Ijo2Mn0seyJ4IjoxMzgsInkiOjg3fSx7IngiOjEzOCwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,166L138,170.167C138,174.333,138,182.667,138,190.333C138,198,138,205,138,208.5L138,212" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTM4LCJ5IjoxNjZ9LHsieCI6MTM4LCJ5IjoxOTF9LHsieCI6MTM4LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 35)"><rect class="basic label-container" style="" x="-87.5546875" y="-27" width="175.109375" height="54"/><g class="label" style="" transform="translate(-57.5546875, -12)"><rect/><foreignObject width="115.109375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>■ □ ■ ○ △ □ ★ □</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 139)"><rect class="basic label-container" style="" x="-88.71875" y="-27" width="177.4375" height="54"/><g class="label" style="" transform="translate(-58.71875, -12)"><rect/><foreignObject width="117.4375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>□ △ □ ★ ■ △ ○ ■</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 255)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>○ ★ △ ○ ★ □ ■ △ ← Subset 1,2,3 (ada duplikasi)</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <h3>Implementasi Bagging dari Scikit-learn</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Bagging Classifier</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import numpy as np
+import pandas as pd
+from sklearn.ensemble import BaggingClassifier, BaggingRegressor
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+# === DATASET ===
+X, y = make_classification(
+    n_samples=1000, n_features=20, n_informative=10,
+    n_redundant=5, random_state=42
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# === BAGGING CLASSIFIER ===
+bagging = BaggingClassifier(
+    estimator=DecisionTreeClassifier(max_depth=10),
+    n_estimators=100,       # Jumlah base models
+    max_samples=0.8,        # 80% data per bootstrap
+    max_features=1.0,       # 100% fitur per model
+    bootstrap=True,         # Sampling dengan pengembalian
+    bootstrap_features=False,
+    random_state=42,
+    n_jobs=-1
+)
+
+bagging.fit(X_train, y_train)
+y_pred_bag = bagging.predict(X_test)
+
+# === PERBANDINGAN: Single Tree vs Bagging ===
+single_tree = DecisionTreeClassifier(max_depth=10, random_state=42)
+single_tree.fit(X_train, y_train)
+y_pred_tree = single_tree.predict(X_test)
+
+print("=== PERBANDINGAN ===")
+print(f"Single Decision Tree Accuracy: {accuracy_score(y_test, y_pred_tree):.4f}")
+print(f"Bagging (100 Trees) Accuracy:  {accuracy_score(y_test, y_pred_bag):.4f}")
+print(f"Improvement: {(accuracy_score(y_test, y_pred_bag) - accuracy_score(y_test, y_pred_tree))*100:.2f}%")
+
+# OOB Score (Out-of-Bag) — evaluasi tanpa validation set
+bagging_oob = BaggingClassifier(
+    estimator=DecisionTreeClassifier(max_depth=10),
+    n_estimators=100, max_samples=0.8,
+    bootstrap=True, oob_score=True,  # Aktifkan OOB scoring
+    random_state=42, n_jobs=-1
+)
+bagging_oob.fit(X_train, y_train)
+print(f"\nOOB Score: {bagging_oob.oob_score_:.4f}")
+print(f"Test Score: {bagging_oob.score(X_test, y_test):.4f}")
+</code></pre>
+      </div>
+
+      <h3>Out-of-Bag (OOB) Evaluation</h3>
+      <div class="info-box info">
+        <div class="info-box-title">📦 Apa itu OOB Score?</div>
+        <p>Saat bootstrap sampling, sekitar <strong>37% data tidak terambil</strong> (out-of-bag) untuk setiap model. Data OOB ini bisa digunakan sebagai validation set gratis — tanpa perlu split data terpisah. Rata-rata OOB error dari semua model = OOB score.</p>
+        <p><code>OOB fraction ≈ (1 - 1/n)^n ≈ 1/e ≈ 0.368</code> untuk n besar</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Random Forest       -->
+      <!-- ============================== -->
+      <h2 id="random-forest">3. Random Forest</h2>
+
+      <p><strong>Random Forest</strong> adalah perluasan dari Bagging yang menambahkan <strong>randomisasi fitur</strong>. Selain bootstrap sampling pada data, Random Forest juga melakukan <strong>random subset selection pada fitur</strong> di setiap split node. Ini membuat setiap tree lebih beragam (diverse).</p>
+
+      <h3>Random Forest vs Bagging</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Random Forest vs Bagging</div>
+<pre><code>Setiap tree DIPER-
+BOLEHKAN memakai
+HANYA SEBAGIAN
+fitur (random)
+Split 1: [f1,f3,
+f5] (random 3)
+Split 2: [f2,f4,
+f5] (random 3)
+BAGGING (Standard) RANDOM FOREST
+Setiap tree DIPER-
+BOLEHKAN memakai
+SEMUA fitur
+Split 1: [f1,f2,
+f3,f4,f5]
+Split 2: [f1,f2,
+f3,f4,f5]
+→ Tree cenderung MIRIP → Tree lebih BERAGAM
+(korelasi tinggi) (korelasi rendah)
+→ Variance reduction → Variance reduction LEBIH BAIK
+kurang optimal</code></pre>
+      </div>
+
+      <h3>Implementasi Random Forest</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Random Forest Classifier & Regressor</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.datasets import make_classification, fetch_california_housing
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import accuracy_score, classification_report
+
+# === RANDOM FOREST CLASSIFIER ===
+X, y = make_classification(
+    n_samples=2000, n_features=20, n_informative=12,
+    n_redundant=4, random_state=42
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+rf_clf = RandomForestClassifier(
+    n_estimators=200,       # 200 decision trees
+    max_depth=15,           # Kedalaman maksimum setiap tree
+    min_samples_split=5,    # Min sample untuk split node
+    min_samples_leaf=2,     # Min sample di leaf node
+    max_features='sqrt',    # √n fitur per split (default untuk klasifikasi)
+    bootstrap=True,         # Bootstrap sampling
+    oob_score=True,         # Out-of-bag evaluation
+    random_state=42,
+    n_jobs=-1               # Parallel processing
+)
+
+rf_clf.fit(X_train, y_train)
+y_pred = rf_clf.predict(X_test)
+
+print("=== Random Forest Classifier ===")
+print(f"Accuracy (Train): {rf_clf.score(X_train, y_train):.4f}")
+print(f"Accuracy (Test):  {accuracy_score(y_test, y_pred):.4f}")
+print(f"OOB Score:        {rf_clf.oob_score_:.4f}")
+print(f"\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# === FEATURE IMPORTANCE ===
+feature_importance = rf_clf.feature_importances_
+feature_names = [f'Feature_{i}' for i in range(X.shape[1])]
+
+# Sort by importance
+sorted_idx = np.argsort(feature_importance)[::-1]
+
+plt.figure(figsize=(12, 6))
+plt.bar(range(15), feature_importance[sorted_idx[:15]], color='steelblue')
+plt.xticks(range(15), [feature_names[i] for i in sorted_idx[:15]], rotation=45)
+plt.title('Top 15 Feature Importance — Random Forest')
+plt.ylabel('Importance')
+plt.tight_layout()
+plt.show()
+
+# Print feature importance
+print("\nFeature Importance (Top 10):")
+for i in range(10):
+    idx = sorted_idx[i]
+    print(f"  {feature_names[idx]:15s}: {feature_importance[idx]:.4f}")
+
+# === CROSS VALIDATION ===
+cv_scores = cross_val_score(rf_clf, X, y, cv=5, scoring='accuracy', n_jobs=-1)
+print(f"\nCross Validation (5-fold):")
+print(f"  Scores: {cv_scores.round(4)}")
+print(f"  Mean: {cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
+</code></pre>
+      </div>
+
+      <h3>Efek Jumlah Trees pada Akurasi</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Analisis Jumlah Trees</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+
+X, y = make_classification(n_samples=1000, n_features=15, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+n_trees_range = [1, 5, 10, 25, 50, 100, 200, 300, 500]
+train_scores = []
+test_scores = []
+
+for n_trees in n_trees_range:
+    rf = RandomForestClassifier(n_estimators=n_trees, max_depth=10,
+                                 random_state=42, n_jobs=-1)
+    rf.fit(X_train, y_train)
+    train_scores.append(rf.score(X_train, y_train))
+    test_scores.append(rf.score(X_test, y_test))
+    print(f"Trees={n_trees:3d} → Train: {train_scores[-1]:.4f}, Test: {test_scores[-1]:.4f}")
+
+plt.figure(figsize=(10, 6))
+plt.plot(n_trees_range, train_scores, 'b-o', label='Training Score')
+plt.plot(n_trees_range, test_scores, 'r-o', label='Test Score')
+plt.xlabel('Jumlah Trees')
+plt.ylabel('Accuracy')
+plt.title('Random Forest: Accuracy vs Jumlah Trees')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+
+print("\nKesimpulan: Setelah ~100 trees, penambahan trees memberikan diminishing return")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Boosting            -->
+      <!-- ============================== -->
+      <h2 id="boosting">4. Boosting: AdaBoost, Gradient Boosting</h2>
+
+      <p><strong>Boosting</strong> adalah teknik ensemble yang melatih model secara <strong>sekuensial</strong> (berurutan). Setiap model baru difokuskan untuk <strong>memperbaiki kesalahan</strong> model sebelumnya. Berbeda dengan Bagging yang paralel dan independen, Boosting membangun model yang semakin kuat secara bertahap.</p>
+
+      <h3>Bagging vs Boosting</h3>
+      
+<div class="diagram-box">
+        
+<pre><code>Model2
+Model3
+Model1
+Model2 ← Fokus pada Error Model1
+Model3 ← Fokus pada Error Model2</code></pre>
+    </div>
+      </div>
+
+      <h3>AdaBoost (Adaptive Boosting)</h3>
+      <p><strong>AdaBoost</strong> (Freund &amp; Schapire, 1997) adalah boosting pertama yang sukses. Setiap data point diberi <strong>weight</strong> yang diadaptasi: data yang salah diklasifikasi mendapat weight lebih besar, sehingga model berikutnya lebih fokus pada data sulit tersebut.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — AdaBoost Classifier</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# === DATASET ===
+X, y = make_classification(
+    n_samples=1000, n_features=15, n_informative=10,
+    n_redundant=3, random_state=42
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# === ADABOOST ===
+adaboost = AdaBoostClassifier(
+    estimator=DecisionTreeClassifier(max_depth=1),  # Stump (tree dangkal)
+    n_estimators=200,        # 200 weak learners
+    learning_rate=0.1,       # Learning rate kecil = lebih hati-hati
+    algorithm='SAMME',       # Algoritma boosting
+    random_state=42
+)
+
+adaboost.fit(X_train, y_train)
+
+# Akurasi seiring bertambahnya estimator (staged prediction)
+train_scores = list(adaboost.staged_score(X_train, y_train))
+test_scores = list(adaboost.staged_score(X_test, y_test))
+
+print(f"AdaBoost Final Accuracy:")
+print(f"  Train: {train_scores[-1]:.4f}")
+print(f"  Test:  {test_scores[-1]:.4f}")
+
+# Plot learning curve
+plt.figure(figsize=(10, 6))
+n_estimators = range(1, len(train_scores) + 1)
+plt.plot(n_estimators, train_scores, 'b-', label='Training', alpha=0.7)
+plt.plot(n_estimators, test_scores, 'r-', label='Testing', alpha=0.7)
+plt.xlabel('Jumlah Estimators (Weak Learners)')
+plt.ylabel('Accuracy')
+plt.title('AdaBoost: Accuracy vs Jumlah Estimators')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+
+# Perbandingan learning rate
+print("\n=== Pengaruh Learning Rate ===")
+for lr in [0.01, 0.05, 0.1, 0.5, 1.0]:
+    ab = AdaBoostClassifier(
+        estimator=DecisionTreeClassifier(max_depth=1),
+        n_estimators=200, learning_rate=lr, random_state=42
+    )
+    ab.fit(X_train, y_train)
+    print(f"  LR={lr:.2f} → Train: {ab.score(X_train, y_train):.4f}, "
+          f"Test: {ab.score(X_test, y_test):.4f}")
+</code></pre>
+      </div>
+
+      <h3>Gradient Boosting</h3>
+      <p><strong>Gradient Boosting</strong> (Friedman, 2001) adalah boosting yang lebih umum. Alih-alih menyesuaikan weight data, Gradient Boosting melatih setiap model baru pada <strong>residual error</strong> (gradient dari loss function) dari model sebelumnya.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Gradient Boosting Classifier</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import numpy as np
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.metrics import accuracy_score
+
+# Dataset
+X, y = make_classification(n_samples=1000, n_features=15, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# === GRADIENT BOOSTING ===
+gb_clf = GradientBoostingClassifier(
+    n_estimators=200,       # Jumlah boosting stages
+    learning_rate=0.1,      # Shrinkage rate
+    max_depth=3,            # Kedalaman setiap tree
+    min_samples_split=5,
+    min_samples_leaf=2,
+    subsample=0.8,          # Stochastic GB (80% data per tree)
+    max_features='sqrt',
+    random_state=42
+)
+
+gb_clf.fit(X_train, y_train)
+y_pred = gb_clf.predict(X_test)
+
+print("=== Gradient Boosting ===")
+print(f"Accuracy (Train): {gb_clf.score(X_train, y_train):.4f}")
+print(f"Accuracy (Test):  {accuracy_score(y_test, y_pred):.4f}")
+print(f"Jumlah Trees: {gb_clf.n_estimators_}")
+
+# Staged prediction — akurasi per tahap
+train_staged = list(gb_clf.staged_score(X_train, y_train))
+test_staged = list(gb_clf.staged_score(X_test, y_test))
+
+print(f"\nAkurasi pada iterasi ke-50:  Train={train_staged[49]:.4f}, Test={test_staged[49]:.4f}")
+print(f"Akurasi pada iterasi ke-100: Train={train_staged[99]:.4f}, Test={test_staged[99]:.4f}")
+print(f"Akurasi pada iterasi ke-200: Train={train_staged[199]:.4f}, Test={test_staged[199]:.4f}")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: XGBoost             -->
+      <!-- ============================== -->
+      <h2 id="xgboost">5. XGBoost — Extreme Gradient Boosting</h2>
+
+      <p><strong>XGBoost</strong> (eXtreme Gradient Boosting) adalah implementasi Gradient Boosting yang dioptimasi oleh <strong>Tianqi Chen</strong> (2016). XGBoost menjadi andalan pemenang kompetisi Kaggle dan salah satu algoritma paling powerful untuk data tabular.</p>
+
+      <h3>Mengapa XGBoost Begitu Populer?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Regularisasi</td><td>Termasuk L1 (Lasso) dan L2 (Ridge) regularization untuk mencegah overfitting</td></tr>
+          <tr><td>Handling Missing Values</td><td>Secara otomatis menangani data hilang</td></tr>
+          <tr><td>Parallel Processing</td><td>Paralelisasi pada level split-finding</td></tr>
+          <tr><td>Tree Pruning</td><td>Pruning berbasis max_depth, bukan hanya min_loss</td></tr>
+          <tr><td>Cross-Validation Built-in</td><td>CV internal yang efisien</td></tr>
+          <tr><td>Early Stopping</td><td>Berhenti otomatis jika performa tidak membaik</td></tr>
+          <tr><td>Custom Objective</td><td>Bisa definisikan loss function sendiri</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Implementasi XGBoost</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — XGBoost Classifier</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># pip install xgboost
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from xgboost import XGBClassifier, XGBRegressor, plot_importance, cv as xgb_cv
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, roc_auc_score
+
+# === DATASET ===
+X, y = make_classification(
+    n_samples=2000, n_features=20, n_informative=12,
+    n_redundant=4, random_state=42
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# === XGBOOST CLASSIFIER ===
+xgb_clf = XGBClassifier(
+    n_estimators=300,           # Jumlah boosting rounds
+    max_depth=6,                # Kedalaman maksimum tree
+    learning_rate=0.1,          # Eta — shrinkage rate
+    subsample=0.8,              # Fraction data per tree
+    colsample_bytree=0.8,       # Fraction fitur per tree
+    reg_alpha=0.1,              # L1 regularization
+    reg_lambda=1.0,             # L2 regularization
+    min_child_weight=3,         # Minimum sum of instance weight
+    gamma=0.1,                  # Min loss reduction untuk split
+    random_state=42,
+    eval_metric='logloss',      # Metrik evaluasi
+    early_stopping_rounds=20,   # Stop jika tidak membaik 20 rounds
+    n_jobs=-1
+)
+
+# Training dengan early stopping
+xgb_clf.fit(
+    X_train, y_train,
+    eval_set=[(X_train, y_train), (X_test, y_test)],
+    verbose=50  # Print setiap 50 rounds
+)
+
+# Evaluasi
+y_pred = xgb_clf.predict(X_test)
+y_proba = xgb_clf.predict_proba(X_test)[:, 1]
+
+print(f"\n=== XGBoost Results ===")
+print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
+print(f"AUC-ROC:  {roc_auc_score(y_test, y_proba):.4f}")
+print(f"Best iteration: {xgb_clf.best_iteration}")
+
+# === FEATURE IMPORTANCE ===
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+plot_importance(xgb_clf, max_num_features=15, ax=ax1, importance_type='weight')
+ax1.set_title('Feature Importance (Weight)')
+
+plot_importance(xgb_clf, max_num_features=15, ax=ax2, importance_type='gain')
+ax2.set_title('Feature Importance (Gain)')
+plt.tight_layout()
+plt.show()
+
+# === LEARNING CURVE (dari eval set) ===
+results = xgb_clf.evals_result()
+epochs = len(results['validation_0']['logloss'])
+x_axis = range(epochs)
+
+plt.figure(figsize=(10, 6))
+plt.plot(x_axis, results['validation_0']['logloss'], 'b-', label='Train')
+plt.plot(x_axis, results['validation_1']['logloss'], 'r-', label='Test')
+plt.axvline(x=xgb_clf.best_iteration, color='green', linestyle='--',
+            label=f'Best Iteration ({xgb_clf.best_iteration})')
+plt.xlabel('Boosting Round')
+plt.ylabel('Log Loss')
+plt.title('XGBoost: Training vs Validation Loss')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+</code></pre>
+      </div>
+
+      <h3>XGBoost Cross-Validation Built-in</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — XGBoost CV</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import xgboost as xgb
+import numpy as np
+from sklearn.datasets import make_classification
+
+X, y = make_classification(n_samples=2000, n_features=20, random_state=42)
+
+# Convert ke DMatrix (format internal XGBoost)
+dtrain = xgb.DMatrix(X, label=y)
+
+# Parameter
+params = {
+    'max_depth': 6,
+    'learning_rate': 0.1,
+    'subsample': 0.8,
+    'colsample_bytree': 0.8,
+    'reg_alpha': 0.1,
+    'reg_lambda': 1.0,
+    'objective': 'binary:logistic',
+    'eval_metric': 'logloss',
+    'seed': 42
+}
+
+# Cross-validation
+cv_results = xgb.cv(
+    params=params,
+    dtrain=dtrain,
+    num_boost_round=500,
+    nfold=5,                # 5-fold CV
+    metrics=['logloss', 'auc'],
+    early_stopping_rounds=30,
+    verbose_eval=50,
+    seed=42
+)
+
+print(f"\nBest rounds: {len(cv_results)}")
+print(f"Best train-logloss: {cv_results['train-logloss-mean'].iloc[-1]:.4f}")
+print(f"Best test-logloss:  {cv_results['test-logloss-mean'].iloc[-1]:.4f}")
+print(f"Best test-AUC:      {cv_results['test-auc-mean'].iloc[-1]:.4f}")
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 XGBoost vs LightGBM vs CatBoost</div>
+        <ul>
+          <li><strong>XGBoost</strong> — Paling populer, stabil, bagus untuk dataset kecil-menengah</li>
+          <li><strong>LightGBM</strong> (Microsoft) — Lebih cepat untuk dataset besar, leaf-wise growth</li>
+          <li><strong>CatBoost</strong> (Yandex) — Terbaik untuk fitur kategorikal, tidak perlu encoding</li>
+          <li>Ketiganya sangat powerful — pilih berdasarkan kebutuhan spesifik</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Voting & Stacking   -->
+      <!-- ============================== -->
+      <h2 id="voting-stacking">6. Voting &amp; Stacking</h2>
+
+      <h3>Voting Classifier</h3>
+      <p><strong>Voting</strong> menggabungkan prediksi dari beberapa model berbeda. <em>Hard voting</em> menggunakan mayoritas suara, sedangkan <em>Soft voting</em> menggunakan rata-rata probabilitas.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Voting &amp; Stacking Classifier</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import numpy as np
+from sklearn.ensemble import (VotingClassifier, StackingClassifier,
+                               RandomForestClassifier, GradientBoostingClassifier)
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import accuracy_score
+
+# Dataset
+X, y = make_classification(n_samples=1500, n_features=20, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# === BASE MODELS ===
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+gb = GradientBoostingClassifier(n_estimators=100, random_state=42)
+svc = SVC(probability=True, random_state=42)
+knn = KNeighborsClassifier(n_neighbors=5)
+
+# === HARD VOTING ===
+voting_hard = VotingClassifier(
+    estimators=[('rf', rf), ('gb', gb), ('svc', svc), ('knn', knn)],
+    voting='hard'
+)
+
+# === SOFT VOTING ===
+voting_soft = VotingClassifier(
+    estimators=[('rf', rf), ('gb', gb), ('svc', svc), ('knn', knn)],
+    voting='soft'
+)
+
+# === STACKING ===
+stacking = StackingClassifier(
+    estimators=[('rf', rf), ('gb', gb), ('svc', svc), ('knn', knn)],
+    final_estimator=LogisticRegression(),  # Meta-learner
+    cv=5
+)
+
+# === PERBANDINGAN ===
+models = {
+    'Random Forest': rf,
+    'Gradient Boosting': gb,
+    'SVC': svc,
+    'KNN': knn,
+    'Hard Voting': voting_hard,
+    'Soft Voting': voting_soft,
+    'Stacking': stacking,
+}
+
+print("=== PERBANDINGAN ENSEMBLE METHODS ===")
+print(f"{'Model':<25} {'Train':<10} {'Test':<10}")
+print("=" * 45)
+
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    train_acc = model.score(X_train, y_train)
+    test_acc = model.score(X_test, y_test)
+    print(f"{name:<25} {train_acc:<10.4f} {test_acc:<10.4f}")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Perbandingan        -->
+      <!-- ============================== -->
+      <h2 id="perbandingan">7. Perbandingan Semua Metode</h2>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Bagging/RF</th>
+            <th>AdaBoost</th>
+            <th>Gradient Boost</th>
+            <th>XGBoost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Training</td><td>Paralel</td><td>Sekuensial</td><td>Sekuensial</td><td>Sekuensial (paralel split)</td></tr>
+          <tr><td>Mengurangi</td><td>Variance</td><td>Bias</td><td>Bias</td><td>Bias + Variance</td></tr>
+          <tr><td>Overfitting Risk</td><td>Rendah</td><td>Sedang</td><td>Sedang-Tinggi</td><td>Rendah (regularisasi)</td></tr>
+          <tr><td>Handling Missing</td><td>Tidak</td><td>Tidak</td><td>Tidak</td><td>✅ Ya</td></tr>
+          <tr><td>Speed</td><td>Cepat</td><td>Sedang</td><td>Lambat</td><td>Cepat</td></tr>
+          <tr><td>Best Use Case</td><td>Baseline kuat, data besar</td><td>Data bersih, model sederhana</td><td>Kompetisi, data tabular</td><td>Kompetisi Kaggle, production</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Hyperparameter      -->
+      <!-- ============================== -->
+      <h2 id="hyperparameter">8. Hyperparameter Tuning Ensemble</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — RandomizedSearchCV untuk XGBoost</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from sklearn.model_selection import RandomizedSearchCV
+from xgboost import XGBClassifier
+from sklearn.datasets import make_classification
+import numpy as np
+
+X, y = make_classification(n_samples=2000, n_features=20, random_state=42)
+
+# Parameter grid
+param_dist = {
+    'n_estimators': [100, 200, 300, 500],
+    'max_depth': [3, 4, 5, 6, 7, 8],
+    'learning_rate': [0.01, 0.05, 0.1, 0.2],
+    'subsample': [0.6, 0.7, 0.8, 0.9, 1.0],
+    'colsample_bytree': [0.6, 0.7, 0.8, 0.9, 1.0],
+    'reg_alpha': [0, 0.01, 0.1, 1],
+    'reg_lambda': [0.5, 1, 2, 5],
+    'min_child_weight': [1, 3, 5, 7],
+    'gamma': [0, 0.1, 0.2, 0.3],
+}
+
+xgb_model = XGBClassifier(
+    random_state=42, eval_metric='logloss', n_jobs=-1
+)
+
+search = RandomizedSearchCV(
+    xgb_model, param_distributions=param_dist,
+    n_iter=50,          # Coba 50 kombinasi random
+    cv=5,               # 5-fold CV
+    scoring='accuracy',
+    random_state=42,
+    n_jobs=-1,
+    verbose=1
+)
+
+search.fit(X, y)
+
+print(f"Best Parameters: {search.best_params_}")
+print(f"Best CV Score: {search.best_score_:.4f}")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" data-quiz-id="ensemble-quiz-1">
+        <h3>🧠 Quiz: Ensemble Methods</h3>
+        
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1. Apa perbedaan utama antara Bagging dan Boosting?</strong></p>
+          <label><input type="radio" name="q1" value="a"> Bagging sekuensial, Boosting paralel</label>
+          <label><input type="radio" name="q1" value="b"> Bagging paralel (mengurangi variance), Boosting sekuensial (mengurangi bias)</label>
+          <label><input type="radio" name="q1" value="c"> Bagging hanya untuk regresi, Boosting hanya untuk klasifikasi</label>
+          <label><input type="radio" name="q1" value="d"> Tidak ada perbedaan, hanya nama berbeda</label>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2. Apa yang membuat Random Forest berbeda dari Bagging biasa?</strong></p>
+          <label><input type="radio" name="q2" value="a"> Random Forest menggunakan boosting</label>
+          <label><input type="radio" name="q2" value="b"> Random Forest tidak melakukan bootstrap</label>
+          <label><input type="radio" name="q2" value="c"> Random Forest menambahkan randomisasi fitur pada setiap split</label>
+          <label><input type="radio" name="q2" value="d"> Random Forest hanya menggunakan 1 tree</label>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Dalam AdaBoost, apa yang terjadi pada data yang salah diklasifikasi?</strong></p>
+          <label><input type="radio" name="q3" value="a"> Weight-nya dinaikkan agar model berikutnya lebih fokus</label>
+          <label><input type="radio" name="q3" value="b"> Data tersebut dihapus dari training</label>
+          <label><input type="radio" name="q3" value="c"> Weight-nya diturunkan</label>
+          <label><input type="radio" name="q3" value="d"> Data tersebut dipindahkan ke test set</label>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4. Keunggulan XGBoost dibanding Gradient Boosting standar?</strong></p>
+          <label><input type="radio" name="q4" value="a"> Lebih sederhana dan mudah dipahami</label>
+          <label><input type="radio" name="q4" value="b"> Hanya bisa untuk klasifikasi biner</label>
+          <label><input type="radio" name="q4" value="c"> Tidak memerlukan hyperparameter tuning</label>
+          <label><input type="radio" name="q4" value="d"> Termasuk regularisasi, handling missing values, dan parallel processing</label>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>5. Dalam Stacking, apa fungsi dari meta-learner?</strong></p>
+          <label><input type="radio" name="q5" value="a"> Menggantikan semua base models</label>
+          <label><input type="radio" name="q5" value="b"> Melakukan feature engineering</label>
+          <label><input type="radio" name="q5" value="c"> Menggabungkan prediksi base models untuk menghasilkan prediksi akhir</label>
+          <label><input type="radio" name="q5" value="d"> Menentukan learning rate optimal</label>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">🎯 Ringkasan Artikel</div>
+        <ul>
+          <li><strong>Ensemble Methods</strong> menggabungkan banyak model untuk performa lebih baik</li>
+          <li><strong>Bagging</strong> (paralel) mengurangi variance — Random Forest adalah implementasi terbaik</li>
+          <li><strong>Boosting</strong> (sekuensial) mengurangi bias — AdaBoost, Gradient Boosting, XGBoost</li>
+          <li><strong>XGBoost</strong> adalah king of tabular data — regularisasi, handling missing, cepat</li>
+          <li><strong>Voting</strong> menggabungkan prediksi model berbeda, <strong>Stacking</strong> menggunakan meta-learner</li>
+          <li>Untuk dataset tabular, ensemble tree-based methods sering mengalahkan deep learning</li>
+        </ul>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== RELATED ARTICLES ========== -->
+  <section class="related-articles">
+    <div class="container">
+      <h2>Artikel Terkait</h2>
+      <div class="article-grid">
+        <a href="machine-learning-dasar.html" class="article-card">
+          <span class="category-tag">AI & Data Science</span>
+          <h3>Machine Learning Dasar</h3>
+          <p>Pengenalan konsep dasar ML — supervised, unsupervised, regresi, klasifikasi.</p>
+          <span class="article-date">📅 25 Juni 2026</span>
+        </a>
+        <a href="ml-k-means-clustering.html" class="article-card">
+          <span class="category-tag">AI & Data Science</span>
+          <h3>K-Means Clustering</h3>
+          <p>Elbow method, silhouette score, segmentasi pelanggan.</p>
+          <span class="article-date">📅 26 Juni 2026</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

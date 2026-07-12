@@ -1,0 +1,606 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a><span class="separator">/</span>
+        <a href="../index.html#categories">Mobile Development</a><span class="separator">/</span>
+        <span class="current">Deep Linking & App Links</span>
+      </div>
+      <span class="category-tag">Mobile Development</span>
+      <h1>Deep Linking & App Links</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Deep Linking & App Links — URL schemes, Universal Links, Android App Links, deferred deep linking, routing, dan best practices</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  <article class="article-content" id="main-content">
+    <div class="container>
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#intro-deeplink">Apa itu Deep Linking</a></li>
+          <li><a href="#url-schemes">URL Schemes</a></li>
+          <li><a href="#universal-links">Universal Links</a></li>
+          <li><a href="#app-links">App Links</a></li>
+          <li><a href="#deferred-deep">Deferred Deep Linking</a></li>
+          <li><a href="#routing">Deep Link Router</a></li>
+          <li><a href="#best-practices-deeplink">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+
+      <h2 id="intro-deeplink">1. Apa itu Deep Linking?</h2>
+      <p><strong>Deep linking</strong> memungkinkan user membuka konten spesifik di dalam aplikasi mobile melalui URL. Alih-alih membuka halaman utama, user langsung diarahkan ke halaman produk, profil, atau konten tertentu.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Jenis Deep Linking</div>
+        <div class="arch-row">
+          <div class="arch-box highlight"><div class="arch-icon">🔗</div><div class="arch-label">URL Scheme</div><div class="arch-desc">myapp://product/123<br>Sederhana, tidak fallback</div></div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box purple"><div class="arch-icon">🌐</div><div class="arch-label">Universal Links</div><div class="arch-desc">https://myapp.com/p/123<br>iOS, fallback ke web</div></div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box"><div class="arch-icon">🤖</div><div class="arch-label">App Links</div><div class="arch-desc">https://myapp.com/p/123<br>Android, verified</div></div>
+        </div>
+      </div>
+
+      <table class="spec-table">
+        <thead><tr><th>Metode</th><th>Platform</th><th>Fallback Web</th><th>Verifikasi</th><th>Trust Level</th></tr></thead>
+        <tbody>
+          <tr><td>URL Scheme</td><td>Keduanya</td><td>Tidak</td><td>Tidak</td><td>Rendah</td></tr>
+          <tr><td>Universal Links</td><td>iOS 9+</td><td>Ya</td><td>apple-app-site-association</td><td>Tinggi</td></tr>
+          <tr><td>App Links</td><td>Android 6+</td><td>Ya</td><td>assetlinks.json</td><td>Tinggi</td></tr>
+          <tr><td>Intent Filter</td><td>Android</td><td>Tidak</td><td>Tidak</td><td>Sedang</td></tr>
+        </tbody>
+      </table>
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="url-schemes">2. Custom URL Schemes</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — Android URL Scheme</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+<!-- AndroidManifest.xml -->
+&lt;activity android:name=".MainActivity"&gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.intent.action.VIEW" /&gt;
+        &lt;category android:name="android.intent.category.DEFAULT" /&gt;
+        &lt;category android:name="android.intent.category.BROWSABLE" /&gt;
+        &lt;data
+            android:scheme="myapp"
+            android:host="product"
+            android:pathPrefix="/detail" /&gt;
+    &lt;/intent-filter&gt;
+&lt;/activity&gt;
+
+// Handle di Activity
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        handleDeepLink(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleDeepLink(intent)
+    }
+
+    private fun handleDeepLink(intent: Intent?) {
+        val data = intent?.data ?: return
+        // data = myapp://product/detail?id=123
+        when (data.host) {
+            "product" -> {
+                val productId = data.getQueryParameter("id")
+                navigateToProduct(productId)
+            }
+            "profile" -> {
+                val userId = data.lastPathSegment
+                navigateToProfile(userId)
+            }
+        }
+    }
+}
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Swift — iOS URL Scheme</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Info.plist
+// <key>CFBundleURLTypes</key>
+// <array>
+//   <dict>
+//     <key>CFBundleURLSchemes</key>
+//     <array><string>myapp</string></array>
+//     <key>CFBundleURLName</key>
+//     <string>com.myapp</string>
+//   </dict>
+// </array>
+
+// SceneDelegate.swift
+func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+    guard let url = URLContexts.first?.url else { return }
+    handleDeepLink(url)
+}
+
+func handleDeepLink(_ url: URL) {
+    guard let components = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return }
+
+    switch components.host {
+    case "product":
+        let productId = components.queryItems?.first(where: { $0.name == "id" })?.value
+        navigateToProduct(productId)
+    case "profile":
+        let userId = components.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        navigateToProfile(userId)
+    default:
+        break
+    }
+}
+</code></pre>
+      </div>      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="universal-links">3. Universal Links (iOS)</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON — apple-app-site-association</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// File: https://myapp.com/.well-known/apple-app-site-association
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["TEAMID.com.myapp"],
+        "components": [
+          {
+            "/": "/product/*",
+            "comment": "Product detail pages"
+          },
+          {
+            "/": "/profile/*",
+            "comment": "User profile pages"
+          },
+          {
+            "/": "/order/*/track",
+            "comment": "Order tracking"
+          },
+          {
+            "/": "/share/*",
+            "comment": "Share links",
+            "exclude": true
+          }
+        ]
+      }
+    ]
+  }
+}
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Swift — Universal Links Handler</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// AppDelegate.swift
+func application(
+    _ application: UIApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+) -> Bool {
+    guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
+          let url = userActivity.webpageURL else {
+        return false
+    }
+
+    handleUniversalLink(url)
+    return true
+}
+
+func handleUniversalLink(_ url: URL) {
+    let pathComponents = url.pathComponents.filter { $0 != "/" }
+
+    if pathComponents.first == "product",
+       pathComponents.count > 1 {
+        let productId = pathComponents[1]
+        showProductDetail(id: productId)
+    } else if pathComponents.first == "profile",
+              pathComponents.count > 1 {
+        let username = pathComponents[1]
+        showProfile(username: username)
+    }
+}
+</code></pre>
+      </div>      <div class="info-box info">
+        <div class="info-box-title">📋 Universal Links Setup</div>
+        <p>Pastikan: (1) File AASA di-host di HTTPS, (2) appIDs benar dengan Team ID, (3) Tidak ada redirect, (4) File &lt; 128KB. Validasi di https://branch.io/resources/aasa-validator/</p>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="app-links">4. Android App Links</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSON — assetlinks.json</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// File: https://myapp.com/.well-known/assetlinks.json
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.myapp",
+    "sha256_cert_fingerprints": [
+      "AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99"
+    ]
+  }
+}]
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">XML — Android App Links Intent Filter</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+<!-- AndroidManifest.xml -->
+&lt;activity android:name=".MainActivity"
+    android:launchMode="singleTask"&gt;
+    &lt;intent-filter android:autoVerify="true"&gt;
+        &lt;action android:name="android.intent.action.VIEW" /&gt;
+        &lt;category android:name="android.intent.category.DEFAULT" /&gt;
+        &lt;category android:name="android.intent.category.BROWSABLE" /&gt;
+        &lt;data
+            android:scheme="https"
+            android:host="myapp.com"
+            android:pathPrefix="/product" /&gt;
+        &lt;data
+            android:scheme="https"
+            android:host="myapp.com"
+            android:pathPrefix="/profile" /&gt;
+    &lt;/intent-filter&gt;
+&lt;/activity&gt;
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — App Links Handler</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        handleAppLink(intent)
+    }
+
+    private fun handleAppLink(intent: Intent?) {
+        if (intent?.action != Intent.ACTION_VIEW) return
+        val uri = intent.data ?: return
+
+        val navController = findNavController(R.id.nav_host)
+
+        when {
+            uri.pathSegments.firstOrNull() == "product" -> {
+                val id = uri.pathSegments.getOrNull(1) ?: return
+                navController.navigate(
+                    R.id.productDetailFragment,
+                    bundleOf("productId" to id)
+                )
+            }
+            uri.pathSegments.firstOrNull() == "profile" -> {
+                val username = uri.pathSegments.getOrNull(1) ?: return
+                navController.navigate(
+                    R.id.profileFragment,
+                    bundleOf("username" to username)
+                )
+            }
+        }
+    }
+}
+</code></pre>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="deferred-deep">5. Deferred Deep Linking</h2>
+      <p><strong>Deferred deep linking</strong> mengarahkan user ke konten spesifik bahkan jika app belum terinstall. User diarahkan ke App Store dulu, lalu ke konten setelah install.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dart — Flutter Firebase Dynamic Links</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Firebase Dynamic Links (deprecated, gunakan App Links + Branch)
+// Alternatif: Branch.io SDK
+
+// Install Branch
+// pubspec.yaml: branch_sdk_flutter: ^latest
+
+import 'package:branch_sdk_flutter/branch_sdk_flutter.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Init Branch
+  await BranchSdk.init(
+    enableLogging: true,
+    branchKey: 'key_live_xxxxx',
+  );
+
+  runApp(const MyApp());
+}
+
+// Create dynamic link
+Future<String> createShareLink(String productId) async {
+  BranchUniversalObject buo = BranchUniversalObject(
+    canonicalIdentifier: 'product/$productId',
+    title: 'Product $productId',
+    contentMetadata: BranchContentMetaData()
+      ..addCustomMetadata('product_id', productId),
+  );
+
+  BranchLinkProperties linkProperties = BranchLinkProperties()
+    ..addControlParameter('\$desktop_url', 'https://myapp.com/product/$productId')
+    ..addControlParameter('\$android_url', 'https://play.google.com/store/apps/details?id=com.myapp')
+    ..addControlParameter('\$ios_url', 'https://apps.apple.com/app/myapp/id123');
+
+  BranchResponse response = await BranchSdk.getShortUrl(buo, linkProperties);
+  return response.result;
+}
+
+// Handle incoming link
+void listenForLinks() {
+  BranchSdk.initSession().listen((data) {
+    if (data.containsKey('product_id')) {
+      final productId = data['product_id'];
+      navigatorKey.currentState?.pushNamed('/product/$productId');
+    }
+  });
+}
+</code></pre>
+      </div>
+
+      <h3>5.1 Deferred Deep Link Flow</h3>
+      <table class="spec-table">
+        <thead><tr><th>Step</th><th>Yang Terjadi</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>User klik link di email/ads/social media</td></tr>
+          <tr><td>2</td><td>Branch SDK merekam link + fingerprint device</td></tr>
+          <tr><td>3</td><td>User diarahkan ke App Store / Play Store</td></tr>
+          <tr><td>4</td><td>User install dan buka app</td></tr>
+          <tr><td>5</td><td>Branch SDK match fingerprint → retrieve data</td></tr>
+          <tr><td>6</td><td>App navigate ke konten yang tepat</td></tr>
+        </tbody>
+      </table>
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="routing">6. Deep Link Router</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dart — Flutter Router</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import 'package:go_router/go_router.dart';
+
+final router = GoRouter(
+  initialLocation: '/',
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (ctx, state) => const HomePage(),
+    ),
+    GoRoute(
+      path: '/product/:id',
+      builder: (ctx, state) {
+        final id = state.pathParameters['id']!;
+        return ProductDetailPage(productId: id);
+      },
+    ),
+    GoRoute(
+      path: '/profile/:username',
+      builder: (ctx, state) {
+        final username = state.pathParameters['username']!;
+        return ProfilePage(username: username);
+      },
+    ),
+    GoRoute(
+      path: '/share/:code',
+      redirect: (ctx, state) async {
+        // Resolve share code ke actual path
+        final code = state.pathParameters['code']!;
+        final data = await api.resolveShareLink(code);
+        return '/product/${data.productId}';
+      },
+      builder: (ctx, state) => const SizedBox(), // placeholder
+    ),
+  ],
+  errorBuilder: (ctx, state) => NotFoundPage(url: state.uri.toString()),
+);
+</code></pre>
+      </div>
+
+      <h2 id="best-practices-deeplink">7. Best Practices</h2>
+      <table class="spec-table">
+        <thead><tr><th>Praktik</th><th>Alasan</th></tr></thead>
+        <tbody>
+          <tr><td>Gunakan App Links / Universal Links</td><td>Verified, auto-open tanpa dialog</td></tr>
+          <tr><td>Selalu sediakan fallback web</td><td>Jika app tidak terinstall</td></tr>
+          <tr><td>Handle deferred deep linking</td><td>Konversi install → konten spesifik</td></tr>
+          <tr><td>Test dengan URL validator</td><td>Pastikan AASA/assetlinks valid</td></tr>
+          <tr><td>Log semua deep link events</td><td>Analytics untuk marketing</td></tr>
+          <tr><td>Handle edge cases</td><td>Content deleted, user logged out, dll</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="quiz">Quiz Pemahaman</h2>
+      <div class="quiz-container" id="quiz08">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa kelebihan Universal Links dibanding URL Scheme?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Lebih cepat</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Verified dan punya fallback web</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Lebih mudah setup</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Support semua OS</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: File apa yang harus di-host untuk Universal Links iOS?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) manifest.json</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) assetlinks.json</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) apple-app-site-association</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) well-known.json</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa itu deferred deep linking?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Deep link yang delay</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Mengarahkan ke konten setelah app diinstall</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Deep link yang expired</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Deep link tanpa app</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Attribute apa di Android manifest untuk App Links?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) android:enabled</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) android:autoVerify=true</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) android:exported</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) android:scheme</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Platform apa yang digunakan untuk deferred deep linking?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Firebase Crashlytics</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Branch.io</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Google Analytics</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) App Store Connect</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+      <div class="article-nav">
+        <a href="../index.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">Kembali ke Beranda</span></a>
+        <a href="../kategori.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">Lihat Kategori</span></a>
+      </div>
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/flutter-state-management.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">State Management Flutter: Riverpod & BLoC</span>
+        </a>
+        <a href="/articles/maui-cross-platform.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">.NET MAUI Cross-Platform Development</span>
+        </a>
+        <a href="/articles/app-store-publishing.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">Publish App ke Play Store & App Store</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

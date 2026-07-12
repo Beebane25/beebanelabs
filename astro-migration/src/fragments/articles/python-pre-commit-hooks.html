@@ -1,0 +1,893 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">Pre-commit Hooks</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>Python Pre-commit Hooks: Otomatiskan Kode Berkualitas</h1>
+      <p class="article-subtitle">Tutorial lengkap pre-commit hooks — linting, formatting, security checks, custom hooks, dan integrasi CI/CD</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="ad-slot ad-slot-wide"></div>
+  </div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Pre-commit Hooks</a></li>
+          <li><a href="#setup">Setup &amp; Instalasi</a></li>
+          <li><a href="#konfigurasi">Konfigurasi .pre-commit-config.yaml</a></li>
+          <li><a href="#linting">Linting: flake8, ruff, pylint</a></li>
+          <li><a href="#formatting">Formatting: black, isort, ruff format</a></li>
+          <li><a href="#security">Security: bandit, safety</a></li>
+          <li><a href="#type-checking">Type Checking: mypy</a></li>
+          <li><a href="#custom-hooks">Custom Hooks</a></li>
+          <li><a href="#ci-cd">Integrasi CI/CD</a></li>
+          <li><a href="#best-practices">Best Practices &amp; Troubleshooting</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan Pre-commit Hooks</h2>
+
+      <p><strong>Pre-commit hooks</strong> adalah script yang otomatis dijalankan sebelum kamu melakukan <code>git commit</code>. Tujuannya: <strong>mendeteksi dan memperbaiki masalah kode secara otomatis</strong> sebelum masuk ke repository. Ini menyelamatkan kamu dari code review yang memalukan karena typo, format yang berantakan, atau kode yang tidak aman.</p>
+
+      <p>Bayangkan kamu punya asisten pribadi yang selalu memeriksa setiap baris kode sebelum kamu commit — memastikan style konsisten, tidak ada bug sederhana, dan tidak ada secret yang bocor. Itulah pre-commit hooks!</p>
+
+      <h3>Mengapa Pre-commit Hooks Penting?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Manfaat</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Konsistensi kode</td><td>Seluruh tim menggunakan style yang sama</td></tr>
+          <tr><td>Detect bugs lebih awal</td><td>Error ditangkap sebelum masuk repository</td></tr>
+          <tr><td>Keamanan</td><td>Mencegah commit password, API keys, atau secret</td></tr>
+          <tr><td>Code review lebih cepat</td><td>Tidak perlu review masalah formatting/style</td></tr>
+          <tr><td>Otomatis</td><td>Tidak perlu diingatkan, hook berjalan sendiri</td></tr>
+          <tr><td>Standar tim</td><td>Semua aturan terdefinisi dalam satu file</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Pre-commit Workflow</div>
+<pre><code>Developer
+Tulis
+Kode
+Pre-commit Hooks Git
+→ → Repository
+✅ Lint check
+✅ Format check (hanya
+✅ Type check kode
+✅ Security scan bersih)
+✅ Test runners
+❌ Gagal → Commit diblokir, fix dulu
+✅ Bersih → Commit berhasil</code></pre>
+      </div>
+
+      <!-- SECTION 2 -->
+      <h2 id="setup">2. Setup &amp; Instalasi</h2>
+
+      <p>Menggunakan library <code>pre-commit</code> yang populer dan well-maintained. Setup sangat cepat.</p>
+
+      <pre><code class="language-bash"># Instalasi pre-commit
+pip install pre-commit
+
+# Verifikasi instalasi
+pre-commit --version
+
+# Setup di project kamu
+cd my-python-project
+git init
+
+# Buat konfigurasi (akan dibahas di section berikut)
+# Atau langsung install hooks
+pre-commit install</code></pre>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: # Struktur project setelah setup</div>
+<pre><code>/&quot;No. Struktur project setelah setup&quot;/
+.git/
+/&quot;.pre-commit-config.yaml&quot;/
+/&quot;.pre-commit-hooks.yaml&quot;/
+/&quot;pyproject.toml&quot;/
+src/
+/&quot;myproject/&quot;/
+/&quot;__init__.py&quot;/
+tests/</code></pre>
+    </div>
+
+      <h3>Perintah Dasar pre-commit</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Perintah</th>
+            <th>Fungsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>pre-commit install</code></td><td>Install git hook di repo lokal</td></tr>
+          <tr><td><code>pre-commit run --all-files</code></td><td>Jalankan hooks di semua file</td></tr>
+          <tr><td><code>pre-commit run &lt;hook&gt;</code></td><td>Jalankan hook spesifik saja</td></tr>
+          <tr><td><code>pre-commit autoupdate</code></td><td>Update versi hook ke terbaru</td></tr>
+          <tr><td><code>pre-commit clean</code></td><td>Hapus cache environments</td></tr>
+          <tr><td><code>pre-commit uninstall</code></td><td>Hapus git hook</td></tr>
+        </tbody>
+      </table>
+
+      <pre><code class="language-bash"># Jalankan hooks di semua file (pertama kali bisa lambat karena install environment)
+pre-commit run --all-files
+
+# Output contoh:
+# black....................................................Passed
+# isort....................................................Passed
+# flake8...................................................Failed
+# - myproject/utils.py:42:89: E501 line too long (120 > 88)
+
+# Fix semua file otomatis
+pre-commit run --all-files  # hook yang auto-fix (black, isort) akan memperbaiki
+
+# Jalankan hanya hook tertentu
+pre-commit run black --all-files
+pre-commit run flake8 --all-files</code></pre>
+
+      <!-- SECTION 3 -->
+      <h2 id="konfigurasi">3. Konfigurasi .pre-commit-config.yaml</h2>
+
+      <p>File <code>.pre-commit-config.yaml</code> adalah jantung dari setup pre-commit kamu. Di sini kamu mendefinisikan hooks mana yang akan dijalankan, versi apa, dan opsi apa yang digunakan.</p>
+
+      <pre><code class="language-yaml"># .pre-commit-config.yaml - Template Lengkap
+repos:
+  # ========== FORMATTING ==========
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        language_version: python3.11
+        args: [--line-length=88]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--profile=black]
+
+  # ========== LINTING ==========
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: [--max-line-length=88, --extend-ignore=E203,W503]
+
+  # ========== TYPE CHECKING ==========
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-requests]
+
+  # ========== SECURITY ==========
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.8
+    hooks:
+      - id: bandit
+        args: [-c, pyproject.toml]
+
+  # ========== MISC ==========
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: check-docstring-first</code></pre>
+
+      <h3>Konfigurasi Per-File &amp; Exclude</h3>
+      <pre><code class="language-yaml">repos:
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        # Exclude file tertentu
+        exclude: |
+          (?x)(
+            ^migrations/|
+            ^generated/|
+            \.pyi$
+          )
+        # Hanya jalankan di file Python tertentu
+        types: [python]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        # File yang di-exclude
+        exclude: ^tests/fixtures/
+        args: [--config=.flake8]
+        # Tambahan dependency
+        additional_dependencies: [flake8-bugbear, flake8-comprehensions]</code></pre>
+
+      <!-- SECTION 4 -->
+      <h2 id="linting">4. Linting: flake8, ruff, pylint</h2>
+
+      <p><strong>Linting</strong> adalah proses analisis kode untuk menemukan error, style violations, dan code smells. Berikut tiga linter populer untuk Python.</p>
+
+      <h3>Flake8: Classic Python Linter</h3>
+      <pre><code class="language-ini"># .flake8 atau di setup.cfg
+[flake8]
+max-line-length = 88
+extend-ignore = E203, W503
+per-file-ignores =
+    __init__.py:F401
+    tests/*:E501
+max-complexity = 10
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist,
+    .venv,
+    migrations</code></pre>
+
+      <pre><code class="language-yaml"># .pre-commit-config.yaml - flake8 dengan plugins
+- repo: https://github.com/pycqa/flake8
+  rev: 7.0.0
+  hooks:
+    - id: flake8
+      additional_dependencies:
+        - flake8-bugbear      # Additional bug detection
+        - flake8-comprehensions  # List/dict comprehension checks
+        - flake8-docstrings   # Docstring conventions
+        - flake8-typing-imports  # Import sorting for type hints</code></pre>
+
+      <h3>Ruff: Linter Super Cepat (Rekomendasi 2026)</h3>
+      <pre><code class="language-toml"># pyproject.toml - Ruff configuration
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "S",    # flake8-bandit (security)
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+    "RUF",  # Ruff-specific rules
+]
+ignore = ["E501"]
+
+[tool.ruff.per-file-ignores]
+"tests/**" = ["S101"]   # Allow assert in tests
+"__init__.py" = ["F401"] # Allow unused imports</code></pre>
+
+      <pre><code class="language-yaml"># .pre-commit-config.yaml - Ruff
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.4.4
+  hooks:
+    - id: ruff
+      args: [--fix, --exit-non-zero-on-fix]
+    - id: ruff-format  # Ruff juga bisa format!</code></pre>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Ruff vs Flake8</div>
+        <p><strong>Ruff</strong> ditulis dalam Rust dan 10-100x lebih cepat dari flake8. Di tahun 2026, Ruff menjadi pilihan utama karena bisa menggantikan flake8 + isort + black sekaligus. Sangat direkomendasikan untuk project baru!</p>
+      </div>
+
+      <h3>Pylint: Deep Analysis</h3>
+      <pre><code class="language-yaml"># Pylint lebih berat tapi lebih mendalam
+- repo: https://github.com/pylint-dev/pylint
+  rev: v3.1.0
+  hooks:
+    - id: pylint
+      args: [--disable=C0114,C0115,C0116]  # Disable missing docstring
+      additional_dependencies: [pylint-flask, pylint-django]</code></pre>
+
+      <!-- SECTION 5 -->
+      <h2 id="formatting">5. Formatting: black, isort, ruff format</h2>
+
+      <p><strong>Formatter</strong> otomatis merapikan kode kamu sehingga seluruh project menggunakan style yang konsisten. Tidak perlu lagi debat tentang indentasi, panjang baris, atau quote style!</p>
+
+      <h3>Black: The Uncompromising Formatter</h3>
+      <pre><code class="language-python"># SEBELUM black:
+def contoh_fungsi(  nama, umur, alamat,kota   ):
+    if nama and umur:
+        return {"nama": nama, "umur": umur,
+                "alamat": alamat,
+                    "kota": kota}
+    return    None
+
+# SETELAH black:
+def contoh_fungsi(nama, umur, alamat, kota):
+    if nama and umur:
+        return {
+            "nama": nama,
+            "umur": umur,
+            "alamat": alamat,
+            "kota": kota,
+        }
+    return None</code></pre>
+
+      <pre><code class="language-toml"># pyproject.toml - Black configuration
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.venv
+  | build
+  | dist
+  | migrations
+)/
+'''</code></pre>
+
+      <h3>isort: Import Sorting</h3>
+      <pre><code class="language-python"># SEBELUM isort:
+from myproject.utils import helper
+import os
+from datetime import datetime
+import sys
+from django.shortcuts import render
+import json
+from django.http import JsonResponse
+
+# SETELAH isort:
+import json
+import os
+import sys
+from datetime import datetime
+
+from django.http import JsonResponse
+from django.shortcuts import render
+
+from myproject.utils import helper</code></pre>
+
+      <pre><code class="language-toml"># pyproject.toml - isort configuration
+[tool.isort]
+profile = "black"
+known_first_party = ["myproject"]
+line_length = 88
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true</code></pre>
+
+      <pre><code class="language-yaml"># .pre-commit-config.yaml - Combo formatting
+- repo: https://github.com/psf/black
+  rev: 24.4.2
+  hooks:
+    - id: black
+
+- repo: https://github.com/pycqa/isort
+  rev: 5.13.2
+  hooks:
+    - id: isort
+        args: [--profile=black]</code></pre>
+
+      <!-- SECTION 6 -->
+      <h2 id="security">6. Security: bandit, safety</h2>
+
+      <p><strong>Bandit</strong> memindai kode Python untuk menemukan masalah keamanan yang umum — seperti penggunaan <code>eval()</code>, hardcoded password, insecure random, dan banyak lagi.</p>
+
+      <pre><code class="language-python"># Bandit akan mendeteksi masalah ini:
+
+# B101: assert digunakan (berbahaya di production)
+assert user.is_admin
+
+# B301: pickle digunakan (bisa eksekusi arbitrary code)
+import pickle
+data = pickle.loads(user_input)  # ⚠️ Bahaya!
+
+# B303: MD5 digunakan (tidak aman)
+import hashlib
+hash = hashlib.md5(password.encode())  # ⚠️ Gunakan bcrypt!
+
+# B311: random digunakan untuk keamanan
+import random
+token = random.randint(1000, 9999)  # ⚠️ Gunakan secrets!
+
+# B602: subprocess dengan shell=True
+import subprocess
+subprocess.call("ls -la", shell=True)  # ⚠️ Gunakan list!
+
+# B105: hardcoded password
+password = "admin123"  # ⚠️ Gunakan env vars!</code></pre>
+
+      <pre><code class="language-toml"># pyproject.toml - Bandit configuration
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101"]  # Skip assert check
+
+# Atau dengan file .bandit
+[bandit]
+exclude = ./tests
+skips = B101</code></pre>
+
+      <pre><code class="language-yaml"># .pre-commit-config.yaml - Security hooks
+- repo: https://github.com/PyCQA/bandit
+  rev: 1.7.8
+  hooks:
+    - id: bandit
+      args: [-c, pyproject.toml]
+      exclude: ^tests/
+
+# Deteksi secret/credential yang tidak sengaja di-commit
+- repo: https://github.com/gitleaks/gitleaks
+  rev: v8.18.2
+  hooks:
+    - id: gitleaks</code></pre>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Jangan Commit Secret!</div>
+        <p>Pre-commit hooks seperti <strong>gitleaks</strong> atau <strong>detect-secrets</strong> bisa mendeteksi API keys, password, dan token yang tidak sengaja masuk ke kode. Selalu gunakan <code>.env</code> file dan <code>.gitignore</code> untuk credentials.</p>
+      </div>
+
+      <!-- SECTION 7 -->
+      <h2 id="type-checking">7. Type Checking: mypy</h2>
+
+      <p><strong>mypy</strong> adalah static type checker untuk Python yang memverifikasi type annotations. Ini membantu menangkap bug yang berkaitan dengan tipe data sebelum runtime.</p>
+
+      <pre><code class="language-python"># Contoh kode yang akan di-check mypy
+
+def hitung_luas(panjang: float, lebar: float) -> float:
+    return panjang * lebar
+
+# ✅ Benar
+hasil: float = hitung_luas(5.0, 3.0)
+
+# ❌ Error: Incompatible types
+hasil: str = hitung_luas(5.0, 3.0)  # Error: float bukan str
+
+# ❌ Error: Argument types
+hitung_luas("5", 3)  # Error: str bukan float
+
+from typing import Optional
+
+def cari_user(id: int) -> Optional[dict]:
+    if id > 0:
+        return {"id": id, "nama": "Budi"}
+    return None
+
+# ❌ Tanpa check: crash saat akses .get()
+user = cari_user(-1)
+print(user.get("nama"))  # AttributeError!
+
+# ✅ Dengan check:
+user = cari_user(-1)
+if user is not None:
+    print(user.get("nama"))</code></pre>
+
+      <pre><code class="language-toml"># pyproject.toml - mypy configuration
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false</code></pre>
+
+      <pre><code class="language-yaml"># .pre-commit-config.yaml - mypy hook
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.10.0
+  hooks:
+    - id: mypy
+      args: [--strict]
+      additional_dependencies:
+        - types-requests
+        - types-PyYAML
+        - types-redis</code></pre>
+
+      <!-- SECTION 8 -->
+      <h2 id="custom-hooks">8. Custom Hooks</h2>
+
+      <p>Selain menggunakan hook yang sudah ada, kamu bisa membuat <strong>custom hooks</strong> untuk aturan spesifik project kamu. Misalnya: memastikan semua file punya header, tidak ada debug print, atau format commit message tertentu.</p>
+
+      <pre><code class="language-yaml"># .pre-commit-config.yaml - Custom local hooks
+repos:
+  - repo: local
+    hooks:
+      # Hook 1: Cek tidak ada debug print
+      - id: no-debug-print
+        name: Check no debug print statements
+        entry: '^\s*print\('
+        language: pygrep
+        types: [python]
+        exclude: ^tests/
+
+      # Hook 2: Pastikan semua fungsi punya docstring
+      - id: check-docstrings
+        name: Check function docstrings
+        entry: python scripts/check_docstrings.py
+        language: system
+        types: [python]
+        pass_filenames: true
+
+      # Hook 3: Cek tidak ada TODO/FIXME di production
+      - id: no-todo
+        name: Check no TODO/FIXME
+        entry: 'TODO|FIXME|HACK|XXX'
+        language: pygrep
+        types: [python]
+        exclude: ^tests/
+
+      # Hook 4: Validasi commit message
+      - id: commit-msg-check
+        name: Validate commit message
+        entry: python scripts/validate_commit_msg.py
+        language: system
+        stages: [commit-msg]
+
+      # Hook 5: Jalankan pytest sebelum commit
+      - id: pytest-check
+        name: Run tests
+        entry: pytest tests/ -x -q
+        language: system
+        pass_filenames: false
+        always_run: true</code></pre>
+
+      <h3>Custom Hook Script: check_docstrings.py</h3>
+      <pre><code class="language-python">#!/usr/bin/env python3
+"""Pre-commit hook: Pastikan semua fungsi publik punya docstring."""
+import ast
+import sys
+
+def check_file(filepath: str) -> list[str]:
+    errors = []
+    with open(filepath) as f:
+        tree = ast.parse(f.read(), filename=filepath)
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            # Skip private functions
+            if node.name.startswith('_'):
+                continue
+            # Check docstring
+            if not (node.body and isinstance(node.body[0], ast.Expr)
+                    and isinstance(node.body[0].value, ast.Constant)
+                    and isinstance(node.body[0].value.value, str)):
+                errors.append(
+                    f"{filepath}:{node.lineno} - "
+                    f"Fungsi '{node.name}' tidak punya docstring"
+                )
+    return errors
+
+if __name__ == "__main__":
+    all_errors = []
+    for filepath in sys.argv[1:]:
+        all_errors.extend(check_file(filepath))
+
+    if all_errors:
+        for error in all_errors:
+            print(f"  ❌ {error}")
+        sys.exit(1)
+    sys.exit(0)</code></pre>
+
+      <h3>Validate Commit Message Hook</h3>
+      <pre><code class="language-python">#!/usr/bin/env python3
+"""Validasi format commit message (Conventional Commits)."""
+import re
+import sys
+
+# Format: type(scope): description
+PATTERN = r'^(feat|fix|docs|style|refactor|test|chore|perf|ci)(\(.+\))?: .{1,72}$'
+
+def validate_message(msg_file: str) -> bool:
+    with open(msg_file) as f:
+        first_line = f.readline().strip()
+
+    if not re.match(PATTERN, first_line):
+        print(f"❌ Commit message tidak valid!")
+        print(f"   Format: type(scope): description")
+        print(f"   Contoh: feat(auth): tambah login OAuth")
+        print(f"   Tipe: feat|fix|docs|style|refactor|test|chore|perf|ci")
+        print(f"   Message: '{first_line}'")
+        return False
+    return True
+
+if __name__ == "__main__":
+    if not validate_message(sys.argv[1]):
+        sys.exit(1)
+    print("✅ Commit message valid!")
+    sys.exit(0)</code></pre>
+
+      <!-- SECTION 9 -->
+      <h2 id="ci-cd">9. Integrasi CI/CD</h2>
+
+      <p>Pre-commit hooks harus juga dijalankan di CI/CD pipeline untuk memastikan semua developer menjalankannya. Berikut integrasi dengan GitHub Actions.</p>
+
+      <pre><code class="language-yaml"># .github/workflows/pre-commit.yml
+name: Pre-commit Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pre-commit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure</code></pre>
+
+      <h3>GitHub Actions dengan Matrix Testing</h3>
+      <pre><code class="language-yaml"># .github/workflows/ci.yml
+name: CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pre-commit
+      - run: pre-commit run --all-files
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - run: pytest --cov=src --cov-report=xml
+      - uses: codecov/codecov-action@v4
+        with:
+          file: coverage.xml</code></pre>
+
+      <h3>Pre-commit.ci: Auto-Fix PRs</h3>
+      <pre><code class="language-yaml"># Tambahkan di .pre-commit-config.yaml untuk auto-fix PR
+ci:
+  autoupdate_schedule: weekly
+  autofix_commit_msg: 'style: auto-fix by pre-commit.ci'
+  autoupdate_commit_msg: 'chore: update pre-commit hooks'</code></pre>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Pre-commit.ci</div>
+        <p>Layanan <a href="https://pre-commit.ci">pre-commit.ci</a> bisa otomatis menjalankan hooks dan membuat PR perbaikan. Setup sangat mudah — cukup install app di GitHub repo kamu. Gratis untuk open source!</p>
+      </div>
+
+      <!-- SECTION 10 -->
+      <h2 id="best-practices">10. Best Practices &amp; Troubleshooting</h2>
+
+      <h3>Kombinasi Hook yang Direkomendasikan</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Kategori</th>
+            <th>Hook</th>
+            <th>Alternatif</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Format</td><td>black + isort</td><td>ruff format</td></tr>
+          <tr><td>Lint</td><td>ruff</td><td>flake8 + plugins</td></tr>
+          <tr><td>Type Check</td><td>mypy</td><td>pyright</td></tr>
+          <tr><td>Security</td><td>bandit + gitleaks</td><td>detect-secrets</td></tr>
+          <tr><td>Misc</td><td>trailing-whitespace, end-of-file-fixer</td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Troubleshooting Umum</h3>
+      <pre><code class="language-bash"># Masalah: Hook lambat saat pertama kali
+# Solusi: Gunakan --install-hooks untuk pre-install
+pre-commit install-hooks
+
+# Masalah: Ingin skip hook untuk commit darurat
+# Solusi: --no-verify (gunakan dengan bijak!)
+git commit -m "hotfix" --no-verify
+
+# Masalah: Hook environment corrupt
+# Solusi: Clean dan reinstall
+pre-commit clean
+pre-commit install-hooks
+
+# Masalah: Update semua hook ke versi terbaru
+pre-commit autoupdate
+git add .pre-commit-config.yaml
+git commit -m "chore: update pre-commit hooks"
+
+# Masalah: Hook error karena Python version
+# Solusi: Tentukan language_version di config
+# hooks:
+#   - id: black
+#     language_version: python3.11
+
+# Masalah: Cek apakah hook ter-install
+pre-commit --version
+ls .git/hooks/pre-commit</code></pre>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Jangan Gunakan --no-verify Kebiasaan!</div>
+        <p><code>--no-verify</code> melewati semua hooks. Ini berguna untuk emergency, tapi jangan jadikan kebiasaan. Jika hook sering gagal, perbaiki konfigurasi atau kodenya, jangan skip hooknya.</p>
+      </div>
+
+      <!-- SECTION 11 -->
+      <h2 id="quiz">11. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quizPrecommit">
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1.</strong> Kapan pre-commit hooks dijalankan?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q1" value="a"> Setelah push ke remote</label>
+            <label><input type="radio" name="q1" value="b"> Sebelum git commit</label>
+            <label><input type="radio" name="q1" value="c"> Saat pull dari remote</label>
+            <label><input type="radio" name="q1" value="d"> Saat membuat branch baru</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2.</strong> Perintah apa untuk menjalankan hooks di semua file yang sudah ada?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q2" value="a"> pre-commit install</label>
+            <label><input type="radio" name="q2" value="b"> pre-commit update</label>
+            <label><input type="radio" name="q2" value="c"> pre-commit run --all-files</label>
+            <label><input type="radio" name="q2" value="d"> pre-commit check</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3.</strong> Tool mana yang bisa menggantikan black + isort + flake8 sekaligus?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q3" value="a"> Ruff</label>
+            <label><input type="radio" name="q3" value="b"> Pylint</label>
+            <label><input type="radio" name="q3" value="c"> Mypy</label>
+            <label><input type="radio" name="q3" value="d"> Bandit</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4.</strong> Apa fungsi dari <code>gitleaks</code> dalam pre-commit hooks?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q4" value="a"> Memformat kode</label>
+            <label><input type="radio" name="q4" value="b"> Menjalankan test</label>
+            <label><input type="radio" name="q4" value="c"> Mengecek type annotation</label>
+            <label><input type="radio" name="q4" value="d"> Mendeteksi secret/credential di kode</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>5.</strong> Bagaimana cara melewati hooks untuk commit darurat?</p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q5" value="a"> git commit --skip-hooks</label>
+            <label><input type="radio" name="q5" value="b"> git commit --no-verify</label>
+            <label><input type="radio" name="q5" value="c"> git commit --force</label>
+            <label><input type="radio" name="q5" value="d"> git commit --ignore-hooks</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARTICLE NAVIGATION -->
+      <div class="article-nav">
+        <a href="python-asyncio-basics.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Python asyncio: Async Programming</span>
+        </a>
+        <a href="python-scipy.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">SciPy: Scientific Computing</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/javascript-closures-scope.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">🔒 Closures & Scope di JavaScript</span>
+        </a>
+        <a href="/articles/java-spring-boot.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">🍃 Spring Boot: REST API Modern</span>
+        </a>
+        <a href="/articles/javascript-dom-manipulation.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">🌐 DOM Manipulation: Panduan Lengkap JavaScript</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

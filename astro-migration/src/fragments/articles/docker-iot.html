@@ -1,0 +1,1085 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Docker</a>
+        <span class="separator">/</span>
+        <span class="current">Docker untuk IoT</span>
+      </div>
+      <span class="category-tag">Docker</span>
+      <h1>Docker untuk IoT: Containerize Aplikasi Anda</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Panduan lengkap menggunakan Docker untuk proyek IoT — dari konsep dasar container hingga deploy MQTT broker, Raspberry Pi Docker, dan Docker Compose untuk stack IoT</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 20 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#apa-itu-docker">Apa Itu Docker?</a></li>
+          <li><a href="#instalasi-docker">Instalasi Docker</a></li>
+          <li><a href="#images-dan-containers">Images dan Containers</a></li>
+          <li><a href="#dockerfile-iot">Dockerfile untuk Aplikasi IoT</a></li>
+          <li><a href="#docker-compose">Docker Compose untuk Stack IoT</a></li>
+          <li><a href="#networking">Networking di Docker</a></li>
+          <li><a href="#volumes">Volumes dan Persistent Storage</a></li>
+          <li><a href="#deploy-mqtt">Deploy MQTT Broker di Docker</a></li>
+          <li><a href="#raspberry-pi-docker">Docker di Raspberry Pi</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Apa Itu Docker?     -->
+      <!-- ============================== -->
+      <h2 id="apa-itu-docker">1. Apa Itu Docker?</h2>
+
+      <p>Docker adalah platform open-source yang memungkinkan Anda mengemas aplikasi beserta seluruh dependensinya ke dalam satu unit yang disebut <strong>container</strong>. Container memastikan aplikasi berjalan dengan konsisten di mana saja — di laptop, server cloud, maupun di <em>Raspberry Pi</em> di lokasi terpencil.</p>
+
+      <p>Dalam konteks <em>Internet of Things</em> (IoT), Docker memecahkan masalah klasik: <strong>"berjalan di mesin saya, tapi tidak di mesin lain."</strong> Dengan Docker, Anda bisa mengemas broker MQTT, database, dashboard web, dan skrip sensor ke dalam container terpisah yang bisa di-deploy dan dikelola secara independen.</p>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Mengapa Docker untuk IoT?</div>
+        <p>Docker menyederhanakan deployment di perangkat IoT yang tersebar di berbagai lokasi. Anda bisa update satu layanan (misalnya broker MQTT) tanpa mengganggu layanan lain. Rollback juga mudah — cukup jalankan versi container sebelumnya. Di Raspberry Pi, Docker memungkinkan Anda menjalankan banyak layanan tanpa konflik dependensi.</p>
+      </div>
+
+      <!-- DOCKER vs VM DIAGRAM -->
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Perbedaan Container Docker vs Virtual Machine</div>
+<div class="diagram-box">
+        
+<pre><code>App B Libs Guest OS
+App C Libs Guest OS Docker Engine
+App A Libs
+App B Libs
+App C Libs</code></pre>
+    </div>
+      </div>
+
+      <h3>Konsep Dasar Docker</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Konsep</th>
+            <th>Penjelasan</th>
+            <th>Analogi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Image</strong></td><td>Blueprint/template aplikasi yang sudah dikemas</td><td>Resep masakan</td></tr>
+          <tr><td><strong>Container</strong></td><td>Instance berjalan dari sebuah image</td><td>Masakan yang sudah jadi</td></tr>
+          <tr><td><strong>Dockerfile</strong></td><td>File instruksi untuk membangun image</td><td>Langkah-langkah resep</td></tr>
+          <tr><td><strong>Docker Hub</strong></td><td>Registry untuk menyimpan dan berbagi image</td><td>Toko buku resep</td></tr>
+          <tr><td><strong>Volume</strong></td><td>Penyimpanan persisten di luar container</td><td>Lemari penyimpanan</td></tr>
+          <tr><td><strong>Network</strong></td><td>Jaringan virtual antar container</td><td>Jalan penghubung antar rumah</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Instalasi Docker    -->
+      <!-- ============================== -->
+      <h2 id="instalasi-docker">2. Instalasi Docker</h2>
+
+      <p>Docker tersedia untuk Linux, macOS, dan Windows. Untuk proyek IoT, kita umumnya menginstal Docker di Raspberry Pi (Linux ARM) atau di server pengembangan (Windows/macOS/Linux).</p>
+
+      <h3>Instalasi di Linux (Ubuntu/Debian/Raspberry Pi OS)</h3>
+
+      </div>
+<div class="diagram-box">
+
+        <div class="diagram-label">Diagram: Lifecycle Container Docker</div>
+<pre><code>
+                    docker create
+                         │
+                         ▼
+                ┌─────────────────┐
+                │     Created     │
+                └────────┬────────┘
+                         │ docker start
+                         ▼
+                ┌─────────────────┐
+                │    Running      │◄──── docker restart
+                └───┬────────┬───┘
+       docker pause │        │ docker stop / kill
+                    ▼        ▼
+           ┌──────────┐  ┌──────────┐
+           │  Paused   │  │  Stopped │
+           └─────┬─────┘  └────┬─────┘
+      docker unpause             │
+                 │               ▼
+                 │      ┌──────────────┐
+                 └─────►│   Exited     │
+                        └──────────────┘
+                              │
+                        docker rm (hapus)
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Image vs Container</div>
+        <p><strong>Image</strong> = cetak biru (immutable, read-only). <strong>Container</strong> = instance berjalan dari image (mutable, punya writable layer). Satu image bisa menghasilkan banyak container, seperti satu cetakan kue bisa menghasilkan banyak kue.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Dockerfile IoT      -->
+      <!-- ============================== -->
+      <h2 id="dockerfile-iot">4. Dockerfile untuk Aplikasi IoT</h2>
+
+      <p><strong>Dockerfile</strong> adalah file teks berisi instruksi langkah-demi-langkah untuk membangun Docker image. Di proyek IoT, kita biasanya membuat Dockerfile untuk aplikasi sensor reader, data processor, atau web dashboard.</p>
+
+      <h3>Dockerfile Dasar untuk Aplikasi Python IoT</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dockerfile — Aplikasi MQTT Subscriber IoT</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Gunakan base image Python yang ringan
+FROM python:3.11-slim
+
+# Set metadata label
+LABEL maintainer="beebane@beebanelabs.id"
+LABEL description="MQTT Subscriber untuk IoT"
+
+# Set working directory di dalam container
+WORKDIR /app
+
+# Install dependensi (copy requirements.txt dulu untuk caching layer)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code ke container
+COPY . .
+
+# Set environment variable
+ENV MQTT_BROKER=mosquitto
+ENV MQTT_PORT=1883
+ENV MQTT_TOPIC=iot/sensor/#
+
+# Jalankan aplikasi saat container start
+CMD ["python3", "mqtt_subscriber.py"]
+</code></pre>
+      </div>
+
+      <h3>File Pendukung</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">requirements.txt</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+paho-mqtt==1.6.1
+flask==3.0.0
+sqlite3-api==2.0.1
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — mqtt_subscriber.py (contoh aplikasi IoT)</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+#!/usr/bin/env python3
+"""MQTT Subscriber IoT - BeebaneLabs"""
+import os
+import json
+import paho.mqtt.client as mqtt
+
+# Konfigurasi dari environment variable
+BROKER = os.getenv("MQTT_BROKER", "localhost")
+PORT = int(os.getenv("MQTT_PORT", "1883"))
+TOPIC = os.getenv("MQTT_TOPIC", "iot/sensor/#")
+
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print(f"[OK] Terhubung ke MQTT Broker {BROKER}:{PORT}")
+        client.subscribe(TOPIC)
+        print(f"[OK] Subscribe ke topic: {TOPIC}")
+    else:
+        print(f"[ERROR] Gagal terhubung, kode: {rc}")
+
+def on_message(client, userdata, msg):
+    try:
+        payload = json.loads(msg.payload.decode())
+        print(f"[DATA] Topic: {msg.topic} | Data: {json.dumps(payload)}")
+    except json.JSONDecodeError:
+        print(f"[RAW]  Topic: {msg.topic} | Payload: {msg.payload.decode()}")
+
+if __name__ == "__main__":
+    client = mqtt.Client(client_name="iot-docker-subscriber")
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.connect(BROKER, PORT, 60)
+    print(f"[START] IoT Subscriber berjalan...")
+    client.loop_forever()
+</code></pre>
+      </div>
+
+      <h3>Build dan Run Image</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Build dan Run Docker Image</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Build image dari Dockerfile
+docker build -t iot-subscriber:v1.0 .
+
+# Cek image yang sudah dibuat
+docker images | grep iot-subscriber
+
+# Jalankan container
+docker run -d --name sensor-reader \
+  --network iot-network \
+  -e MQTT_BROKER=mosquitto \
+  -e MQTT_TOPIC="iot/sensor/#" \
+  iot-subscriber:v1.0
+
+# Lihat log output
+docker logs -f sensor-reader
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips: Multi-Stage Build untuk Image Lebih Ringan</div>
+        <p>Gunakan multi-stage build untuk mengurangi ukuran image. Tahap pertama compile dependencies, tahap kedua copy hanya hasilnya. Contoh: base image <code>python:3.11-slim</code> (~150MB) vs <code>python:3.11-alpine</code> (~50MB). Untuk Raspberry Pi dengan storage terbatas, ukuran image sangat penting.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Docker Compose      -->
+      <!-- ============================== -->
+      <h2 id="docker-compose">5. Docker Compose untuk Stack IoT</h2>
+
+      <p><strong>Docker Compose</strong> adalah tool untuk mendefinisikan dan menjalankan multiple container sekaligus menggunakan satu file YAML. Ini sangat berguna untuk stack IoT yang terdiri dari broker MQTT, database, subscriber, dan dashboard web.</p>
+
+      <h3>docker-compose.yml untuk Stack IoT Lengkap</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — docker-compose.yml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+version: '3.8'
+
+services:
+  # ========== MQTT BROKER ==========
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"     # MQTT default port
+      - "9001:9001"     # WebSocket port
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - iot-network
+
+  # ========== IoT SUBSCRIBER ==========
+  subscriber:
+    build: ./subscriber
+    container_name: iot-subscriber
+    restart: unless-stopped
+    environment:
+      - MQTT_BROKER=mosquitto
+      - MQTT_PORT=1883
+      - MQTT_TOPIC=iot/sensor/#
+      - DB_PATH=/data/iot_data.db
+    volumes:
+      - subscriber-data:/data
+    depends_on:
+      - mosquitto
+    networks:
+      - iot-network
+
+  # ========== DASHBOARD WEB ==========
+  dashboard:
+    build: ./dashboard
+    container_name: iot-dashboard
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - MQTT_BROKER=mosquitto
+      - DB_PATH=/data/iot_data.db
+    volumes:
+      - subscriber-data:/data
+    depends_on:
+      - subscriber
+      - mosquitto
+    networks:
+      - iot-network
+
+  # ========== DATABASE (InfluxDB untuk time-series) ==========
+  influxdb:
+    image: influxdb:2.7
+    container_name: iot-influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=iotpassword123
+      - DOCKER_INFLUXDB_INIT_ORG=beebanelabs
+      - DOCKER_INFLUXDB_INIT_BUCKET=iot_sensors
+    networks:
+      - iot-network
+
+# ========== NETWORKS ==========
+networks:
+  iot-network:
+    driver: bridge
+
+# ========== VOLUMES ==========
+volumes:
+  subscriber-data:
+  influxdb-data:
+</code></pre>
+      </div>
+
+      <h3>Perintah Docker Compose</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Docker Compose Commands</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Jalankan semua service di background
+docker compose up -d
+
+# Lihat status semua service
+docker compose ps
+
+# Lihat log semua service
+docker compose logs -f
+
+# Lihat log service tertentu
+docker compose logs -f mosquitto
+
+# Stop semua service
+docker compose down
+
+# Stop dan hapus volume (HATI-HATI: data hilang!)
+docker compose down -v
+
+# Rebuild image setelah perubahan Dockerfile
+docker compose up -d --build
+
+# Restart satu service saja
+docker compose restart subscriber
+
+# Masuk ke shell container
+docker compose exec mosquitto sh
+</code></pre>
+      </div>
+
+      
+<div class="diagram-box">
+        
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 478" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,86L138,90.167C138,94.333,138,102.667,138,110.333C138,118,138,125,138,128.5L138,132" id="L_N3_N0_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N0_0" data-points="W3sieCI6MTM4LCJ5Ijo4Nn0seyJ4IjoxMzgsInkiOjExMX0seyJ4IjoxMzgsInkiOjEzNn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,214L138,218.167C138,222.333,138,230.667,138,238.333C138,246,138,253,138,256.5L138,260" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTM4LCJ5IjoyMTR9LHsieCI6MTM4LCJ5IjoyMzl9LHsieCI6MTM4LCJ5IjoyNjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,342L138,346.167C138,350.333,138,358.667,138,366.333C138,374,138,381,138,384.5L138,388" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTM4LCJ5IjozNDJ9LHsieCI6MTM4LCJ5IjozNjd9LHsieCI6MTM4LCJ5IjozOTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N3_N0_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 175)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Subscriber (Python) Proses Data IoT</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 303)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Dashboard (Flask) Port 5000</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 431)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>InfluxDB Port 8086 Time-series DB Shared Volume...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(138, 47)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Mosquitto (MQTT) Port 1883 ◄</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Networking          -->
+      <!-- ============================== -->
+      <h2 id="networking">6. Networking di Docker</h2>
+
+      <p>Docker menyediakan sistem networking virtual yang memungkinkan container berkomunikasi satu sama lain dan dengan dunia luar. Memahami networking sangat penting untuk proyek IoT di mana banyak service saling terhubung.</p>
+
+      <h3>Jenis-jenis Network di Docker</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Jenis Network</th>
+            <th>Penjelasan</th>
+            <th>Kapan Digunakan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>bridge</strong></td><td>Network default, container terisolasi di satu host</td><td>Umumnya untuk single-host IoT stack</td></tr>
+          <tr><td><strong>host</strong></td><td>Container langsung menggunakan network host</td><td>Butuh performa jaringan maksimal</td></tr>
+          <tr><td><strong>overlay</strong></td><td>Network antar mesin (multi-host)</td><td>Swarm cluster di banyak perangkat IoT</td></tr>
+          <tr><td><strong>macvlan</strong></td><td>Container punya IP sendiri di network fisik</td><td>IoT device perlu terlihat di LAN</td></tr>
+          <tr><td><strong>none</strong></td><td>Tidak ada networking</td><td>Container yang tidak butuh jaringan</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Membuat dan Menggunakan Custom Network</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Docker Network Commands</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Buat custom bridge network untuk IoT
+docker network create iot-network
+
+# Lihat semua network
+docker network ls
+
+# Inspect detail network
+docker network inspect iot-network
+
+# Jalankan container di network tertentu
+docker run -d --name mosquitto \
+  --network iot-network \
+  -p 1883:1883 \
+  eclipse-mosquitto:2.0
+
+# Hubungkan container yang sudah ada ke network
+docker network connect iot-network my-existing-container
+
+# Putuskan container dari network
+docker network disconnect iot-network my-existing-container
+
+# Hapus network
+docker network rm iot-network
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Service Discovery di Docker</div>
+        <p>Dalam Docker network, container bisa saling memanggil menggunakan <strong>nama container</strong> sebagai hostname. Misalnya, container <code>subscriber</code> bisa mengakses broker MQTT di <code>mosquitto:1883</code> — cukup gunakan nama service dari docker-compose.yml, bukan IP address. Ini mempermudah konfigurasi IoT stack.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Volumes             -->
+      <!-- ============================== -->
+      <h2 id="volumes">7. Volumes dan Persistent Storage</h2>
+
+      <p>Secara default, data di dalam container akan <strong>hilang</strong> saat container dihapus. Untuk data IoT yang perlu bertahan (data sensor, konfigurasi, database), kita menggunakan <strong>volumes</strong>.</p>
+
+      <h3>Tiga Cara Penyimpanan Data di Docker</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Tipe</th>
+            <th>Lokasi</th>
+            <th>Kelebihan</th>
+            <th>Kekurangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Named Volume</strong></td><td>Dikelola Docker (<code>/var/lib/docker/volumes/</code>)</td><td>Portable, mudah backup</td><td>Tidak mudah diedit manual</td></tr>
+          <tr><td><strong>Bind Mount</strong></td><td>Folder di host yang di-mount ke container</td><td>Mudah edit langsung</td><td>Tergantung path di host</td></tr>
+          <tr><td><strong>tmpfs</strong></td><td>Di RAM saja</td><td>Cepat</td><td>Hilang saat container stop</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Contoh Penggunaan Volume untuk IoT</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Docker Volume untuk IoT</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# ===== NAMED VOLUME =====
+
+# Buat volume untuk data sensor
+docker volume create iot-sensor-data
+
+# Lihat semua volume
+docker volume ls
+
+# Jalankan container dengan named volume
+docker run -d --name subscriber \
+  --network iot-network \
+  -v iot-sensor-data:/app/data \
+  -e MQTT_BROKER=mosquitto \
+  iot-subscriber:v1.0
+
+# ===== BIND MOUNT =====
+
+# Mount folder lokal ke container
+docker run -d --name mosquitto \
+  --network iot-network \
+  -p 1883:1883 \
+  -v $(pwd)/mosquitto/config:/mosquitto/config \
+  -v $(pwd)/mosquitto/data:/mosquitto/data \
+  -v $(pwd)/mosquitto/log:/mosquitto/log \
+  eclipse-mosquitto:2.0
+
+# ===== INSPECT & BACKUP =====
+
+# Cek detail volume
+docker volume inspect iot-sensor-data
+
+# Backup volume ke file tar
+docker run --rm \
+  -v iot-sensor-data:/data \
+  -v $(pwd)/backup:/backup \
+  alpine tar czf /backup/iot-data-backup.tar.gz -C /data .
+
+# Restore volume dari backup
+docker run --rm \
+  -v iot-sensor-data:/data \
+  -v $(pwd)/backup:/backup \
+  alpine tar xzf /backup/iot-data-backup.tar.gz -C /data
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Backup Data IoT Secara Rutin</div>
+        <p>Data sensor IoT sangat berharga — historis suhu, kelembaban, dan pembacaan sensor lainnya. Buat jadwal backup otomatis menggunakan <strong>cron job</strong> di host yang menjalankan perintah backup volume secara berkala. Jangan hanya mengandalkan satu penyimpanan.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Deploy MQTT Docker  -->
+      <!-- ============================== -->
+      <h2 id="deploy-mqtt">8. Deploy MQTT Broker di Docker</h2>
+
+      <p><strong>Eclipse Mosquitto</strong> adalah broker MQTT open-source yang ringan dan populer untuk IoT. Dengan Docker, Anda bisa meng-deploy Mosquitto dalam hitungan detik dengan konfigurasi yang reproducible.</p>
+
+      <h3>Struktur Folder</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Struktur Proyek Mosquitto Docker</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+</div>
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: mosquitto-iot/</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 243.859375px;" viewBox="0 0 243.859375 902" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M121.93,62L121.93,66.167C121.93,70.333,121.93,78.667,121.93,86.333C121.93,94,121.93,101,121.93,104.5L121.93,108" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTIxLjkyOTY4NzUsInkiOjYyfSx7IngiOjEyMS45Mjk2ODc1LCJ5Ijo4N30seyJ4IjoxMjEuOTI5Njg3NSwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M121.93,166L121.93,170.167C121.93,174.333,121.93,182.667,121.93,190.333C121.93,198,121.93,205,121.93,208.5L121.93,212" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTIxLjkyOTY4NzUsInkiOjE2Nn0seyJ4IjoxMjEuOTI5Njg3NSwieSI6MTkxfSx7IngiOjEyMS45Mjk2ODc1LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M121.93,270L121.93,274.167C121.93,278.333,121.93,286.667,121.93,294.333C121.93,302,121.93,309,121.93,312.5L121.93,316" id="L_N2_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N3_0" data-points="W3sieCI6MTIxLjkyOTY4NzUsInkiOjI3MH0seyJ4IjoxMjEuOTI5Njg3NSwieSI6Mjk1fSx7IngiOjEyMS45Mjk2ODc1LCJ5IjozMjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M121.93,374L121.93,378.167C121.93,382.333,121.93,390.667,121.93,398.333C121.93,406,121.93,413,121.93,416.5L121.93,420" id="L_N3_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N4_0" data-points="W3sieCI6MTIxLjkyOTY4NzUsInkiOjM3NH0seyJ4IjoxMjEuOTI5Njg3NSwieSI6Mzk5fSx7IngiOjEyMS45Mjk2ODc1LCJ5Ijo0MjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M121.93,478L121.93,482.167C121.93,486.333,121.93,494.667,121.93,502.333C121.93,510,121.93,517,121.93,520.5L121.93,524" id="L_N4_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N4_N5_0" data-points="W3sieCI6MTIxLjkyOTY4NzUsInkiOjQ3OH0seyJ4IjoxMjEuOTI5Njg3NSwieSI6NTAzfSx7IngiOjEyMS45Mjk2ODc1LCJ5Ijo1Mjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M121.93,582L121.93,586.167C121.93,590.333,121.93,598.667,121.93,606.333C121.93,614,121.93,621,121.93,624.5L121.93,628" id="L_N5_N6_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N5_N6_0" data-points="W3sieCI6MTIxLjkyOTY4NzUsInkiOjU4Mn0seyJ4IjoxMjEuOTI5Njg3NSwieSI6NjA3fSx7IngiOjEyMS45Mjk2ODc1LCJ5Ijo2MzJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M121.93,686L121.93,690.167C121.93,694.333,121.93,702.667,121.93,710.333C121.93,718,121.93,725,121.93,728.5L121.93,732" id="L_N6_N7_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N6_N7_0" data-points="W3sieCI6MTIxLjkyOTY4NzUsInkiOjY4Nn0seyJ4IjoxMjEuOTI5Njg3NSwieSI6NzExfSx7IngiOjEyMS45Mjk2ODc1LCJ5Ijo3MzZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M121.93,790L121.93,794.167C121.93,798.333,121.93,806.667,121.93,814.333C121.93,822,121.93,829,121.93,832.5L121.93,836" id="L_N7_N8_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N7_N8_0" data-points="W3sieCI6MTIxLjkyOTY4NzUsInkiOjc5MH0seyJ4IjoxMjEuOTI5Njg3NSwieSI6ODE1fSx7IngiOjEyMS45Mjk2ODc1LCJ5Ijo4NDB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N4_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N5_N6_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N6_N7_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N7_N8_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(121.9296875, 35)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="-88.1484375" y="-27" width="176.296875" height="54"/><g class="label" style="" transform="translate(-58.1484375, -12)"><rect/><foreignObject width="116.296875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>/"mosquitto-iot/"/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(121.9296875, 139)"><rect class="basic label-container" style="" x="-113.9296875" y="-27" width="227.859375" height="54"/><g class="label" style="" transform="translate(-83.9296875, -12)"><rect/><foreignObject width="167.859375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>/"docker-compose.yml"/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(121.9296875, 243)"><rect class="basic label-container" style="" x="-77.03125" y="-27" width="154.0625" height="54"/><g class="label" style="" transform="translate(-47.03125, -12)"><rect/><foreignObject width="94.0625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>/"mosquitto/"/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(121.9296875, 347)"><rect class="basic label-container" style="" x="-53.5703125" y="-27" width="107.140625" height="54"/><g class="label" style="" transform="translate(-23.5703125, -12)"><rect/><foreignObject width="47.140625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>config/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(121.9296875, 451)"><rect class="basic label-container" style="" x="-92.15625" y="-27" width="184.3125" height="54"/><g class="label" style="" transform="translate(-62.15625, -12)"><rect/><foreignObject width="124.3125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>/"mosquitto.conf"/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(121.9296875, 555)"><rect class="basic label-container" style="" x="-47.796875" y="-27" width="95.59375" height="54"/><g class="label" style="" transform="translate(-17.796875, -12)"><rect/><foreignObject width="35.59375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>data/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N6-6" transform="translate(121.9296875, 659)"><rect class="basic label-container" style="" x="-42.8984375" y="-27" width="85.796875" height="54"/><g class="label" style="" transform="translate(-12.8984375, -12)"><rect/><foreignObject width="25.796875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>log/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N7-7" transform="translate(121.9296875, 763)"><rect class="basic label-container" style="" x="-45.1171875" y="-27" width="90.234375" height="54"/><g class="label" style="" transform="translate(-15.1171875, -12)"><rect/><foreignObject width="30.234375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>test/</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N8-8" transform="translate(121.9296875, 867)"><rect class="basic label-container" style="" x="-83.703125" y="-27" width="167.40625" height="54"/><g class="label" style="" transform="translate(-53.703125, -12)"><rect/><foreignObject width="107.40625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>/"test_mqtt.py"/</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      </div>
+
+      <h3>Konfigurasi Mosquitto</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Config — mosquitto.conf</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Mosquitto Configuration untuk IoT
+# File: mosquitto/config/mosquitto.conf
+
+# Listener
+listener 1883
+protocol mqtt
+
+# WebSocket support (untuk dashboard web)
+listener 9001
+protocol websockets
+
+# Persistence
+persistence true
+persistence_location /mosquitto/data/
+
+# Logging
+log_dest file /mosquitto/log/mosquitto.log
+log_type all
+connection_messages true
+log_timestamp true
+
+# Keamanan (uncomment untuk produksi)
+# allow_anonymous false
+# password_file /mosquitto/config/passwd
+
+# Performance tuning untuk IoT
+max_queued_messages 1000
+max_inflight_messages 20
+</code></pre>
+      </div>
+
+      <h3>Docker Compose untuk Mosquitto</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — docker-compose.yml (Mosquitto saja)</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto-iot
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - iot-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  iot-network:
+    driver: bridge
+</code></pre>
+      </div>
+
+      <h3>Setup Keamanan MQTT</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Setup Password Mosquitto</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Buat password file untuk autentikasi
+docker exec -it mosquitto-iot mosquitto_passwd \
+  -c /mosquitto/config/passwd iotuser
+
+# Tambah user lain
+docker exec -it mosquitto-iot mosquitto_passwd \
+  /mosquitto/config/passwd sensor_node_1
+
+# Uncomment baris di mosquitto.conf:
+# allow_anonymous false
+# password_file /mosquitto/config/passwd
+
+# Restart container untuk menerapkan
+docker compose restart mosquitto
+
+# Test koneksi dengan autentikasi
+mosquitto_sub -h localhost -t "iot/#" \
+  -u iotuser -P password_anda
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Raspberry Pi Docker -->
+      <!-- ============================== -->
+      <h2 id="raspberry-pi-docker">9. Docker di Raspberry Pi</h2>
+
+      <p>Raspberry Pi adalah platform ideal untuk menjalankan Docker sebagai <strong>edge IoT gateway</strong>. Dengan ARM processor dan RAM 4-8 GB, Raspberry Pi 4/5 bisa menjalankan beberapa container Docker sekaligus: broker MQTT, subscriber, database, dan dashboard.</p>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Gunakan ARM-compatible Images</div>
+        <p>Raspberry Pi menggunakan prosesor <strong>ARM</strong> (bukan x86). Pastikan image Docker yang digunakan mendukung arsitektur <code>linux/arm64</code> atau <code>linux/arm/v7</code>. Image populer seperti <code>eclipse-mosquitto</code>, <code>python</code>, <code>influxdb</code>, dan <code>nginx</code> sudah mendukung ARM. Gunakan Dockerfile dengan base image <code>python:3.11-slim</code> yang otomatis mendukung multi-arch.</p>
+      </div>
+
+      <h3>Install Docker di Raspberry Pi</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Install Docker di Raspberry Pi</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Method yang disarankan: Docker convenience script
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# Tambah user pi ke grup docker
+sudo usermod -aG docker pi
+
+# Logout dan login lagi, lalu verifikasi
+docker --version
+docker run hello-world
+
+# Cek arsitektur (harus aarch64 untuk Pi 4/5 64-bit)
+uname -m
+# Output: aarch64
+
+# Cek info Docker
+docker info | grep Architecture
+# Output: Architecture: aarch64
+</code></pre>
+      </div>
+
+      <h3>Optimasi Docker di Raspberry Pi</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Optimasi Docker untuk Raspberry Pi</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Gunakan alpine image untuk ukuran lebih kecil
+# python:3.11-slim ≈ 150MB → python:3.11-alpine ≈ 50MB
+
+# Batasi resource container di Raspberry Pi
+docker run -d --name iot-app \
+  --memory=256m \
+  --cpus=1.0 \
+  --restart=unless-stopped \
+  iot-app:latest
+
+# Atur di docker-compose.yml:
+# services:
+#   app:
+#     deploy:
+#       resources:
+#         limits:
+#           memory: 256M
+#           cpus: '1.0'
+
+# Monitor resource usage
+docker stats
+
+# Bersihkan image/container yang tidak dipakai
+docker system prune -a --volumes
+
+# Cek penggunaan disk Docker
+docker system df
+</code></pre>
+      </div>
+
+      <h3>Contoh Stack IoT Lengkap di Raspberry Pi</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — docker-compose.yml untuk Raspberry Pi IoT</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - iot-net
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    networks:
+      - iot-net
+    depends_on:
+      - mosquitto
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=iotpass123
+      - DOCKER_INFLUXDB_INIT_ORG=beebanelabs
+      - DOCKER_INFLUXDB_INIT_BUCKET=sensors
+    networks:
+      - iot-net
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+networks:
+  iot-net:
+    driver: bridge
+
+volumes:
+  grafana-data:
+  influxdb-data:
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Raspberry Pi Docker</div>
+        <p>Gunakan <strong>USB SSD</strong> sebagai storage Docker untuk performa lebih baik daripada microSD. Mount Docker data root ke SSD dengan mengedit <code>/etc/docker/daemon.json</code> → <code>{"data-root": "/mnt/ssd/docker"}</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz               -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Docker untuk IoT:</p>
+
+      <div class="quiz-container" id="quiz15">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa perbedaan utama antara Docker Container dan Virtual Machine?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Container berbagi kernel host, VM memiliki OS sendiri</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Container lebih berat daripada VM</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) VM tidak bisa menjalankan Linux</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Container hanya bisa dijalankan di Windows</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Perintah Docker mana yang benar untuk menjalankan container di background?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) docker run -it nginx</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) docker run -d nginx</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) docker start -b nginx</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) docker launch nginx</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Mengapa data hilang saat container dihapus?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Karena Docker tidak mendukung penyimpanan</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Karena container layer bersifat sementara, perlu volume untuk persistensi</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Karena container hanya berjalan di RAM</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Karena Docker menggunakan enkripsi yang menghapus data</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Di Docker network bridge, container A bisa mengakses container B menggunakan apa?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) IP address host</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Nama container/service sebagai hostname</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) MAC address container</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Port number container</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa harus menggunakan image ARM-compatible saat deploy Docker di Raspberry Pi?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Karena Raspberry Pi hanya menjalankan Windows</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Karena Raspberry Pi menggunakan prosesor ARM, bukan x86/x64</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Karena Raspberry Pi tidak mendukung Docker</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Karena image ARM lebih cepat daripada image x86</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="raspberry-pi-iot.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Raspberry Pi untuk IoT</span>
+        </a>
+        <a href="firebase-iot.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Firebase untuk IoT</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/flutter-web-desktop.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">Flutter Web & Desktop Development</span>
+        </a>
+        <a href="/articles/opentofu-iac.html" class="related-card">
+          <span class="related-category">DevOps &amp; Cloud</span>
+          <span class="related-title">OpenTofu: Terraform Alternative</span>
+        </a>
+        <a href="/articles/career-backend-developer.html" class="related-card">
+          <span class="related-category">Career</span>
+          <span class="related-title">Karir Backend Developer: Panduan Lengkap 2026</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

@@ -1,0 +1,626 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../kategori/keamanan.html">Cybersecurity</a>
+        <span class="separator">/</span>
+        <span class="current">Cheatsheet Linux Security</span>
+      </div>
+      <span class="category-tag">Cybersecurity</span>
+      <h1>Cheatsheet Linux Security: Command Line, Firewall, dan Hardening</h1>
+      <span class="access-badge gratis">GRATIS</span>
+      <p class="article-subtitle">Referensi cepat keamanan Linux — iptables, nftables, SSH hardening, fail2ban, SELinux, nmap, openssl, GPG, dan log analysis</p>
+      <div class="article-meta">
+        <span>📅 3 Juli 2026</span>
+        <span>📖 10 menit baca</span>
+        <span class="difficulty pemula">Pemula</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+  <article class="article-content cheatsheet" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#iptables">iptables Firewall</a></li>
+          <li><a href="#nftables">nftables Firewall</a></li>
+          <li><a href="#ssh">SSH Hardening</a></li>
+          <li><a href="#fail2ban">Fail2Ban</a></li>
+          <li><a href="#chmod">chmod &amp; chown</a></li>
+          <li><a href="#user">User Management</a></li>
+          <li><a href="#selinux">SELinux Basics</a></li>
+          <li><a href="#log">Log Analysis</a></li>
+          <li><a href="#network">Network Scanning</a></li>
+          <li><a href="#encryption">Encryption (GPG &amp; OpenSSL)</a></li>
+          <li><a href="#tools">Security Tools</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1: iptables -->
+      <h2 id="iptables">1. iptables Firewall</h2>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Salah konfigurasi iptables bisa mengunci akses SSH Anda! Selalu tambahkan rule ACCEPT untuk SSH sebelum DROP/REJECT.</p>
+      </div>
+
+      <h3>Struktur Dasar</h3>
+      <div class="code-block"><pre><code># Lihat semua rule
+iptables -L -v -n --line-numbers
+
+# Chain: INPUT (masuk), OUTPUT (keluar), FORWARD (forwarding)
+
+# Izinkan SSH (wajib pertama!)
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+
+# Izinkan HTTP/HTTPS
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+
+# Izinkan loopback
+iptables -A INPUT -i lo -j ACCEPT
+
+# Izinkan established connections
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# Blokir semua traffic masuk
+iptables -P INPUT DROP
+
+# Hapus rule tertentu (berdasarkan nomor)
+iptables -D INPUT 3
+
+# Flush semua rule
+iptables -F</code></pre></div>
+
+      <h3>iptables — Common Options</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>Option</th><th>Keterangan</th><th>Contoh</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>-A</code></td><td>Append rule</td><td><code>iptables -A INPUT ...</code></td></tr>
+          <tr><td><code>-D</code></td><td>Delete rule</td><td><code>iptables -D INPUT 3</code></td></tr>
+          <tr><td><code>-I</code></td><td>Insert di posisi tertentu</td><td><code>iptables -I INPUT 1 ...</code></td></tr>
+          <tr><td><code>-p</code></td><td>Protocol (tcp/udp/icmp)</td><td><code>-p tcp</code></td></tr>
+          <tr><td><code>--dport</code></td><td>Destination port</td><td><code>--dport 80</code></td></tr>
+          <tr><td><code>--sport</code></td><td>Source port</td><td><code>--sport 1024</code></td></tr>
+          <tr><td><code>-s</code></td><td>Source IP</td><td><code>-s 192.168.1.0/24</code></td></tr>
+          <tr><td><code>-d</code></td><td>Destination IP</td><td><code>-d 10.0.0.1</code></td></tr>
+          <tr><td><code>-i</code></td><td>Input interface</td><td><code>-i eth0</code></td></tr>
+          <tr><td><code>-j</code></td><td>Target (ACCEPT/DROP/REJECT)</td><td><code>-j ACCEPT</code></td></tr>
+          <tr><td><code>-m</code></td><td>Match extension</td><td><code>-m state</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Simpan &amp; Restore Rules</h3>
+      <div class="code-block"><pre><code># Simpan rules
+iptables-save > /etc/iptables/rules.v4
+ip6tables-save > /etc/iptables/rules.v6
+
+# Restore rules
+iptables-restore &lt; /etc/iptables/rules.v4
+
+# Auto-load saat boot (Debian/Ubuntu)
+apt install iptables-persistent
+netfilter-persistent save</code></pre></div>
+
+      <!-- SECTION 2: nftables -->
+      <h2 id="nftables">2. nftables (Pengganti iptables)</h2>
+
+      <div class="code-block"><pre><code># Cek status
+nft list ruleset
+
+# Buat table dan chain
+nft add table inet filter
+nft add chain inet filter input { type filter hook input priority 0 \; policy drop \; }
+
+# Tambah rule
+nft add rule inet filter input tcp dport 22 accept
+nft add rule inet filter input tcp dport {80, 443} accept
+nft add rule inet filter input ct state established,related accept
+nft add rule inet filter input iif lo accept
+
+# Hapus rule (pakai handle)
+nft --handle list chain inet filter input
+nft delete rule inet filter input handle 4
+
+# Config file: /etc/nftables.conf
+nft -f /etc/nftables.conf</code></pre></div>
+
+      <!-- SECTION 3: SSH -->
+      <h2 id="ssh">3. SSH Hardening</h2>
+
+      <h3>Konfigurasi <code>/etc/ssh/sshd_config</code></h3>
+      <div class="code-block"><pre><code># Ubah port default
+Port 2222
+
+# Nonaktifkan root login
+PermitRootLogin no
+
+# Nonaktifkan password auth (pakai key only)
+PasswordAuthentication no
+PubkeyAuthentication yes
+
+# Batasi user tertentu
+AllowUsers admin deploy
+
+# Timeout
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+# Nonaktifkan X11 forwarding
+X11Forwarding no
+
+# Nonaktifkan DNS lookup (cepat)
+UseDNS no
+
+# Limit authentication attempts
+MaxAuthTries 3
+
+# Disable empty passwords
+PermitEmptyPasswords no
+
+# Restart SSH setelah ubah config
+sudo systemctl restart sshd</code></pre></div>
+
+      <h3>SSH Key Authentication</h3>
+      <div class="code-block"><pre><code># Generate key pair (di komputer lokal)
+ssh-keygen -t ed25519 -C "komentar"
+# Atau RSA 4096-bit:
+ssh-keygen -t rsa -b 4096
+
+# Copy public key ke server
+ssh-copy-id -i ~/.ssh/id_ed25519.pub user@server
+
+# Manual copy
+cat ~/.ssh/id_ed25519.pub | ssh user@server "mkdir -p ~/.ssh &amp;&amp; cat >> ~/.ssh/authorized_keys"
+
+# Set permission yang benar
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys</code></pre></div>
+
+      <!-- SECTION 4: Fail2Ban -->
+      <h2 id="fail2ban">4. Fail2Ban</h2>
+
+      <div class="code-block"><pre><code># Install
+sudo apt install fail2ban
+
+# Status
+sudo systemctl status fail2ban
+sudo fail2ban-client status
+sudo fail2ban-client status sshd
+
+# Konfigurasi: /etc/fail2ban/jail.local
+cat > /etc/fail2ban/jail.local &lt;&lt;'EOF'
+[DEFAULT]
+bantime = 3600
+findtime = 600
+maxretry = 5
+backend = systemd
+
+[sshd]
+enabled = true
+port = 2222
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 86400
+EOF
+
+# Restart
+sudo systemctl restart fail2ban
+
+# Unban IP
+sudo fail2ban-client set sshd unbanip 192.168.1.100
+
+# Ban IP manual
+sudo fail2ban-client set sshd banip 192.168.1.100
+
+# Lihat banned IPs
+sudo fail2ban-client get sshd banned</code></pre></div>
+
+      <!-- SECTION 5: chmod -->
+      <h2 id="chmod">5. chmod &amp; chown</h2>
+
+      <h3>Permission Angka (Octal)</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>Angka</th><th>Permission</th><th>Keterangan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>7</td><td>rwx</td><td>Baca + Tulis + Eksekusi</td></tr>
+          <tr><td>6</td><td>rw-</td><td>Baca + Tulis</td></tr>
+          <tr><td>5</td><td>r-x</td><td>Baca + Eksekusi</td></tr>
+          <tr><td>4</td><td>r--</td><td>Baca saja</td></tr>
+          <tr><td>0</td><td>---</td><td>Tidak ada akses</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block"><pre><code># Format: chmod [owner][group][others] file
+chmod 755 script.sh      # rwxr-xr-x (owner:all, group/others:rx)
+chmod 644 config.txt     # rw-r--r-- (owner:rw, others:r)
+chmod 600 id_rsa         # rw------- (hanya owner)
+chmod 700 ~/.ssh         # rwx------ (hanya owner)
+chmod +x script.sh       # Tambah execute
+
+# Recursive
+chmod -R 755 /var/www
+
+# chown — ubah pemilik
+chown user:group file.txt
+chown -R www-data:www-data /var/www
+
+# Special bits
+chmod 4755 binary    # SUID — eksekusi sebagai pemilik
+chmod 2755 dir       # SGID — file baru inherit group
+chmod 1777 /tmp      # Sticky bit — hanya owner bisa hapus</code></pre></div>
+
+      <!-- SECTION 6: User Management -->
+      <h2 id="user">6. User Management</h2>
+
+      <div class="code-block"><pre><code># Tambah user
+sudo useradd -m -s /bin/bash -G sudo newuser
+sudo passwd newuser
+
+# Ubah user
+sudo usermod -aG docker newuser    # Tambah ke group
+sudo usermod -L newuser            # Lock user
+sudo usermod -U newuser            # Unlock user
+
+# Hapus user
+sudo userdel -r newuser            # -r hapus home dir
+
+# Group
+sudo groupadd devops
+sudo gpasswd -a user devops        # Tambah user ke group
+sudo gpasswd -d user devops        # Hapus user dari group
+
+# Lihat info
+id user                            # UID, GID, groups
+groups user                        # Daftar group
+whoami                             # User saat ini
+last                               # Login history
+lastb                              # Failed logins
+
+# Sudo
+sudo visudo                        # Edit sudoers
+user ALL=(ALL:ALL) ALL             # Full sudo
+user ALL=(ALL) NOPASSWD: ALL       # Sudo tanpa password</code></pre></div>
+
+      <!-- SECTION 7: SELinux -->
+      <h2 id="selinux">7. SELinux Basics</h2>
+
+      <div class="code-block"><pre><code># Cek status
+getenforce                 # Enforcing / Permissive / Disabled
+sestatus                   # Detail status
+
+# Set mode sementara
+sudo setenforce 0          # Permissive
+sudo setenforce 1          # Enforcing
+
+# Set mode permanen: /etc/selinux/config
+SELINUX=enforcing          # enforcing / permissive / disabled
+
+# Lihat context file
+ls -Z /var/www/html
+# -rw-r--r--. root root unconfined_u:object_r:httpd_sys_content_t:s0 index.html
+
+# Ubah context
+sudo chcon -t httpd_sys_content_t /data/web/*
+sudo restorecon -Rv /var/www    # Restore default context
+
+# SELinux boolean
+getsebool -a | grep httpd
+sudo setsebool -P httpd_can_network_connect on
+
+# Cek log audit
+sudo ausearch -m AVC -ts recent</code></pre></div>
+
+      <!-- SECTION 8: Log Analysis -->
+      <h2 id="log">8. Log Analysis</h2>
+
+      <div class="code-block"><pre><code># journalctl (systemd)
+journalctl -xe                          # Error terbaru
+journalctl -u sshd --since "1 hour ago" # Log SSH 1 jam terakhir
+journalctl -u sshd -f                   # Follow log SSH real-time
+journalctl --priority=err               # Hanya error
+journalctl --disk-usage                  # Ukuran log
+journalctl --vacuum-size=500M           # Bersihkan hingga 500MB
+
+# Log file umum
+/var/log/auth.log           # Autentikasi (login, sudo, SSH)
+/var/log/syslog             # System log
+/var/log/kern.log           # Kernel log
+/var/log/dmesg              # Boot messages
+/var/log/fail2ban.log       # Fail2Ban log
+/var/log/nginx/access.log   # Nginx access
+/var/log/nginx/error.log    # Nginx error
+
+# Grep auth log
+grep "Failed password" /var/log/auth.log
+grep "Accepted publickey" /var/log/auth.log
+grep "sudo:" /var/log/auth.log
+
+# Hitung percobaan login gagal per IP
+grep "Failed password" /var/log/auth.log | \
+  awk '{print $(NF-3)}' | sort | uniq -c | sort -rn | head -10
+
+# Real-time monitoring
+tail -f /var/log/auth.log | grep "Failed"
+watch -n 1 'who'             # Monitor login aktif</code></pre></div>
+
+      <!-- SECTION 9: Network Scanning -->
+      <h2 id="network">9. Network Scanning</h2>
+
+      <h3>nmap</h3>
+      <div class="code-block"><pre><code># Scan port umum
+nmap 192.168.1.1
+
+# Scan semua port
+nmap -p- 192.168.1.1
+
+# Scan dengan service detection
+nmap -sV 192.168.1.1
+
+# Scan jaringan (host discovery)
+nmap -sn 192.168.1.0/24
+
+# Scan dengan OS detection
+nmap -O 192.168.1.1
+
+# Scan cepat (top 100 ports)
+nmap --top-ports 100 192.168.1.1
+
+# Stealth scan
+nmap -sS 192.168.1.1
+
+# Output ke file
+nmap -oN scan.txt 192.168.1.1</code></pre></div>
+
+      <h3>netstat &amp; ss</h3>
+      <div class="code-block"><pre><code># netstat (legacy)
+netstat -tulnp              # Listening ports + PID
+netstat -anp | grep ESTAB   # Established connections
+netstat -i                  # Interface statistics
+
+# ss (modern, lebih cepat)
+ss -tulnp                   # Listening TCP/UDP + PID
+ss -s                       # Statistik koneksi
+ss -t state established     # Koneksi established
+ss dst 192.168.1.1          # Koneksi ke IP tertentu
+
+# netstat/ss umum
+ss -tulnp | grep :22        # Cek SSH listening
+ss -tulnp | grep :80        # Cek HTTP listening</code></pre></div>
+
+      <h3>Command Network Lainnya</h3>
+      <div class="code-block"><pre><code># Cek IP dan interface
+ip addr show
+ip route show
+
+# Ping &amp; traceroute
+ping -c 4 google.com
+traceroute google.com
+
+# DNS lookup
+dig google.com
+nslookup google.com
+host google.com
+
+# Cek koneksi
+curl -I https://example.com
+wget --spider https://example.com
+
+# TCPDump (packet capture)
+tcpdump -i eth0 port 80
+tcpdump -i any -w capture.pcap
+tcpdump -r capture.pcap</code></pre></div>
+
+      <!-- SECTION 10: Encryption -->
+      <h2 id="encryption">10. Encryption — GPG &amp; OpenSSL</h2>
+
+      <h3>GPG (GNU Privacy Guard)</h3>
+      <div class="code-block"><pre><code># Generate key pair
+gpg --full-generate-key
+
+# List keys
+gpg --list-keys
+gpg --list-secret-keys
+
+# Export public key
+gpg --armor --export user@email.com > public.asc
+
+# Import public key
+gpg --import public.asc
+
+# Enkripsi file
+gpg -e -r user@email.com rahasia.txt
+# Output: rahasia.txt.gpg
+
+# Dekripsi file
+gpg -d rahasia.txt.gpg > rahasia.txt
+
+# Sign file
+gpg --armor --sign dokumen.txt
+
+# Verify signature
+gpg --verify dokumen.txt.asc</code></pre></div>
+
+      <h3>OpenSSL</h3>
+      <div class="code-block"><pre><code># Generate random password
+openssl rand -base64 32
+
+# Hash
+echo -n "password" | openssl dgst -sha256
+openssl dgst -sha256 file.txt
+
+# Generate self-signed SSL cert
+openssl req -x509 -nodes -days 365 \
+  -newkey rsa:2048 \
+  -keyout server.key \
+  -out server.crt \
+  -subj "/CN=localhost"
+
+# Generate CSR (Certificate Signing Request)
+openssl req -new -newkey rsa:2048 \
+  -nodes -keyout server.key \
+  -out server.csr
+
+# Cek SSL certificate
+openssl s_client -connect example.com:443
+openssl x509 -in server.crt -text -noout
+
+# Enkripsi file (AES-256)
+openssl enc -aes-256-cbc -salt -pbkdf2 -in data.txt -out data.enc
+openssl enc -aes-256-cbc -d -pbkdf2 -in data.enc -out data.txt
+
+# Generate DH parameters
+openssl dhparam -out dhparam.pem 2048</code></pre></div>
+
+      <!-- SECTION 11: Security Tools -->
+      <h2 id="tools">11. Security Tools Umum</h2>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Tool</th><th>Fungsi</th><th>Install</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>nmap</code></td><td>Port scanning &amp; network discovery</td><td><code>apt install nmap</code></td></tr>
+          <tr><td><code>fail2ban</code></td><td>Brute-force protection</td><td><code>apt install fail2ban</code></td></tr>
+          <tr><td><code>ufw</code></td><td>Uncomplicated Firewall (frontend iptables)</td><td><code>apt install ufw</code></td></tr>
+          <tr><td><code>lynis</code></td><td>Security audit &amp; hardening</td><td><code>apt install lynis</code></td></tr>
+          <tr><td><code>rkhunter</code></td><td>Rootkit detection</td><td><code>apt install rkhunter</code></td></tr>
+          <tr><td><code>clamav</code></td><td>Antivirus scanner</td><td><code>apt install clamav</code></td></tr>
+          <tr><td><code>chkrootkit</code></td><td>Rootkit checker</td><td><code>apt install chkrootkit</code></td></tr>
+          <tr><td><code>aide</code></td><td>File integrity monitoring</td><td><code>apt install aide</code></td></tr>
+          <tr><td><code>tcpdump</code></td><td>Packet capture</td><td><code>apt install tcpdump</code></td></tr>
+          <tr><td><code>netcat (nc)</code></td><td>Network Swiss army knife</td><td><code>apt install netcat</code></td></tr>
+          <tr><td><code>wireshark</code></td><td>Network protocol analyzer</td><td><code>apt install wireshark</code></td></tr>
+          <tr><td><code>hydra</code></td><td>Password brute-force</td><td><code>apt install hydra</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Quick Security Audit Commands</h3>
+      <div class="code-block"><pre><code># Cek listening ports
+ss -tulnp
+
+# Cek crontab mencurigakan
+crontab -l
+for user in $(cut -f1 -d: /etc/passwd); do crontab -u $user -l 2>/dev/null; done
+
+# Cek SUID binaries
+find / -perm -4000 -type f 2>/dev/null
+
+# Cek file world-writable
+find / -perm -o+w -type f 2>/dev/null | grep -v proc
+
+# Cek user dengan UID 0 (root)
+awk -F: '$3 == 0 {print $1}' /etc/passwd
+
+# Cek authorized_keys yang mencurigakan
+find / -name "authorized_keys" 2>/dev/null
+
+# Cek recent logins
+last -20
+lastb -20   # Failed logins
+
+# Lynis security audit
+sudo lynis audit system</code></pre></div>
+
+      <h3>UFW (Simple Firewall Alternative)</h3>
+      <div class="code-block"><pre><code># Enable firewall
+sudo ufw enable
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Allow services
+sudo ufw allow 2222/tcp     # SSH custom port
+sudo ufw allow 80/tcp       # HTTP
+sudo ufw allow 443/tcp      # HTTPS
+
+# Allow from specific IP
+sudo ufw allow from 192.168.1.0/24
+
+# Status
+sudo ufw status verbose
+
+# Delete rule
+sudo ufw delete allow 80/tcp</code></pre></div>
+
+      <!-- NAVIGATION -->
+      <div class="article-nav-bottom">
+        <a href="api-security-testing.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">API Security Testing</span>
+        </a>
+        <a href="../index.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Artikel Lainnya</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/security-awareness-training.html" class="related-card">
+          <span class="related-category">Cybersecurity</span>
+          <span class="related-title">Security Awareness Training: Pelatihan Kesadaran Keamanan</span>
+        </a>
+        <a href="/articles/web-file-upload-security.html" class="related-card">
+          <span class="related-category">Cybersecurity</span>
+          <span class="related-title">File Upload Security: Panduan Lengkap Keamanan Upload File</span>
+        </a>
+        <a href="/articles/iso-27001-basics.html" class="related-card">
+          <span class="related-category">Cybersecurity</span>
+          <span class="related-title">ISO 27001: Keamanan Informasi — ISMS, Kontrol, & Sertifikasi</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk cheatsheet cybersecurity terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

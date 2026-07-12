@@ -1,0 +1,792 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">Python CSV Processing</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>Python CSV Processing: Panduan Lengkap</h1>
+      <p class="article-subtitle">Tutorial lengkap memproses file CSV di Python — csv module, pandas, menangani file besar, encoding, dan teknik parsing data yang efisien</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 17 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="ad-slot ad-slot-wide"></div>
+  </div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan CSV</a></li>
+          <li><a href="#csv-module">Modul csv — Membaca CSV</a></li>
+          <li><a href="#csv-write">Modul csv — Menulis CSV</a></li>
+          <li><a href="#csv-dict">DictReader dan DictWriter</a></li>
+          <li><a href="#pandas-baca">Membaca CSV dengan Pandas</a></li>
+          <li><a href="#pandas-proses">Memproses Data dengan Pandas</a></li>
+          <li><a href="#pandas-tulis">Menulis CSV dengan Pandas</a></li>
+          <li><a href="#file-besar">Menangani File CSV Besar</a></li>
+          <li><a href="#encoding">Encoding dan Karakter Khusus</a></li>
+          <li><a href="#cleaning">Data Cleaning dan Transformasi</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan CSV</h2>
+
+      <p><strong>CSV (Comma-Separated Values)</strong> adalah format file yang paling umum digunakan untuk pertukaran data tabular. File CSV berisi teks biasa dengan setiap baris mewakili satu baris data, dan kolom dipisahkan oleh delimiter (biasanya koma).</p>
+
+      <h3>Struktur File CSV</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">CSV — Contoh Struktur</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># File: data_karyawan.csv
+nama,departemen,gaji,tanggal_masuk
+Budi Santoso,Engineering,15000000,2023-01-15
+Siti Rahayu,Marketing,12000000,2023-03-20
+Ahmad Hidayat,Engineering,18000000,2022-06-01
+Dewi Lestari,HR,11000000,2023-08-10
+Rizki Pratama,Marketing,13000000,2024-01-05
+
+# Masalah umum CSV:
+# 1. Nilai dengan koma: "Jakarta, Indonesia"
+# 2. Nilai dengan kutip: 'Dia berkata "Halo"'
+# 3. Baris baru dalam nilai: "Baris 1\nBaris 2"
+# 4. Delimiter berbeda: tab, semikolon, pipe
+# 5. Encoding berbeda: UTF-8, Latin-1, CP1252
+</code></pre>
+      </div>
+
+      <h3>Karakteristik CSV</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Deskripsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Format</td><td>Teks biasa (plain text)</td></tr>
+          <tr><td>Delimiter default</td><td>Koma (<code>,</code>)</td></tr>
+          <tr><td>Quote character</td><td>Kutip ganda (<code>"</code>)</td></tr>
+          <tr><td>Line terminator</td><td><code>\r\n</code> atau <code>\n</code></td></tr>
+          <tr><td>Encoding</td><td>Umumnya UTF-8 atau Latin-1</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Struktur CSV</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 1198.671875px;" viewBox="0 0 1198.671875 326" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M352.125,53.259L316.438,58.883C280.75,64.506,209.375,75.753,173.688,84.877C138,94,138,101,138,104.5L138,108" id="L_A_B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_B_0" data-points="W3sieCI6MzUyLjEyNSwieSI6NTMuMjU5MDkwOTA5MDkwOTF9LHsieCI6MTM4LCJ5Ijo4N30seyJ4IjoxMzgsInkiOjExMn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M583.875,45.167L663.341,52.139C742.807,59.111,901.74,73.056,981.206,83.528C1060.672,94,1060.672,101,1060.672,104.5L1060.672,108" id="L_A_C_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_C_0" data-points="W3sieCI6NTgzLjg3NSwieSI6NDUuMTY2NjcxMDYwNjEwMDZ9LHsieCI6MTA2MC42NzE4NzUsInkiOjg3fSx7IngiOjEwNjAuNjcxODc1LCJ5IjoxMTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M382.327,62L369.106,66.167C355.885,70.333,329.442,78.667,316.221,93.5C303,108.333,303,129.667,303,153C303,176.333,303,201.667,346.887,221.748C390.774,241.828,478.548,256.657,522.435,264.071L566.322,271.485" id="L_A_D_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_D_0" data-points="W3sieCI6MzgyLjMyNjkyMzA3NjkyMzEsInkiOjYyfSx7IngiOjMwMywieSI6ODd9LHsieCI6MzAzLCJ5IjoxNTF9LHsieCI6MzAzLCJ5IjoyMjd9LHsieCI6NTcwLjI2NTYyNSwieSI6MjcyLjE1MTQ3MTQwNzA2NTIzfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M468,62L468,66.167C468,70.333,468,78.667,468,86.333C468,94,468,101,468,104.5L468,108" id="L_A_E_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_E_0" data-points="W3sieCI6NDY4LCJ5Ijo2Mn0seyJ4Ijo0NjgsInkiOjg3fSx7IngiOjQ2OCwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M583.875,55.333L613.952,60.611C644.029,65.889,704.182,76.444,734.259,87.222C764.336,98,764.336,109,764.336,114.5L764.336,120" id="L_A_F_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_F_0" data-points="W3sieCI6NTgzLjg3NSwieSI6NTUuMzMzMzQyMTIxMjIwMTF9LHsieCI6NzY0LjMzNTkzNzUsInkiOjg3fSx7IngiOjc2NC4zMzU5Mzc1LCJ5IjoxMjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M1060.672,190L1060.672,196.167C1060.672,202.333,1060.672,214.667,1016.785,228.248C972.898,241.828,885.124,256.657,841.237,264.071L797.35,271.485" id="L_C_D_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_C_D_0" data-points="W3sieCI6MTA2MC42NzE4NzUsInkiOjE5MH0seyJ4IjoxMDYwLjY3MTg3NSwieSI6MjI3fSx7IngiOjc5My40MDYyNSwieSI6MjcyLjE1MTQ3MTQwNzA2NTIzfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_A_B_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_A_C_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_A_D_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_A_E_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_A_F_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(1060.671875, 227)"><g class="label" data-id="L_C_D_0" transform="translate(-55.6015625, -12)"><foreignObject width="111.203125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>dipisahkan oleh</p></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-A-0" transform="translate(468, 35)"><rect class="basic label-container" style="" x="-115.875" y="-27" width="231.75" height="54"/><g class="label" style="" transform="translate(-85.875, -12)"><rect/><foreignObject width="171.75" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📄 File CSV (Plain Text)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-B-1" transform="translate(138, 151)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>📋 Header Row — Nama Kolom</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-C-2" transform="translate(1060.671875, 151)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>📊 Data Rows — Baris Data</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-D-3" transform="translate(681.8359375, 291)"><rect class="basic label-container" style="" x="-111.5703125" y="-27" width="223.140625" height="54"/><g class="label" style="" transform="translate(-81.5703125, -12)"><rect/><foreignObject width="163.140625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🔤 Delimiter — Koma ,</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-E-4" transform="translate(468, 151)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>📝 Quote Character — Kutip</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-F-5" transform="translate(764.3359375, 151)"><rect class="basic label-container" style="" x="-116.3359375" y="-27" width="232.671875" height="54"/><g class="label" style="" transform="translate(-86.3359375, -12)"><rect/><foreignObject width="172.671875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>⬇️ Line Terminator — \n</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: csv Module Read       -->
+      <!-- ============================== -->
+      <h2 id="csv-module">2. Modul csv — Membaca CSV</h2>
+
+      <p>Python memiliki modul <code>csv</code> bawaan yang menyediakan semua fungsi untuk membaca dan menulis file CSV.</p>
+
+      <h3>Membaca CSV Dasar dengan csv.reader</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — csv.reader</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import csv
+
+# Membaca CSV dengan csv.reader
+with open('data_karyawan.csv', 'r', newline='', encoding='utf-8') as f:
+    reader = csv.reader(f)
+    
+    # Baris pertama adalah header
+    header = next(reader)
+    print(f"Header: {header}")
+    # ['nama', 'departemen', 'gaji', 'tanggal_masuk']
+    
+    # Sisa baris adalah data
+    for row in reader:
+        print(f"  {row}")
+    # ['Budi Santoso', 'Engineering', '15000000', '2023-01-15']
+    # ['Siti Rahayu', 'Marketing', '12000000', '2023-03-20']
+    # ...
+
+# Mengubah ke list
+with open('data_karyawan.csv', 'r', newline='', encoding='utf-8') as f:
+    reader = csv.reader(f)
+    semua_data = list(reader)
+
+print(f"Total baris (termasuk header): {len(semua_data)}")
+print(f"Header: {semua_data[0]}")
+print(f"Data pertama: {semua_data[1]}")
+</code></pre>
+      </div>
+
+      <h3>Membaca dengan Dialect Custom</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Custom Dialect</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import csv
+
+# CSV dengan delimiter titik koma (umum di Eropa/Indonesia)
+# data_indonesia.csv:
+# nama;kelas;nilai
+# Budi;X-A;85
+# Siti;X-B;92
+
+with open('data_indonesia.csv', 'r', newline='', encoding='utf-8') as f:
+    reader = csv.reader(f, delimiter=';', quotechar='"')
+    for row in reader:
+        print(row)
+# ['nama', 'kelas', 'nilai']
+# ['Budi', 'X-A', '85']
+# ['Siti', 'X-B', '92']
+
+# CSV dengan tab delimiter (TSV)
+with open('data.tsv', 'r', newline='', encoding='utf-8') as f:
+    reader = csv.reader(f, delimiter='\t')
+    for row in reader:
+        print(row)
+
+# Register custom dialect
+csv.register_dialect('pipe_delimited', delimiter='|', quoting=csv.QUOTE_MINIMAL)
+
+with open('data_pipe.csv', 'r', newline='') as f:
+    reader = csv.reader(f, dialect='pipe_delimited')
+    for row in reader:
+        print(row)
+
+# List semua dialect yang terdaftar
+print(csv.list_dialects())  # ['excel', 'excel-tab', 'unix', 'pipe_delimited']
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: csv Write             -->
+      <!-- ============================== -->
+      <h2 id="csv-write">3. Modul csv — Menulis CSV</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — csv.writer</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import csv
+
+# Menulis CSV dari list
+data = [
+    ['nama', 'departemen', 'gaji'],
+    ['Budi Santoso', 'Engineering', 15000000],
+    ['Siti Rahayu', 'Marketing', 12000000],
+    ['Ahmad Hidayat', 'Engineering', 18000000],
+]
+
+with open('output_karyawan.csv', 'w', newline='', encoding='utf-8') as f:
+    writer = csv.writer(f)
+    writer.writerows(data)  # Tulis semua sekaligus
+
+# Atau satu baris sekaligus
+with open('output_karyawan2.csv', 'w', newline='', encoding='utf-8') as f:
+    writer = csv.writer(f)
+    writer.writerow(['nama', 'departemen', 'gaji'])  # Header
+    writer.writerow(['Budi Santoso', 'Engineering', 15000000])
+    writer.writerow(['Siti Rahayu', 'Marketing', 12000000])
+
+# Menggunakan quoting
+with open('output_quoted.csv', 'w', newline='', encoding='utf-8') as f:
+    writer = csv.writer(f, quoting=csv.QUOTE_ALL)
+    writer.writerow(['nama', 'kota', 'alamat'])
+    writer.writerow(['Budi', 'Jakarta', 'Jl. Sudirman No. 1'])
+# Output: "Budi","Jakarta","Jl. Sudirman No. 1"
+
+# QUOTE_NONNUMERIC — quote semua non-angka
+with open('output_mixed.csv', 'w', newline='') as f:
+    writer = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC)
+    writer.writerow(['nama', 'umur', 'kota'])
+    writer.writerow(['Budi', 25, 'Jakarta'])
+# Output: "Budi",25,"Jakarta"
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: DictReader/Writer     -->
+      <!-- ============================== -->
+      <h2 id="csv-dict">4. DictReader dan DictWriter</h2>
+
+      <p><code>DictReader</code> dan <code>DictWriter</code> memungkinkan Anda bekerja dengan data CSV menggunakan dictionary — jauh lebih readable daripada index-based.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — DictReader</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import csv
+
+# DictReader — setiap baris jadi OrderedDict/dict
+with open('data_karyawan.csv', 'r', newline='', encoding='utf-8') as f:
+    reader = csv.DictReader(f)
+    
+    # Akses dengan nama kolom (bukan index!)
+    for row in reader:
+        print(f"  {row['nama']} | {row['departemen']} | Rp{int(row['gaji']):,}")
+    # Budi Santoso | Engineering | Rp15,000,000
+    # Siti Rahayu | Marketing | Rp12,000,000
+
+# Filter data
+with open('data_karyawan.csv', 'r', newline='', encoding='utf-8') as f:
+    reader = csv.DictReader(f)
+    engineers = [
+        row for row in reader 
+        if row['departemen'] == 'Engineering'
+    ]
+    
+    for emp in engineers:
+        print(f"  {emp['nama']} - Gaji: Rp{int(emp['gaji']):,}")
+
+
+# DictWriter — tulis dari dict
+karyawan_baru = [
+    {'nama': 'Rizki Pratama', 'departemen': 'IT', 'gaji': '14000000', 'tanggal_masuk': '2024-06-01'},
+    {'nama': 'Ayu Putri', 'departemen': 'Finance', 'gaji': '13500000', 'tanggal_masuk': '2024-07-15'},
+]
+
+with open('karyawan_baru.csv', 'w', newline='', encoding='utf-8') as f:
+    fieldnames = ['nama', 'departemen', 'gaji', 'tanggal_masuk']
+    writer = csv.DictWriter(f, fieldnames=fieldnames)
+    
+    writer.writeheader()  # Tulis header
+    writer.writerows(karyawan_baru)  # Tulis data
+
+# Output:
+# nama,departemen,gaji,tanggal_masuk
+# Rizki Pratama,IT,14000000,2024-06-01
+# Ayu Putri,Finance,13500000,2024-07-15
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Pandas Read           -->
+      <!-- ============================== -->
+      <h2 id="pandas-baca">5. Membaca CSV dengan Pandas</h2>
+
+      <p><strong>Pandas</strong> adalah library terbaik untuk bekerja dengan data tabular. <code>pd.read_csv()</code> menyediakan fleksibilitas luar biasa untuk membaca berbagai format CSV.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Pandas read_csv</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import pandas as pd
+
+# Baca CSV dasar
+df = pd.read_csv('data_karyawan.csv')
+print(df.head())
+#            nama  departemen      gaji tanggal_masuk
+# 0  Budi Santoso  Engineering  15000000    2023-01-15
+# 1    Siti Rahayu    Marketing  12000000    2023-03-20
+
+print(df.shape)          # (5, 4) — 5 baris, 4 kolom
+print(df.columns.tolist())  # ['nama', 'departemen', 'gaji', 'tanggal_masuk']
+print(df.dtypes)         # Tipe data per kolom
+
+# Baca dengan parameter kustom
+df = pd.read_csv(
+    'data.csv',
+    sep=';',                    # Delimiter titik koma
+    encoding='utf-8',           # Encoding
+    header=0,                   # Baris ke-0 sebagai header
+    names=['A', 'B', 'C'],     # Custom column names (jika tidak ada header)
+    index_col='nama',          # Kolom 'nama' sebagai index
+    usecols=['nama', 'gaji'],  # Hanya baca kolom tertentu
+    dtype={'gaji': float},     # Tentukan tipe data
+    parse_dates=['tanggal'],   # Auto-parse tanggal
+    na_values=['N/A', ''],     # Nilai yang dianggap NaN
+    skiprows=[1, 3],           # Skip baris tertentu
+    nrows=100,                 # Hanya baca 100 baris pertama
+    skip_blank_lines=True,     # Skip baris kosong
+)
+
+# Baca dari URL
+df = pd.read_csv('https://example.com/data.csv')
+
+# Baca dari string
+csv_text = """nama,umur,kota
+Budi,25,Jakarta
+Siti,30,Bandung"""
+df = pd.read_csv(pd.io.common.StringIO(csv_text))
+print(df)
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Pandas Process        -->
+      <!-- ============================== -->
+      <h2 id="pandas-proses">6. Memproses Data dengan Pandas</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Pandas Processing</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import pandas as pd
+
+df = pd.read_csv('data_karyawan.csv')
+
+# --- Filtering ---
+engineering = df[df['departemen'] == 'Engineering']
+gaji_tinggi = df[df['gaji'] > 13000000]
+multi_filter = df[(df['departemen'] == 'Engineering') & (df['gaji'] > 15000000)]
+
+# --- Sorting ---
+df_sorted = df.sort_values('gaji', ascending=False)
+df_multi = df.sort_values(['departemen', 'gaji'], ascending=[True, False])
+
+# --- Aggregation ---
+print(f"Rata-rata gaji: Rp{df['gaji'].mean():,.0f}")
+print(f"Gaji max: Rp{df['gaji'].max():,.0f}")
+print(f"Gaji min: Rp{df['gaji'].min():,.0f}")
+
+# Group by
+dept_stats = df.groupby('departemen').agg({
+    'gaji': ['mean', 'min', 'max', 'count'],
+    'nama': 'count'
+}).round(0)
+print(dept_stats)
+
+# --- Kolom Baru ---
+df['gaji_tahunan'] = df['gaji'] * 13  # Termasuk THR
+df['departemen_upper'] = df['departemen'].str.upper()
+
+# --- Pivot Table ---
+pivot = pd.pivot_table(
+    df,
+    values='gaji',
+    index='departemen',
+    aggfunc=['mean', 'count']
+)
+
+# --- Filtering string ---
+nama_budi = df[df['nama'].str.contains('Budi', case=False)]
+dept_starting_e = df[df['departemen'].str.startswith('E')]
+
+# --- Menghapus duplikat ---
+df_unique = df.drop_duplicates(subset=['departemen'], keep='first')
+
+# --- Menghapus kolom ---
+df_dropped = df.drop(columns=['tanggal_masuk'])
+
+print(df.head())
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Pandas Write          -->
+      <!-- ============================== -->
+      <h2 id="pandas-tulis">7. Menulis CSV dengan Pandas</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Pandas to_csv</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import pandas as pd
+
+df = pd.read_csv('data_karyawan.csv')
+
+# Tulis ke CSV
+df.to_csv('output.csv', index=False, encoding='utf-8')
+
+# Tulis dengan separator titik koma
+df.to_csv('output_semicolon.csv', sep=';', index=False)
+
+# Tulis hanya kolom tertentu
+df.to_csv('subset.csv', columns=['nama', 'gaji'], index=False)
+
+# Tulis tanpa index
+df.to_csv('no_index.csv', index=False)
+
+# Tulis sebagian data
+df.head(10).to_csv('first_10.csv', index=False)
+
+# Tulis ke string (bukan file)
+csv_string = df.to_csv(index=False)
+print(csv_string)
+
+# Tulis dengan format angka kustom
+df['gaji_formatted'] = df['gaji'].apply(lambda x: f"Rp{x:,.0f}")
+df.to_csv('formatted.csv', index=False)
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: File Besar            -->
+      <!-- ============================== -->
+      <h2 id="file-besar">8. Menangani File CSV Besar</h2>
+
+      <p>File CSV yang sangat besar (ratusan MB hingga GB) tidak bisa dimuat seluruhnya ke memory. Berikut teknik untuk menanganinya.</p>
+
+      <h3>Teknik 1: Chunked Reading</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Chunked Reading</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import pandas as pd
+import csv
+
+# Pandas: baca per chunk
+chunk_size = 10000
+total_rows = 0
+total_gaji = 0
+
+for chunk in pd.read_csv('data_besar.csv', chunksize=chunk_size):
+    total_rows += len(chunk)
+    total_gaji += chunk['gaji'].sum()
+    # Proses chunk di sini
+    print(f"  Processed {total_rows} rows...")
+
+print(f"Total: {total_rows} baris, Total Gaji: Rp{total_gaji:,.0f}")
+
+
+# csv module: baca baris per baris (sangat memory-efficient)
+total = 0
+with open('data_besar.csv', 'r', newline='', encoding='utf-8') as f:
+    reader = csv.reader(f)
+    header = next(reader)
+    for row in reader:
+        total += 1
+        # Proses setiap baris di sini
+
+print(f"Total baris: {total}")
+</code></pre>
+      </div>
+
+      <h3>Teknik 2: Selective Column Reading</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Selective Columns</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import pandas as pd
+
+# Hanya baca kolom yang dibutuhkan
+df = pd.read_csv(
+    'data_besar.csv',
+    usecols=['nama', 'gaji'],  # Hanya 2 dari 50+ kolom
+    dtype={'gaji': float},     # Tentukan tipe untuk efisiensi memory
+)
+
+# Optimasi memory
+df = pd.read_csv('data_besar.csv')
+print(f"Memory usage: {df.memory_usage(deep=True).sum() / 1024 / 1024:.1f} MB")
+
+# Konversi kolom untuk hemat memory
+df['departemen'] = df['departemen'].astype('category')  # String → Category
+df['gaji'] = pd.to_numeric(df['gaji'], downcast='float')  # float64 → float32
+
+print(f"Memory setelah optimasi: {df.memory_usage(deep=True).sum() / 1024 / 1024:.1f} MB")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Encoding              -->
+      <!-- ============================== -->
+      <h2 id="encoding">9. Encoding dan Karakter Khusus</h2>
+
+      <p>File CSV dari sumber yang berbeda sering memiliki encoding yang berbeda. Salah encoding menyebabkan karakter khusus (huruf Indonesia, simbol, dll) menjadi rusak (mojibake).</p>
+
+      <h3>Detect Encoding</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Encoding Detection</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import chardet
+
+# Deteksi encoding file
+with open('misteri.csv', 'rb') as f:
+    raw_data = f.read(10000)  # Baca 10KB pertama
+    result = chardet.detect(raw_data)
+    print(result)
+    # {'encoding': 'UTF-8-SIG', 'confidence': 0.99, 'language': ''}
+
+# Atau gunakan fallback chain
+def baca_csv_aman(filepath):
+    """Baca CSV dengan auto-detect encoding."""
+    encodings = ['utf-8', 'utf-8-sig', 'latin-1', 'cp1252', 'iso-8859-1']
+    
+    for enc in encodings:
+        try:
+            df = pd.read_csv(filepath, encoding=enc)
+            print(f"  Berhasil dengan encoding: {enc}")
+            return df
+        except UnicodeDecodeError:
+            continue
+    
+    # Fallback: deteksi otomatis
+    with open(filepath, 'rb') as f:
+        detected = chardet.detect(f.read())
+    df = pd.read_csv(filepath, encoding=detected['encoding'])
+    print(f"  Auto-detected: {detected['encoding']} (confidence: {detected['confidence']})")
+    return df
+
+df = baca_csv_aman('data_indonesia.csv')
+</code></pre>
+      </div>
+
+      <h3>Encoding Umum di Indonesia</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Encoding</th>
+            <th>Deskripsi</th>
+            <th>Karakter Khusus</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>UTF-8</code></td><td>Universal, standar modern</td><td>Semua karakter ✅</td></tr>
+          <tr><td><code>UTF-8-SIG</code></td><td>UTF-8 dengan BOM</td><td>Excel-friendly</td></tr>
+          <tr><td><code>Latin-1</code></td><td>ISO-8859-1, Barat</td><td>é, ñ, ß, tapi bukan Rp</td></tr>
+          <tr><td><code>CP1252</code></td><td>Windows Latin-1</td><td>Mirip Latin-1 + beberapa symbol</td></tr>
+          <tr><td><code>CP1258</code></td><td>Windows Vietnamese</td><td>Kadang dipakai di data Asia</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Data Cleaning        -->
+      <!-- ============================== -->
+      <h2 id="cleaning">10. Data Cleaning dan Transformasi</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Data Cleaning</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import pandas as pd
+import numpy as np
+
+# Simulasi data kotor
+data = {
+    'nama': ['Budi', 'Siti', None, 'Dewi ', ' Rizki', 'Budi'],
+    'gaji': ['15jt', '12.000.000', 'N/A', '11jt', '13,5jt', '15jt'],
+    'email': ['budi@email.com', 'siti@', 'invalid', 'dewi@email.com', '', 'budi@email.com'],
+    'umur': [25, 30, -1, 28, 200, 25],
+}
+df = pd.DataFrame(data)
+
+# 1. Hapus duplikat
+print(f"Sebelum: {len(df)} baris")
+df = df.drop_duplicates()
+print(f"Sesudah: {len(df)} baris")
+
+# 2. Handle missing values
+df['nama'] = df['nama'].fillna('Tidak Diketahui')
+df['nama'] = df['nama'].str.strip()  # Hapus spasi di awal/akhir
+
+# 3. Parse gaji yang formatnya beragam
+def parse_gaji(val):
+    """Parse berbagai format gaji ke angka."""
+    if pd.isna(val) or val == 'N/A':
+        return np.nan
+    val = str(val).strip()
+    val = val.replace('.', '').replace(',', '')
+    if 'jt' in val:
+        val = val.replace('jt', '').strip()
+        return float(val) * 1_000_000
+    try:
+        return float(val)
+    except ValueError:
+        return np.nan
+
+df['gaji'] = df['gaji'].apply(parse_gaji)
+
+# 4. Validasi email
+import re
+def validasi_email(email):
+    if not email or pd.isna(email):
+        return np.nan
+    pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+    return email if re.match(pattern, str(email)) else np.nan
+
+df['email'] = df['email'].apply(validasi_email)
+
+# 5. Clamp outlier
+df.loc[df['umur'] > 100, 'umur'] = np.nan
+df.loc[df['umur'] < 0, 'umur'] = np.nan
+
+# 6. Tampilkan hasil
+print(df)
+print(f"\nNull counts:\n{df.isnull().sum()}")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Best Practices       -->
+      <!-- ============================== -->
+      <h2 id="best-practices">11. Best Practices</h2>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Penting</div>
+        <ul>
+          <li><strong>Selalu tentukan encoding</strong> saat membaca/menulis CSV</li>
+          <li><strong>Gunakan <code>newline=''</code></strong> saat membuka file CSV (Windows compatibility)</li>
+          <li><strong>Gunakan <code>index=False</code></strong> saat <code>to_csv()</code> agar tidak menulis index sebagai kolom</li>
+          <li><strong>Chunked reading</strong> untuk file besar — jangan load semua ke memory</li>
+          <li><strong>Validasi data</strong> setelah membaca — cek null, tipe data, outlier</li>
+          <li><strong>Pandas</strong> untuk data analysis, <strong>csv module</strong> untuk proses sederhana/file besar</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz                 -->
+      <!-- ============================== -->
+      <h2 id="quiz">12. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quizPythonCSV01">
+        <h3>🧠 Quiz: Python CSV Processing</h3>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1. Kenapa harus pakai <code>newline=''</code> saat membuka file CSV?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q1" value="a"> Agar lebih cepat</label>
+            <label><input type="radio" name="q1" value="b"> Mencegah double newline di Windows</label>
+            <label><input type="radio" name="q1" value="c"> Mengubah encoding</label>
+            <label><input type="radio" name="q1" value="d"> Menghapus karakter khusus</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2. Fungsi apa untuk membaca CSV per chunk di Pandas?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q2" value="a"> pd.read_csv_chunked()</label>
+            <label><input type="radio" name="q2" value="b"> pd.read_csv(segments=True)</label>
+            <label><input type="radio" name="q2" value="c"> pd.read_csv(chunksize=N)</label>
+            <label><input type="radio" name="q2" value="d"> pd.read_csv(iterator=True)</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Apa perbedaan csv.reader dan csv.DictReader?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q3" value="a"> DictReader menggunakan header sebagai key, reader menggunakan index</label>
+            <label><input type="radio" name="q3" value="b"> Reader lebih cepat</label>
+            <label><input type="radio" name="q3" value="c"> DictReader tidak bisa dipakai</label>
+            <label><input type="radio" name="q3" value="d"> Tidak ada perbedaan</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4. Parameter apa yang dipakai untuk delimiter titik koma?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q4" value="a"> delimiter='semikolon'</label>
+            <label><input type="radio" name="q4" value="b"> sep='komma'</label>
+            <label><input type="radio" name="q4" value="c"> quote=';'</label>
+            <label><input type="radio" name="q4" value="d"> sep=';'</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>5. Encoding apa yang direkomendasikan untuk file CSV modern?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q5" value="a"> ASCII</label>
+            <label><input type="radio" name="q5" value="b"> UTF-8</label>
+            <label><input type="radio" name="q5" value="c"> Latin-1</label>
+            <label><input type="radio" name="q5" value="d"> Binary</label>
+          </div>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="submitQuiz('quizPythonCSV01')">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/cpp-modern.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">🚀 Modern C++ (C++17/20): Fitur Terbaru</span>
+        </a>
+        <a href="/articles/rust-concurrency.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">⚡ Rust Concurrency: Threads & Async</span>
+        </a>
+        <a href="/articles/python-pre-commit-hooks.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">Python Pre-commit Hooks: Otomatiskan Kode Berkualitas</span>
+        </a>
+
+      </div>
+    </div>
+</article>

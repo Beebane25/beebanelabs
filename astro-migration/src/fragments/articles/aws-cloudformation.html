@@ -1,0 +1,797 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">DevOps & Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">AWS CloudFormation</span>
+      </div>
+      <span class="category-tag">DevOps & Cloud</span>
+      <h1>AWS CloudFormation: Infrastructure as Code</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Panduan lengkap AWS CloudFormation — template YAML/JSON, stacks, change sets, stack sets, drift detection, dan best practices Infrastructure as Code</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan CloudFormation</a></li>
+          <li><a href="#konsep-dasar">Konsep Dasar: Resources, Parameters, Outputs</a></li>
+          <li><a href="#template-yaml">Menulis Template YAML</a></li>
+          <li><a href="#template-json">Menulis Template JSON</a></li>
+          <li><a href="#intrinsic-functions">Intrinsic Functions</a></li>
+          <li><a href="#stacks">Membuat dan Mengelola Stack</a></li>
+          <li><a href="#change-sets">Change Sets</a></li>
+          <li><a href="#stack-sets">Stack Sets untuk Multi-Region</a></li>
+          <li><a href="#drift-detection">Drift Detection</a></li>
+          <li><a href="#nested-stacks">Nested Stacks</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan CloudFormation</h2>
+
+      <p><strong>AWS CloudFormation</strong> adalah layanan AWS yang memungkinkan Anda mendefinisikan infrastruktur cloud sebagai kode (Infrastructure as Code / IaC). Dengan CloudFormation, Anda dapat mendeskripsikan seluruh sumber daya AWS — EC2, RDS, VPC, S3, dan lainnya — dalam file template yang version-controlled, reproducible, dan auditable.</p>
+
+      <p>Konsep utamanya sederhana: Anda menulis <strong>template</strong> (dalam format YAML atau JSON) yang mendefinisikan infrastruktur yang diinginkan, lalu CloudFormation akan membuat, memperbarui, atau menghapus resource tersebut secara otomatis sesuai template. Ini menghilangkan konfigurasi manual melalui console dan memastikan infrastruktur dapat direplikasi secara konsisten.</p>
+
+      <h3>Mengapa CloudFormation?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Keunggulan</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Infrastructure as Code</td><td>Infrastruktur didefinisikan dalam kode yang bisa di-review, version, dan audit</td></tr>
+          <tr><td>Reproducibility</td><td>Buat environment identik berkali-kali dengan template yang sama</td></tr>
+          <tr><td>Automation</td><td>Provisioning dan teardown infrastruktur sepenuhnya otomatis</td></tr>
+          <tr><td>Dependency Management</td><td>CloudFormation otomatis menentukan urutan pembuatan resource</td></tr>
+          <tr><td>Rollback</td><td>Jika deploy gagal, semua perubahan di-rollback secara otomatis</td></tr>
+          <tr><td>Change Tracking</td><td>Setiap perubahan infrastructure tercatat dan bisa di-audit</td></tr>
+          <tr><td>Drift Detection</td><td>Detect perubahan manual di luar CloudFormation</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: CloudFormation Architecture</div>
+<pre><code>Template (YAML/JSON) .yaml / .json
+☁ CloudFormation Service
+/&quot;1. Parse template&quot;/
+/&quot;2. Validate resources&quot;/
+/&quot;3. Create change set&quot;/
+/&quot;4. Execute changes&quot;/
+/&quot;5. Track stack state&quot;/
+Resources
+/&quot;EC2&quot;/
+/&quot;VPC&quot;/
+/&quot;Security Grps&quot;/
+/&quot;RDS&quot;/
+/&quot;S3&quot;/
+/&quot;ElastiCache&quot;/
+/&quot;📦 Stack Tracking semua resource yang dibuat sta...&quot;/
+/&quot;Resource Physical IDs&quot;/
+/&quot;Status (CREATE_COMPLETE…)&quot;/
+/&quot;Event History&quot;/</code></pre>
+    </div>
+      </div>
+
+      <p>Perbandingan CloudFormation dengan tools IaC lain:</p>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>CloudFormation</th>
+            <th>Terraform</th>
+            <th>Pulumi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Vendor</td><td>AWS only</td><td>Multi-cloud</td><td>Multi-cloud</td></tr>
+          <tr><td>Bahasa</td><td>YAML/JSON</td><td>HCL</td><td>Python/TypeScript/Go</td></tr>
+          <tr><td>State Management</td><td>Managed oleh AWS</td><td>Self-managed</td><td>Managed atau self</td></tr>
+          <tr><td>Cost</td><td>Gratis (bayar resource)</td><td>Open-source</td><td>Open-source</td></tr>
+          <tr><td>Custom Resources</td><td>Lambda-backed</td><td>Providers</td><td>Native code</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Jika infrastruktur Anda 100% AWS, CloudFormation adalah pilihan yang sangat baik karena terintegrasi penuh dengan seluruh layanan AWS dan tidak memerlukan state management eksternal. Jika multi-cloud, pertimbangkan Terraform atau Pulumi.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Konsep Dasar        -->
+      <!-- ============================== -->
+      <h2 id="konsep-dasar">2. Konsep Dasar: Resources, Parameters, Outputs</h2>
+
+      <p>CloudFormation template terdiri dari beberapa komponen utama yang masing-masing memiliki peran penting dalam mendefinisikan infrastruktur Anda.</p>
+
+      <h3>Bagian Utama Template</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Struktur CloudFormation Template</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 305.359375px;" viewBox="0 0 305.359375 1323.25" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:Inter,system-ui,sans-serif;font-size:16px;fill:#ccc;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#a44141;}#mermaid-svg .error-text{fill:#ddd;stroke:#ddd;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#3ecf8e;stroke:#3ecf8e;}#mermaid-svg .marker.cross{stroke:#3ecf8e;}#mermaid-svg svg{font-family:Inter,system-ui,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:Inter,system-ui,sans-serif;color:#E7E8F5;}#mermaid-svg .cluster-label text{fill:#3ecf8e;}#mermaid-svg .cluster-label span{color:#3ecf8e;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#E7E8F5;color:#E7E8F5;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#1f2020;stroke:#ccc;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#3ecf8e!important;stroke-width:0;stroke:#3ecf8e;}#mermaid-svg .arrowheadPath{fill:lightgrey;}#mermaid-svg .edgePath .path{stroke:#3ecf8e;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#3ecf8e;fill:none;}#mermaid-svg .edgeLabel{background-color:#0f1011;text-align:center;}#mermaid-svg .edgeLabel p{background-color:#0f1011;}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:#0f1011;fill:#0f1011;}#mermaid-svg .labelBkg{background-color:rgba(15, 16, 17, 0.5);}#mermaid-svg .cluster rect{fill:rgba(62, 207, 142, 0.08);stroke:#3ecf8e;stroke-width:1px;}#mermaid-svg .cluster text{fill:#3ecf8e;}#mermaid-svg .cluster span{color:#3ecf8e;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:Inter,system-ui,sans-serif;font-size:12px;background:#1a1f2e;border:1px solid rgba(255, 255, 255, 0.25);border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#ccc;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:#0f1011;text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:#0f1011;padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:#0f1011;fill:#0f1011;}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:Inter,system-ui,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M152.68,86L152.68,90.167C152.68,94.333,152.68,102.667,152.68,110.333C152.68,118,152.68,125,152.68,128.5L152.68,132" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTUyLjY3OTY4NzUsInkiOjg2fSx7IngiOjE1Mi42Nzk2ODc1LCJ5IjoxMTF9LHsieCI6MTUyLjY3OTY4NzUsInkiOjEzNn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M152.68,214L152.68,218.167C152.68,222.333,152.68,230.667,152.68,238.333C152.68,246,152.68,253,152.68,256.5L152.68,260" id="L_N1_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N4_0" data-points="W3sieCI6MTUyLjY3OTY4NzUsInkiOjIxNH0seyJ4IjoxNTIuNjc5Njg3NSwieSI6MjM5fSx7IngiOjE1Mi42Nzk2ODc1LCJ5IjoyNjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M152.68,371.25L152.68,375.417C152.68,379.583,152.68,387.917,152.68,395.583C152.68,403.25,152.68,410.25,152.68,413.75L152.68,417.25" id="L_N4_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N4_N3_0" data-points="W3sieCI6MTUyLjY3OTY4NzUsInkiOjM3MS4yNX0seyJ4IjoxNTIuNjc5Njg3NSwieSI6Mzk2LjI1fSx7IngiOjE1Mi42Nzk2ODc1LCJ5Ijo0MjEuMjV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M152.68,523.25L152.68,527.417C152.68,531.583,152.68,539.917,152.68,547.583C152.68,555.25,152.68,562.25,152.68,565.75L152.68,569.25" id="L_N3_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N2_0" data-points="W3sieCI6MTUyLjY3OTY4NzUsInkiOjUyMy4yNX0seyJ4IjoxNTIuNjc5Njg3NSwieSI6NTQ4LjI1fSx7IngiOjE1Mi42Nzk2ODc1LCJ5Ijo1NzMuMjV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M152.68,651.25L152.68,655.417C152.68,659.583,152.68,667.917,152.68,675.583C152.68,683.25,152.68,690.25,152.68,693.75L152.68,697.25" id="L_N2_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N5_0" data-points="W3sieCI6MTUyLjY3OTY4NzUsInkiOjY1MS4yNX0seyJ4IjoxNTIuNjc5Njg3NSwieSI6Njc2LjI1fSx7IngiOjE1Mi42Nzk2ODc1LCJ5Ijo3MDEuMjV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M152.68,779.25L152.68,783.417C152.68,787.583,152.68,795.917,152.68,803.583C152.68,811.25,152.68,818.25,152.68,821.75L152.68,825.25" id="L_N5_N6_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N5_N6_0" data-points="W3sieCI6MTUyLjY3OTY4NzUsInkiOjc3OS4yNX0seyJ4IjoxNTIuNjc5Njg3NSwieSI6ODA0LjI1fSx7IngiOjE1Mi42Nzk2ODc1LCJ5Ijo4MjkuMjV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M152.68,907.25L152.68,911.417C152.68,915.583,152.68,923.917,152.68,931.583C152.68,939.25,152.68,946.25,152.68,949.75L152.68,953.25" id="L_N6_N7_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N6_N7_0" data-points="W3sieCI6MTUyLjY3OTY4NzUsInkiOjkwNy4yNX0seyJ4IjoxNTIuNjc5Njg3NSwieSI6OTMyLjI1fSx7IngiOjE1Mi42Nzk2ODc1LCJ5Ijo5NTcuMjV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M152.68,1035.25L152.68,1039.417C152.68,1043.583,152.68,1051.917,152.68,1059.583C152.68,1067.25,152.68,1074.25,152.68,1077.75L152.68,1081.25" id="L_N7_N8_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N7_N8_0" data-points="W3sieCI6MTUyLjY3OTY4NzUsInkiOjEwMzUuMjV9LHsieCI6MTUyLjY3OTY4NzUsInkiOjEwNjAuMjV9LHsieCI6MTUyLjY3OTY4NzUsInkiOjEwODUuMjV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M152.68,1163.25L152.68,1167.417C152.68,1171.583,152.68,1179.917,152.68,1187.583C152.68,1195.25,152.68,1202.25,152.68,1205.75L152.68,1209.25" id="L_N8_N9_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N8_N9_0" data-points="W3sieCI6MTUyLjY3OTY4NzUsInkiOjExNjMuMjV9LHsieCI6MTUyLjY3OTY4NzUsInkiOjExODguMjV9LHsieCI6MTUyLjY3OTY4NzUsInkiOjEyMTMuMjV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N4_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N5_N6_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N6_N7_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N7_N8_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N8_N9_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(152.6796875, 47)"><rect class="basic label-container" style="" x="-144.6796875" y="-39" width="289.359375" height="78"/><g class="label" style="" transform="translate(-114.6796875, -24)"><rect/><foreignObject width="229.359375" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>AWSTemplateFormatVersion Version: '2010-09-09'</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(152.6796875, 175)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Description 'Deskripsi template...'</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(152.6796875, 612.25)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Parameters Input untuk user Type validation</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(152.6796875, 472.25)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Resources AWS resources Core dari template (REQ...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(152.6796875, 317.625)"><polygon points="53.625,0 107.25,-53.625 53.625,-107.25 0,-53.625" class="label-container" transform="translate(-53.125, 53.625)"/><g class="label" style="" transform="translate(-26.625, -12)"><rect/><foreignObject width="53.25" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>★ REQ</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(152.6796875, 740.25)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Mappings Lookup tables Region-based configs</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N6-6" transform="translate(152.6796875, 868.25)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Conditions If/else logic Environment flag</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N7-7" transform="translate(152.6796875, 996.25)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Outputs Export values Stack exports</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N8-8" transform="translate(152.6796875, 1124.25)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Transform (opsional) Macros, SAM, etc.</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N9-9" transform="translate(152.6796875, 1264.25)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>★ Resources adalah satu-satunya section yang WA...</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      </div>
+
+      <h3>Resources — Komponen Wajib</h3>
+      <p><strong>Resources</strong> adalah satu-satunya bagian wajib dalam template. Setiap resource merepresentasikan satu AWS service resource yang akan dibuat. Setiap resource memiliki tipe (misalnya <code>AWS::EC2::Instance</code>) dan properti spesifik.</p>
+
+      </div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 2851px;" viewBox="0 0 2851 270" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:Inter,system-ui,sans-serif;font-size:16px;fill:#ccc;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#a44141;}#mermaid-svg .error-text{fill:#ddd;stroke:#ddd;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#3ecf8e;stroke:#3ecf8e;}#mermaid-svg .marker.cross{stroke:#3ecf8e;}#mermaid-svg svg{font-family:Inter,system-ui,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:Inter,system-ui,sans-serif;color:#E7E8F5;}#mermaid-svg .cluster-label text{fill:#3ecf8e;}#mermaid-svg .cluster-label span{color:#3ecf8e;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#E7E8F5;color:#E7E8F5;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#1f2020;stroke:#ccc;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#3ecf8e!important;stroke-width:0;stroke:#3ecf8e;}#mermaid-svg .arrowheadPath{fill:lightgrey;}#mermaid-svg .edgePath .path{stroke:#3ecf8e;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#3ecf8e;fill:none;}#mermaid-svg .edgeLabel{background-color:#0f1011;text-align:center;}#mermaid-svg .edgeLabel p{background-color:#0f1011;}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:#0f1011;fill:#0f1011;}#mermaid-svg .labelBkg{background-color:rgba(15, 16, 17, 0.5);}#mermaid-svg .cluster rect{fill:rgba(62, 207, 142, 0.08);stroke:#3ecf8e;stroke-width:1px;}#mermaid-svg .cluster text{fill:#3ecf8e;}#mermaid-svg .cluster span{color:#3ecf8e;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:Inter,system-ui,sans-serif;font-size:12px;background:#1a1f2e;border:1px solid rgba(255, 255, 255, 0.25);border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#ccc;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:#0f1011;text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:#0f1011;padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:#0f1011;fill:#0f1011;}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:Inter,system-ui,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M188.987,110L180.489,114.167C171.991,118.333,154.996,126.667,146.498,136.333C138,146,138,157,138,162.5L138,168" id="L_N0_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N3_0" data-points="W3sieCI6MTg4Ljk4Njg0MjEwNTI2MzE4LCJ5IjoxMTB9LHsieCI6MTM4LCJ5IjoxMzV9LHsieCI6MTM4LCJ5IjoxNzJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M397.013,110L405.511,114.167C414.009,118.333,431.004,126.667,439.502,134.333C448,142,448,149,448,152.5L448,156" id="L_N0_N6_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N6_0" data-points="W3sieCI6Mzk3LjAxMzE1Nzg5NDczNjgsInkiOjExMH0seyJ4Ijo0NDgsInkiOjEzNX0seyJ4Ijo0NDgsInkiOjE2MH1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M423,80.247L478.833,89.373C534.667,98.498,646.333,116.749,702.167,131.375C758,146,758,157,758,162.5L758,168" id="L_N0_N9_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N9_0" data-points="W3sieCI6NDIzLCJ5Ijo4MC4yNDczMTE4Mjc5NTY5OX0seyJ4Ijo3NTgsInkiOjEzNX0seyJ4Ijo3NTgsInkiOjE3Mn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N0_N6_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N0_N9_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(293, 59)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>🏢 Admin Account (Management) 'SharedSecurityPol...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(582.796875, 59)"><rect class="basic label-container" style="" x="-109.796875" y="-27" width="219.59375" height="54"/><g class="label" style="" transform="translate(-79.796875, -12)"><rect/><foreignObject width="159.59375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Mengelola template</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(831.640625, 59)"><rect class="basic label-container" style="" x="-89.046875" y="-27" width="178.09375" height="54"/><g class="label" style="" transform="translate(-59.046875, -12)"><rect/><foreignObject width="118.09375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Deploy targets</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(138, 211)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Account A (111...111) us-east-1 IAM Role + SG</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(1059.40625, 59)"><rect class="basic label-container" style="" x="-88.71875" y="-27" width="177.4375" height="54"/><g class="label" style="" transform="translate(-58.71875, -12)"><rect/><foreignObject width="117.4375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Stack Instance</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(1328.125, 59)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Stack Instance us-west-2</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N6-6" transform="translate(448, 211)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Account B (222...222) us-east-1, us-west-2 IAM ...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N7-7" transform="translate(1596.84375, 59)"><rect class="basic label-container" style="" x="-88.71875" y="-27" width="177.4375" height="54"/><g class="label" style="" transform="translate(-58.71875, -12)"><rect/><foreignObject width="117.4375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Stack Instance</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N8-8" transform="translate(1865.5625, 59)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Stack Instance IAM Role + SG</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N9-9" transform="translate(758, 211)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Account C (333...333) eu-west-1 IAM Role + SG</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N10-10" transform="translate(2134.28125, 59)"><rect class="basic label-container" style="" x="-88.71875" y="-27" width="177.4375" height="54"/><g class="label" style="" transform="translate(-58.71875, -12)"><rect/><foreignObject width="117.4375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Stack Instance</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N11-11" transform="translate(2403, 59)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Stack Instance IAM Role + SG</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N12-12" transform="translate(2713, 59)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Stack Set mengelola deployment ke semua account...</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <h3>Commands untuk Stack Sets</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Buat Stack Set
+aws cloudformation create-stack-set \
+  --stack-set-name SharedSecurityPolicies \
+  --template-body file://shared-policies.yaml \
+  --description "Security policies untuk semua akun" \
+  --permission-model SELF_MANAGED \
+  --administration-role-arn arn:aws:iam::123456789012:role/AWSCloudFormationStackSetAdministrationRole \
+  --execution-role-name AWSCloudFormationStackSetExecutionRole
+
+# Deploy ke target accounts/regions
+aws cloudformation create-instances-from-stack-set \
+  --stack-set-name SharedSecurityPolicies \
+  --accounts '["111111111111","222222222222"]' \
+  --regions '["us-east-1","us-west-2","eu-west-1"]'
+
+# Cek status deployment
+aws cloudformation list-stack-instances \
+  --stack-set-name SharedSecurityPolicies
+
+# Update Stack Set
+aws cloudformation update-stack-set \
+  --stack-set-name SharedSecurityPolicies \
+  --template-body file://shared-policies-v2.yaml \
+  --accounts '["111111111111","222222222222"]' \
+  --regions '["us-east-1","us-west-2"]'
+
+# Hapus Stack Set
+aws cloudformation delete-stack-instances \
+  --stack-set-name SharedSecurityPolicies \
+  --accounts '["111111111111"]' \
+  --regions '["us-east-1"]' \
+  --retain-resources NONE
+
+aws cloudformation delete-stack-set \
+  --stack-set-name SharedSecurityPolicies</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Drift Detection     -->
+      <!-- ============================== -->
+      <h2 id="drift-detection">9. Drift Detection</h2>
+
+      <p><strong>Drift Detection</strong> adalah fitur CloudFormation yang mendeteksi apakah resource dalam stack telah diubah secara manual di luar CloudFormation. Perubahan manual ini disebut "drift" dan bisa menyebabkan ketidaksesuaian antara state aktual infrastruktur dengan state yang tercatat di CloudFormation.</p>
+
+      <h3>Mengapa Drift Detection Penting?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Konsistensi</td><td>Pastikan infrastruktur sesuai template, bukan diubah manual</td></tr>
+          <tr><td>Security</td><td>Detect perubahan keamanan yang tidak diinginkan (misalnya SG dibuka)</td></tr>
+          <tr><td>Compliance</td><td>Memastikan infrastruktur comply dengan standar organisasi</td></tr>
+          <tr><td>Troubleshooting</td><td>Mencari tahu mengapa stack gagal update karena perubahan manual</td></tr>
+          <tr><td>Audit</td><td>Melacak siapa yang mengubah infrastruktur di luar prosedur</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Menjalankan Drift Detection</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Mulai drift detection
+aws cloudformation detect-stack-resource-drift \
+  --stack-name my-web-stack
+
+# Atau deteksi drift untuk semua resource dalam stack
+DRIFT_DETECTION_ID=$(aws cloudformation detect-stack-drift \
+  --stack-name my-web-stack \
+  --query 'StackDriftDetectionId' \
+  --output text)
+
+echo "Detection ID: $DRIFT_DETECTION_ID"
+
+# Cek status drift detection
+aws cloudformation describe-stack-drift-detection-status \
+  --stack-drift-detection-id $DRIFT_DETECTION_ID
+
+# Lihat detail drift
+aws cloudformation describe-stack-resource-drifts \
+  --stack-name my-web-stack \
+  --stack-resource-drift-status-filters MODIFIED DELETED
+
+# Output detail drift:
+# StackResourceDrift:
+#   - LogicalResourceId: WebSecurityGroup
+#     ResourceType: AWS::EC2::SecurityGroup
+#     StackResourceDriftStatus: MODIFIED
+#     ActualProperties: '{"SecurityGroupIngress": [...443, 80, 22...]}'
+#     ExpectedProperties: '{"SecurityGroupIngress": [...80, 443, 22...]}'
+#     PropertyDifferences:
+#       - PropertyPath: "/SecurityGroupIngress/1/FromPort"
+#         ExpectedValue: "443"
+#         ActualValue: "8443"
+#         DifferenceType: NOT_EQUAL
+
+# Batch detect untuk semua stack
+aws cloudformation list-stack-resource-drifts \
+  --stack-name my-web-stack \
+  --stack-resource-drift-status-filters MODIFIED</code></pre>
+      </div>
+
+      <h3>Perbedaan Resource Status</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Arti</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>IN_SYNC</code></td><td>Resource sesuai dengan template — tidak ada drift</td></tr>
+          <tr><td><code>MODIFIED</code></td><td>Resource telah diubah secara manual di luar CloudFormation</td></tr>
+          <tr><td><code>DELETED</code></td><td>Resource telah dihapus secara manual di luar CloudFormation</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Auto-Remediation untuk Drift</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Option 1: Update stack untuk sync kembali ke template
+# CloudFormation akan mengembalikan resource ke state template
+aws cloudformation update-stack \
+  --stack-name my-web-stack \
+  --use-previous-template
+
+# Option 2: Import resource yang di-drift
+# Jika ingin mengadopsi perubahan manual ke template
+aws cloudformation import-resources-to-stack \
+  --stack-name my-web-stack \
+  --resource-identifiers \
+    'ResourceType=AWS::EC2::SecurityGroup,LogicalResourceId=WebServerSG,ResourceIdentifier=sg-0123456789abcdef'
+
+# Option 3: Auto-remediation dengan EventBridge
+# Trigger drift detection otomatis via schedule
+aws events put-rule \
+  --name "MonthlyDriftDetection" \
+  --schedule-expression "cron(0 1 1 * ? *)" \
+  --description "Deteksi drift bulanan"
+
+# Script remediation otomatis
+cat << 'EOF' > remediate-drift.sh
+#!/bin/bash
+STACK_NAME=$1
+DRIFT_ID=$(aws cloudformation detect-stack-drift \
+  --stack-name $STACK_NAME \
+  --query 'StackDriftDetectionId' --output text)
+
+aws cloudformation wait stack-drift-detection-complete \
+  --stack-drift-detection-id $DRIFT_ID
+
+DRIFT_STATUS=$(aws cloudformation describe-stack-drift-detection-status \
+  --stack-drift-detection-id $DRIFT_ID \
+  --query 'DetectionStatus' --output text)
+
+if [ "$DRIFT_STATUS" = "DETECTION_COMPLETE" ]; then
+  MODIFIED=$(aws cloudformation describe-stack-resource-drifts \
+    --stack-name $STACK_NAME \
+    --stack-resource-drift-status-filters MODIFIED \
+    --query 'length(StackResourceDrifts)' --output text)
+
+  if [ "$MODIFIED" -gt "0" ]; then
+    echo "Drift detected! Resources modified: $MODIFIED"
+    aws cloudformation update-stack \
+      --stack-name $STACK_NAME \
+      --use-previous-template
+  fi
+fi
+EOF</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Tidak semua resource type didukung oleh drift detection. Beberapa properti juga tidak bisa di-detect. Selalu cek dokumentasi AWS untuk resource type yang ingin Anda monitor. Drift detection tersedia gratis — Anda hanya membayar untuk API calls.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Nested Stacks      -->
+      <!-- ============================== -->
+      <h2 id="nested-stacks">10. Nested Stacks</h2>
+
+      <p><strong>Nested Stacks</strong> memungkinkan Anda membuat stack dari stack lain — template induk (parent) mereferensikan child stack melalui <code>AWS::CloudFormation::Stack</code>. Ini membantu memecah template besar menjadi modul-modul yang lebih kecil dan reusible.</p>
+
+      <h3>Konsep Nested Stacks</h3>
+      
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: Nested Stack Structure</div>
+<pre><code>📦 Parent Stack: MainInfrastructure DependsOn → ...
+VPCStack vpc.yaml
+ComputeStack compute.yaml
+DatabaseStack database.yaml
+MonitoringStack monitoring.yaml
+VPC Stack VPC, Subnets, IGW Route Tables, NAT O...
+Compute Stack EC2, ALB, ASG Launch Templates In...
+Database Stack RDS, Subnet Group Security Group...
+/&quot;Key Points: • Parent mereferensi child via AWS:...&quot;/</code></pre>
+    </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Template Parent (main.yaml)
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Main Infrastructure Stack
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: dev
+
+Resources:
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/my-templates/vpc.yaml
+      Parameters:
+        VpcCIDR: 10.0.0.0/16
+        EnvironmentName: !Ref EnvironmentName
+
+  ComputeStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VPCStack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/my-templates/compute.yaml
+      Parameters:
+        VPCId: !GetAtt VPCStack.Outputs.VPCId
+        SubnetId: !GetAtt VPCStack.Outputs.PublicSubnet1
+        InstanceType: t3.micro
+
+  DatabaseStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VPCStack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/my-templates/database.yaml
+      Parameters:
+        VPCId: !GetAtt VPCStack.Outputs.VPCId
+        SubnetIds: !GetAtt VPCStack.Outputs.PrivateSubnetIds
+        DBPassword: !Ref DBPassword
+
+Outputs:
+  VPCId:
+    Value: !GetAtt VPCStack.Outputs.VPCId
+  WebServerIP:
+    Value: !GetAtt ComputeStack.Outputs.PublicIP
+  DatabaseEndpoint:
+    Value: !GetAtt DatabaseStack.Outputs.Endpoint</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Best Practices     -->
+      <!-- ============================== -->
+      <h2 id="best-practices">11. Best Practices</h2>
+
+      <h3>Struktur Template</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Best Practice</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Pisahkan environment</td><td>Gunakan parameter untuk mengontrol perbedaan dev/staging/prod</td></tr>
+          <tr><td>Gunakan nested stacks</td><td>Pecah template besar menjadi modul-modul kecil</td></tr>
+          <tr><td>Parameterize nilai</td><td>Jangan hardcode — gunakan parameters untuk values yang berubah</td></tr>
+          <tr><td>Output semua values</td><td>Export values penting untuk digunakan stack lain</td></tr>
+          <tr><td>Gunakan mappings</td><td>Untuk region-specific values seperti AMI IDs</td></tr>
+          <tr><td>Description yang jelas</td><td>Tulis description yang informatif untuk setiap template</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Keamanan</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># 1. Gunakan NoEcho untuk secrets
+DBPassword:
+  Type: String
+  NoEcho: true
+  MinLength: 12
+
+# 2. Gunakan AWS Secrets Manager
+DBSecret:
+  Type: AWS::SecretsManager::Secret
+  Properties:
+    Name: !Sub '${EnvironmentName}/database/credentials'
+    GenerateSecretString:
+      SecretStringTemplate: '{"username": "admin"}'
+      GenerateStringKey: password
+      PasswordLength: 32
+      ExcludeCharacters: '"@/\'
+
+# 3. Gunakan KMS untuk encryption
+EncryptedBucket:
+  Type: AWS::S3::Bucket
+  Properties:
+    BucketEncryption:
+      ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: aws:kms
+            KMSMasterKeyID: !Ref KMSKey
+
+# 4. VPC Endpoints untuk akses private
+VPCEndpoint:
+  Type: AWS::EC2::VPCEndpoint
+  Properties:
+    ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+    VpcId: !Ref VPC
+    RouteTableIds:
+      - !Ref PrivateRouteTable
+
+# 5. Stack policy untuk proteksi resource kritis
+# Simpan sebagai stack-policy.json:
+# {
+#   "Statement": [
+#     {
+#       "Effect": "Deny",
+#       "Action": "Update:*",
+#       "Principal": "*",
+#       "Resource": "LogicalResourceId/DatabaseInstance",
+#       "Condition": {
+#         "StringEquals": {"ResourceType": "AWS::RDS::DBInstance"}
+#       }
+#     }
+#   ]
+# }</code></pre>
+      </div>
+
+      <h3>Organisasi dan Naming</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Text</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+</div>
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: Rekomendasi Struktur Project:</div>
+<pre><code>/&quot;Rekomendasi Struktur Project:&quot;/
+/&quot;templates/&quot;/
+/&quot;main.yaml&quot;/
+/&quot;vpc.yaml&quot;/
+/&quot;compute.yaml&quot;/
+/&quot;database.yaml&quot;/
+/&quot;monitoring.yaml&quot;/
+/&quot;security.yaml&quot;/
+/&quot;parameters/&quot;/
+/&quot;dev.json&quot;/
+/&quot;staging.json&quot;/
+/&quot;production.json&quot;/
+/&quot;scripts/&quot;/
+/&quot;deploy.sh&quot;/
+/&quot;validate.sh&quot;/
+/&quot;drift-check.sh&quot;/
+/&quot;README.md&quot;/
+/&quot;.github/&quot;/
+/&quot;workflows/&quot;/
+/&quot;deploy.yml&quot;/</code></pre>
+    </div>
+      </div>
+
+      <h3>CI/CD dengan CloudFormation</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># GitHub Actions: Deploy CloudFormation
+name: Deploy CloudFormation
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'templates/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate templates
+        run: |
+          for f in templates/*.yaml; do
+            echo "Validating $f..."
+            aws cloudformation validate-template \
+              --template-body file://$f
+          done
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Dev
+        run: |
+          aws cloudformation deploy \
+            --template-file templates/main.yaml \
+            --stack-name my-app-dev \
+            --parameter-overrides file://parameters/dev.json \
+            --capabilities CAPABILITY_IAM \
+            --tags Environment=Dev Project=MyApp
+
+      - name: Run Tests
+        run: |
+          # Test endpoints
+          curl -f http://$(aws cloudformation describe-stacks \
+            --stack-name my-app-dev \
+            --query 'Stacks[0].Outputs[?OutputKey==`WebServerIP`].OutputValue' \
+            --output text)/health
+
+      - name: Deploy to Production
+        if: github.ref == 'refs/heads/main'
+        run: |
+          aws cloudformation deploy \
+            --template-file templates/main.yaml \
+            --stack-name my-app-production \
+            --parameter-overrides file://parameters/production.json \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset \
+            --tags Environment=Production Project=MyApp</code></pre>
+      </div>
+
+      <h3>Cost Optimization Tips</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Tip</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Gunakan CAPABILITY_AUTO_EXPAND</td><td>Untuk macro dan transforms — hati-hati karena bisa mengubah resource secara tidak terduga</td></tr>
+          <tr><td>Set termination protection</td><td>Hindari stack production terhapus secara tidak sengaja</td></tr>
+          <tr><td>Gunakan change sets</td><td>Selalu review perubahan sebelum execute</td></tr>
+          <tr><td>Monitoring drift</td><td>Jalankan drift detection secara berkala (weekly/monthly)</td></tr>
+          <tr><td>Tag semua resources</td><td>Memudahkan tracking cost per project/team</td></tr>
+          <tr><td>Cleanup unused stacks</td><td>Hapus stack yang sudah tidak digunakan untuk menghemat cost</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Gunakan <strong>CloudFormation Designer</strong> (tersedia di AWS Console) untuk visualisasi template secara grafis. Sangat membantu untuk memahami dependency antar resource, terutama untuk template yang kompleks dengan banyak resource.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz               -->
+      <!-- ============================== -->
+      <h2 id="quiz">12. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quizCloudFormation01">
+        <h3>📝 Quiz: Pemahaman CloudFormation</h3>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1. Komponen manakah yang WAJIB ada dalam CloudFormation template?</strong></p>
+          <label><input type="radio" name="q1" value="a"> a) Parameters</label>
+          <label><input type="radio" name="q1" value="b"> b) Resources</label>
+          <label><input type="radio" name="q1" value="c"> c) Outputs</label>
+          <label><input type="radio" name="q1" value="d"> d) Mappings</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2. Apa fungsi <code>!Ref</code> dalam CloudFormation?</strong></p>
+          <label><input type="radio" name="q2" value="a"> a) Menghapus resource</label>
+          <label><input type="radio" name="q2" value="b"> b) Update stack</label>
+          <label><input type="radio" name="q2" value="c"> c) Referensi ke parameter atau resource</label>
+          <label><input type="radio" name="q2" value="d"> d) Import stack dari file</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>3. Fitur apa yang mendeteksi perubahan manual pada resource AWS?</strong></p>
+          <label><input type="radio" name="q3" value="a"> a) Change Sets</label>
+          <label><input type="radio" name="q3" value="b"> b) Drift Detection</label>
+          <label><input type="radio" name="q3" value="c"> c) Stack Events</label>
+          <label><input type="radio" name="q3" value="d"> d) Stack Sets</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>4. Untuk apa <code>NoEcho: true</code> digunakan pada parameter?</strong></p>
+          <label><input type="radio" name="q4" value="a"> a) Menyembunyikan nilai dari log dan console</label>
+          <label><input type="radio" name="q4" value="b"> b) Menghapus parameter</label>
+          <label><input type="radio" name="q4" value="c"> c) Encrypt parameter otomatis</label>
+          <label><input type="radio" name="q4" value="d"> d) Membuat parameter optional</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>5. Apa keuntungan utama Change Sets?</strong></p>
+          <label><input type="radio" name="q5" value="a"> a) Deploy lebih cepat</label>
+          <label><input type="radio" name="q5" value="b"> b) Mengurangi biaya</label>
+          <label><input type="radio" name="q5" value="c"> c) Preview perubahan sebelum diterapkan</label>
+          <label><input type="radio" name="q5" value="d"> d) Auto-rollback saat error</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <button class="btn-primary" onclick="submitQuiz('quizCloudFormation01')">Kirim Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- NAVIGATION -->
+      <div class="article-nav">
+        <a href="docker-dasar.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Docker untuk Developer</span>
+        </a>
+        <a href="gcp-cloud-run.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Google Cloud Run</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/kubernetes-ingress.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <span class="related-title">Kubernetes Ingress Controllers</span>
+        </a>
+        <a href="/articles/aws-lambda-serverless.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <span class="related-title">AWS Lambda: Serverless Functions — Triggers, Layers, Cold...</span>
+        </a>
+        <a href="/articles/aws-s3-storage.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <span class="related-title">AWS S3: Object Storage</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

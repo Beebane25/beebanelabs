@@ -1,0 +1,320 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Python</a>
+        <span class="separator">/</span>
+        <span class="current">WSGI &amp; ASGI</span>
+      </div>
+      <span class="category-tag">Python</span>
+      <h1>Python WSGI &amp; ASGI: Panduan Lengkap</h1>
+      <p class="article-subtitle">Tutorial mendalam tentang WSGI dan ASGI di Python — Gunicorn, Uvicorn, Starlette, protokol web server, dan deployment aplikasi web production-ready</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 19 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="ad-slot ad-slot-wide"></div>
+  </div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan WSGI &amp; ASGI</a></li>
+          <li><a href="#wsgi-dasar">WSGI: Konsep Dasar</a></li>
+          <li><a href="#wsgi-app">Membuat Aplikasi WSGI</a></li>
+          <li><a href="#gunicorn">Gunicorn: Production WSGI Server</a></li>
+          <li><a href="#asgi-dasar">ASGI: Konsep Dasar</a></li>
+          <li><a href="#asgi-app">Membuat Aplikasi ASGI</a></li>
+          <li><a href="#uvicorn">Uvicorn: ASGI Server</a></li>
+          <li><a href="#starlette">Starlette: Framework ASGI</a></li>
+          <li><a href="#flask-django">Flask (WSGI) &amp; Django (ASGI)</a></li>
+          <li><a href="#deployment">Deployment Production</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan WSGI &amp; ASGI</h2>
+
+      <p>Ketika Anda menjalankan aplikasi web Python (Flask, Django, FastAPI), Anda memerlukan <strong>web server</strong> yang menerima HTTP request dari browser dan meneruskannya ke aplikasi Anda. <strong>WSGI</strong> dan <strong>ASGI</strong> adalah standar protokol yang mendefinisikan bagaimana web server berkomunikasi dengan aplikasi Python.</p>
+
+      <h3>Apa Itu WSGI dan ASGI?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>WSGI</th>
+            <th>ASGI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Kepanjangan</td><td>Web Server Gateway Interface</td><td>Asynchronous Server Gateway Interface</td></tr>
+          <tr><td>PEP</td><td>PEP 3333</td><td>Proprietary (Django project)</td></tr>
+          <tr><td>Sync/Async</td><td>Synchronous</td><td>Asynchronous</td></tr>
+          <tr><td>WebSocket</td><td>❌ Tidak</td><td>✅ Ya</td></tr>
+          <tr><td>HTTP/2</td><td>Terbatas</td><td>✅ Ya</td></tr>
+          <tr><td>Framework</td><td>Flask, Django (legacy)</td><td>FastAPI, Starlette, Django 3.0+</td></tr>
+          <tr><td>Server</td><td>Gunicorn, uWSGI</td><td>Uvicorn, Daphne, Hypercorn</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: WSGI vs ASGI Architecture</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">WSGI vs ASGI Architecture</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 726px;" viewBox="0 0 726 580" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"><g class="root" transform="translate(0, 0)"><g class="clusters"><g class="cluster " id="asgi" data-look="classic"><rect style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="8" y="8" width="330" height="564"/><g class="cluster-label " transform="translate(95.6328125, 8)"><foreignObject width="154.734375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>ASGI (Asynchronous)</p></span></div></foreignObject></g></g></g><g class="edgePaths"><path d="M173,99.5L173,105.75C173,112,173,124.5,173,136.333C173,148.167,173,159.333,173,164.917L173,170.5" id="L_A1_A2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A1_A2_0" data-points="W3sieCI6MTczLCJ5Ijo5OS41fSx7IngiOjE3MywieSI6MTM3fSx7IngiOjE3MywieSI6MTc0LjV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M173,252.5L173,258.75C173,265,173,277.5,173,289.333C173,301.167,173,312.333,173,317.917L173,323.5" id="L_A2_A3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A2_A3_0" data-points="W3sieCI6MTczLCJ5IjoyNTIuNX0seyJ4IjoxNzMsInkiOjI5MH0seyJ4IjoxNzMsInkiOjMyNy41fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M173,405.5L173,411.75C173,418,173,430.5,173,442.333C173,454.167,173,465.333,173,470.917L173,476.5" id="L_A3_A4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A3_A4_0" data-points="W3sieCI6MTczLCJ5Ijo0MDUuNX0seyJ4IjoxNzMsInkiOjQ0M30seyJ4IjoxNzMsInkiOjQ4MC41fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_A1_A2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_A2_A3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_A3_A4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-A1-6" transform="translate(173, 72.5)"><rect class="basic label-container" style="" x="-98.015625" y="-27" width="196.03125" height="54"/><g class="label" style="" transform="translate(-68.015625, -12)"><rect/><foreignObject width="136.03125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>HTTP/WS Request</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-A2-7" transform="translate(173, 213.5)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>ASGI Server\n(Uvicorn/Daphne)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-A3-9" transform="translate(173, 366.5)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>ASGI App\n(FastAPI/Django)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-A4-11" transform="translate(173, 507.5)"><rect class="basic label-container" style="" x="-104.2421875" y="-27" width="208.484375" height="54"/><g class="label" style="" transform="translate(-74.2421875, -12)"><rect/><foreignObject width="148.484375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>HTTP/WS Response</p></span></div></foreignObject></g></g></g></g><g class="root" transform="translate(380, 12)"><g class="clusters"><g class="cluster " id="wsgi" data-look="classic"><rect style="fill:#0f1d3a !important;stroke:#60a5fa !important;stroke-width:2px !important" x="8" y="8" width="330" height="540"/><g class="cluster-label " transform="translate(97.421875, 8)"><foreignObject width="151.15625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>WSGI (Synchronous)</p></span></div></foreignObject></g></g></g><g class="edgePaths"><path d="M173,99.5L173,105.75C173,112,173,124.5,173,136.333C173,148.167,173,159.333,173,164.917L173,170.5" id="L_W1_W2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_W1_W2_0" data-points="W3sieCI6MTczLCJ5Ijo5OS41fSx7IngiOjE3MywieSI6MTM3fSx7IngiOjE3MywieSI6MTc0LjV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M173,252.5L173,258.75C173,265,173,277.5,173,289.333C173,301.167,173,312.333,173,317.917L173,323.5" id="L_W2_W3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_W2_W3_0" data-points="W3sieCI6MTczLCJ5IjoyNTIuNX0seyJ4IjoxNzMsInkiOjI5MH0seyJ4IjoxNzMsInkiOjMyNy41fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M173,381.5L173,387.75C173,394,173,406.5,173,418.333C173,430.167,173,441.333,173,446.917L173,452.5" id="L_W3_W4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_W3_W4_0" data-points="W3sieCI6MTczLCJ5IjozODEuNX0seyJ4IjoxNzMsInkiOjQxOX0seyJ4IjoxNzMsInkiOjQ1Ni41fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_W1_W2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_W2_W3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_W3_W4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-W1-0" transform="translate(173, 72.5)"><rect class="basic label-container" style="" x="-82.765625" y="-27" width="165.53125" height="54"/><g class="label" style="" transform="translate(-52.765625, -12)"><rect/><foreignObject width="105.53125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>HTTP Request</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-W2-1" transform="translate(173, 213.5)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>WSGI Server\n(Gunicorn/uWSGI)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-W3-3" transform="translate(173, 354.5)"><rect class="basic label-container" style="" x="-126.0390625" y="-27" width="252.078125" height="54"/><g class="label" style="" transform="translate(-96.0390625, -12)"><rect/><foreignObject width="192.078125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>WSGI App\n(Flask/Django)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-W4-5" transform="translate(173, 483.5)"><rect class="basic label-container" style="" x="-88.9921875" y="-27" width="177.984375" height="54"/><g class="label" style="" transform="translate(-58.9921875, -12)"><rect/><foreignObject width="117.984375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>HTTP Response</p></span></div></foreignObject></g></g></g></g></g></g></g></svg></div>
+</div>
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: WSGI Dasar           -->
+      <!-- ============================== -->
+      <h2 id="wsgi-dasar">2. WSGI: Konsep Dasar</h2>
+
+      <p><strong>WSGI</strong> (PEP 3333) adalah standar antarmuka antara web server dan aplikasi web Python. WSGI memastikan kompatibilitas antara berbagai server dan framework.</p>
+
+      <h3>Bagaimana WSGI Bekerja</h3>
+      <p>Aplikasi WSGI adalah sebuah <strong>callable</strong> (fungsi atau objek dengan <code>__call__</code>) yang menerima dua argumen:</p>
+      <ul>
+        <li><code>environ</code> — dictionary berisi informasi request (method, path, headers, dll)</li>
+        <li><code>start_response</code> — callback untuk mengirim status dan headers</li>
+      </ul>
+
+      </div>
+<pre class="mermaid">
+flowchart TB
+    User["👤 User"] --> Nginx["🌐 Nginx\n(Reverse Proxy)"]
+    Nginx -->|"Static files"| Static["📁 Static Files"]
+    Nginx -->|"Dynamic"| App["🐍 Python App\n(Gunicorn/uvicorn)"]
+    App --> DB["("#quot;🗄️ Database#quot;")"]
+    App --> Cache["⚡ Redis Cache"]
+    App --> Queue["📋 Task Queue\n(Celery)"]
+
+    style User fill:#2a0f1e,stroke:#f472b6
+    style Nginx fill:#2a1f0a,stroke:#f59e0b,stroke-width:2px
+    style App fill:#0f2a1f,stroke:#3ecf8e,stroke-width:2px
+    style DB fill:#0f1d3a,stroke:#60a5fa,stroke-width:1.5px
+    style Cache fill:#1a0f2e,stroke:#a78bfa
+    style Queue fill:#0a2a1f,stroke:#34d399
+</pre>
+      <h3>Nginx Reverse Proxy Config</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Nginx — Reverse Proxy</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># /etc/nginx/sites-available/myapp
+server {
+    listen 80;
+    server_name myapp.example.com;
+    
+    # Redirect HTTP → HTTPS
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name myapp.example.com;
+    
+    ssl_certificate /etc/ssl/certs/myapp.crt;
+    ssl_certificate_key /etc/ssl/private/myapp.key;
+    
+    # Static files (langsung serve oleh Nginx)
+    location /static/ {
+        alias /var/www/myapp/static/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+    
+    # Dynamic requests → Gunicorn/Uvicorn
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Timeouts
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+    }
+    
+    # WebSocket support (untuk ASGI)
+    location /ws/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>Systemd Service</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Systemd — Service File</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># /etc/systemd/system/myapp.service
+[Unit]
+Description=My Python Web Application
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/myapp
+ExecStart=/var/www/myapp/venv/bin/gunicorn app:app -c gunicorn.conf.py
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+RestartSec=5
+KillMode=mixed
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Best Practices       -->
+      <!-- ============================== -->
+      <h2 id="best-practices">11. Best Practices</h2>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Penting</div>
+        <ul>
+          <li><strong>Development</strong> → Gunakan <code>uvicorn --reload</code> atau <code>flask run --debug</code></li>
+          <li><strong>Production WSGI</strong> → Gunicorn dengan <code>sync</code> atau <code>gthread</code> workers</li>
+          <li><strong>Production ASGI</strong> → Uvicorn dengan multiple workers atau Gunicorn + UvicornWorker</li>
+          <li><strong>Selalu gunakan reverse proxy</strong> (Nginx/Caddy) di production</li>
+          <li><strong>Workers formula</strong> → <code>2 × CPU cores + 1</code></li>
+          <li><strong>Jangan gunakan</strong> development server Flask/Django untuk production</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz                 -->
+      <!-- ============================== -->
+      <h2 id="quiz">12. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quizPythonWSGI01">
+        <h3>🧠 Quiz: WSGI &amp; ASGI</h3>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1. Apa kepanjangan WSGI?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q1" value="a"> Web Server General Interface</label>
+            <label><input type="radio" name="q1" value="b"> Web Server Gateway Interface</label>
+            <label><input type="radio" name="q1" value="c"> Web Service Gateway Interface</label>
+            <label><input type="radio" name="q1" value="d"> Web Server Gateway Integration</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2. Apa keunggulan utama ASGI dibanding WSGI?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q2" value="a"> Lebih cepat untuk semua kasus</label>
+            <label><input type="radio" name="q2" value="b"> Lebih mudah digunakan</label>
+            <label><input type="radio" name="q2" value="c"> Mendukung async dan WebSocket</label>
+            <label><input type="radio" name="q2" value="d"> Tidak perlu server</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Server apa yang direkomendasikan untuk FastAPI di production?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q3" value="a"> Uvicorn</label>
+            <label><input type="radio" name="q3" value="b"> Gunicorn</label>
+            <label><input type="radio" name="q3" value="c"> Flask dev server</label>
+            <label><input type="radio" name="q3" value="d"> Apache</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4. Berapa rekomendasi jumlah Gunicorn workers?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q4" value="a"> 1</label>
+            <label><input type="radio" name="q4" value="b"> CPU cores</label>
+            <label><input type="radio" name="q4" value="c"> 100</label>
+            <label><input type="radio" name="q4" value="d"> 2 × CPU cores + 1</label>
+          </div>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>5. Mengapa tidak boleh pakai Flask/Django dev server di production?</strong></p>
+          <div class="quiz-options">
+            <label><input type="radio" name="q5" value="a"> Tidak mendukung HTTPS</label>
+            <label><input type="radio" name="q5" value="b"> Tidak dioptimasi untuk concurrency dan keamanan</label>
+            <label><input type="radio" name="q5" value="c"> Terlalu cepat</label>
+            <label><input type="radio" name="q5" value="d"> Hanya bisa dijalankan sekali</label>
+          </div>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="submitQuiz('quizPythonWSGI01')">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/python-pemula.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">Python untuk Pemula: Panduan Lengkap</span>
+        </a>
+        <a href="/articles/python-multiprocessing.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">Python Multiprocessing: Panduan Lengkap</span>
+        </a>
+        <a href="/articles/python-design-patterns.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">Python Design Patterns: Panduan Lengkap</span>
+        </a>
+
+      </div>
+    </div>
+</article>

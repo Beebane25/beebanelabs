@@ -1,0 +1,709 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Deep Learning</a>
+        <span class="separator">/</span>
+        <span class="current">Transfer Learning</span>
+      </div>
+      <span class="category-tag">Deep Learning</span>
+      <h1>Transfer Learning: Pre-trained Models &amp; Fine-Tuning</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Panduan lengkap Transfer Learning — konsep pre-trained models, feature extraction vs fine-tuning, arsitektur populer (VGG, ResNet, EfficientNet), dan implementasi praktis dengan PyTorch dan TensorFlow</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 20 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Transfer Learning</a></li>
+          <li><a href="#mengapa">Mengapa Transfer Learning Penting?</a></li>
+          <li><a href="#feature-extraction">Feature Extraction: Membekukan Layer Pre-trained</a></li>
+          <li><a href="#fine-tuning">Fine-Tuning: Menyesuaikan Model ke Dataset Baru</a></li>
+          <li><a href="#arsitektur">Arsitektur Populer: VGG, ResNet, EfficientNet</a></li>
+          <li><a href="#implementasi-pytorch">Implementasi: Transfer Learning dengan PyTorch</a></li>
+          <li><a href="#implementasi-tf">Implementasi: Transfer Learning dengan TensorFlow</a></li>
+          <li><a href="#strategi">Strategi &amp; Best Practice Transfer Learning</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Transfer Learning</h2>
+
+      <p><strong>Transfer Learning</strong> adalah teknik deep learning di mana kita menggunakan model yang sudah dilatih pada satu tugas (source task) sebagai titik awal untuk tugas baru (target task). Alih-alih melatih dari nol (from scratch), kita "mentransfer" pengetahuan yang sudah dipelajari oleh model pre-trained.</p>
+
+      <h3>Analogi Transfer Learning</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Transfer Learning — Analogi</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Transfer Learning — Analogi</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 1354.515625px;" viewBox="0 0 1354.515625 164" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"><g class="root" transform="translate(0, 0)"><g class="clusters"><g class="cluster " id="ml" data-look="classic"><rect style="fill:#0f1d3a !important;stroke:#60a5fa !important;stroke-width:2px !important" x="8" y="8" width="670" height="148"/><g class="cluster-label " transform="translate(243, 8)"><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>TRANSFER LEARNING IN ML</p></span></div></foreignObject></g></g></g><g class="edgePaths"><path d="M305.5,82L311.75,82C318,82,330.5,82,342.333,82C354.167,82,365.333,82,370.917,82L376.5,82" id="L_M1_M2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_M1_M2_0" data-points="W3sieCI6MzA1LjUsInkiOjgyfSx7IngiOjM0MywieSI6ODJ9LHsieCI6MzgwLjUsInkiOjgyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_M1_M2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-M1-2" transform="translate(175.5, 82)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Pre-trained on\nImageNet (1M images)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-M2-3" transform="translate(510.5, 82)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Fine-tune on\nmedical images (1K)</p></span></div></foreignObject></g></g></g></g><g class="root" transform="translate(720, 0)"><g class="clusters"><g class="cluster " id="learn" data-look="classic"><rect style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="8" y="8" width="618.515625" height="148"/><g class="cluster-label " transform="translate(217.2578125, 8)"><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>LEARNING TO DRIVE A CAR</p></span></div></foreignObject></g></g></g><g class="edgePaths"><path d="M305.5,82L311.75,82C318,82,330.5,82,342.333,82C354.167,82,365.333,82,370.917,82L376.5,82" id="L_L1_L2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_L1_L2_0" data-points="W3sieCI6MzA1LjUsInkiOjgyfSx7IngiOjM0MywieSI6ODJ9LHsieCI6MzgwLjUsInkiOjgyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_L1_L2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-L1-0" transform="translate(175.5, 82)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Learn steering\nbraking, traffic rules</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-L2-1" transform="translate(484.7578125, 82)"><rect class="basic label-container" style="" x="-104.2578125" y="-27" width="208.515625" height="54"/><g class="label" style="" transform="translate(-74.2578125, -12)"><rect/><foreignObject width="148.515625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Apply to\nmotorcycle</p></span></div></foreignObject></g></g></g></g></g></g></g></svg></div>
+</div>
+      <h3>Bagaimana Transfer Learning Bekerja?</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Feature Learning Hierarchy</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Feature Learning Hierarchy</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 574" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,110L138,114.167C138,118.333,138,126.667,138,134.333C138,142,138,149,138,152.5L138,156" id="L_L1_L2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_L1_L2_0" data-points="W3sieCI6MTM4LCJ5IjoxMTB9LHsieCI6MTM4LCJ5IjoxMzV9LHsieCI6MTM4LCJ5IjoxNjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,262L138,266.167C138,270.333,138,278.667,138,286.333C138,294,138,301,138,304.5L138,308" id="L_L2_L3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_L2_L3_0" data-points="W3sieCI6MTM4LCJ5IjoyNjJ9LHsieCI6MTM4LCJ5IjoyODd9LHsieCI6MTM4LCJ5IjozMTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,414L138,418.167C138,422.333,138,430.667,138,438.333C138,446,138,453,138,456.5L138,460" id="L_L3_L4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_L3_L4_0" data-points="W3sieCI6MTM4LCJ5Ijo0MTR9LHsieCI6MTM4LCJ5Ijo0Mzl9LHsieCI6MTM4LCJ5Ijo0NjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_L1_L2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_L2_L3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_L3_L4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-L1-0" transform="translate(138, 59)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:1.5px !important" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Layer 1-2: Low-level features\n(edges, colors, textures)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-L2-1" transform="translate(138, 211)"><rect class="basic label-container" style="fill:#0f1d3a !important;stroke:#60a5fa !important;stroke-width:1.5px !important" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Layer 3-5: Mid-level features\n(shapes, patterns, parts)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-L3-2" transform="translate(138, 363)"><rect class="basic label-container" style="fill:#2a1f0a !important;stroke:#f59e0b !important;stroke-width:1.5px !important" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Layer 6-8: High-level features\n(objects, faces, scenes)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-L4-3" transform="translate(138, 515)"><rect class="basic label-container" style="fill:#1a0f2e !important;stroke:#a78bfa !important;stroke-width:2px !important" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Final Layer: Task-specific\n(classification head)</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Mengapa Penting     -->
+      <!-- ============================== -->
+      <h2 id="mengapa">2. Mengapa Transfer Learning Penting?</h2>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Keuntungan</th>
+            <th>Penjelasan</th>
+            <th>Dampak</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Lebih Sedikit Data</td><td>Model sudah "tahu" fitur umum, tidak perlu jutaan data</td><td>Bisa pakai ratusan atau ribuan gambar saja</td></tr>
+          <tr><td>Training Lebih Cepat</td><td>Tidak perlu training dari nol, hanya menyesuaikan layer akhir</td><td>Dari minggu ke jam</td></tr>
+          <tr><td>Performa Lebih Baik</td><td>Pre-trained features biasanya lebih baik dari random init</td><td>Akurasi lebih tinggi, especially data kecil</td></tr>
+          <tr><td>Hemat Sumber Daya</td><td>Tidak perlu GPU cluster untuk training</td><td>Bisa dilatih di laptop/GPU tunggal</td></tr>
+          <tr><td>Domain Adaptation</td><td>Pengetahuan dari domain besar bisa diadaptasi ke domain spesifik</td><td>Medical imaging, satelit, dll</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Kapan Menggunakan Transfer Learning?</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Decision Tree Transfer Learning</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Decision Tree Transfer Learning</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 972.765625px;" viewBox="0 0 972.765625 537.65625" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M436.052,106.891L403.074,121.732C370.097,136.573,304.142,166.255,271.165,186.596C238.188,206.938,238.188,217.938,238.188,223.438L238.188,228.938" id="L_Start_A_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Start_A_0" data-points="W3sieCI6NDM2LjA1MTU2MDkwODM0NDksInkiOjEwNi44OTE0MDQ2NTgzNDQ5Mn0seyJ4IjoyMzguMTg3NSwieSI6MTk1LjkzNzV9LHsieCI6MjM4LjE4NzUsInkiOjIzMi45Mzc1fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M540.268,106.767L573.547,121.629C606.826,136.491,673.384,166.214,706.663,186.576C739.941,206.938,739.941,217.938,739.941,223.438L739.941,228.938" id="L_Start_B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Start_B_0" data-points="W3sieCI6NTQwLjI2ODA2NzY2Mjc2MzgsInkiOjEwNi43NjcwODg1ODcyMzYyM30seyJ4Ijo3MzkuOTQxNDA2MjUsInkiOjE5NS45Mzc1fSx7IngiOjczOS45NDE0MDYyNSwieSI6MjMyLjkzNzV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M195.081,358.55L181.13,371.901C167.179,385.252,139.277,411.954,125.326,430.805C111.375,449.656,111.375,460.656,111.375,466.156L111.375,471.656" id="L_A_S1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_S1_0" data-points="W3sieCI6MTk1LjA4MDk5MDY4MTg2MTEsInkiOjM1OC41NDk3NDA2ODE4NjExfSx7IngiOjExMS4zNzUsInkiOjQzOC42NTYyNX0seyJ4IjoxMTEuMzc1LCJ5Ijo0NzUuNjU2MjV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M281.294,358.55L295.245,371.901C309.196,385.252,337.098,411.954,351.049,430.805C365,449.656,365,460.656,365,466.156L365,471.656" id="L_A_S2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_S2_0" data-points="W3sieCI6MjgxLjI5NDAwOTMxODEzODksInkiOjM1OC41NDk3NDA2ODE4NjExfSx7IngiOjM2NSwieSI6NDM4LjY1NjI1fSx7IngiOjM2NSwieSI6NDc1LjY1NjI1fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M697.159,358.874L683.476,372.171C669.793,385.468,642.428,412.062,628.745,430.859C615.063,449.656,615.063,460.656,615.063,466.156L615.063,471.656" id="L_B_S3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_S3_0" data-points="W3sieCI6Njk3LjE1ODgzNjM0MDY2MTEsInkiOjM1OC44NzM2ODAwOTA2NjF9LHsieCI6NjE1LjA2MjUsInkiOjQzOC42NTYyNX0seyJ4Ijo2MTUuMDYyNSwieSI6NDc1LjY1NjI1fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M782.724,358.874L796.407,372.171C810.089,385.468,837.455,412.062,851.138,430.859C864.82,449.656,864.82,460.656,864.82,466.156L864.82,471.656" id="L_B_S4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_S4_0" data-points="W3sieCI6NzgyLjcyMzk3NjE1OTMzODksInkiOjM1OC44NzM2ODAwOTA2NjF9LHsieCI6ODY0LjgyMDMxMjUsInkiOjQzOC42NTYyNX0seyJ4Ijo4NjQuODIwMzEyNSwieSI6NDc1LjY1NjI1fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel" transform="translate(238.1875, 195.9375)"><g class="label" data-id="L_Start_A_0" transform="translate(-20.4609375, -12)"><foreignObject width="40.921875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Large</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(739.94140625, 195.9375)"><g class="label" data-id="L_Start_B_0" transform="translate(-20.0078125, -12)"><foreignObject width="40.015625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Small</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(111.375, 438.65625)"><g class="label" data-id="L_A_S1_0" transform="translate(-13.0546875, -12)"><foreignObject width="26.109375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Yes</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(365, 438.65625)"><g class="label" data-id="L_A_S2_0" transform="translate(-10.2265625, -12)"><foreignObject width="20.453125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>No</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(615.0625, 438.65625)"><g class="label" data-id="L_B_S3_0" transform="translate(-13.0546875, -12)"><foreignObject width="26.109375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Yes</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(864.8203125, 438.65625)"><g class="label" data-id="L_B_S4_0" transform="translate(-10.2265625, -12)"><foreignObject width="20.453125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>No</p></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-Start-0" transform="translate(488.09765625, 83.46875)"><polygon points="75.46875,0 150.9375,-75.46875 75.46875,-150.9375 0,-75.46875" class="label-container" transform="translate(-74.96875, 75.46875)" style="fill:#2a1f0a !important;stroke:#f59e0b !important;stroke-width:2px !important"/><g class="label" style="" transform="translate(-48.46875, -12)"><rect/><foreignObject width="96.9375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Dataset size?</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-A-1" transform="translate(238.1875, 317.296875)"><polygon points="84.359375,0 168.71875,-84.359375 84.359375,-168.71875 0,-84.359375" class="label-container" transform="translate(-83.859375, 84.359375)"/><g class="label" style="" transform="translate(-57.359375, -12)"><rect/><foreignObject width="114.71875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Similar domain?</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-B-3" transform="translate(739.94140625, 317.296875)"><polygon points="84.359375,0 168.71875,-84.359375 84.359375,-168.71875 0,-84.359375" class="label-container" transform="translate(-83.859375, 84.359375)"/><g class="label" style="" transform="translate(-57.359375, -12)"><rect/><foreignObject width="114.71875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Similar domain?</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-S1-5" transform="translate(111.375, 502.65625)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important" x="-103.375" y="-27" width="206.75" height="54"/><g class="label" style="" transform="translate(-73.375, -12)"><rect/><foreignObject width="146.75" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Fine-tune\n(high LR)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-S2-7" transform="translate(365, 502.65625)"><rect class="basic label-container" style="fill:#0f1d3a !important;stroke:#60a5fa !important" x="-100.25" y="-27" width="200.5" height="54"/><g class="label" style="" transform="translate(-70.25, -12)"><rect/><foreignObject width="140.5" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Fine-tune\n(low LR)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-S3-9" transform="translate(615.0625, 502.65625)"><rect class="basic label-container" style="fill:#1a0f2e !important;stroke:#a78bfa !important" x="-99.8125" y="-27" width="199.625" height="54"/><g class="label" style="" transform="translate(-69.8125, -12)"><rect/><foreignObject width="139.625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Feature\nExtraction</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-S4-11" transform="translate(864.8203125, 502.65625)"><rect class="basic label-container" style="fill:#2a0f0f !important;stroke:#ef4444 !important" x="-99.9453125" y="-27" width="199.890625" height="54"/><g class="label" style="" transform="translate(-69.9453125, -12)"><rect/><foreignObject width="139.890625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Train from\nScratch</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Feature Extraction   -->
+      <!-- ============================== -->
+      <h2 id="feature-extraction">3. Feature Extraction: Membekukan Layer Pre-trained</h2>
+
+      <p><strong>Feature Extraction</strong> adalah strategi di mana kita menggunakan pre-trained model sebagai <strong>fixed feature extractor</strong>. Semua layer convolutional dibekukan (frozen) — weight-nya tidak diperbarui selama training. Kita hanya melatih layer classifier baru di akhir (disebut "head" atau "top").</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Feature Extraction</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Feature Extraction</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 277.25px;" viewBox="0 0 277.25 430" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138.625,86L138.625,90.167C138.625,94.333,138.625,102.667,138.625,110.333C138.625,118,138.625,125,138.625,128.5L138.625,132" id="L_Pretrained_Features_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Pretrained_Features_0" data-points="W3sieCI6MTM4LjYyNSwieSI6ODZ9LHsieCI6MTM4LjYyNSwieSI6MTExfSx7IngiOjEzOC42MjUsInkiOjEzNn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138.625,190L138.625,194.167C138.625,198.333,138.625,206.667,138.625,214.333C138.625,222,138.625,229,138.625,232.5L138.625,236" id="L_Features_Classifier_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Features_Classifier_0" data-points="W3sieCI6MTM4LjYyNSwieSI6MTkwfSx7IngiOjEzOC42MjUsInkiOjIxNX0seyJ4IjoxMzguNjI1LCJ5IjoyNDB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138.625,318L138.625,322.167C138.625,326.333,138.625,334.667,138.625,342.333C138.625,350,138.625,357,138.625,360.5L138.625,364" id="L_Classifier_Output_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Classifier_Output_0" data-points="W3sieCI6MTM4LjYyNSwieSI6MzE4fSx7IngiOjEzOC42MjUsInkiOjM0M30seyJ4IjoxMzguNjI1LCJ5IjozNjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_Pretrained_Features_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Features_Classifier_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Classifier_Output_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-Pretrained-0" transform="translate(138.625, 47)"><rect class="basic label-container" style="fill:#0f1d3a !important;stroke:#60a5fa !important;stroke-width:2px !important" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>🧠 Pre-trained\nModel\n(Frozen)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Features-1" transform="translate(138.625, 163)"><rect class="basic label-container" style="fill:#2a1f0a !important;stroke:#f59e0b !important" x="-114.2578125" y="-27" width="228.515625" height="54"/><g class="label" style="" transform="translate(-84.2578125, -12)"><rect/><foreignObject width="168.515625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📊 Extracted\nFeatures</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Classifier-3" transform="translate(138.625, 279)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="-130.625" y="-39" width="261.25" height="78"/><g class="label" style="" transform="translate(-100.625, -24)"><rect/><foreignObject width="201.25" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>🎯 New\nClassifier\n(Trainable)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Output-5" transform="translate(138.625, 395)"><rect class="basic label-container" style="fill:#0a2a1f !important;stroke:#34d399 !important" x="-89.21875" y="-27" width="178.4375" height="54"/><g class="label" style="" transform="translate(-59.21875, -12)"><rect/><foreignObject width="118.4375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📤 Task\nOutput</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Fine-Tuning         -->
+      <!-- ============================== -->
+      <h2 id="fine-tuning">4. Fine-Tuning: Menyesuaikan Model ke Dataset Baru</h2>
+
+      <p><strong>Fine-Tuning</strong> melangkah lebih jauh dari feature extraction — kita <strong>melatih ulang sebagian atau seluruh layer</strong> pre-trained model, tapi dengan <strong>learning rate yang sangat kecil</strong> agar perubahan weight tidak merusak pengetahuan yang sudah dipelajari.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Fine-Tuning Strategies</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Fine-Tuning Strategies</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 2077.34375px;" viewBox="0 0 2077.34375 164" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"><g class="root" transform="translate(0, 12)"><g class="clusters"><g class="cluster " id="strat3" data-look="classic"><rect style="fill:#2a1f0a !important;stroke:#f59e0b !important;stroke-width:2px !important" x="8" y="8" width="505.0625" height="124"/><g class="cluster-label " transform="translate(160.53125, 8)"><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>STRATEGY 3: Full Fine-tune</p></span></div></foreignObject></g></g></g><g class="edgePaths"><path d="M265.859,70L272.109,70C278.359,70,290.859,70,302.693,70C314.526,70,325.693,70,331.276,70L336.859,70" id="L_S3A_S3B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_S3A_S3B_0" data-points="W3sieCI6MjY1Ljg1OTM3NSwieSI6NzB9LHsieCI6MzAzLjM1OTM3NSwieSI6NzB9LHsieCI6MzQwLjg1OTM3NSwieSI6NzB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_S3A_S3B_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-S3A-5" transform="translate(155.6796875, 70)"><rect class="basic label-container" style="" x="-110.1796875" y="-27" width="220.359375" height="54"/><g class="label" style="" transform="translate(-80.1796875, -12)"><rect/><foreignObject width="160.359375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>All Layers\n(Trainable)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-S3B-6" transform="translate(408.2109375, 70)"><rect class="basic label-container" style="" x="-67.3515625" y="-27" width="134.703125" height="54"/><g class="label" style="" transform="translate(-37.3515625, -12)"><rect/><foreignObject width="74.703125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>New Head</p></span></div></foreignObject></g></g></g></g><g class="root" transform="translate(555.0625, 12)"><g class="clusters"><g class="cluster " id="strat2" data-look="classic"><rect style="fill:#0f1d3a !important;stroke:#60a5fa !important;stroke-width:2px !important" x="8" y="8" width="821.46875" height="124"/><g class="cluster-label " transform="translate(318.734375, 8)"><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>STRATEGY 2: Partial Fine-tune</p></span></div></foreignObject></g></g></g><g class="edgePaths"><path d="M268.219,70L274.469,70C280.719,70,293.219,70,305.052,70C316.885,70,328.052,70,333.635,70L339.219,70" id="L_S2A_S2B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_S2A_S2B_0" data-points="W3sieCI6MjY4LjIxODc1LCJ5Ijo3MH0seyJ4IjozMDUuNzE4NzUsInkiOjcwfSx7IngiOjM0My4yMTg3NSwieSI6NzB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M582.266,70L588.516,70C594.766,70,607.266,70,619.099,70C630.932,70,642.099,70,647.682,70L653.266,70" id="L_S2B_S2C_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_S2B_S2C_0" data-points="W3sieCI6NTgyLjI2NTYyNSwieSI6NzB9LHsieCI6NjE5Ljc2NTYyNSwieSI6NzB9LHsieCI6NjU3LjI2NTYyNSwieSI6NzB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_S2A_S2B_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_S2B_S2C_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-S2A-2" transform="translate(156.859375, 70)"><rect class="basic label-container" style="" x="-111.359375" y="-27" width="222.71875" height="54"/><g class="label" style="" transform="translate(-81.359375, -12)"><rect/><foreignObject width="162.71875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Early Layers\n(Frozen)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-S2B-3" transform="translate(462.7421875, 70)"><rect class="basic label-container" style="" x="-119.5234375" y="-27" width="239.046875" height="54"/><g class="label" style="" transform="translate(-89.5234375, -12)"><rect/><foreignObject width="179.046875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Later Layers\n(Trainable)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-S2C-4" transform="translate(724.6171875, 70)"><rect class="basic label-container" style="" x="-67.3515625" y="-27" width="134.703125" height="54"/><g class="label" style="" transform="translate(-37.3515625, -12)"><rect/><foreignObject width="74.703125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>New Head</p></span></div></foreignObject></g></g></g></g><g class="root" transform="translate(1426.53125, 0)"><g class="clusters"><g class="cluster " id="strat1" data-look="classic"><rect style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="8" y="8" width="634.8125" height="148"/><g class="cluster-label " transform="translate(236.3359375, 8)"><foreignObject width="178.140625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>STRATEGY 1: Freeze All</p></span></div></foreignObject></g></g></g><g class="edgePaths"><path d="M305.5,82L311.75,82C318,82,330.5,82,342.333,82C354.167,82,365.333,82,370.917,82L376.5,82" id="L_S1A_S1B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_S1A_S1B_0" data-points="W3sieCI6MzA1LjUsInkiOjgyfSx7IngiOjM0MywieSI6ODJ9LHsieCI6MzgwLjUsInkiOjgyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_S1A_S1B_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-S1A-0" transform="translate(175.5, 82)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Pre-trained Layers\n(FROZEN 🧊)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-S1B-1" transform="translate(492.90625, 82)"><rect class="basic label-container" style="" x="-112.40625" y="-27" width="224.8125" height="54"/><g class="label" style="" transform="translate(-82.40625, -12)"><rect/><foreignObject width="164.8125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>New Head\n(Trainable)</p></span></div></foreignObject></g></g></g></g></g></g></g></svg></div>
+</div>
+      <h3>Differential Learning Rates</h3>
+      <div class="info-box info">
+        <div class="info-box-title">📐 Differential Learning Rates</div>
+        <p>Saat fine-tuning, gunakan <strong>learning rate berbeda</strong> untuk setiap kelompok layer:</p>
+        <ul>
+          <li><strong>Layer awal</strong> (general features): LR sangat kecil (1e-5 atau kurang)</li>
+          <li><strong>Layer tengah</strong> (mid-level features): LR kecil (1e-4)</li>
+          <li><strong>Layer akhir</strong> (task-specific) dan head baru: LR lebih besar (1e-3)</li>
+        </ul>
+        <p>Alasan: Layer awal sudah sangat umum dan tidak perlu banyak perubahan. Layer akhir perlu lebih banyak adaptasi ke tugas baru.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Arsitektur          -->
+      <!-- ============================== -->
+      <h2 id="arsitektur">5. Arsitektur Populer: VGG, ResNet, EfficientNet</h2>
+
+      <h3>Evolusi Arsitektur CNN</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Tahun</th>
+            <th>Keunggulan</th>
+            <th>Parameters</th>
+            <th>ImageNet Top-5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>AlexNet</td><td>2012</td><td>Membuktikan deep learning works</td><td>60M</td><td>84.7%</td></tr>
+          <tr><td>VGG-16/19</td><td>2014</td><td>Arsitektur sederhana, stack 3×3 conv</td><td>138M</td><td>92.7%</td></tr>
+          <tr><td>GoogLeNet/Inception</td><td>2014</td><td>Inception module (multi-scale)</td><td>6.8M</td><td>93.3%</td></tr>
+          <tr><td>ResNet-50/101/152</td><td>2015</td><td>Skip connections (residual)</td><td>25.6M</td><td>96.4%</td></tr>
+          <tr><td>DenseNet</td><td>2017</td><td>Dense connections semua layer</td><td>8M-20M</td><td>94.5%</td></tr>
+          <tr><td>EfficientNet</td><td>2019</td><td>Compound scaling (width×depth×resolution)</td><td>5.3M-66M</td><td>97.1%</td></tr>
+          <tr><td>Vision Transformer (ViT)</td><td>2020</td><td>Transformer untuk vision</td><td>86M+</td><td>97.7%</td></tr>
+        </tbody>
+      </table>
+
+      <h3>ResNet: Skip Connections</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: ResNet Skip Connection</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">ResNet Skip Connection</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 280.34375px;" viewBox="0 0 280.34375 614" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M88.916,62L84.284,66.167C79.652,70.333,70.389,78.667,65.757,86.333C61.125,94,61.125,101,61.125,104.5L61.125,108" id="L_Input_Conv1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Input_Conv1_0" data-points="W3sieCI6ODguOTE1NzE1MTQ0MjMwNzcsInkiOjYyfSx7IngiOjYxLjEyNSwieSI6ODd9LHsieCI6NjEuMTI1LCJ5IjoxMTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M61.125,166L61.125,172.167C61.125,178.333,61.125,190.667,61.125,202.333C61.125,214,61.125,225,61.125,230.5L61.125,236" id="L_Conv1_Conv2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Conv1_Conv2_0" data-points="W3sieCI6NjEuMTI1LCJ5IjoxNjZ9LHsieCI6NjEuMTI1LCJ5IjoyMDN9LHsieCI6NjEuMTI1LCJ5IjoyNDB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M61.125,294L61.125,298.167C61.125,302.333,61.125,310.667,65.261,318.554C69.397,326.442,77.67,333.883,81.806,337.604L85.942,341.325" id="L_Conv2_Add_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Conv2_Add_0" data-points="W3sieCI6NjEuMTI1LCJ5IjoyOTR9LHsieCI6NjEuMTI1LCJ5IjozMTl9LHsieCI6ODguOTE1NzE1MTQ0MjMwNzcsInkiOjM0NH1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M148.944,62L153.575,66.167C158.207,70.333,167.471,78.667,172.103,91.5C176.734,104.333,176.734,121.667,176.734,141C176.734,160.333,176.734,181.667,176.734,203C176.734,224.333,176.734,245.667,176.734,265C176.734,284.333,176.734,301.667,172.598,314.054C168.462,326.442,160.19,333.883,156.054,337.604L151.917,341.325" id="L_Input_Add_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Input_Add_0" data-points="W3sieCI6MTQ4Ljk0MzY1OTg1NTc2OTIzLCJ5Ijo2Mn0seyJ4IjoxNzYuNzM0Mzc1LCJ5Ijo4N30seyJ4IjoxNzYuNzM0Mzc1LCJ5IjoxMzl9LHsieCI6MTc2LjczNDM3NSwieSI6MjAzfSx7IngiOjE3Ni43MzQzNzUsInkiOjI2N30seyJ4IjoxNzYuNzM0Mzc1LCJ5IjozMTl9LHsieCI6MTQ4Ljk0MzY1OTg1NTc2OTIzLCJ5IjozNDR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M118.93,398L118.93,402.167C118.93,406.333,118.93,414.667,118.93,422.333C118.93,430,118.93,437,118.93,440.5L118.93,444" id="L_Add_ReLU_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Add_ReLU_0" data-points="W3sieCI6MTE4LjkyOTY4NzUsInkiOjM5OH0seyJ4IjoxMTguOTI5Njg3NSwieSI6NDIzfSx7IngiOjExOC45Mjk2ODc1LCJ5Ijo0NDh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M118.93,502L118.93,506.167C118.93,510.333,118.93,518.667,118.93,526.333C118.93,534,118.93,541,118.93,544.5L118.93,548" id="L_ReLU_Output_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_ReLU_Output_0" data-points="W3sieCI6MTE4LjkyOTY4NzUsInkiOjUwMn0seyJ4IjoxMTguOTI5Njg3NSwieSI6NTI3fSx7IngiOjExOC45Mjk2ODc1LCJ5Ijo1NTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_Input_Conv1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Conv1_Conv2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Conv2_Add_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(176.734375, 203)"><g class="label" data-id="L_Input_Add_0" transform="translate(-95.609375, -12)"><foreignObject width="191.21875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Skip Connection\n(identity)</p></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Add_ReLU_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_ReLU_Output_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-Input-0" transform="translate(118.9296875, 35)"><rect class="basic label-container" style="fill:#2a0f1e !important;stroke:#f472b6 !important" x="-59.34375" y="-27" width="118.6875" height="54"/><g class="label" style="" transform="translate(-29.34375, -12)"><rect/><foreignObject width="58.6875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Input (x)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Conv1-1" transform="translate(61.125, 139)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important" x="-53.125" y="-27" width="106.25" height="54"/><g class="label" style="" transform="translate(-23.125, -12)"><rect/><foreignObject width="46.25" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Conv1</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Conv2-3" transform="translate(61.125, 267)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important" x="-53.125" y="-27" width="106.25" height="54"/><g class="label" style="" transform="translate(-23.125, -12)"><rect/><foreignObject width="46.25" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Conv2</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Add-5" transform="translate(118.9296875, 371)"><rect class="basic label-container" style="fill:#2a1f0a !important;stroke:#f59e0b !important;stroke-width:2px !important" x="-56.015625" y="-27" width="112.03125" height="54"/><g class="label" style="" transform="translate(-26.015625, -12)"><rect/><foreignObject width="52.03125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>➕ Add</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-ReLU-9" transform="translate(118.9296875, 475)"><rect class="basic label-container" style="fill:#0a2a1f !important;stroke:#34d399 !important" x="-50.453125" y="-27" width="100.90625" height="54"/><g class="label" style="" transform="translate(-20.453125, -12)"><rect/><foreignObject width="40.90625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>ReLU</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Output-11" transform="translate(118.9296875, 579)"><rect class="basic label-container" style="fill:#0f1d3a !important;stroke:#60a5fa !important" x="-54.015625" y="-27" width="108.03125" height="54"/><g class="label" style="" transform="translate(-24.015625, -12)"><rect/><foreignObject width="48.03125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Output</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Implementasi PyTorch -->
+      <!-- ============================== -->
+      <h2 id="implementasi-pytorch">6. Implementasi: Transfer Learning dengan PyTorch</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Transfer Learning dengan PyTorch (ResNet50)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import models, transforms, datasets
+from torch.utils.data import DataLoader
+import time
+import copy
+
+# === 1. PERSIAPAN DATA ===
+# Transformasi untuk training (dengan augmentasi)
+train_transform = transforms.Compose([
+    transforms.RandomResizedCrop(224),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomRotation(15),
+    transforms.ColorJitter(brightness=0.2, contrast=0.2),
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406],  # ImageNet mean
+                         [0.229, 0.224, 0.225])   # ImageNet std
+])
+
+# Transformasi untuk validasi (tanpa augmentasi)
+val_transform = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406],
+                         [0.229, 0.224, 0.225])
+])
+
+# Load dataset (ganti dengan path dataset Anda)
+# train_dataset = datasets.ImageFolder('data/train', train_transform)
+# val_dataset = datasets.ImageFolder('data/val', val_transform)
+# train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+# val_loader = DataLoader(val_dataset, batch_size=32)
+
+# === 2. LOAD PRE-TRAINED MODEL ===
+model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
+
+print("=== Arsitektur ResNet50 ===")
+print(model)
+
+# === 3. FEATURE EXTRACTION (Strategy 1: Freeze semua, train head) ===
+
+# Bekukan semua parameter
+for param in model.parameters():
+    param.requires_grad = False
+
+# Ganti classifier head untuk 10 kelas
+num_classes = 10
+model.fc = nn.Sequential(
+    nn.Linear(model.fc.in_features, 512),
+    nn.ReLU(),
+    nn.Dropout(0.3),
+    nn.Linear(512, num_classes)
+)
+
+# Hitung parameter yang trainable
+trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+total_params = sum(p.numel() for p in model.parameters())
+print(f"\n=== Feature Extraction Mode ===")
+print(f"Total parameters: {total_params:,}")
+print(f"Trainable parameters: {trainable_params:,}")
+print(f"Frozen parameters: {total_params - trainable_params:,}")
+print(f"Trainable %: {trainable_params/total_params*100:.1f}%")
+
+# === 4. FINE-TUNING (Strategy 2: Unfreeze beberapa layer) ===
+
+def unfreeze_layers(model, num_layers_to_unfreeze):
+    """Unfreeze layer terakhir dari ResNet"""
+    # Freeze semua dulu
+    for param in model.parameters():
+        param.requires_grad = False
+    
+    # Unfreeze layer4 dan fc
+    children = list(model.children())
+    layers_to_unfreeze = children[-num_layers_to_unfreeze:]
+    
+    for layer in layers_to_unfreeze:
+        for param in layer.parameters():
+            param.requires_grad = True
+    
+    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total = sum(p.numel() for p in model.parameters())
+    print(f"\nUnfroze {num_layers_to_unfreeze} layers")
+    print(f"Trainable: {trainable:,} / {total:,} ({trainable/total*100:.1f}%)")
+
+# Unfreeze 2 layer terakhir (layer4 + fc)
+unfreeze_layers(model, 2)
+
+# === 5. DIFFERENTIAL LEARNING RATES ===
+# Layer awal → lr kecil, layer akhir → lr lebih besar
+optimizer = optim.Adam([
+    {'params': model.layer4.parameters(), 'lr': 1e-4},
+    {'params': model.fc.parameters(), 'lr': 1e-3},
+], weight_decay=1e-4)
+
+# Scheduler: kurangi lr saat training plateau
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+    optimizer, mode='min', factor=0.5, patience=3, verbose=True
+)
+
+criterion = nn.CrossEntropyLoss()
+
+# === 6. TRAINING LOOP ===
+def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = model.to(device)
+    
+    best_model_wts = copy.deepcopy(model.state_dict())
+    best_acc = 0.0
+    
+    for epoch in range(num_epochs):
+        print(f'\nEpoch {epoch+1}/{num_epochs}')
+        print('-' * 40)
+        
+        for phase in ['train', 'val']:
+            if phase == 'train':
+                model.train()
+                dataloader = train_loader
+            else:
+                model.eval()
+                dataloader = val_loader
+            
+            running_loss = 0.0
+            running_corrects = 0
+            
+            for inputs, labels in dataloader:
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+                
+                optimizer.zero_grad()
+                
+                with torch.set_grad_enabled(phase == 'train'):
+                    outputs = model(inputs)
+                    _, preds = torch.max(outputs, 1)
+                    loss = criterion(outputs, labels)
+                    
+                    if phase == 'train':
+                        loss.backward()
+                        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                        optimizer.step()
+                
+                running_loss += loss.item() * inputs.size(0)
+                running_corrects += torch.sum(preds == labels.data)
+            
+            epoch_loss = running_loss / len(dataloader.dataset)
+            epoch_acc = running_corrects.double() / len(dataloader.dataset)
+            
+            print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
+            
+            if phase == 'val':
+                scheduler.step(epoch_loss)
+                if epoch_acc > best_acc:
+                    best_acc = epoch_acc
+                    best_model_wts = copy.deepcopy(model.state_dict())
+    
+    print(f'\nBest val Acc: {best_acc:.4f}')
+    model.load_state_dict(best_model_wts)
+    return model
+
+# Jalankan training (uncomment jika data tersedia)
+# model = train_model(model, criterion, optimizer, scheduler, num_epochs=20)
+
+# === 7. PREDIKSI ===
+def predict_image(model, image_path, transform):
+    from PIL import Image
+    
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model.eval()
+    
+    image = Image.open(image_path).convert('RGB')
+    image = transform(image).unsqueeze(0).to(device)
+    
+    with torch.no_grad():
+        output = model(image)
+        probabilities = torch.nn.functional.softmax(output[0], dim=0)
+        predicted_class = torch.argmax(probabilities).item()
+        confidence = probabilities[predicted_class].item()
+    
+    return predicted_class, confidence, probabilities
+
+print("\n✓ Transfer Learning Pipeline Siap!")
+print("  Uncomment fungsi train_model() dan siapkan dataset untuk mulai training.")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Implementasi TF     -->
+      <!-- ============================== -->
+      <h2 id="implementasi-tf">7. Implementasi: Transfer Learning dengan TensorFlow/Keras</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Transfer Learning dengan TensorFlow/Keras</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import tensorflow as tf
+from tensorflow.keras import layers, models
+from tensorflow.keras.applications import EfficientNetB0
+from tensorflow.keras.preprocessing import image_dataset_from_directory
+
+# === 1. LOAD DATA ===
+IMG_SIZE = 224
+BATCH_SIZE = 32
+
+# Load dataset (ganti dengan path dataset Anda)
+# train_ds = image_dataset_from_directory(
+#     'data/train', image_size=(IMG_SIZE, IMG_SIZE),
+#     batch_size=BATCH_SIZE, validation_split=0.2,
+#     subset='training', seed=42
+# )
+# val_ds = image_dataset_from_directory(
+#     'data/train', image_size=(IMG_SIZE, IMG_SIZE),
+#     batch_size=BATCH_SIZE, validation_split=0.2,
+#     subset='validation', seed=42
+# )
+
+NUM_CLASSES = 10
+
+# === 2. DATA AUGMENTATION ===
+data_augmentation = tf.keras.Sequential([
+    layers.RandomFlip("horizontal"),
+    layers.RandomRotation(0.1),
+    layers.RandomZoom(0.1),
+    layers.RandomContrast(0.1),
+])
+
+# === 3. LOAD PRE-TRAINED EfficientNetB0 ===
+base_model = EfficientNetB0(
+    include_top=False,           # Tanpa classifier head
+    weights='imagenet',          # Pre-trained di ImageNet
+    input_shape=(IMG_SIZE, IMG_SIZE, 3)
+)
+
+# === 4. FEATURE EXTRACTION (freeze base model) ===
+base_model.trainable = False
+
+# Buat model baru
+inputs = layers.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
+x = data_augmentation(inputs)               # Augmentasi
+x = base_model(x, training=False)           # Feature extraction
+x = layers.GlobalAveragePooling2D()(x)      # Pooling
+x = layers.Dropout(0.3)(x)                  # Regularisasi
+x = layers.Dense(256, activation='relu')(x) # Hidden layer
+x = layers.Dropout(0.2)(x)
+outputs = layers.Dense(NUM_CLASSES, activation='softmax')(x)
+
+model = models.Model(inputs, outputs)
+
+print("=== Model Summary (Feature Extraction) ===")
+model.summary()
+
+# === 5. TRAIN FEATURE EXTRACTION ===
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# history1 = model.fit(train_ds, validation_data=val_ds, epochs=10)
+
+# === 6. FINE-TUNING (unfreeze beberapa layer) ===
+base_model.trainable = True
+
+# Freeze semua kecuali 30 layer terakhir
+for layer in base_model.layers[:-30]:
+    layer.trainable = False
+
+print(f"\nTrainable layers: {sum(1 for l in model.layers if l.trainable)}")
+
+# Compile ulang dengan learning rate LEBIH KECIL
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),  # LR kecil!
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# history2 = model.fit(train_ds, validation_data=val_ds, epochs=20)
+
+# === 7. LEARNING RATE SCHEDULER ===
+lr_scheduler = tf.keras.callbacks.ReduceLROnPlateau(
+    monitor='val_loss', factor=0.5, patience=3, min_lr=1e-7
+)
+
+early_stopping = tf.keras.callbacks.EarlyStopping(
+    monitor='val_loss', patience=7, restore_best_weights=True
+)
+
+# history2 = model.fit(
+#     train_ds, validation_data=val_ds, epochs=50,
+#     callbacks=[lr_scheduler, early_stopping]
+# )
+
+print("\n✓ TensorFlow Transfer Learning Pipeline Siap!")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Strategi            -->
+      <!-- ============================== -->
+      <h2 id="strategi">8. Strategi &amp; Best Practice Transfer Learning</h2>
+
+      <h3>Tips Memilih Pre-trained Model</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Faktor</th>
+            <th>Pertimbangan</th>
+            <th>Rekomendasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Ukuran Dataset</td><td>Dataset kecil (&lt;1000) vs besar (&gt;10K)</td><td>Kecil → model kecil (MobileNet), Besar → model besar (ResNet152)</td></tr>
+          <tr><td>Resource</td><td>Edge device vs server</td><td>Edge → MobileNet/EfficientNet-Lite, Server → ResNet/ViT</td></tr>
+          <tr><td>Kecepatan</td><td>Real-time vs batch</td><td>Real-time → MobileNet, Batch → ResNet/EfficientNet</td></tr>
+          <tr><td>Kemiripan Domain</td><td>Dataset source vs target</td><td>Mirip → feature extraction, Beda → fine-tune lebih banyak</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Kesalahan Umum Transfer Learning</h3>
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Hindari Kesalahan Ini!</div>
+        <ul>
+          <li><strong>Learning rate terlalu besar saat fine-tuning</strong> — Merusak pengetahuan pre-trained (catastrophic forgetting)</li>
+          <li><strong>Tidak menggunakan data augmentation</strong> — Terutama saat dataset kecil, augmentasi sangat penting</li>
+          <li><strong>Melupakan normalisasi yang benar</strong> — Gunakan mean/std yang SAMA dengan pre-trained model (ImageNet: mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225])</li>
+          <li><strong>Langsung unfreeze semua layer</strong> — Mulai dengan freeze semua, lalu unfreeze bertahap</li>
+          <li><strong>Tidak menggunakan early stopping</strong> — Fine-tuning mudah overfit pada dataset kecil</li>
+          <li><strong>Menggunakan model terlalu besar untuk dataset kecil</strong> — Model besar + data sedikit = overfitting</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" data-quiz-id="transfer-quiz-1">
+        <h3>🧠 Quiz: Transfer Learning</h3>
+        
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1. Apa itu Transfer Learning?</strong></p>
+          <label><input type="radio" name="q1" value="a"> Melatih model dari nol setiap kali</label>
+          <label><input type="radio" name="q1" value="b"> Menggunakan model yang sudah dilatih pada satu tugas sebagai titik awal untuk tugas baru</label>
+          <label><input type="radio" name="q1" value="c"> Mengcopy dataset dari satu model ke model lain</label>
+          <label><input type="radio" name="q1" value="d"> Menghapus semua layer dari model pre-trained</label>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2. Dalam Feature Extraction, apa yang terjadi pada layer pre-trained?</strong></p>
+          <label><input type="radio" name="q2" value="a"> Layer dihapus</label>
+          <label><input type="radio" name="q2" value="b"> Layer dilatih ulang dari nol</label>
+          <label><input type="radio" name="q2" value="c"> Layer dibekukan (frozen) dan hanya classifier head yang dilatih</label>
+          <label><input type="radio" name="q2" value="d"> Layer diganti dengan CNN baru</label>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Mengapa learning rate harus sangat kecil saat fine-tuning?</strong></p>
+          <label><input type="radio" name="q3" value="a"> Agar tidak merusak pengetahuan yang sudah dipelajari model (catastrophic forgetting)</label>
+          <label><input type="radio" name="q3" value="b"> Agar model lebih cepat konvergen</label>
+          <label><input type="radio" name="q3" value="c"> Agar model menggunakan lebih sedikit memori</label>
+          <label><input type="radio" name="q3" value="d"> Tidak ada alasan khusus, hanya tradisi</label>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4. Strategi mana yang TEPAT untuk dataset kecil dengan tugas mirip ImageNet?</strong></p>
+          <label><input type="radio" name="q4" value="a"> Training from scratch</label>
+          <label><input type="radio" name="q4" value="b"> Fine-tune semua layer</label>
+          <label><input type="radio" name="q4" value="c"> Hapus model pre-trained dan buat CNN baru</label>
+          <label><input type="radio" name="q4" value="d"> Feature extraction (freeze base, train head saja)</label>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>5. Apa fungsi skip connection di ResNet?</strong></p>
+          <label><input type="radio" name="q5" value="a"> Meningkatkan ukuran feature map</label>
+          <label><input type="radio" name="q5" value="b"> Mengatasi vanishing gradient dengan memungkinkan gradient mengalir langsung</label>
+          <label><input type="radio" name="q5" value="c"> Mengurangi jumlah parameter</label>
+          <label><input type="radio" name="q5" value="d"> Menggantikan fungsi aktivasi</label>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">🎯 Ringkasan Artikel</div>
+        <ul>
+          <li><strong>Transfer Learning</strong> menggunakan pengetahuan model pre-trained untuk tugas baru</li>
+          <li><strong>Feature Extraction</strong> = freeze base model, hanya train classifier head</li>
+          <li><strong>Fine-Tuning</strong> = unfreeze sebagian/seluruh layer dengan learning rate kecil</li>
+          <li><strong>Differential Learning Rates</strong> = layer awal lr kecil, layer akhir lr lebih besar</li>
+          <li><strong>ResNet</strong> mengatasi vanishing gradient dengan skip connections</li>
+          <li><strong>EfficientNet</strong> mengoptimalkan width, depth, dan resolution secara bersamaan</li>
+          <li>Untuk dataset kecil: feature extraction dulu, baru fine-tune bertahap</li>
+        </ul>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== RELATED ARTICLES ========== -->
+  <section class="related-articles">
+    <div class="container">
+      <h2>Artikel Terkait</h2>
+      <div class="article-grid">
+        <a href="cv-object-detection.html" class="article-card">
+          <span class="category-tag">Computer Vision</span>
+          <h3>Computer Vision: Object Detection</h3>
+          <p>YOLO, R-CNN, SSD, mAP evaluation metric.</p>
+          <span class="article-date">📅 26 Juni 2026</span>
+        </a>
+        <a href="dl-rnn-sequence.html" class="article-card">
+          <span class="category-tag">Deep Learning</span>
+          <h3>RNN: Recurrent Neural Networks</h3>
+          <p>Sequence modeling, vanishing gradient, LSTM.</p>
+          <span class="article-date">📅 26 Juni 2026</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

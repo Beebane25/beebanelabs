@@ -1,0 +1,964 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Raspberry Pi</a>
+        <span class="separator">/</span>
+        <span class="current">Raspberry Pi Home Server</span>
+      </div>
+      <span class="category-tag">🏠 Raspberry Pi</span>
+      <h1>Raspberry Pi Home Server: NAS, Pi-hole, VPN & Media Server</h1>
+      <p class="article-subtitle">Panduan lengkap membangun home server menggunakan Raspberry Pi — NAS dengan Samba, Pi-hole ad blocker, WireGuard VPN, Plex/Jellyfin media server, Docker Compose, dan self-hosted services lainnya</p>
+      <div class="article-meta">
+        <span>📅 27 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Home Server</a></li>
+          <li><a href="#persiapan">Persiapan Hardware</a></li>
+          <li><a href="#docker">Docker & Docker Compose</a></li>
+          <li><a href="#nas">NAS dengan Samba</a></li>
+          <li><a href="#pihole">Pi-hole DNS Ad Blocker</a></li>
+          <li><a href="#vpn">WireGuard VPN Server</a></li>
+          <li><a href="#media">Media Server (Jellyfin)</a></li>
+          <li><a href="#services">Self-Hosted Services</a></li>
+          <li><a href="#keamanan">Keamanan & Maintenance</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Raspberry Pi Home Server</h2>
+
+      <p><strong>Raspberry Pi Home Server</strong> adalah setup di mana Raspberry Pi digunakan sebagai server pribadi di rumah untuk berbagai layanan: penyimpanan file (NAS), pemblokir iklan (Pi-hole), VPN pribadi, media streaming, dan banyak lagi. Dengan daya listrik yang sangat rendah (~5-10W), Raspberry Pi bisa berjalan 24/7 tanpa tagihan listrik yang besar.</p>
+
+      <p>Menggunakan Raspberry Pi sebagai home server adalah langkah pertama menuju <strong>self-hosting</strong> — mengendalikan data dan layanan Anda sendiri tanpa bergantung pada layanan cloud berbayar. Anda belajar Linux system administration, networking, dan DevOps secara praktis.</p>
+
+      <h3>Layanan yang Akan Dibangun</h3>
+      <table class="net-table">
+        <thead>
+          <tr><th>Layanan</th><th>Fungsi</th><th>Port</th><th>Container</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Samba NAS</td><td>File sharing jaringan (SMB/CIFS)</td><td>445</td><td>Native</td></tr>
+          <tr><td>Pi-hole</td><td>DNS ad blocker untuk seluruh jaringan</td><td>53, 80</td><td>Docker</td></tr>
+          <tr><td>WireGuard</td><td>VPN pribadi untuk akses dari luar</td><td>51820</td><td>Docker</td></tr>
+          <tr><td>Jellyfin</td><td>Media server (film, musik, foto)</td><td>8096</td><td>Docker</td></tr>
+          <tr><td>Nextcloud</td><td>Cloud storage pribadi (alternatif Google Drive)</td><td>8080</td><td>Docker</td></tr>
+          <tr><td>Portainer</td><td>Dashboard manajemen Docker</td><td>9000</td><td>Docker</td></tr>
+          <tr><td>Uptime Kuma</td><td>Monitoring uptime layanan</td><td>3001</td><td>Docker</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Keuntungan Self-Hosting</h3>
+      <table class="net-table">
+        <thead>
+          <tr><th>Aspek</th><th>Self-Hosted (Raspberry Pi)</th><th>Cloud Service</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Biaya</td><td>🟢 Satu kali beli, listrik ~Rp 30rb/bulan</td><td>🔴 Langganan bulanan terus-menerus</td></tr>
+          <tr><td>Privasi</td><td>🟢 Data di rumah Anda sendiri</td><td>🔴 Data di server orang lain</td></tr>
+          <tr><td>Kontrol</td><td>🟢 Full control atas semua konfigurasi</td><td>🔴 Terbatas pada fitur yang disediakan</td></tr>
+          <tr><td>Internet</td><td>🔴 Butuh internet untuk akses dari luar</td><td>🟢 Selalu online</td></tr>
+          <tr><td>Backup</td><td>🔴 Tanggung jawab sendiri</td><td>🟢 Biasanya di-backup provider</td></tr>
+          <tr><td>Reliability</td><td>🔴 Single point of failure</td><td>🟢 Redundant infrastructure</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Persiapan           -->
+      <!-- ============================== -->
+      <h2 id="persiapan">2. Persiapan Hardware</h2>
+
+      <h3>Daftar Komponen</h3>
+      <table class="net-table">
+        <thead>
+          <tr><th>Komponen</th><th>Rekomendasi</th><th>Est. Harga</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Raspberry Pi</td><td>Raspberry Pi 4 Model B (4GB/8GB RAM)</td><td>Rp 1.200.000 - 1.500.000</td></tr>
+          <tr><td>SSD/SSD External</td><td>SSD 256GB-1TB via USB 3.0 enclosure</td><td>Rp 300.000 - 1.000.000</td></tr>
+          <tr><td>USB 3.0 Enclosure</td><td>SATA to USB 3.0 (UASP support)</td><td>Rp 80.000</td></tr>
+          <tr><td>MicroSD Card</td><td>32GB A2 class (untuk boot)</td><td>Rp 80.000</td></tr>
+          <tr><td>Power Supply</td><td>Official RPi PSU USB-C 5V/3A</td><td>Rp 150.000</td></tr>
+          <tr><td>Ethernet Cable</td><td>Cat6 ke router</td><td>Rp 30.000</td></tr>
+          <tr><td>Casing + Fan</td><td>Casing dengan kipas aktif</td><td>Rp 100.000</td></tr>
+          <tr><td>UPS (opsional)</td><td>Mini UPS untuk perlindungan mati listrik</td><td>Rp 200.000</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Setup Awal Raspberry Pi</h3>
+<pre><code># ============================================
+# Setup Raspberry Pi OS untuk Home Server
+# Gunakan Raspberry Pi OS Lite (64-bit, headless)
+# ============================================
+
+# 1. Flash OS menggunakan Raspberry Pi Imager
+#    Pilih: Raspberry Pi OS Lite (64-bit)
+#    Advanced options: set hostname, enable SSH, set user
+
+# 2. Boot dan SSH masuk
+ssh pi@raspberrypi.local
+
+# 3. Update sistem
+sudo apt update && sudo apt upgrade -y
+
+# 4. Set static IP (edit /etc/dhcpcd.conf)
+sudo tee -a /etc/dhcpcd.conf &lt;&lt;'EOF'
+interface eth0
+static ip_address=192.168.1.10/24
+static routers=192.168.1.1
+static domain_name_servers=1.1.1.1 8.8.8.8
+EOF
+sudo systemctl restart dhcpcd
+
+# 5. Mount SSD external
+# Cek nama device SSD
+lsblk
+# Misal: /dev/sda
+
+# Format SSD (sekali saja!)
+sudo mkfs.ext4 /dev/sda1
+
+# Buat mount point
+sudo mkdir -p /mnt/storage
+
+# Mount SSD
+sudo mount /dev/sda1 /mnt/storage
+
+# Set permission
+sudo chown -R pi:pi /mnt/storage
+
+# Auto-mount saat boot (tambahkan ke /etc/fstab)
+echo '/dev/sda1 /mnt/storage ext4 defaults,noatime 0 2' | sudo tee -a /etc/fstab
+
+# 6. Install utilitas dasar
+sudo apt install -y htop curl wget git tmux \
+  net-tools unattended-upgrades
+
+# 7. Enable automatic security updates
+sudo dpkg-reconfigure -plow unattended-upgrades
+
+# 8. Konfigurasi firewall dasar
+sudo apt install ufw -y
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow ssh
+sudo ufw allow from 192.168.1.0/24
+sudo ufw enable
+sudo ufw status</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Docker              -->
+      <!-- ============================== -->
+      <h2 id="docker">3. Docker & Docker Compose</h2>
+
+      <p><strong>Docker</strong> adalah platform containerization yang memungkinkan kita menjalankan aplikasi dalam container yang terisolasi. Docker Compose memudahkan deploy beberapa layanan sekaligus dengan satu file konfigurasi.</p>
+
+<pre><code># ============================================
+# Install Docker dan Docker Compose
+# ============================================
+
+# Install Docker
+curl -fsSL https://get.docker.com | sh
+
+# Tambahkan user pi ke grup docker
+sudo usermod -aG docker pi
+
+# Aktifkan Docker
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# Verifikasi
+docker --version
+docker compose version
+
+# Install Portainer (Docker management UI)
+docker volume create portainer_data
+
+docker run -d \
+  --name portainer \
+  --restart=always \
+  -p 9000:9000 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data \
+  portainer/portainer-ce:latest
+
+# Akses Portainer: http://192.168.1.10:9000
+
+# ============================================
+# Docker Compose untuk semua layanan
+# ============================================
+
+# Buat direktori untuk konfigurasi
+mkdir -p ~/home-server
+cd ~/home-server
+
+# Buat file docker-compose.yml
+cat &lt;&lt;'EOF' > docker-compose.yml
+version: '3.8'
+
+services:
+  # ===== Pi-hole DNS Ad Blocker =====
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "8053:80/tcp"
+    environment:
+      TZ: 'Asia/Jakarta'
+      WEBPASSWORD: 'ubah-password-ini'
+      DNSMASQ_LISTENING: 'all'
+    volumes:
+      - ./pihole/etc-pihole:/etc/pihole
+      - ./pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - server-net
+
+  # ===== WireGuard VPN =====
+  wireguard:
+    image: linuxserver/wireguard:latest
+    container_name: wireguard
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      TZ: 'Asia/Jakarta'
+      SERVERURL: 'auto'
+      SERVERPORT: '51820'
+      PEERS: '3'
+      PEERDNS: 'auto'
+    volumes:
+      - ./wireguard/config:/config
+      - /lib/modules:/lib/modules
+    ports:
+      - "51820:51820/udp"
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    networks:
+      - server-net
+
+  # ===== Jellyfin Media Server =====
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    ports:
+      - "8096:8096"
+    environment:
+      TZ: 'Asia/Jakarta'
+    volumes:
+      - ./jellyfin/config:/config
+      - ./jellyfin/cache:/cache
+      - /mnt/storage/media:/media:ro
+    networks:
+      - server-net
+
+  # ===== Uptime Kuma (Monitoring) =====
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./uptime-kuma/data:/app/data
+    networks:
+      - server-net
+
+networks:
+  server-net:
+    driver: bridge
+EOF
+
+# Jalankan semua layanan
+docker compose up -d
+
+# Cek status
+docker compose ps
+docker compose logs -f</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: NAS                 -->
+      <!-- ============================== -->
+      <h2 id="nas">4. NAS dengan Samba</h2>
+
+      <p><strong>Network Attached Storage (NAS)</strong> memungkinkan Anda berbagi file ke semua perangkat di jaringan rumah (PC, laptop, smart TV, HP). Samba menggunakan protokol SMB/CIFS yang didukung oleh Windows, macOS, Linux, Android, dan iOS.</p>
+
+<pre><code># ============================================
+# Setup Samba NAS
+# ============================================
+
+# 1. Install Samba
+sudo apt install samba samba-common-bin -y
+
+# 2. Backup konfigurasi default
+sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
+
+# 3. Konfigurasi Samba
+sudo tee /etc/samba/smb.conf &lt;&lt;'EOF'
+[global]
+   workgroup = HOMENET
+   server string = Raspberry Pi NAS
+   security = user
+   map to guest = never
+   dns proxy = no
+   interfaces = eth0
+   bind interfaces only = yes
+
+   # Optimasi performa
+   socket options = TCP_NODELAY IPTOS_LOWDELAY
+   read raw = yes
+   write raw = yes
+   max xmit = 65535
+   dead time = 15
+   getwd cache = yes
+
+[shared]
+   comment = Shared Storage
+   path = /mnt/storage/shared
+   browseable = yes
+   read only = no
+   create mask = 0664
+   directory mask = 0775
+   valid users = @nasusers
+
+[media]
+   comment = Media Files
+   path = /mnt/storage/media
+   browseable = yes
+   read only = no
+   create mask = 0664
+   directory mask = 0775
+   valid users = @nasusers
+
+[backup]
+   comment = Backup Folder
+   path = /mnt/storage/backup
+   browseable = yes
+   read only = no
+   create mask = 0664
+   directory mask = 0775
+   valid users = @nasusers
+EOF
+
+# 4. Buat direktori
+sudo mkdir -p /mnt/storage/{shared,media,backup}
+sudo chown -R pi:pi /mnt/storage
+
+# 5. Buat user Samba
+sudo groupadd nasusers
+sudo usermod -aG nasusers pi
+sudo smbpasswd -a pi
+# Masukkan password untuk akses Samba
+
+# 6. Restart Samba
+sudo systemctl restart smbd nmbd
+sudo systemctl enable smbd nmbd
+
+# 7. Test dari Windows:
+#    Buka File Explorer → ketik: \192.168.1.10shared
+#    Atau map network drive
+
+# 8. Test dari Linux/Mac:
+#    smbclient //192.168.1.10/shared -U pi
+
+# 9. Mount otomatis di Windows:
+#    File Explorer → This PC → Map Network Drive
+#    Drive: Z:
+#    Folder: 192.168.1.10shared
+#    Centang "Reconnect at sign-in"
+
+# 10. Mount otomatis di Linux:
+#     Tambahkan ke /etc/fstab:
+# //192.168.1.10/shared /mnt/nas cifs credentials=/home/pi/.smbcreds,uid=1000,gid=1000 0 0
+
+# File ~/.smbcreds:
+# username=pi
+# password=your-samba-password</code></pre>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Performa NAS</div>
+        <p>Dengan Raspberry Pi 4 Gigabit Ethernet dan SSD via USB 3.0, kecepatan baca/tulis Samba bisa mencapai <strong>80-110 MB/s</strong>. Ini cukup untuk streaming video 4K dan transfer file besar. Gunakan SSD (bukan HDD) untuk random I/O yang lebih baik.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Pi-hole             -->
+      <!-- ============================== -->
+      <h2 id="pihole">5. Pi-hole DNS Ad Blocker</h2>
+
+      <p><strong>Pi-hole</strong> adalah DNS sinkhole yang berfungsi sebagai ad blocker untuk <strong>seluruh jaringan</strong>. Cukup set Pi-hole sebagai DNS server di router, dan semua perangkat di rumah (termasuk smart TV dan HP) akan terbebas dari iklan tanpa perlu install aplikasi apapun.</p>
+
+      <h3>Cara Kerja Pi-hole</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Pi-hole DNS Filtering</div>
+<pre><code>NO
+PI-HOLE: How It Works
+Perangkat (HP/Laptop/TV) Internet
+1. DNS request:
+&quot;ads.google.com&quot;
+▼
+Pi-hole 2. Cek blocklist
+(DNS)
+Blocked?
+YES→ Return
+0.0.0.0 ← Iklan diblokir!
+→ Forward→ 3. Forward
+request ke upstream
+← 4. Balas IP
+5. Return IP (legit)
+▼
+Perangkat menerima website
+tanpa iklan! 🎉
+Statistik: Biasanya 20-40% traffic
+adalah iklan/tracker → dihemat!</code></pre>
+      </div>
+
+<pre><code># ============================================
+# Konfigurasi Pi-hole (setelah Docker deploy)
+# ============================================
+
+# 1. Akses Pi-hole web interface
+#    Buka: http://192.168.1.10:8053/admin
+#    Login dengan password yang di-set di docker-compose
+
+# 2. Tambahkan blocklist tambahan
+#    Settings → DNS → Upstream DNS Servers
+#    Pilih: Custom
+#    Tambahkan:
+#    - 1.1.1.1 (Cloudflare)
+#    - 8.8.8.8 (Google)
+#    - 9.9.9.9 (Quad9)
+
+# 3. Tambahkan adlist (blocklist tambahan)
+#    Adlists → paste URL berikut:
+# https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+# https://raw.githubusercontent.com/AdAway/adaway.android/master/hosts.txt
+# https://www.github.developerdan.com/hosts/lists/ads-and-tracking-extended.txt
+#    Klik "Add" lalu "Update Gravity"
+
+# 4. Set Pi-hole sebagai DNS di Router
+#    Login ke router (biasanya 192.168.1.1)
+#    Network Settings → DHCP → DNS Server
+#    Set Primary DNS: 192.168.1.10 (IP Pi-hole)
+#    Set Secondary DNS: 1.1.1.1 (fallback)
+
+# 5. Atau set manual per perangkat:
+#    Windows: Settings → Network → DNS → 192.168.1.10
+#    Android: WiFi → Advanced → DNS → 192.168.1.10
+#    iPhone: WiFi → Configure DNS → Manual → 192.168.1.10
+
+# 6. Whitelist domain yang salah terblokir
+#    Pi-hole Admin → Whitelist
+#    Tambahkan domain yang dibutuhkan:
+#    - play.google.com
+#    - android.clients.google.com
+#    - connectivitycheck.gstatic.com
+
+# 7. Statistik via CLI
+docker exec pihole pihole -c    # Summary
+docker exec pihole pihole -q    # Query log</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: VPN                 -->
+      <!-- ============================== -->
+      <h2 id="vpn">6. WireGuard VPN Server</h2>
+
+      <p><strong>WireGuard</strong> adalah VPN modern yang sangat cepat dan ringan. Dengan WireGuard di Raspberry Pi, Anda bisa mengakses jaringan rumah (NAS, Pi-hole, CCTV) dari mana saja di internet secara aman.</p>
+
+      <h3>Cara Kerja VPN</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: WireGuard VPN Architecture</div>
+<pre><code>Laptop
++ WG
+Client
+WIREGUARD VPN: Remote Access
+Di Kafe/WiFi Publik Di Rumah
+Encrypted RPi +
+tunnel WireGuard
+(UDP 51820) Server
+Akses seolah di rumah: LAN 192.168.1.x
+• NAS files (192.168.1.10)
+• Pi-hole DNS
+• CCTV cameras
+• Printer
+IP publik:
+10.66.66.1 ←→ 10.66.66.2
+(tunnel addresses)
+Keuntungan WireGuard:
+• Sangat cepat (kernel-level encryption)
+• Konfigurasi sederhana (public/private key)
+• Battery-friendly di mobile
+• Codebase kecil (~4000 lines vs OpenVPN 100K+)</code></pre>
+      </div>
+
+<pre><code># ============================================
+# Konfigurasi WireGuard VPN
+# ============================================
+
+# 1. WireGuard sudah di-deploy via Docker Compose
+#    Cek peers yang sudah dibuat:
+docker exec wireguard wg
+
+# 2. Ambil konfigurasi client
+#    File ada di ./wireguard/config/peer1/peer1.conf
+cat ./wireguard/config/peer1/peer1.conf
+
+# Contoh output:
+# [Interface]
+# Address = 10.66.66.2/32
+# PrivateKey = <client-private-key>
+# DNS = 10.66.66.1
+#
+# [Peer]
+# PublicKey = <server-public-key>
+# Endpoint = your-public-ip:51820
+# AllowedIPs = 0.0.0.0/0
+
+# 3. Dapatkan IP publik rumah
+curl ifconfig.me
+# Contoh: 103.xxx.xxx.xxx
+
+# 4. Setup port forwarding di router:
+#    External Port: 51820/UDP
+#    Internal IP: 192.168.1.10
+#    Internal Port: 51820/UDP
+
+# 5. Install WireGuard client:
+#    - Windows: https://www.wireguard.com/install/
+#    - Android: WireGuard dari Play Store
+#    - iPhone: WireGuard dari App Store
+#    - Linux: sudo apt install wireguard
+
+# 6. Import konfigurasi ke client:
+#    - Scan QR code (ada di docker logs)
+docker logs wireguard 2>&1 | grep -A 20 "QR"
+#    - Atau import file .conf langsung
+
+# 7. Dynamic DNS (jika IP publik berubah)
+#    Gunakan No-IP atau DuckDNS:
+#    Daftar di https://www.duckdns.org
+#    Buat cron job update IP:
+crontab -e
+# Tambahkan:
+*/5 * * * * curl -s "https://www.duckdns.org/update?domains=MYDOMAIN&token=MYTOKEN&ip=" > /dev/null
+
+# 8. Test VPN:
+#    Aktifkan VPN di client
+#    Buka: http://192.168.1.10:8053 (Pi-hole)
+#    Harus bisa diakses dari luar!</code></pre>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Keamanan VPN</div>
+        <p>Selalu gunakan <strong>public key authentication</strong> (bukan password). Ganti port default 51820 ke port acak untuk mengurangi scanning. Pastikan firewall hanya mengizinkan port VPN dari luar. Monitor log untuk koneksi mencurigakan.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Media Server        -->
+      <!-- ============================== -->
+      <h2 id="media">7. Media Server (Jellyfin)</h2>
+
+      <p><strong>Jellyfin</strong> adalah media server open source (alternatif Plex/Emby) yang memungkinkan streaming film, musik, dan foto dari Raspberry Pi ke semua perangkat: smart TV, HP, tablet, laptop. Jellyfin 100% gratis tanpa fitur terkunci.</p>
+
+<pre><code># ============================================
+# Konfigurasi Jellyfin Media Server
+# ============================================
+
+# 1. Jellyfin sudah di-deploy via Docker Compose
+#    Akses: http://192.168.1.10:8096
+
+# 2. Setup wizard:
+#    - Bahasa: Indonesia
+#    - Buat akun admin
+#    - Tambahkan media library:
+#      Movies: /media/movies
+#      TV Shows: /media/tvshows
+#      Music: /media/music
+#      Photos: /media/photos
+
+# 3. Struktur folder media yang benar:
+# /mnt/storage/media/
+# ├── movies/
+# │   ├── Movie Name (2024)/
+# │   │   └── Movie Name (2024).mkv
+# │   └── Another Movie (2023)/
+# │       └── Another Movie (2023).mp4
+# ├── tvshows/
+# │   ├── Show Name/
+# │   │   ├── Season 01/
+# │   │   │   ├── S01E01.mkv
+# │   │   │   └── S01E02.mkv
+# │   │   └── Season 02/
+# │   └── Another Show/
+# ├── music/
+# │   ├── Artist/
+# │   │   ├── Album/
+# │   │   │   └── track.mp3
+# └── photos/
+#     ├── 2024/
+#     └── vacation/
+
+# 4. Install client apps:
+#    - Smart TV: Cari "Jellyfin" di app store
+#    - Android: Jellyfin dari Play Store
+#    - iPhone: Jellyfin dari App Store
+#    - Browser: langsung buka http://192.168.1.10:8096
+#    - Desktop: Jellyfin Media Player
+
+# 5. Hardware transcoding (opsional, untuk performa):
+#    Raspberry Pi 4 mendukung hardware decoding H.264
+#    Tambahkan di docker-compose.yml untuk jellyfin:
+#    devices:
+#      - /dev/video10:/dev/video10  # H264 decoder
+#      - /dev/video11:/dev/video11  # H264 encoder
+#      - /dev/video12:/dev/video12  # ISP
+
+# 6. Download media dengan yt-dlp (opsional):
+sudo apt install yt-dlp -y
+yt-dlp -o "/mnt/storage/media/movies/%(title)s.%(ext)s" \
+  "URL_VIDEO"
+
+# 7. Remote access via VPN:
+#    Setelah WireGuard aktif, akses Jellyfin dari mana saja
+#    via http://192.168.1.10:8096</code></pre>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Self-Hosted         -->
+      <!-- ============================== -->
+      <h2 id="services">8. Self-Hosted Services Lainnya</h2>
+
+      <p>Selain layanan utama di atas, berikut beberapa layanan self-hosted bermanfaat lain yang bisa dijalankan di Raspberry Pi:</p>
+
+      <h3>Tambahan ke Docker Compose</h3>
+<pre><code># ============================================
+# Tambahkan ke docker-compose.yml
+# ============================================
+
+  # ===== Nextcloud (Cloud Storage Pribadi) =====
+  nextcloud:
+    image: nextcloud:latest
+    container_name: nextcloud
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      TZ: 'Asia/Jakarta'
+      MYSQL_HOST: nextcloud-db
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD: 'securepassword'
+    volumes:
+      - ./nextcloud/html:/var/www/html
+      - /mnt/storage/nextcloud-data:/var/www/html/data
+    networks:
+      - server-net
+
+  nextcloud-db:
+    image: mariadb:10
+    container_name: nextcloud-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 'rootpassword'
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+      MYSQL_PASSWORD: 'securepassword'
+    volumes:
+      - ./nextcloud/db:/var/lib/mysql
+    networks:
+      - server-net
+
+  # ===== Home Assistant (Smart Home) =====
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      TZ: 'Asia/Jakarta'
+    volumes:
+      - ./homeassistant:/config
+    privileged: true</code></pre>
+
+      <h3>Layanan Lain yang Direkomendasikan</h3>
+      <table class="net-table">
+        <thead>
+          <tr><th>Layanan</th><th>Fungsi</th><th>Docker Image</th><th>Port</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Vaultwarden</td><td>Password manager (Bitwarden)</td><td>vaultwarden/server</td><td>8888</td></tr>
+          <tr><td>Nginx Proxy Manager</td><td>Reverse proxy + SSL</td><td>jc21/nginx-proxy-manager</td><td>80,443,81</td></tr>
+          <tr><td>Tandoor Recipes</td><td>Resep masakan digital</td><td>vabene1111/recipes</td><td>8081</td></tr>
+          <tr><td>Gitea</td><td>Git server pribadi</td><td>gitea/gitea</td><td>3000</td></tr>
+          <tr><td>Homepage</td><td>Dashboard untuk semua layanan</td><td>ghcr.io/gethomepage/homepage</td><td>3002</td></tr>
+          <tr><td>Duplicati</td><td>Backup otomatis</td><td>linuxserver/duplicati</td><td>8200</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Keamanan            -->
+      <!-- ============================== -->
+      <h2 id="keamanan">9. Keamanan & Maintenance</h2>
+
+      <h3>Checklist Keamanan</h3>
+      <table class="net-table">
+        <thead>
+          <tr><th>#</th><th>Aksi</th><th>Deskripsi</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>SSH Key Auth</td><td>Disable password login, gunakan SSH key</td><td>✅</td></tr>
+          <tr><td>2</td><td>Firewall (UFW)</td><td>Hanya buka port yang diperlukan</td><td>✅</td></tr>
+          <tr><td>3</td><td>Auto Updates</td><td>Aktifkan unattended-upgrades</td><td>✅</td></tr>
+          <tr><td>4</td><td>Fail2ban</td><td>Blokir IP yang gagal login berulang</td><td>✅</td></tr>
+          <tr><td>5</td><td>VPN Only Access</td><td>Layanan internal hanya via VPN</td><td>✅</td></tr>
+          <tr><td>6</td><td>Docker Security</td><td>Jangan run container sebagai root</td><td>✅</td></tr>
+          <tr><td>7</td><td>Backup Otomatis</td><td>Backup konfigurasi ke SSD/NAS terpisah</td><td>✅</td></tr>
+          <tr><td>8</td><td>Monitoring</td><td>Uptime Kuma untuk alert layanan down</td><td>✅</td></tr>
+        </tbody>
+      </table>
+
+<pre><code># ============================================
+# Setup Fail2ban
+# ============================================
+
+sudo apt install fail2ban -y
+
+# Konfigurasi
+sudo tee /etc/fail2ban/jail.local &lt;&lt;'EOF'
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 3600
+findtime = 600
+EOF
+
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+
+# Cek banned IP
+sudo fail2ban-client status sshd
+
+# ============================================
+# Backup Script Otomatis
+# ============================================
+
+cat &lt;&lt;'EOF' > ~/backup.sh
+#!/bin/bash
+BACKUP_DIR="/mnt/storage/backup/home-server"
+DATE=$(date +%Y%m%d_%H%M%S)
+
+mkdir -p $BACKUP_DIR/$DATE
+
+# Backup Docker configs
+cp -r ~/home-server $BACKUP_DIR/$DATE/
+
+# Backup Pi-hole custom lists
+cp -r ~/home-server/pihole $BACKUP_DIR/$DATE/
+
+# Backup WireGuard configs
+cp -r ~/home-server/wireguard $BACKUP_DIR/$DATE/
+
+# Hapus backup lama (>30 hari)
+find $BACKUP_DIR -maxdepth 1 -mtime +30 -exec rm -rf {} \;
+
+echo "Backup completed: $DATE"
+EOF
+
+chmod +x ~/backup.sh
+
+# Jadwalkan backup setiap hari jam 3 pagi
+(crontab -l 2>/dev/null; echo "0 3 * * * ~/backup.sh >> /var/log/backup.log 2>&1") | crontab -</code></pre>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Performa & Tips</div>
+        <ul>
+          <li>Gunakan <strong>SSD via USB 3.0</strong> untuk semua data — hindari microSD untuk storage intensif</li>
+          <li>Aktifkan <strong>log2ram</strong> untuk mengurangi write ke SD card: <code>sudo apt install log2ram</code></li>
+          <li>Monitor suhu: <code>vcgencmd measure_temp</code> — pastikan di bawah 70°C</li>
+          <li>Gunakan <strong>UPS mini</strong> untuk mencegah corrupt saat mati listrik mendadak</li>
+          <li>Restart otomatis jika hang: <code>sudo apt install watchdog</code></li>
+        </ul>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz               -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Raspberry Pi Home Server:</p>
+
+      <div class="quiz-container" id="quizPiHome01">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa fungsi utama Pi-hole dalam jaringan rumah?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Mempercepat koneksi internet</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Memblokir iklan dan tracker di level DNS untuk seluruh jaringan</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Menyimpan file foto dan video</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Mengganti router WiFi</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Mengapa WireGuard direkomendasikan dibanding OpenVPN?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) WireGuard lebih mudah dikonfigurasi, lebih cepat, dan memiliki codebase yang jauh lebih kecil</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) OpenVPN sudah tidak didukung</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) WireGuard tidak memerlukan enkripsi</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Keduanya persis sama</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Mengapa disarankan menggunakan SSD (bukan microSD) untuk storage NAS?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) SSD lebih murah dari microSD</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) SSD memiliki performa I/O yang jauh lebih baik dan umur pakai lebih lama untuk operasi baca/tulis intensif</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) microSD tidak bisa digunakan sama sekali</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) SSD tidak memerlukan kabel</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari Docker Compose dalam home server?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Mengganti sistem operasi Raspberry Pi</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Mengelola dan mendefinisikan beberapa layanan Docker sekaligus dalam satu file YAML</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Menghapus semua container</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Menginstall Raspberry Pi OS</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa yang harus dilakukan pertama kali untuk mengamankan SSH di Raspberry Pi?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Menghapus SSH sepenuhnya</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Mengganti port SSH ke angka random</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Disable password login dan gunakan SSH key authentication, tambahkan firewall</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Tidak perlu apa-apa, SSH sudah aman defaultnya</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ARTICLE NAVIGATION -->
+      <div class="article-nav">
+        <a href="raspberry-pi-cluster.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Raspberry Pi Cluster Computing</span>
+        </a>
+        <a href="lora-communication.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Komunikasi LoRa</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/python-async.html" class="related-card">
+          <span class="related-category">Python untuk IoT</span>
+          <span class="related-title">Async Python: Pemrograman Asinkron untuk IoT</span>
+        </a>
+        <a href="/articles/flutter-animation.html" class="related-card">
+          <span class="related-category">Mobile</span>
+          <span class="related-title">Flutter: Animasi & Transisi</span>
+        </a>
+        <a href="/articles/nginx-load-balancing.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <span class="related-title">Nginx: Web Server & Load Balancer</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

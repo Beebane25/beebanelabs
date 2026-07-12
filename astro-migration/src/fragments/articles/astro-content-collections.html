@@ -1,0 +1,740 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Web Development</a><span class="separator">/</span><span class="current">Astro Content Collections</span></div>
+      <span class="category-tag">Web Development</span>
+      <h1>Astro Content Collections</h1>
+      <p class="article-subtitle">Pelajari cara mengelola konten secara terstruktur dengan Astro Content Collections — mulai dari schema definition, collection queries, dynamic routes, MDX integration, hingga RSS feed generation.</p>
+      <div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 15 menit baca</span><span class="difficulty menengah">Menengah</span></div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Content Collections</a></li>
+          <li><a href="#setup">Project Setup</a></li>
+          <li><a href="#schema">Schema Definition</a></li>
+          <li><a href="#queries">Collection Queries</a></li>
+          <li><a href="#dynamic-routes">Dynamic Routes</a></li>
+          <li><a href="#mdx">MDX Integration</a></li>
+          <li><a href="#rss">RSS Feed Generation</a></li>
+          <li><a href="#advanced">Teknik Lanjutan</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan Content Collections</h2>
+
+      <p><strong>Content Collections</strong> adalah fitur Astro untuk mengelola konten lokal (Markdown, MDX, data files) secara terstruktur. Collections menyediakan validasi schema, type-safe queries, dan API yang konsisten untuk mengakses konten Anda.</p>
+
+      <p>Bayangkan Anda punya ratusan file Markdown untuk blog, dokumentasi, atau portofolio. Tanpa collections, Anda harus membaca file secara manual, parse frontmatter, dan mengelola datanya sendiri. Dengan Content Collections, Astro melakukan semua itu — plus validasi dan type safety.</p>
+
+      <h3>Mengapa Content Collections?</h3>
+      <table class="net-table">
+        <thead><tr><th>Fitur</th><th>Tanpa Collections</th><th>Dengan Collections</th></tr></thead>
+        <tbody>
+          <tr><td>Schema Validation</td><td>Manual, raw frontmatter</td><td>Otomatis dengan Zod</td></tr>
+          <tr><td>Type Safety</td><td>String everywhere</td><td>TypeScript types ter-generate</td></tr>
+          <tr><td>Query</td><td>import.meta.glob + filter</td><td>getCollection() API</td></tr>
+          <tr><td>Error</td><td>Silent failure</td><td>Build error jika schema invalid</td></tr>
+          <tr><td>Sorting/Filtering</td><td>Manual array manipulation</td><td>Built-in query functions</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>Content Collections adalah alasan utama mengapa banyak developer memilih Astro untuk website konten-heavy seperti blog, dokumentasi, dan marketing sites. Fitur ini menghilangkan sakit kepala dalam mengelola konten Markdown.</p>
+      </div>
+
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="setup">2. Project Setup</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Shell — Membuat Project Astro</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Membuat project Astro baru
+npm create astro@latest my-blog
+cd my-blog
+
+# Pilih template "Blog" saat setup
+# Atau tambahkan collections manual ke project yang ada
+
+# Jalankan development server
+npm run dev
+# Server berjalan di http://localhost:4321
+
+# Struktur folder Content Collections:
+# my-blog/
+# ├── src/
+# │   ├── content/           ← Content Collections
+# │   │   ├── config.ts      ← Schema definitions
+# │   │   ├── blog/          ← Blog collection
+# │   │   │   ├── post-1.md
+# │   │   │   ├── post-2.mdx
+# │   │   │   └── post-3.md
+# │   │   └── docs/          ← Docs collection
+# │   │       ├── getting-started.md
+# │   │       └── api-reference.md
+# │   └── pages/
+# │       ├── index.astro
+# │       └── blog/
+# │           ├── index.astro
+# │           └── [...slug].astro
+# └── astro.config.mjs
+</code></pre>
+      </div>
+
+      <!-- SECTION 3 -->
+      <h2 id="schema">3. Schema Definition</h2>
+
+      <p>Schema mendefinisikan struktur data frontmatter untuk setiap collection. Astro menggunakan <strong>Zod</strong> untuk validasi schema dan TypeScript type inference.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TypeScript — src/content/config.ts</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// src/content/config.ts
+import { defineCollection, z } from "astro:content";
+
+// Definisi schema untuk collection "blog"
+const blogCollection = defineCollection({
+  type: "content",    // "content" untuk Markdown/MDX, "data" untuk JSON/YAML
+  schema: z.object({
+    title: z.string().min(5).max(100),
+    description: z.string().min(20).max(300),
+    pubDate: z.coerce.date(),       // Auto-parse string ke Date
+    updatedDate: z.coerce.date().optional(),
+    author: z.string().default("Admin"),
+    category: z.enum([
+      "tutorial",
+      "berita",
+      "tips",
+      "opini",
+    ]),
+    tags: z.array(z.string()).min(1).max(10),
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }).optional(),
+    draft: z.boolean().default(false),    // Jangan publish jika true
+    featured: z.boolean().default(false),
+    readingTime: z.number().min(1).optional(),
+  }),
+});
+
+// Definisi schema untuk collection "docs"
+const docsCollection = defineCollection({
+  type: "content",
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    section: z.string(),
+    order: z.number().default(0),        // Urutan dalam sidebar
+    badge: z.enum(["new", "updated", ""]).optional(),
+  }),
+});
+
+// Definisi schema untuk collection "authors" (data collection)
+const authorsCollection = defineCollection({
+  type: "data",
+  schema: z.object({
+    name: z.string(),
+    bio: z.string(),
+    avatar: z.string().url(),
+    social: z.object({
+      twitter: z.string().optional(),
+      github: z.string().optional(),
+      website: z.string().url().optional(),
+    }).optional(),
+  }),
+});
+
+// Export semua collections
+export const collections = {
+  blog: blogCollection,
+  docs: docsCollection,
+  authors: authorsCollection,
+};
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Markdown — Contoh Frontmatter</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>---
+title: "Tutorial Astro Content Collections"
+description: "Pelajari cara mengelola konten dengan Astro Content Collections"
+pubDate: 2026-06-29
+author: "Budi Santoso"
+category: "tutorial"
+tags: ["astro", "web-development", "tutorial"]
+image:
+  src: "/images/blog/astro-collections.png"
+  alt: "Astro Content Collections"
+draft: false
+featured: true
+readingTime: 8
+---
+
+## Apa itu Content Collections?
+
+Content Collections adalah fitur terbaru dari Astro yang memudahkan pengelolaan konten Markdown. Dengan collections, Anda bisa mendefinisikan schema untuk frontmatter dan mendapatkan type safety secara otomatis.
+
+### Keunggulan
+
+- **Validasi otomatis** — error di-build time jika frontmatter invalid
+- **Type safety** — TypeScript tahu tipe data setiap field
+- **Query yang powerful** — filter, sort, dan paginate dengan mudah
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="queries">4. Collection Queries</h2>
+
+      <p>Astro menyediakan API <code>getCollection()</code> dan <code>getEntry()</code> untuk mengakses konten secara type-safe.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TypeScript — Mengakses Collections</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// src/pages/blog/index.astro
+---
+import { getCollection } from "astro:content";
+
+// Ambil semua post yang bukan draft
+const posts = await getCollection("blog", ({ data }) => {
+  return !data.draft;    // Filter: hanya yang draft=false
+});
+
+// Sort berdasarkan tanggal terbaru
+const sortedPosts = posts.sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+// Group berdasarkan category
+const featured = sortedPosts.filter((p) => p.data.featured);
+const recent = sortedPosts.slice(0, 10);
+---
+
+&lt;h1&gt;Blog&lt;/h1&gt;
+
+&lt;section&gt;
+  &lt;h2&gt;Featured&lt;/h2&gt;
+  {featured.map((post) =&gt; (
+    &lt;article&gt;
+      &lt;h3&gt;&lt;a href={`/blog/${post.slug}`}&gt;{post.data.title}&lt;/a&gt;&lt;/h3&gt;
+      &lt;p&gt;{post.data.description}&lt;/p&gt;
+      &lt;time&gt;{post.data.pubDate.toLocaleDateString("id-ID")}&lt;/time&gt;
+    &lt;/article&gt;
+  ))}
+&lt;/section&gt;
+
+&lt;section&gt;
+  &lt;h2&gt;Terbaru&lt;/h2&gt;
+  {recent.map((post) =&gt; (
+    &lt;article&gt;
+      &lt;h3&gt;&lt;a href={`/blog/${post.slug}`}&gt;{post.data.title}&lt;/a&gt;&lt;/h3&gt;
+      &lt;span&gt;{post.data.category}&lt;/span&gt;
+    &lt;/article&gt;
+  ))}
+&lt;/section&gt;
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TypeScript — getEntry dan Referensi</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// src/pages/blog/[...slug].astro
+---
+import { getCollection, getEntry } from "astro:content";
+import BlogPost from "../../layouts/BlogPost.astro";
+
+// Generate static paths untuk semua post
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+
+// Render konten Markdown
+const { Content, headings } = await post.render();
+
+// Ambil data author dari collection terpisah
+const author = await getEntry("authors", post.data.author);
+---
+
+&lt;BlogPost title={post.data.title} description={post.data.description}&gt;
+  &lt;article&gt;
+    &lt;header&gt;
+      &lt;h1&gt;{post.data.title}&lt;/h1&gt;
+      &lt;p&gt;Oleh: {author?.data.name ?? "Admin"}&lt;/p&gt;
+      &lt;time&gt;{post.data.pubDate.toLocaleDateString("id-ID")}&lt;/time&gt;
+      &lt;div class="tags"&gt;
+        {post.data.tags.map((tag) =&gt; &lt;span class="tag"&gt;{tag}&lt;/span&gt;)}
+      &lt;/div&gt;
+    &lt;/header&gt;
+
+    {/* Table of Contents */}
+    &lt;nav class="toc"&gt;
+      &lt;h2&gt;Daftar Isi&lt;/h2&gt;
+      &lt;ul&gt;
+        {headings.map((h) =&gt; (
+          &lt;li style={`padding-left: ${h.depth - 1}rem`}&gt;
+            &lt;a href={`#${h.slug}`}&gt;{h.text}&lt;/a&gt;
+          &lt;/li&gt;
+        ))}
+      &lt;/ul&gt;
+    &lt;/nav&gt;
+
+    {/* Konten Markdown yang di-render */}
+    &lt;div class="prose"&gt;
+      &lt;Content /&gt;
+    &lt;/div&gt;
+  &lt;/article&gt;
+&lt;/BlogPost&gt;
+</code></pre>
+      </div>
+
+      <!-- SECTION 5 -->
+      <h2 id="dynamic-routes">5. Dynamic Routes</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TypeScript — Category Pages</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// src/pages/blog/category/[category].astro
+---
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+
+  // Ambil semua unique categories
+  const categories = [...new Set(posts.map((p) => p.data.category))];
+
+  return categories.map((category) => ({
+    params: { category },
+    props: {
+      category,
+      posts: posts
+        .filter((p) => p.data.category === category)
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+    },
+  }));
+}
+
+const { category, posts } = Astro.props;
+---
+
+&lt;h1&gt;Kategori: {category}&lt;/h1&gt;
+
+{posts.map((post) =&gt; (
+  &lt;article&gt;
+    &lt;h2&gt;&lt;a href={`/blog/${post.slug}`}&gt;{post.data.title}&lt;/a&gt;&lt;/h2&gt;
+    &lt;p&gt;{post.data.description}&lt;/p&gt;
+  &lt;/article&gt;
+))}
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TypeScript — Tag Pages</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// src/pages/blog/tag/[tag].astro
+---
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+
+  // Kumpulkan semua tag unik
+  const allTags = posts.flatMap((p) => p.data.tags);
+  const uniqueTags = [...new Set(allTags)];
+
+  return uniqueTags.map((tag) =&gt; ({
+    params: { tag },
+    props: {
+      tag,
+      posts: posts.filter((p) =&gt; p.data.tags.includes(tag)),
+    },
+  }));
+}
+
+const { tag, posts } = Astro.props;
+---
+
+&lt;h1&gt;Tag: #{tag}&lt;/h1&gt;
+&lt;p&gt;{posts.length} artikel ditemukan&lt;/p&gt;
+
+{posts.map((post) =&gt; (
+  &lt;article&gt;
+    &lt;h2&gt;&lt;a href={`/blog/${post.slug}`}&gt;{post.data.title}&lt;/a&gt;&lt;/h2&gt;
+  &lt;/article&gt;
+))}
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="mdx">6. MDX Integration</h2>
+
+      <p>Astro mendukung <strong>MDX</strong> (Markdown + JSX) yang memungkinkan Anda menggunakan komponen Astro/React langsung di dalam file Markdown.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Shell — Install MDX</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Install MDX integration
+npx astro add mdx
+# Atau manual:
+npm install @astrojs/mdx
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">MDX — Menggunakan Komponen di MDX</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>---
+title: "Tutorial dengan Komponen Interaktif"
+description: "Contoh MDX dengan komponen"
+pubDate: 2026-06-29
+category: "tutorial"
+tags: ["astro", "mdx"]
+---
+
+import Callout from "../../components/Callout.astro";
+import CodeSandbox from "../../components/CodeSandbox.astro";
+import Counter from "../../components/Counter.tsx";
+
+## Pengenalan MDX
+
+MDX memungkinkan Anda menggunakan komponen Astro langsung di Markdown!
+
+&lt;Callout type="info"&gt;
+  Ini adalah komponen Callout yang di-import dari Astro.
+  Bisa digunakan langsung di dalam MDX!
+&lt;/Callout&gt;
+
+### Contoh Interaktif
+
+&lt;Counter client:visible initialCount={0} /&gt;
+
+&lt;CodeSandbox id="abc123" /&gt;
+
+## Lanjutkan dengan konten Markdown biasa...
+
+Paragraf biasa dengan **bold**, *italic*, dan `code`.
+</code></pre>
+      </div>
+
+      <!-- SECTION 7 -->
+      <h2 id="rss">7. RSS Feed Generation</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Shell — Install RSS Plugin</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Install RSS integration
+npm install @astrojs/rss
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TypeScript — src/pages/rss.xml.ts</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// src/pages/rss.xml.ts
+import rss from "@astrojs/rss";
+import { getCollection } from "astro:content";
+import type { APIContext } from "astro";
+
+export async function GET(context: APIContext) {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+
+  // Sort berdasarkan tanggal terbaru
+  const sortedPosts = posts.sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  );
+
+  return rss({
+    title: "Blog BeebaneLabs",
+    description: "Tutorial teknologi dan IT terbaru",
+    site: context.site!,
+    items: sortedPosts.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      link: `/blog/${post.slug}/`,
+      categories: [post.data.category, ...post.data.tags],
+      author: post.data.author,
+    })),
+    customData: "&lt;language&gt;id-ID&lt;/language&gt;",
+    stylesheet: "/rss/styles.xsl",
+  });
+}
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Astro Config — Site URL</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// astro.config.mjs
+import { defineConfig } from "astro/config";
+import mdx from "@astrojs/mdx";
+import sitemap from "@astrojs/sitemap";
+
+export default defineConfig({
+  site: "https://beebanelabs.pages.dev",
+  integrations: [mdx(), sitemap()],
+});
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="advanced">8. Teknik Lanjutan</h2>
+
+      <h3>Custom Renderers &amp; Remark Plugins</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TypeScript — Custom Remark Plugin</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// astro.config.mjs
+import { defineConfig } from "astro/config";
+import mdx from "@astrojs/mdx";
+import remarkToc from "remark-toc";
+import remarkGfm from "remark-gfm";
+import rehypeSlug from "rehype-slug";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [
+      remarkGfm,           // GitHub Flavored Markdown
+      [remarkToc, { heading: "daftar isi" }],  // Auto-generate TOC
+    ],
+    rehypePlugins: [
+      rehypeSlug,          // Tambah ID ke headings
+      rehypeAutolinkHeadings,  // Auto-link headings
+    ],
+    shikiConfig: {
+      theme: "dracula",    // Syntax highlighting theme
+      langs: ["javascript", "typescript", "python", "html", "css"],
+    },
+  },
+  integrations: [mdx()],
+});
+</code></pre>
+      </div>
+
+      <h3>Data Layer &amp; External APIs</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TypeScript — Content Layer API (Astro 5)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// src/content/config.ts (Astro 5+ Content Layer)
+import { defineCollection, z } from "astro:content";
+import { glob, file } from "astro/loaders";
+
+// Local Markdown files
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/blog" }),
+  schema: z.object({
+    title: z.string(),
+    pubDate: z.coerce.date(),
+    tags: z.array(z.string()),
+  }),
+});
+
+// JSON data files
+const authors = defineCollection({
+  loader: file("./src/data/authors.json"),
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+    bio: z.string(),
+  }),
+});
+
+// External API (fetch data dari CMS/API eksternal)
+const products = defineCollection({
+  loader: async () => {
+    const response = await fetch("https://api.example.com/products");
+    const data = await response.json();
+    return data.map((item: any) => ({
+      id: item.id.toString(),
+      ...item,
+    }));
+  },
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+    price: z.number(),
+  }),
+});
+
+export const collections = { blog, authors, products };
+</code></pre>
+      </div>
+
+      <!-- SECTION 9 -->
+      <h2 id="best-practices">9. Best Practices</h2>
+
+      <div class="info-box tip">
+        <div class="info-box-title">✅ Astro Content Collections Best Practices</div>
+        <ul>
+          <li><strong>Selalu definisikan schema</strong> — validasi di build time mencegah error di production</li>
+          <li><strong>Gunakan coerce</strong> — <code>z.coerce.date()</code> otomatis parse string ke Date</li>
+          <li><strong>Draft system</strong> — gunakan field <code>draft: true</code> untuk post yang belum siap</li>
+          <li><strong>Image optimization</strong> — gunakan <code>astro:assets</code> untuk gambar di content</li>
+          <li><strong>MDX untuk interaktivitas</strong> — gunakan MDX saat butuh komponen di konten</li>
+          <li><strong>Filter di query</strong> — lakukan filtering langsung di <code>getCollection()</code></li>
+          <li><strong>RSS selalu tersedia</strong> — buat rss.xml untuk setiap blog</li>
+          <li><strong>Sitemap</strong> — gunakan <code>@astrojs/sitemap</code> untuk SEO</li>
+          <li><strong>Type export</strong> — export type dari schema untuk digunakan di komponen</li>
+          <li><strong>Content Layer API</strong> — gunakan untuk data eksternal (CMS, API)</li>
+        </ul>
+      </div>
+
+      <!-- SECTION 10 -->
+      <h2 id="quiz">10. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial Astro Content Collections, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quizAstro01">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa yang digunakan Astro untuk validasi schema Content Collections?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Joi</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Yup</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Zod</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) AJV</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa fungsi <code>getCollection()</code>?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Membuat collection baru</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Mengambil semua entry dari collection</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Menghapus collection</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Meng-update schema</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Tipe collection apa yang digunakan untuk file Markdown?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) type: "data"</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) type: "content"</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) type: "file"</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) type: "markdown"</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Integrasi apa yang memungkinkan penggunaan JSX di dalam file MDX?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) @astrojs/react</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) @astrojs/mdx</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) @astrojs/vue</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) @astrojs/svelte</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa fungsi method <code>post.render()</code> pada content collection?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Menghapus post dari collection</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Mengambil data JSON dari post</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Merender konten Markdown ke komponen Astro &amp; headings</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Mengirim post ke RSS feed</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="bun-elysia.html" class="prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">Bun dan Elysia.js</span></a>
+        <a href="remix-v2-deep-dive.html" class="next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">Remix v2 Deep Dive</span></a>
+      </div>
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/web-performance.html" class="related-card">
+          <span class="related-category">Web Development</span>
+          <span class="related-title">Web Performance Optimization: Panduan Lengkap</span>
+        </a>
+        <a href="/articles/css-container-queries.html" class="related-card">
+          <span class="related-category">Web Development</span>
+          <span class="related-title">CSS Container Queries: Responsive Tanpa Media Query</span>
+        </a>
+        <a href="/articles/nuxt-js.html" class="related-card">
+          <span class="related-category">Web Development</span>
+          <span class="related-title">Nuxt.js: Vue Full-Stack Framework</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

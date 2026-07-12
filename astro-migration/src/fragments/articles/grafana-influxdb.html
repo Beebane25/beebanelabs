@@ -1,0 +1,1023 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Tools</a>
+        <span class="separator">/</span>
+        <span class="current">Grafana + InfluxDB</span>
+      </div>
+      <span class="category-tag">Tools</span>
+      <h1>Grafana + InfluxDB: Dashboard Monitoring IoT Time-Series</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Tutorial komprehensif membangun dashboard monitoring IoT menggunakan Grafana dan InfluxDB — dari instalasi hingga proyek dashboard suhu real-time lengkap</p>
+      <div class="article-meta">
+        <span>📅 20 Juni 2026</span>
+        <span>📖 20 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#mengapa-grafana-influxdb">Mengapa Grafana + InfluxDB?</a></li>
+          <li><a href="#instalasi-influxdb">Instalasi InfluxDB 2.x</a></li>
+          <li><a href="#instalasi-grafana">Instalasi Grafana</a></li>
+          <li><a href="#setup-datasource">Setup Data Source InfluxDB di Grafana</a></li>
+          <li><a href="#membuat-dashboard">Membuat Dashboard: Panel, Graph, Gauge, Table</a></li>
+          <li><a href="#query-flux">Query Flux untuk InfluxDB</a></li>
+          <li><a href="#alerting-grafana">Alerting di Grafana</a></li>
+          <li><a href="#proyek-monitoring">Proyek: Dashboard Monitoring Suhu IoT Lengkap</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Mengapa Grafana + InfluxDB -->
+      <!-- ============================== -->
+      <h2 id="mengapa-grafana-influxdb">1. Mengapa Grafana + InfluxDB?</h2>
+
+      <p>Ketika kamu membangun sistem IoT, perangkat seperti ESP32, Arduino, atau Raspberry Pi akan menghasilkan data secara terus-menerus — suhu setiap detik, kelembaban setiap menit, tekanan atmosfer setiap jam. Data yang berubah seiring waktu ini disebut <strong>time-series data</strong> (data deret waktu).</p>
+
+      <p>Menyimpan dan memvisualisasikan data time-series membutuhkan tools khusus. Di sinilah <strong>InfluxDB</strong> dan <strong>Grafana</strong> hadir sebagai kombinasi terbaik yang banyak digunakan di industri IoT.</p>
+
+      <h3>Apa Itu InfluxDB?</h3>
+      <p>InfluxDB adalah <em>Time-Series Database</em> (TSDB) yang dirancang khusus untuk menyimpan data berbasis waktu. Berbeda dengan database relasional seperti MySQL atau PostgreSQL, InfluxDB dioptimalkan untuk:</p>
+      <ul>
+        <li><strong>Penulisan tinggi</strong> — menerima ribuan data per detik dari ribuan sensor</li>
+        <li><strong>Kompresi otomatis</strong> — data lama dikompres secara otomatis sehingga hemat ruang</li>
+        <li><strong>Query time-series</strong> — operasi statistik rata-rata, minimum, maksimum berdasarkan rentang waktu</li>
+        <li><strong>Retention Policy</strong> — penghapusan data lama secara otomatis</li>
+      </ul>
+
+      <h3>Apa Itu Grafana?</h3>
+      <p>Grafana adalah platform visualisasi data dan monitoring open-source. Grafana tidak menyimpan data — ia membaca data dari berbagai sumber (InfluxDB, PostgreSQL, Prometheus, dll.) dan menampilkannya dalam bentuk grafik, gauge, table, dan panel interaktif lainnya.</p>
+
+      <h3>Kombinasi Sempurna untuk IoT</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>InfluxDB</th>
+            <th>Grafana</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Fungsi Utama</td><td>Menyimpan data time-series</td><td>Memvisualisasikan data</td></tr>
+          <tr><td>Jenis Software</td><td>Database</td><td>Dashboard & Monitoring</td></tr>
+          <tr><td>Bahasa Query</td><td>InfluxQL / Flux</td><td>Membaca dari data source</td></tr>
+          <tr><td>Protokol Masuk Data</td><td>HTTP, MQTT, UDP, Telegraf</td><td>Read-only dari data source</td></tr>
+          <tr><td>Alerting</td><td>Checks & Notifications</td><td>Alert Rules & Contact Points</td></tr>
+          <tr><td>Dashboard</td><td>Tidak ada</td><td>Panel interaktif lengkap</td></tr>
+          <tr><td>License</td><td>Open Source (MIT)</td><td>Open Source (AGPL)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Contoh Use Case IoT</div>
+        <p><strong>Monitoring Suhu Server Room:</strong> Sensor DHT22 di ruang server mengirim data suhu ke InfluxDB setiap 5 detik. Grafana menampilkan grafik real-time, gauge suhu, dan alert jika suhu melebihi 35°C. Teknisi dapat melihat dashboard dari HP di mana saja.</p>
+      </div>
+
+      <p>Use case lain yang cocok dengan kombinasi ini:</p>
+      <ul>
+        <li><strong>Monitoring Energi</strong> — konsumsi listrik per ruangan per jam</li>
+        <li><strong>Smart Agriculture</strong> — kelembaban tanah, curah hujan, intensitas cahaya</li>
+        <li><strong>Industrial IoT</strong> — getaran mesin, suhu furnace, tekanan pipa</li>
+        <li><strong>Smart Home</strong> — konsumsi air, listrik, gas secara real-time</li>
+        <li><strong>Network Monitoring</strong> — throughput, latency, packet loss</li>
+      </ul>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Instalasi InfluxDB 2.x -->
+      <!-- ============================== -->
+      <h2 id="instalasi-influxdb">2. Instalasi InfluxDB 2.x</h2>
+
+      <p>InfluxDB tersedia dalam beberapa metode instalasi. Untuk proyek IoT, kami merekomendasikan menggunakan <strong>Docker</strong> karena paling cepat dan mudah dikelola. Namun, kami juga akan membahas instalasi manual untuk server produksi.</p>
+
+      <h3>Metode 1: Instalasi dengan Docker (Direkomendasikan)</h3>
+
+      <p>Docker memungkinkan menjalankan InfluxDB tanpa perlu menginstal dependencies ke sistem. Cukup jalankan satu perintah:</p>
+
+      </div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Struktur Data InfluxDB</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 326.828125px;" viewBox="0 0 326.828125 686" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M163.414,62L163.414,66.167C163.414,70.333,163.414,78.667,163.414,86.333C163.414,94,163.414,101,163.414,104.5L163.414,108" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTYzLjQxNDA2MjUsInkiOjYyfSx7IngiOjE2My40MTQwNjI1LCJ5Ijo4N30seyJ4IjoxNjMuNDE0MDYyNSwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M163.414,166L163.414,170.167C163.414,174.333,163.414,182.667,163.414,190.333C163.414,198,163.414,205,163.414,208.5L163.414,212" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTYzLjQxNDA2MjUsInkiOjE2Nn0seyJ4IjoxNjMuNDE0MDYyNSwieSI6MTkxfSx7IngiOjE2My40MTQwNjI1LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M163.414,318L163.414,322.167C163.414,326.333,163.414,334.667,163.414,342.333C163.414,350,163.414,357,163.414,360.5L163.414,364" id="L_N2_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N3_0" data-points="W3sieCI6MTYzLjQxNDA2MjUsInkiOjMxOH0seyJ4IjoxNjMuNDE0MDYyNSwieSI6MzQzfSx7IngiOjE2My40MTQwNjI1LCJ5IjozNjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M163.414,446L163.414,450.167C163.414,454.333,163.414,462.667,163.414,470.333C163.414,478,163.414,485,163.414,488.5L163.414,492" id="L_N3_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N4_0" data-points="W3sieCI6MTYzLjQxNDA2MjUsInkiOjQ0Nn0seyJ4IjoxNjMuNDE0MDYyNSwieSI6NDcxfSx7IngiOjE2My40MTQwNjI1LCJ5Ijo0OTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M163.414,574L163.414,578.167C163.414,582.333,163.414,590.667,163.414,598.333C163.414,606,163.414,613,163.414,616.5L163.414,620" id="L_N4_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N4_N5_0" data-points="W3sieCI6MTYzLjQxNDA2MjUsInkiOjU3NH0seyJ4IjoxNjMuNDE0MDYyNSwieSI6NTk5fSx7IngiOjE2My40MTQwNjI1LCJ5Ijo2MjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N4_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(163.4140625, 35)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="-129.8203125" y="-27" width="259.640625" height="54"/><g class="label" style="" transform="translate(-99.8203125, -12)"><rect/><foreignObject width="199.640625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Tag: location=server-room-1</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(163.4140625, 139)"><rect class="basic label-container" style="" x="-125.6171875" y="-27" width="251.234375" height="54"/><g class="label" style="" transform="translate(-95.6171875, -12)"><rect/><foreignObject width="191.234375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Measurement: suhu_ruang</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(163.4140625, 267)"><rect class="basic label-container" style="" x="-155.4140625" y="-51" width="310.828125" height="102"/><g class="label" style="" transform="translate(-125.4140625, -36)"><rect/><foreignObject width="250.828125" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Struktur: measurement,tag=value,tag=value field...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(163.4140625, 407)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Bucket = Kumpulan data dengan retention policy</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(163.4140625, 535)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Organization = Namespace untuk multi-tenant</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(163.4140625, 651)"><rect class="basic label-container" style="" x="-118.2734375" y="-27" width="236.546875" height="54"/><g class="label" style="" transform="translate(-88.2734375, -12)"><rect/><foreignObject width="176.546875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Token = Kunci akses API</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+
+      <p><strong>Measurement</strong> sama dengan tabel di database relasional. <strong>Tag</strong> adalah metadata berbasis string yang diindeks untuk query cepat (contoh: lokasi sensor). <strong>Fields</strong> adalah data numerik atau string yang tidak diindeks (contoh: nilai suhu). <strong>Timestamp</strong> adalah kapan data direkam — ini yang membuat data "time-series".</p>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Instalasi Grafana   -->
+      <!-- ============================== -->
+      <h2 id="instalasi-grafana">3. Instalasi Grafana</h2>
+
+      <p>Grafana tersedia dalam dua edisi utama: <strong>Grafana OSS</strong> (Open Source) dan <strong>Grafana Cloud</strong> (managed service). Untuk tutorial ini, kita menggunakan Grafana OSS yang dijalankan sendiri.</p>
+
+      <h3>Metode 1: Instalasi dengan Docker (Direkomendasikan)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Jalankan Grafana via Docker</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('docker run -d \\\n  --name grafana \\\n  -p 3000:3000 \\\n  -v grafana-data:/var/lib/grafana \\\n  -e \"GF_SECURITY_ADMIN_USER=admin\" \\\n  -e \"GF_SECURITY_ADMIN_PASSWORD=grafana12345\" \\\n  -e \"GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-piechart-panel\" \\\n  grafana/grafana:latest')">Salin</button>
+        </div>
+<pre><code>docker run -d \
+  --name grafana \
+  -p 3000:3000 \
+  -v grafana-data:/var/lib/grafana \
+  -e "GF_SECURITY_ADMIN_USER=admin" \
+  -e "GF_SECURITY_ADMIN_PASSWORD=grafana12345" \
+  -e "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-piechart-panel" \
+  grafana/grafana:latest</code></pre>
+      </div>
+
+      <p>Setelah container berjalan, akses Grafana di <strong>http://localhost:3000</strong> dengan username <code>admin</code> dan password <code>grafana12345</code>.</p>
+
+      <h3>Metode 2: Instalasi Manual di Ubuntu/Debian</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Instalasi Manual Grafana OSS</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('# 1. Tambah GPG key dan repository\ncurl -fsSL https://apt.grafana.com/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/grafana.gpg\necho \"deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main\" | sudo tee /etc/apt/sources.list.d/grafana.list\n\n# 2. Instalasi\nsudo apt-get update\nsudo apt-get install -y grafana\n\n# 3. Jalankan service\nsudo systemctl enable grafana-server\nsudo systemctl start grafana-server\n\n# 4. Cek status\nsudo systemctl status grafana-server">Salin</button>
+        </div>
+<pre><code># 1. Tambah GPG key dan repository
+curl -fsSL https://apt.grafana.com/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/grafana.gpg
+echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
+
+# 2. Instalasi
+sudo apt-get update
+sudo apt-get install -y grafana
+
+# 3. Jalankan service
+sudo systemctl enable grafana-server
+sudo systemctl start grafana-server
+
+# 4. Cek status
+sudo systemctl status grafana-server</code></pre>
+      </div>
+
+      <p>File konfigurasi utama Grafana berada di <code>/etc/grafana/grafana.ini</code>. Beberapa pengaturan penting yang perlu dikonfigurasi untuk produksi:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">grafana.ini — Pengaturan Penting</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('[server]\nhttp_port = 3000\nroot_url = https://monitoring.example.com\n\n[security]\nadmin_user = admin\nadmin_password = ganti_dengan_password_kuat\n\n[auth.anonymous]\nenabled = false')">Salin</button>
+        </div>
+<pre><code>[server]
+http_port = 3000
+root_url = https://monitoring.example.com
+
+[security]
+admin_user = admin
+admin_password = ganti_dengan_password_kuat
+
+[auth.anonymous]
+enabled = false</code></pre>
+      </div>
+
+      <h3>Docker Compose: InfluxDB + Grafana Sekaligus</h3>
+
+      <p>Untuk menjalankan InfluxDB dan Grafana bersamaan secara otomatis, gunakan Docker Compose:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML — docker-compose.yml</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('version: \"3.8\"\n\nservices:\n  influxdb:\n    image: influxdb:2.7\n    container_name: influxdb\n    ports:\n      - \"8086:8086\"\n    volumes:\n      - influxdb-data:/var/lib/influxdb2\n      - influxdb-config:/etc/influxdb2\n    environment:\n      - DOCKER_INFLUXDB_INIT_MODE=setup\n      - DOCKER_INFLUXDB_INIT_USERNAME=admin\n      - DOCKER_INFLUXDB_INIT_PASSWORD=influxdb12345\n      - DOCKER_INFLUXDB_INIT_ORG=my-org\n      - DOCKER_INFLUXDB_INIT_BUCKET=iot-data\n      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-token\n    restart: unless-stopped\n\n  grafana:\n    image: grafana/grafana:latest\n    container_name: grafana\n    ports:\n      - \"3000:3000\"\n    volumes:\n      - grafana-data:/var/lib/grafana\n    environment:\n      - GF_SECURITY_ADMIN_USER=admin\n      - GF_SECURITY_ADMIN_PASSWORD=grafana12345\n      - GF_INSTALL_PLUGINS=grafana-clock-panel\n    depends_on:\n      - influxdb\n    restart: unless-stopped\n\nvolumes:\n  influxdb-data:\n  influxdb-config:\n  grafana-data:\n\nnetworks:\n  default:\n    name: iot-monitoring')">Salin</button>
+        </div>
+<pre><code>version: "3.8"
+
+services:
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=influxdb12345
+      - DOCKER_INFLUXDB_INIT_ORG=my-org
+      - DOCKER_INFLUXDB_INIT_BUCKET=iot-data
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-token
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana12345
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
+volumes:
+  influxdb-data:
+  influxdb-config:
+  grafana-data:
+
+networks:
+  default:
+    name: iot-monitoring</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Jalankan dengan Docker Compose</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('docker compose up -d\ndocker compose ps')">Salin</button>
+        </div>
+<pre><code># Jalankan semua service
+docker compose up -d
+
+# Cek status
+docker compose ps
+
+# Output:
+# NAME       IMAGE                  STATUS         PORTS
+# grafana    grafana/grafana:latest Up 5 seconds   0.0.0.0:3000->3000/tcp
+# influxdb   influxdb:2.7           Up 5 seconds   0.0.0.0:8086->8086/tcp</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Setup Data Source    -->
+      <!-- ============================== -->
+      <h2 id="setup-datasource">4. Setup Data Source InfluxDB di Grafana</h2>
+
+      <p>Grafana membutuhkan <strong>Data Source</strong> (sumber data) untuk mengetahui dari mana membaca data. Kita perlu menghubungkan Grafana ke InfluxDB agar dashboard dapat menampilkan data time-series.</p>
+
+      <h3>Langkah-langkah Setup</h3>
+      <ol>
+        <li>Buka Grafana di <strong>http://localhost:3000</strong></li>
+        <li>Login dengan username <code>admin</code> dan password yang sudah diatur</li>
+        <li>Klik menu <strong>⚙️ Settings → Data Sources</strong> (atau <code>⚙️ → Connections → Data sources</code> di Grafana versi baru)</li>
+        <li>Klik tombol <strong>"Add data source"</strong></li>
+        <li>Ketik <strong>"InfluxDB"</strong> pada kolom pencarian, lalu pilih</li>
+        <li>Pilih <strong>Query Language: Flux</strong> (bukan InfluxQL)</li>
+        <li>Isi konfigurasi berikut:</li>
+      </ol>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Nilai</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>HTTP URL</td><td><code>http://influxdb:8086</code></td><td>Gunakan <code>influxdb</code> jika pakai Docker Compose (sesuai nama service). Gunakan <code>localhost</code> jika pakai instalasi manual.</td></tr>
+          <tr><td>Organization</td><td><code>my-org</code></td><td>Organization yang dibuat saat setup InfluxDB</td></tr>
+          <tr><td>Token</td><td><code>my-super-secret-token</code></td><td>API Token yang dibuat saat setup awal</td></tr>
+          <tr><td>Default Bucket</td><td><code>iot-data</code></td><td>Bucket default untuk query</td></tr>
+          <tr><td>HTTP Method</td><td><code>POST</code></td><td>Gunakan POST untuk query Flux</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips: Test Koneksi</div>
+        <p>Setelah mengisi semua field, scroll ke bawah dan klik tombol <strong>"Save & test"</strong>. Jika konfigurasi benar, akan muncul pesan hijau <em>"Data source is working"</em>. Jika merah, periksa URL, token, dan pastikan container InfluxDB berjalan.</p>
+      </div>
+
+      <h3>Jika Menggunakan Docker Network Terpisah</h3>
+      <p>Jika InfluxDB dan Grafana berjalan di container terpisah (bukan dalam satu docker-compose), pastikan mereka berada di jaringan Docker yang sama:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Buat jaringan Docker bersama</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('docker network create iot-monitoring\ndocker network connect iot-monitoring influxdb\ndocker network connect iot-monitoring grafana')">Salin</button>
+        </div>
+<pre><code># Buat jaringan bersama
+docker network create iot-monitoring
+
+# Hubungkan container ke jaringan yang sama
+docker network connect iot-monitoring influxdb
+docker network connect iot-monitoring grafana</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Membuat Dashboard   -->
+      <!-- ============================== -->
+      <h2 id="membuat-dashboard">5. Membuat Dashboard: Panel, Graph, Gauge, Table</h2>
+
+      <p>Setelah data source terkonfigurasi, saatnya membuat dashboard pertama. Dashboard di Grafana terdiri dari <strong>panel-panel</strong> — masing-masing menampilkan data dalam format berbeda.</p>
+
+      <h3>Jenis Panel di Grafana</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Jenis Panel</th>
+            <th>Fungsi</th>
+            <th>Cocok Untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Time Series</strong></td><td>Grafik garis berbasis waktu</td><td>Monitor tren suhu, kelembaban, tekanan dari waktu ke waktu</td></tr>
+          <tr><td><strong>Gauge</strong></td><td>Indikator analog seperti speedometer</td><td>Menampilkan nilai saat ini (suhu, voltage, persentase)</td></tr>
+          <tr><td><strong>Stat</strong></td><td>Angka besar satu nilai</td><td>Koneksi aktif, total energi, suhu rata-rata</td></tr>
+          <tr><td><strong>Table</strong></td><td>Data dalam format baris & kolom</td><td>Daftar sensor, log kejadian, data perangkat</td></tr>
+          <tr><td><strong>Bar Gauge</strong></td><td>Progress bar horizontal/vertikal</td><td>Kapasitas storage, utilisasi CPU, level baterai</td></tr>
+          <tr><td><strong>Pie Chart</strong></td><td>Grafik lingkaran proporsi</td><td>Distribusi error, kategori kejadian</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Membuat Panel Pertama: Grafik Suhu Real-Time</h3>
+
+      <ol>
+        <li>Di halaman Grafana, klik <strong>➕ (Create) → New Dashboard → Add visualization</strong></li>
+        <li>Pilih Data Source <strong>InfluxDB</strong></li>
+        <li>Pada editor panel, tulis query Flux berikut:</li>
+      </ol>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Flux — Query Suhu Real-Time</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('from(bucket: \"iot-data\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)\n  |> yield(name: \"suhu_realtime\")')">Salin</button>
+        </div>
+<pre><code>from(bucket: "iot-data")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)
+  |> yield(name: "suhu_realtime")</code></pre>
+      </div>
+
+      <ol start="4">
+        <li>Panel akan menampilkan grafik garis suhu dari 1 jam terakhir</li>
+        <li>Klik <strong>"Apply"</strong> di pojok kanan atas</li>
+        <li>Klik <strong>"Save Dashboard"</strong> (💾 ikon simpan)</li>
+        <li>Beri nama <strong>"IoT Monitoring Dashboard"</strong></li>
+      </ol>
+
+      <h3>Menambahkan Panel Gauge</h3>
+      <ol>
+        <li>Klik tombol <strong>"Add panel"</strong> (➕) di dashboard</li>
+        <li>Ubah tipe panel dari dropdown menjadi <strong>"Gauge"</strong></li>
+        <li>Tulis query untuk suhu terkini:</li>
+      </ol>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Flux — Query Suhu Terkini</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('from(bucket: \"iot-data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> last()\n  |> yield(name: \"suhu_sekarang\")')">Salin</button>
+        </div>
+<pre><code>from(bucket: "iot-data")
+  |> range(start: -5m)
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> last()
+  |> yield(name: "suhu_sekarang")</code></pre>
+      </div>
+
+      <h3>Pengaturan Panel Gauge</h3>
+      <p>Setelah query berjalan, konfigurasi tampilan Gauge di panel sebelah kanan:</p>
+      <ul>
+        <li><strong>Min:</strong> <code>0</code> — batas bawah skala</li>
+        <li><strong>Max:</strong> <code>50</code> — batas atas skala (dalam °C)</li>
+        <li><strong>Thresholds:</strong>
+          <ul>
+            <li>Green: 0 – 30 (normal)</li>
+            <li>Yellow: 30 – 35 (warning)</li>
+            <li>Red: 35 – 50 (critical)</li>
+          </ul>
+        </li>
+        <li><strong>Unit:</strong> Celsius (°C)</li>
+        <li><strong>Decimals:</strong> 1 (satu angka desimal)</li>
+      </ul>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips: Layout Dashboard</div>
+        <p>Klik dan drag panel untuk mengatur ukuran dan posisi. Gunakan fitur <strong>Row</strong> untuk mengelompokkan panel (misal: "Suhu Ruangan", "Kelembaban", "Status Perangkat"). Klik ikon ⚙️ pada panel untuk edit, atau ikon 🗑️ untuk menghapus.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Query Flux           -->
+      <!-- ============================== -->
+      <h2 id="query-flux">6. Query Flux untuk InfluxDB</h2>
+
+      <p><strong>Flux</strong> adalah bahasa query functional yang digunakan di InfluxDB 2.x. Flux jauh lebih fleksibel dibanding InfluxQL (bahasa query versi lama) karena mendukung operasi multi-measurement, transformasi data, dan join antar dataset.</p>
+
+      <h3>Sintaks Dasar Flux</h3>
+
+      
+<div class="diagram-box">
+        
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 302" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,62L138,66.167C138,70.333,138,78.667,138,86.333C138,94,138,101,138,104.5L138,108" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTM4LCJ5Ijo2Mn0seyJ4IjoxMzgsInkiOjg3fSx7IngiOjEzOCwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,166L138,170.167C138,174.333,138,182.667,138,190.333C138,198,138,205,138,208.5L138,212" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTM4LCJ5IjoxNjZ9LHsieCI6MTM4LCJ5IjoxOTF9LHsieCI6MTM4LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 35)"><rect class="basic label-container" style="" x="-117.6015625" y="-27" width="235.203125" height="54"/><g class="label" style="" transform="translate(-87.6015625, -12)"><rect/><foreignObject width="175.203125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>range() Rentang waktu ▸</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 139)"><rect class="basic label-container" style="" x="-99.8046875" y="-27" width="199.609375" height="54"/><g class="label" style="" transform="translate(-69.8046875, -12)"><rect/><foreignObject width="139.609375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>filter() Saring data ▸</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 255)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>aggregate Agregasi window ▸ yield() Output</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <h3>Contoh Query Penting</h3>
+
+      </div>
+<div class="diagram-box">
+
+        <div class="diagram-label">Diagram: Alur Alerting Grafana</div>
+<pre><code>Contact
+Point
+(Email,
+TG, WA)
+Data ▸ Alert ▸
+▸ Kirim
+Source Rule
+Notif
+(Query) (Threshold)
+(HP,
+Slack)
+Evaluasi berulang setiap interval tertentu (contoh: setiap 1 menit)</code></pre>
+      </div>
+
+      <h3>Langkah 1: Buat Contact Point (Kanal Notifikasi)</h3>
+      <ol>
+        <li>Buka menu <strong>Alerting → Contact points</strong></li>
+        <li>Klik <strong>"Add contact point"</strong></li>
+        <li>Beri nama (misal: <code>"Admin Telegram"</code>)</li>
+        <li>Pilih tipe integrasi (Telegram, Email, Webhook, dll.)</li>
+      </ol>
+
+      <h3>Konfigurasi Notifikasi Email</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">grafana.ini — Konfigurasi Email SMTP</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('[smtp]\nenabled = true\nhost = smtp.gmail.com:587\nuser = alert@kamu.com\npassword = app-password-gmail\nfrom_address = alert@kamu.com\nfrom_name = IoT Monitoring')">Salin</button>
+        </div>
+<pre><code>[smtp]
+enabled = true
+host = smtp.gmail.com:587
+user = alert@kamu.com
+password = app-password-gmail
+from_address = alert@kamu.com
+from_name = IoT Monitoring</code></pre>
+      </div>
+
+      <h3>Konfigurasi Notifikasi Telegram</h3>
+      <p>Untuk Telegram, buat bot via <code>@BotFather</code>, dapatkan token, lalu konfigurasikan di Contact Point:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Konfigurasi Telegram Contact Point</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('Integration: Telegram\nBot Token: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz\nChat ID: 123456789')">Salin</button>
+        </div>
+<pre><code>Integration: Telegram
+Bot Token: 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
+Chat ID: 123456789</code></pre>
+      </div>
+
+      <h3>Langkah 2: Buat Alert Rule (Aturan Alert)</h3>
+      <ol>
+        <li>Buka menu <strong>Alerting → Alert rules</strong></li>
+        <li>Klik <strong>"New alert rule"</strong></li>
+        <li>Pilih Data Source <strong>InfluxDB</strong></li>
+        <li>Tulis query untuk data yang ingin dimonitor:</li>
+      </ol>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Flux — Query untuk Alert Suhu</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('from(bucket: \"iot-data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> last()')">Salin</button>
+        </div>
+<pre><code>from(bucket: "iot-data")
+  |> range(start: -5m)
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> last()</code></pre>
+      </div>
+
+      <h3>Langkah 3: Atur Threshold & Label</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Pengaturan</th>
+            <th>Nilai</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Evaluate every</td><td><code>1m</code></td><td>Evaluasi alert setiap 1 menit</td></tr>
+          <tr><td>Evaluate for</td><td><code>5m</code></td><td>Alert aktif jika kondisi terpenuhi selama 5 menit</td></tr>
+          <tr><td>Threshold</td><td><code>&gt; 35</code></td><td>Alert jika suhu melebihi 35°C</td></tr>
+          <tr><td>Severity</td><td><code>Critical</code></td><td>Tingkat keparahan: Warning, Critical</td></tr>
+          <tr><td>Summary</td><td>"Suhu melebihi 35°C!"</td><td>Pesan ringkas yang ditampilkan di notifikasi</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Langkah 4: Pilih Contact Point</h3>
+      <p>Setelah alert rule tersimpan, pilih <strong>contact point</strong> yang ingin menerima notifikasi (misal: "Admin Telegram"). Alert akan dikirim ketika query menghasilkan nilai &gt; 35.</p>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Tips Alerting yang Baik</div>
+        <ul>
+          <li>Jangan terlalu sensitif — atur <strong>Evaluate for</strong> minimal 5 menit untuk menghindari false alarm</li>
+          <li>Gunakan <strong>severity levels</strong>: Warning untuk threshold awal, Critical untuk batas atas</li>
+          <li>Gunakan <strong>grouping</strong> untuk menggabungkan notifikasi serupa dalam satu pesan</li>
+          <li>Siapkan <strong>silence rules</strong> untuk maintenance window agar alert tidak mengganggu</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Proyek Lengkap       -->
+      <!-- ============================== -->
+      <h2 id="proyek-monitoring">8. Proyek: Dashboard Monitoring Suhu IoT Lengkap</h2>
+
+      <p>Sekarang kita akan menggabungkan semua yang telah dipelajari ke dalam proyek lengkap. Kita akan membangun sistem monitoring suhu menggunakan ESP32 + DHT22 yang mengirim data ke InfluxDB, kemudian divisualisasikan di Grafana.</p>
+
+      <h3>Arsitektur Sistem</h3>
+
+      
+<div class="diagram-box">
+        
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 326" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,110L138,114.167C138,118.333,138,126.667,138,134.333C138,142,138,149,138,152.5L138,156" id="L_N1_N0_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N0_0" data-points="W3sieCI6MTM4LCJ5IjoxMTB9LHsieCI6MTM4LCJ5IjoxMzV9LHsieCI6MTM4LCJ5IjoxNjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,214L138,218.167C138,222.333,138,230.667,138,238.333C138,246,138,253,138,256.5L138,260" id="L_N0_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N2_0" data-points="W3sieCI6MTM4LCJ5IjoyMTR9LHsieCI6MTM4LCJ5IjoyMzl9LHsieCI6MTM4LCJ5IjoyNjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N1_N0_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N0_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 187)"><rect class="basic label-container" style="" x="-95.8203125" y="-27" width="191.640625" height="54"/><g class="label" style="" transform="translate(-65.8203125, -12)"><rect/><foreignObject width="131.640625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>InfluxDB 2.7 :8086</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 59)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>ESP32 + DHT22 Sensor :3000 WiFi/HTTP ▸ POST /ap...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 291)"><rect class="basic label-container" style="" x="-124.109375" y="-27" width="248.21875" height="54"/><g class="label" style="" transform="translate(-94.109375, -12)"><rect/><foreignObject width="188.21875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Notifikasi Telegram / Email</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <h3>Bagian 1: Kode ESP32 Mengirim Data ke InfluxDB</h3>
+
+      <p>Kode ini membuat ESP32 membaca sensor DHT22 dan mengirim data ke InfluxDB melalui HTTP API setiap 30 detik:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — iot_monitor.ino</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('// IoT Temperature Monitor - ESP32 + DHT22 + InfluxDB\n// BeebaneLabs - https://beebanelabs.pages.dev\n\n#include &lt;WiFi.h&gt;\n#include &lt;HTTPClient.h&gt;\n#include &lt;DHT.h&gt;\n\n// === KONFIGURASI WIFI ===\nconst char* WIFI_SSID = \"NamaWiFi\";\nconst char* WIFI_PASS = \"PasswordWiFi\";\n\n// === KONFIGURASI INFLUXDB ===\nconst char* INFLUXDB_URL = \"http://192.168.1.100:8086/api/v2/write\";\nconst char* INFLUXDB_ORG = \"my-org\";\nconst char* INFLUXDB_BUCKET = \"iot-data\";\nconst char* INFLUXDB_TOKEN = \"my-super-secret-token\";\n\n// === KONFIGURASI SENSOR ===\n#define DHT_PIN 4\n#define DHT_TYPE DHT22\n#define SENSOR_LOCATION \"server-room-1\"\n#define DEVICE_ID \"esp32-001\"\n\nDHT dht(DHT_PIN, DHT_TYPE);\n\n// Setup WiFi\nvoid connectWiFi() {\n  Serial.print(\"Menghubungkan WiFi: \");\n  Serial.println(WIFI_SSID);\n  WiFi.begin(WIFI_SSID, WIFI_PASS);\n  while (WiFi.status() != WL_CONNECTED) {\n    delay(500);\n    Serial.print(\".\");\n  }\n  Serial.println();\n  Serial.print(\"WiFi terhubung! IP: \");\n  Serial.println(WiFi.localIP());\n}\n\n// Kirim data ke InfluxDB\nvoid kirimKeInfluxDB(float suhu, float kelembaban) {\n  if (WiFi.status() != WL_CONNECTED) {\n    Serial.println(\"[ERROR] WiFi terputus, mencoba reconnect...\");\n    connectWiFi();\n    return;\n  }\n\n  HTTPClient http;\n  String url = String(INFLUXDB_URL) + \"?org=\" + INFLUXDB_ORG + \"&bucket=\" + INFLUXDB_BUCKET + \"&precision=s\";\n\n  http.begin(url);\n  http.addHeader(\"Authorization\", \"Token \" + String(INFLUXDB_TOKEN));\n  http.addHeader(\"Content-Type\", \"text/plain\");\n\n  // Format InfluxDB Line Protocol\n  // measurement,tag=value field=value timestamp\n  String payload = \"suhu_ruang,location=\" + String(SENSOR_LOCATION) \n                 + \",device=\" + String(DEVICE_ID) \n                 + \" suhu=\" + String(suhu, 1) \n                 + \",kelembaban=\" + String(kelembaban, 1) \n                 + \" \" + String(millis());\n\n  int httpCode = http.POST(payload);\n\n  if (httpCode == 204 || httpCode == 200) {\n    Serial.print(\"[OK] Data terkirim: suhu=\");\n    Serial.print(suhu);\n    Serial.print(\"°C, kelembaban=\");\n    Serial.print(kelembaban);\n    Serial.println(\"%\");\n  } else {\n    Serial.print(\"[ERROR] HTTP \");\n    Serial.println(httpCode);\n    Serial.println(http.getString());\n  }\n\n  http.end();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  delay(1000);\n  Serial.println(\"=== IoT Temp Monitor ===\");\n\n  dht.begin();\n  connectWiFi();\n\n  Serial.println(\"Siap mengirim data setiap 30 detik!\");\n}\n\nvoid loop() {\n  float suhu = dht.readTemperature();\n  float kelembaban = dht.readHumidity();\n\n  if (isnan(suhu) || isnan(kelembaban)) {\n    Serial.println(\"[ERROR] Gagal membaca sensor!\");\n    delay(5000);\n    return;\n  }\n\n  kirimKeInfluxDB(suhu, kelembaban);\n  delay(30000);  // Kirim setiap 30 detik\n}\n')">Salin</button>
+        </div>
+<pre><code>// IoT Temperature Monitor - ESP32 + DHT22 + InfluxDB
+// BeebaneLabs - https://beebanelabs.pages.dev
+
+#include &lt;WiFi.h&gt;
+#include &lt;HTTPClient.h&gt;
+#include &lt;DHT.h&gt;
+
+// === KONFIGURASI WIFI ===
+const char* WIFI_SSID = "NamaWiFi";
+const char* WIFI_PASS = "PasswordWiFi";
+
+// === KONFIGURASI INFLUXDB ===
+const char* INFLUXDB_URL = "http://192.168.1.100:8086/api/v2/write";
+const char* INFLUXDB_ORG = "my-org";
+const char* INFLUXDB_BUCKET = "iot-data";
+const char* INFLUXDB_TOKEN = "my-super-secret-token";
+
+// === KONFIGURASI SENSOR ===
+#define DHT_PIN 4
+#define DHT_TYPE DHT22
+#define SENSOR_LOCATION "server-room-1"
+#define DEVICE_ID "esp32-001"
+
+DHT dht(DHT_PIN, DHT_TYPE);
+
+// Setup WiFi
+void connectWiFi() {
+  Serial.print("Menghubungkan WiFi: ");
+  Serial.println(WIFI_SSID);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println();
+  Serial.print("WiFi terhubung! IP: ");
+  Serial.println(WiFi.localIP());
+}
+
+// Kirim data ke InfluxDB
+void kirimKeInfluxDB(float suhu, float kelembaban) {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("[ERROR] WiFi terputus, mencoba reconnect...");
+    connectWiFi();
+    return;
+  }
+
+  HTTPClient http;
+  String url = String(INFLUXDB_URL) + "?org=" + INFLUXDB_ORG 
+             + "&bucket=" + INFLUXDB_BUCKET + "&precision=s";
+
+  http.begin(url);
+  http.addHeader("Authorization", "Token " + String(INFLUXDB_TOKEN));
+  http.addHeader("Content-Type", "text/plain");
+
+  // Format InfluxDB Line Protocol
+  // measurement,tag=value field=value timestamp
+  String payload = "suhu_ruang,location=" + String(SENSOR_LOCATION) 
+                 + ",device=" + String(DEVICE_ID) 
+                 + " suhu=" + String(suhu, 1) 
+                 + ",kelembaban=" + String(kelembaban, 1) 
+                 + " " + String(millis());
+
+  int httpCode = http.POST(payload);
+
+  if (httpCode == 204 || httpCode == 200) {
+    Serial.print("[OK] Data terkirim: suhu=");
+    Serial.print(suhu);
+    Serial.print("°C, kelembaban=");
+    Serial.print(kelembaban);
+    Serial.println("%");
+  } else {
+    Serial.print("[ERROR] HTTP ");
+    Serial.println(httpCode);
+    Serial.println(http.getString());
+  }
+
+  http.end();
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+  Serial.println("=== IoT Temp Monitor ===");
+
+  dht.begin();
+  connectWiFi();
+
+  Serial.println("Siap mengirim data setiap 30 detik!");
+}
+
+void loop() {
+  float suhu = dht.readTemperature();
+  float kelembaban = dht.readHumidity();
+
+  if (isnan(suhu) || isnan(kelembaban)) {
+    Serial.println("[ERROR] Gagal membaca sensor!");
+    delay(5000);
+    return;
+  }
+
+  kirimKeInfluxDB(suhu, kelembaban);
+  delay(30000);  // Kirim setiap 30 detik
+}
+</code></pre>
+      </div>
+
+      <h3>Bagian 2: Membuat Dashboard Lengkap di Grafana</h3>
+
+      <p>Berikut adalah layout dashboard yang akan kita buat dengan 6 panel:</p>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Panel</th>
+            <th>Tipe</th>
+            <th>Fungsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Suhu Saat Ini</td><td>Gauge</td><td>Menampilkan suhu terkini dengan threshold warna</td></tr>
+          <tr><td>Kelembaban Saat Ini</td><td>Gauge</td><td>Menampilkan kelembaban terkini</td></tr>
+          <tr><td>Tren Suhu 24 Jam</td><td>Time Series</td><td>Grafik garis suhu per menit selama 24 jam</td></tr>
+          <tr><td>Tren Kelembaban 24 Jam</td><td>Time Series</td><td>Grafik garis kelembaban per menit</td></tr>
+          <tr><td>Statistik Harian</td><td>Stat</td><td>Min, Max, rata-rata suhu hari ini</td></tr>
+          <tr><td>Log Data Terbaru</td><td>Table</td><td>10 data terakhir dengan timestamp</td></tr>
+        </tbody>
+      </table>
+
+      <p>Query Flux untuk setiap panel:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Flux — Query untuk Dashboard Lengkap</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('// === PANEL 1: Suhu Saat Ini (Gauge) ===\nfrom(bucket: \"iot-data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> last()\n\n// === PANEL 2: Kelembaban Saat Ini (Gauge) ===\nfrom(bucket: \"iot-data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"kelembaban\")\n  |> last()\n\n// === PANEL 3: Tren Suhu 24 Jam (Time Series) ===\nfrom(bucket: \"iot-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)\n  |> yield(name: \"tren_suhu\")\n\n// === PANEL 4: Tren Kelembaban 24 Jam (Time Series) ===\nfrom(bucket: \"iot-data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"kelembaban\")\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)\n  |> yield(name: \"tren_kelembaban\")\n\n// === PANEL 5: Statistik Harian (Stat) ===\n// Gunakan 3 query terpisah:\n// Query A (min):\nfrom(bucket: \"iot-data\")\n  |> range(start: today())\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> min()\n  |> yield(name: \"min_suhu\")\n\n// Query B (max):\nfrom(bucket: \"iot-data\")\n  |> range(start: today())\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> max()\n  |> yield(name: \"max_suhu\")\n\n// Query C (mean):\nfrom(bucket: \"iot-data\")\n  |> range(start: today())\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> mean()\n  |> yield(name: \"mean_suhu\")\n\n// === PANEL 6: Log Data Terbaru (Table) ===\nfrom(bucket: \"iot-data\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\" or r._field == \"kelembaban\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"], desc: true)\n  |> limit(n: 10)\n  |> yield(name: \"log_terbaru\")')">Salin</button>
+        </div>
+<pre><code>// === PANEL 1: Suhu Saat Ini (Gauge) ===
+from(bucket: "iot-data")
+  |> range(start: -5m)
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> last()
+
+// === PANEL 2: Kelembaban Saat Ini (Gauge) ===
+from(bucket: "iot-data")
+  |> range(start: -5m)
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "kelembaban")
+  |> last()
+
+// === PANEL 3: Tren Suhu 24 Jam (Time Series) ===
+from(bucket: "iot-data")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)
+  |> yield(name: "tren_suhu")
+
+// === PANEL 4: Tren Kelembaban 24 Jam (Time Series) ===
+from(bucket: "iot-data")
+  |> range(start: -24h)
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "kelembaban")
+  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)
+  |> yield(name: "tren_kelembaban")
+
+// === PANEL 5: Statistik Harian (Stat) ===
+// Gunakan 3 query terpisah:
+// Query A (min):
+from(bucket: "iot-data")
+  |> range(start: today())
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> min()
+  |> yield(name: "min_suhu")
+
+// Query B (max):
+from(bucket: "iot-data")
+  |> range(start: today())
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> max()
+  |> yield(name: "max_suhu")
+
+// Query C (mean):
+from(bucket: "iot-data")
+  |> range(start: today())
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> mean()
+  |> yield(name: "mean_suhu")
+
+// === PANEL 6: Log Data Terbaru (Table) ===
+from(bucket: "iot-data")
+  |> range(start: -1h)
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "suhu" or r._field == "kelembaban")
+  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+  |> sort(columns: ["_time"], desc: true)
+  |> limit(n: 10)
+  |> yield(name: "log_terbaru")</code></pre>
+      </div>
+
+      <h3>Bagian 3: Setup Alert di Proyek</h3>
+
+      <p>Buat alert rule di Grafana dengan query berikut:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Flux — Query Alert Suhu Kritis</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('from(bucket: \"iot-data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"suhu_ruang\")\n  |> filter(fn: (r) => r._field == \"suhu\")\n  |> aggregateWindow(every: 1m, fn: mean)\n  |> last()')">Salin</button>
+        </div>
+<pre><code>from(bucket: "iot-data")
+  |> range(start: -5m)
+  |> filter(fn: (r) => r._measurement == "suhu_ruang")
+  |> filter(fn: (r) => r._field == "suhu")
+  |> aggregateWindow(every: 1m, fn: mean)
+  |> last()</code></pre>
+      </div>
+
+      <p>Pengaturan alert:</p>
+      <ul>
+        <li><strong>Evaluate every:</strong> 1 menit</li>
+        <li><strong>Evaluate for:</strong> 3 menit</li>
+        <li><strong>Threshold Warning:</strong> suhu &gt; 32°C</li>
+        <li><strong>Threshold Critical:</strong> suhu &gt; 35°C</li>
+        <li><strong>Contact Point:</strong> Telegram bot + Email admin</li>
+      </ul>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Checklist Selesai Proyek</div>
+        <p>Pastikan semuanya berjalan:</p>
+        <ul>
+          <li>✅ ESP32 terhubung WiFi dan mengirim data ke InfluxDB</li>
+          <li>✅ Data muncul di InfluxDB UI (<code>localhost:8086 → Data Explorer</code>)</li>
+          <li>✅ Grafana dashboard menampilkan 6 panel dengan data real-time</li>
+          <li>✅ Alert dikirim ke Telegram/email saat suhu &gt; 35°C</li>
+          <li>✅ Dashboard bisa diakses dari browser HP di jaringan yang sama</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Grafana dan InfluxDB:</p>
+
+      <div class="quiz-container" id="quiz19">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: InfluxDB dirancang khusus untuk menyimpan data tipe apa?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Data relasional (tabel dengan JOIN)</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Data time-series (data deret waktu)</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Data dokumen (JSON-like)</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Data graf (node & edge)</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Di Grafana, apa yang berfungsi sebagai sumber data untuk panel dashboard?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Data Source yang terkonfigurasi</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) File CSV lokal</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Database Grafana bawaan</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) API Google Sheets</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Dalam InfluxDB, mana yang benar tentang Tag dan Field?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Tag dan Field sama-sama diindeks untuk query cepat</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Field diindeks, Tag tidak diindeks</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Tag diindeks untuk query cepat, Field tidak diindeks</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Keduanya tidak diindeks sama sekali</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Fungsi aggregateWindow(every: 1h, fn: mean) dalam query Flux bertujuan untuk...</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Menghapus data yang lebih lama dari 1 jam</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Membatasi hasil query maksimal 1 jam</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Menghitung rata-rata data dalam jendela waktu 1 jam</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Mengkonversi timestamp ke format 1 jam</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Untuk menghindari false alarm pada alerting Grafana, pengaturan terbaik adalah...</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Set Evaluate for ke 0 detik agar langsung terkirim</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Nonaktifkan alerting sepenuhnya</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Set Evaluate for minimal 3-5 menit agar kondisi benar-benar terpenuhi</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Kirim alert ke semua contact point sekaligus</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="node-red-iot.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Node-RED untuk IoT</span>
+        </a>
+        <a href="mikrotik-queue.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">MikroTik Queue Management</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/node-red-iot.html" class="related-card">
+          <span class="related-category">Tools</span>
+          <span class="related-title">Panduan Lengkap Node-RED untuk IoT: Visual Programming Ot...</span>
+        </a>
+        <a href="/articles/forensics-disk-imaging.html" class="related-card">
+          <span class="related-category">Forensik</span>
+          <span class="related-title">Digital Forensics: Disk Imaging - Panduan Lengkap</span>
+        </a>
+        <a href="/articles/grafana-alerting.html" class="related-card">
+          <span class="related-category">Tools</span>
+          <span class="related-title">Grafana Alerting: Monitoring & Notifikasi Otomatis</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

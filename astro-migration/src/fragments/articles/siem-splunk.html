@@ -1,0 +1,971 @@
+<header class="article-hero">
+        <div style="max-width:900px;margin:0 auto">
+            <h1>SIEM dengan Splunk: Security Monitoring</h1>
+            <p style="font-size:1.1em;opacity:0.9">Panduan lengkap implementasi Security Information and Event Management menggunakan Splunk</p>
+            <div class="meta">
+                <span>📂 Keamanan</span>
+                <span>⏱️ 15 menit baca</span> <span class="difficulty menengah">Menengah</span>
+                <span>📊 Lanjut</span>
+            </div>
+        </div>
+    </header>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+    <article class="article-section">
+        <h2>Daftar Isi</h2>
+        <ol>
+            <li><a href="#pendahuluan">Pendahuluan SIEM</a></li>
+            <li><a href="#arsitektur">Arsitektur Splunk</a></li>
+            <li><a href="#instalasi">Instalasi dan Konfigurasi</a></li>
+            <li><a href="#data-inputs">Data Inputs</a></li>
+            <li><a href="#search">Search Processing Language (SPL)</a></li>
+            <li><a href="#alerts">Alerts dan Notifikasi</a></li>
+            <li><a href="#dashboards">Dashboards</a></li>
+            <li><a href="#correlation">Correlation Rules</a></li>
+            <li><a href="#best-practices">Best Practices</a></li>
+            <li><a href="#quiz">Quiz</a></li>
+        </ol>
+
+        <h2 id="pendahuluan">Apa itu SIEM?</h2>
+        <p>Security Information and Event Management (SIEM) adalah solusi keamanan yang mengumpulkan, menganalisis, dan mengkorelasikan log dari berbagai sumber dalam infrastruktur TI. SIEM memungkinkan tim keamanan mendeteksi ancaman secara real-time, melakukan investigasi forensik, dan memenuhi persyaratan compliance.</p>
+        <p>Splunk adalah salah satu platform SIEM paling populer di industri. Splunk mengambil pendekatan berbasis data yang memungkinkan organisasi memantau, menganalisis, dan bertindak atas data keamanan dalam skala besar. Dengan arsitektur yang scalable dan bahasa query SPL yang powerful, Splunk menjadi pilihan utama bagi banyak Security Operations Center (SOC).</p>
+
+        <div class="info-box">
+            <strong>💡 Mengapa Memilih Splunk?</strong>
+            <p>Splunk mendukung lebih dari 300 integrasi data source out-of-the-box, memiliki Search Processing Language (SPL) yang powerful dan fleksibel, serta menawarkan ekosistem aplikasi yang luas melalui Splunkbase. Selain itu, Splunk menyediakan Enterprise Security (ES) yang merupakan premium SIEM solution dengan fitur advanced threat detection.</p>
+        </div>
+
+        <h3>Komponen Utama SIEM</h3>
+        <p>Sebelum masuk ke Splunk, mari kita pahami komponen utama dari sistem SIEM:</p>
+        <ul>
+            <li><strong>Data Collection</strong> - Mengumpulkan log dari berbagai sumber seperti firewall, IDS/IPS, endpoint, dan sistem operasi</li>
+            <li><strong>Normalization</strong> - Mengubah format data menjadi standar yang konsisten agar mudah dikorelasikan</li>
+            <li><strong>Correlation</strong> - Menghubungkan event-event terpisah untuk mendeteksi pola serangan</li>
+            <li><strong>Alerting</strong> - Memberikan notifikasi ketika kondisi keamanan tertentu terpenuhi</li>
+            <li><strong>Reporting</strong> - Menghasilkan laporan untuk compliance dan analisis tren</li>
+            <li><strong>Dashboards</strong> - Visualisasi real-time dari data keamanan</li>
+        </ul>
+
+        <h2 id="arsitektur">Arsitektur Splunk</h2>
+        <p>Memahami arsitektur Splunk sangat penting sebelum melakukan deployment. Arsitektur Splunk Enterprise terdiri dari beberapa komponen utama yang saling bekerja sama untuk mengumpulkan, memproses, dan menyajikan data.</p>
+
+        <h3>1. Universal Forwarder</h3>
+        <p>Universal Forwarder (UF) adalah agen ringan yang dipasang pada mesin sumber data. UF mengumpulkan data dari source dan mengirimkannya ke Indexer melalui TCP. UF tidak memproses data sama sekali, sehingga sangat hemat resource CPU dan memory. Ini menjadikannya pilihan ideal untuk dipasang di production server tanpa mengganggu performa aplikasi.</p>
+
+        <div class="code-block">
+            <span class="lang-label">Config</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># Konfigurasi inputs.conf pada Universal Forwarder
+[monitor:///var/log/secure]
+sourcetype = linux_secure
+index = security
+disabled = false
+
+[monitor:///var/log/auth.log]
+sourcetype = linux_auth
+index = security
+disabled = false
+
+[monitor:///var/log/messages]
+sourcetype = syslog
+index = os
+disabled = false
+
+# Menggunakan TCP forwarding ke Indexer
+[tcpout]
+defaultGroup = my_indexers
+maxQueueSize = 512000
+useACK = true
+
+[tcpout:my_indexers]
+server = indexer1:9997, indexer2:9997
+compressed = true</code>
+        </div>
+
+        <h3>2. Indexer</h3>
+        <p>Indexer adalah komponen inti yang memproses, mengindeks, dan menyimpan data. Setiap event yang masuk akan diparsing, diindeks berdasarkan field-nya, dan disimpan dalam struktur yang efisien untuk pencarian. Indexer menggunakan arsitektur bucket-based storage yang mendukung hot, warm, cold, dan frozen tiers.</p>
+
+        <div class="code-block">
+            <span class="lang-label">Config</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># Konfigurasi indexes.conf
+[security]
+homePath = $SPLUNK_DB/security/db
+coldPath = $SPLUNK_DB/security/colddb
+thawedPath = $SPLUNK_DB/security/thaweddb
+maxTotalDataSizeMB = 512000
+frozenTimePeriodInSecs = 31536000
+maxHotBuckets = 10
+maxWarmDBCount = 300
+
+[firewall]
+homePath = $SPLUNK_DB/firewall/db
+coldPath = $SPLUNK_DB/firewall/colddb
+maxTotalDataSizeMB = 256000
+frozenTimePeriodInSecs = 15768000
+
+[os]
+homePath = $SPLUNK_DB/os/db
+coldPath = $SPLUNK_DB/os/colddb
+maxTotalDataSizeMB = 128000
+frozenTimePeriodInSecs = 15768000
+
+[web]
+homePath = $SPLUNK_DB/web/db
+coldPath = $SPLUNK_DB/web/colddb
+maxTotalDataSizeMB = 256000
+frozenTimePeriodInSecs = 31536000</code>
+        </div>
+
+        <h3>3. Search Head</h3>
+        <p>Search Head menyediakan antarmuka pengguna untuk menjalankan pencarian, membuat dashboard, dan mengkonfigurasi alert. Search Head menerima query dari pengguna, mengirimkannya ke Indexer, dan menggabungkan hasilnya. Dalam deployment yang besar, Search Head bisa menggunakan Search Head Cluster untuk high availability dan load balancing.</p>
+
+        <h3>4. Deployment Server</h3>
+        <p>Deployment Server mengelola distribusi konfigurasi ke Forwarder secara terpusat. Ini sangat memudahkan pengelolaan ketika Anda memiliki ratusan atau ribuan forwarder yang tersebar di berbagai lokasi.</p>
+
+        <div class="code-block">
+            <span class="lang-label">Config</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># serverclass.conf pada Deployment Server
+[global]
+restartSplunkWeb = true
+restartSplunkd = true
+
+[serverClass:linux_servers]
+whitelist.0 = linux-*
+whitelist.0 = ubuntu-*
+
+[serverClass:linux_servers:app:unix_ta]
+restartSplunkd = true
+stateOnClient = enabled
+
+[serverClass:windows_servers]
+whitelist.0 = win-*
+whitelist.0 = dc-*
+
+[serverClass:windows_servers:app:windows_ta]
+restartSplunkd = true
+stateOnClient = enabled
+
+[serverClass:network_devices]
+whitelist.0 = fw-*
+whitelist.0 = switch-*
+
+[serverClass:network_devices:app:cisco_ta]
+restartSplunkd = true
+stateOnClient = enabled</code>
+        </div>
+
+        <h3>Cluster Architecture</h3>
+        <p>Untuk lingkungan enterprise, Splunk mendukung Indexer Cluster dan Search Head Cluster:</p>
+        <ul>
+            <li><strong>Indexer Cluster</strong> - Menggunakan Master Node untuk mengelola replikasi data dan failover</li>
+            <li><strong>Search Head Cluster</strong> - Menggunakan Deployer dan Captain untuk distribusi search</li>
+            <li><strong>Multi-site Cluster</strong> - Replikasi data antar lokasi untuk disaster recovery</li>
+        </ul>
+
+        <h2 id="instalasi">Instalasi dan Konfigurasi Awal</h2>
+        <p>Berikut langkah instalasi Splunk Enterprise di Linux yang umum digunakan di production environment:</p>
+
+        <div class="code-block">
+            <span class="lang-label">Bash</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># Download dan install Splunk Enterprise
+wget -O splunk-9.1.0.deb \
+  'https://download.splunk.com/products/splunk/releases/9.1.0/linux/splunk-9.1.0-linux-amd64.deb'
+sudo dpkg -i splunk-9.1.0.deb
+
+# Jalankan Splunk untuk pertama kali
+sudo /opt/splunk/bin/splunk start --accept-license
+# Masukkan password admin saat prompt
+
+# Enable boot start agar Splunk otomatis berjalan
+sudo /opt/splunk/bin/splunk enable boot-start --accept-license
+
+# Verifikasi instalasi dengan REST API
+curl -k https://localhost:8089/services/server/info \
+  -u admin:yourpassword
+
+# Cek status Splunk
+sudo /opt/splunk/bin/splunk status</code>
+        </div>
+
+        <p>Setelah instalasi selesai, akses Splunk Web di <code>http://localhost:8000</code> dan login dengan kredensial admin yang telah dibuat. Pastikan port 8000 (web) dan 8089 (management) terbuka di firewall.</p>
+
+        <h3>Instalasi Universal Forwarder di Server Target</h3>
+        <div class="code-block">
+            <span class="lang-label">Bash</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># Download Universal Forwarder
+wget -O splunkforwarder-9.1.0.deb \
+  'https://download.splunk.com/products/universalforwarder/releases/9.1.0/linux/splunkforwarder-9.1.0-linux-amd64.deb'
+sudo dpkg -i splunkforwarder-9.1.0.deb
+
+# Konfigurasi deployment client untuk terima config dari Deployment Server
+sudo /opt/splunkforwarder/bin/splunk set deploy-poll splunk-deploy:8089 \
+  -auth admin:changeme
+
+# Set forwarding ke Indexer (dengan load balancing)
+sudo /opt/splunkforwarder/bin/splunk add forward-server indexer1:9997 \
+  -auth admin:changeme
+sudo /opt/splunkforwarder/bin/splunk add forward-server indexer2:9997 \
+  -auth admin:changeme
+
+# Mulai forwarder
+sudo /opt/splunkforwarder/bin/splunk start --accept-license
+
+# Tambahkan data inputs
+sudo /opt/splunkforwarder/bin/splunk add monitor /var/log/secure \
+  -sourcetype linux_secure -index security
+sudo /opt/splunkforwarder/bin/splunk add monitor /var/log/auth.log \
+  -sourcetype linux_auth -index security
+
+# Enable boot start
+sudo /opt/splunkforwarder/bin/splunk enable boot-start</code>
+        </div>
+
+        <h2 id="data-inputs">Data Inputs</h2>
+        <p>Data Inputs adalah konfigurasi yang menentukan dari mana Splunk mengumpulkan data. Mendesain data input strategy yang baik adalah kunci keberhasilan implementasi SIEM.</p>
+
+        <h3>Jenis Data Input yang Didukung</h3>
+        <table>
+            <thead>
+                <tr><th>Jenis Input</th><th>Deskripsi</th><th>Penggunaan Umum</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Monitor (Files)</td><td>Memantau file dan direktori secara real-time</td><td>Application logs, system logs</td></tr>
+                <tr><td>TCP/UDP</td><td>Menerima data streaming via network port</td><td>Syslog, network events</td></tr>
+                <tr><td>HTTP Event Collector</td><td>Menerima data via REST API endpoint</td><td>Custom apps, cloud services, IoT</td></tr>
+                <tr><td>Script</td><td>Menjalankan script secara periodik</td><td>API polling, status checks</td></tr>
+                <tr><td>Windows Event Log</td><td>Membaca Windows Event Log secara native</td><td>AD, System, Security logs</td></tr>
+                <tr><td>WMI</td><td>Windows Management Instrumentation</td><td>Remote Windows monitoring</td></tr>
+                <tr><td>Modular Input</td><td>Custom input via Python/Java</td><td>Custom protocol, proprietary system</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Mengkonfigurasi HTTP Event Collector (HEC)</h3>
+        <p>HEC adalah metode yang sangat fleksibel untuk mengirim data ke Splunk, terutama dari aplikasi cloud dan microservices:</p>
+
+        <div class="code-block">
+            <span class="lang-label">Config</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># Aktifkan HEC di inputs.conf
+[http]
+disabled = 0
+port = 8088
+enableSSL = 1
+serverCert = /opt/splunk/etc/auth/mycerts/server.pem
+dedicatedIoThreads = 2
+maxSockets = 0
+maxThreads = 0
+
+# Contoh pengiriman data via HEC menggunakan curl
+curl -k https://splunk-server:8088/services/collector/event \
+  -H "Authorization: Splunk YOUR-HEC-TOKEN" \
+  -d '{
+    "event": {
+      "src_ip": "192.168.1.100",
+      "dest_ip": "10.0.0.50",
+      "dest_port": 443,
+      "action": "blocked",
+      "rule": "suspicious_traffic",
+      "severity": "high"
+    },
+    "sourcetype": "firewall_event",
+    "index": "security",
+    "host": "fw-dc01"
+  }'
+
+# Contoh pengiriman data via Python
+# pip install splunk-hec</code>
+        </div>
+
+        <h3>Python HEC Integration</h3>
+        <div class="code-block">
+            <span class="lang-label">Python</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code>import requests
+import json
+from datetime import datetime
+
+class SplunkHEC:
+    def __init__(self, url, token, verify_ssl=False):
+        self.url = url
+        self.headers = {
+            "Authorization": f"Splunk {token}",
+            "Content-Type": "application/json"
+        }
+        self.verify = verify_ssl
+
+    def send_event(self, event, sourcetype, index, host="unknown"):
+        payload = {
+            "event": event,
+            "sourcetype": sourcetype,
+            "index": index,
+            "host": host,
+            "time": datetime.now().timestamp()
+        }
+        response = requests.post(
+            self.url,
+            headers=self.headers,
+            data=json.dumps(payload),
+            verify=self.verify
+        )
+        return response.status_code
+
+    def send_batch(self, events, sourcetype, index, host="unknown"):
+        batch = ""
+        for event in events:
+            payload = {
+                "event": event,
+                "sourcetype": sourcetype,
+                "index": index,
+                "host": host
+            }
+            batch += json.dumps(payload) + "\n"
+        response = requests.post(
+            self.url,
+            headers=self.headers,
+            data=batch,
+            verify=self.verify
+        )
+        return response.status_code
+
+# Penggunaan
+hec = SplunkHEC(
+    url="https://splunk:8088/services/collector/event",
+    token="your-hec-token"
+)
+hec.send_event(
+    event={"src_ip": "10.0.0.1", "action": "blocked"},
+    sourcetype="firewall_log",
+    index="security"
+)</code>
+        </div>
+
+        <h3>App dan Add-on untuk Data Collection</h3>
+        <p>Splunk menyediakan Technology Add-ons (TA) yang memudahkan pengumpulan dan normalisasi data:</p>
+        <ul>
+            <li><strong>Splunk Add-on for Microsoft Windows</strong> - Windows Event Log collection dengan CIM normalization</li>
+            <li><strong>Splunk Add-on for AWS</strong> - CloudTrail, VPC Flow Logs, S3 access logs, CloudWatch</li>
+            <li><strong>Splunk Add-on for Palo Alto Networks</strong> - Firewall dan threat log collection</li>
+            <li><strong>Splunk Add-on for Cisco</strong> - ASA, ISE, Umbrella, Meraki logs</li>
+            <li><strong>Splunk Add-on for Unix and Linux</strong> - System metrics, log, dan inventory collection</li>
+            <li><strong>Splunk Add-on for Microsoft Office 365</strong> - Audit logs, Exchange, SharePoint</li>
+        </ul>
+
+        <h3>Field Extraction</h3>
+        <p>Field extraction memungkinkan Splunk mengenali dan mengekstrak field dari data mentah. Tanpa field extraction yang tepat, Anda tidak bisa melakukan filter, statistik, atau korelasi dengan efisien.</p>
+
+        <div class="code-block">
+            <span class="lang-label">Config</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># props.conf - Field extraction untuk SSH logs
+[source::/var/log/secure]
+TRANSFORMS-ssh_fail = ssh_failed_login
+TRANSFORMS-ssh_success = ssh_successful_login
+TRANSFORMS-ssh_session = ssh_session_open
+
+# transforms.conf - Definisi extraction
+[ssh_failed_login]
+REGEX = Failed password for (?:invalid user )?(\S+) from (\S+) port (\d+)
+FORMAT = user::$1 src_ip::$2 src_port::$3
+DEST_KEY = _raw
+
+[ssh_successful_login]
+REGEX = Accepted (?:password|publickey) for (\S+) from (\S+) port (\d+)
+FORMAT = user::$1 src_ip::$2 src_port::$3
+DEST_KEY = _raw
+
+[ssh_session_open]
+REGEX = session opened for user (\S+)
+FORMAT = user::$1
+DEST_KEY = _raw
+
+# Inline field extraction via SPL
+# | rex "Failed password for (?:invalid user )?(?\S+) from (?\S+)"</code>
+        </div>
+
+        <h2 id="search">Search Processing Language (SPL)</h2>
+        <p>SPL adalah bahasa query Splunk yang powerful untuk mencari, memfilter, dan menganalisis data. SPL menggunakan pipeline model yang memungkinkan chaining dari banyak perintah dengan operator pipe (|).</p>
+
+        <h3>Dasar SPL Search</h3>
+        <div class="code-block">
+            <span class="lang-label">SPL</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># Pencarian dasar - semua event yang mengandung "Failed password"
+index=security sourcetype=linux_secure "Failed password"
+
+# Filter dengan field dan time range
+index=security sourcetype=linux_secure "Failed password"
+| where _time > relative_time(now(), "-24h")
+| where NOT cidrmatch("10.0.0.0/8", src_ip)
+
+# Top 20 IP dengan failed login terbanyak
+index=security sourcetype=linux_secure "Failed password"
+| rex "Failed password for (?:invalid user )?(?<user>\S+) from (?<src_ip>\S+)"
+| top limit=20 src_ip
+| sort -count
+
+# Statistik login per jam untuk setiap user
+index=security sourcetype=linux_secure "Accepted password"
+| timechart span=1h count by user
+| where count > 10</code>
+        </div>
+
+        <h3>SPL untuk Security Analysis</h3>
+        <div class="code-block">
+            <span class="lang-label">SPL</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># === DETECT BRUTE FORCE ===
+# Lebih dari 5 failed login dalam 5 menit dari IP yang sama
+index=security sourcetype=linux_secure "Failed password"
+| bin _time span=5m
+| stats count as failed_attempts values(user) as target_users
+  dc(user) as unique_targets by _time src_ip
+| where failed_attempts >= 5
+| eval severity=case(
+    failed_attempts >= 50, "critical",
+    failed_attempts >= 25, "high",
+    failed_attempts >= 10, "medium",
+    true(), "low"
+  )
+| sort -failed_attempts
+
+# === PORT SCAN DETECTION ===
+index=firewall sourcetype=firewall_log action=blocked
+| bin _time span=10m
+| stats count values(dest_port) as ports
+  dc(dest_port) as unique_ports by src_ip _time
+| where unique_ports > 20
+| sort -unique_ports
+
+# === NETWORK RECONNAISSANCE ===
+# Mencari pola scanning: banyak port berbeda dari satu IP
+index=firewall action=allowed OR action=blocked earliest=-1h
+| stats count dc(dest_port) as port_count
+  values(action) as actions by src_ip
+| where port_count > 50
+| sort -port_count
+
+# === LATERAL MOVEMENT DETECTION ===
+# Satu user terhubung ke banyak host berbeda
+index=security sourcetype=linux_secure "Accepted"
+| stats values(dest) as connected_hosts dc(dest) as host_count by user
+| where host_count > 5
+| eval risk = case(
+    host_count > 15, "critical",
+    host_count > 10, "high",
+    host_count > 5, "medium"
+  )
+| table user connected_hosts host_count risk
+
+# === PRIVILEGE ESCALATION ===
+index=security sourcetype=linux_secure ("sudo" OR "su:")
+| where NOT match(user, "root")
+| stats count values(command) as commands by user
+| where count > 3
+| sort -count</code>
+        </div>
+
+        <h3>Advanced SPL Operations</h3>
+        <div class="code-block">
+            <span class="lang-label">SPL</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># Correlation antara firewall dan authentication events
+index=security (sourcetype=linux_secure OR sourcetype=firewall_log)
+| eval event_category=case(
+    match(_raw, "Accepted password"), "auth_success",
+    match(_raw, "Failed password"), "auth_failure",
+    match(_raw, "DENY|DROP|REJECT"), "firewall_block",
+    true(), "other"
+  )
+| stats count by src_ip event_category
+| xyseries src_ip event_category count
+| fillnull value=0
+
+# Transaction-based analysis - menggabungkan event terkait
+index=security sourcetype=linux_secure
+| transaction src_ip maxspan=30m
+  startswith="Failed password" endswith="Accepted password"
+| where eventcount > 3
+| table src_ip duration eventcount user
+| sort -eventcount
+
+# Statistical anomaly detection
+index=security sourcetype=linux_secure "Failed password"
+| timechart span=1h count as failures
+| eventstats avg(failures) as avg_failures stdev(failures) as stdev_failures
+| eval upper_bound = avg_failures + (3 * stdev_failures)
+| where failures > upper_bound
+| table _time failures avg_failures upper_bound</code>
+        </div>
+
+        <h3>Lookup Tables untuk Data Enrichment</h3>
+        <p>Lookup tables memungkinkan enrichment data dengan informasi eksternal seperti asset database atau threat intelligence:</p>
+
+        <div class="code-block">
+            <span class="lang-label">SPL</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># Menggunakan static lookup untuk threat intel enrichment
+index=security action=allowed
+| lookup threat_intel.csv ip AS src_ip 
+  OUTPUT threat_level description ioc_type
+| where isnotnull(threat_level)
+| table _time src_ip dest_ip dest_port threat_level description
+
+# Automatic lookup configuration di props.conf
+[firewall_log]
+LOOKUP-threat_lookup = threat_intel ip AS src_ip OUTPUTNEW \
+  threat_level, description, ioc_type
+
+# KV Store lookup (dynamic, bisa diupdate via API)
+| outputlookup create_in_app=true threat_intel_kv</code>
+        </div>
+
+        <h2 id="alerts">Alerts dan Notifikasi</h2>
+        <p>Alert di Splunk memungkinkan notifikasi otomatis ketika kondisi tertentu terpenuhi. Alert yang dikonfigurasi dengan baik sangat kritis untuk tim SOC dalam mendeteksi dan merespons insiden keamanan secara cepat.</p>
+
+        <h3>Jenis Alert di Splunk</h3>
+        <ul>
+            <li><strong>Real-time Alert</strong> - Dijalankan secara real-time, cocok untuk event kritis yang membutuhkan respons segera. Namun sangat boros resource.</li>
+            <li><strong>Scheduled Alert</strong> - Dijalankan secara periodik (menit/jam), lebih hemat resource dan cocok untuk kebanyakan use case.</li>
+            <li><strong>Per-result Alert</strong> - Triggered setiap kali query menghasilkan satu atau lebih hasil.</li>
+            <li><strong>Rolling-window Alert</strong> - Mengevaluasi data dalam window waktu tertentu, cocok untuk threshold-based detection.</li>
+        </ul>
+
+        <h3>Contoh Alert: Brute Force Detection</h3>
+        <div class="code-block">
+            <span class="lang-label">SPL</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># Alert Query - Brute Force Detection (Scheduled, setiap 5 menit)
+index=security sourcetype=linux_secure "Failed password"
+| rex "Failed password for (?:invalid user )?(?<user>\S+) from (?<src_ip>\S+)"
+| bin _time span=5m
+| stats count as failures values(user) as targets
+  dc(user) as unique_targets by src_ip _time
+| where failures >= 10
+| eval severity=case(
+    failures >= 50, "critical",
+    failures >= 25, "high",
+    failures >= 10, "medium",
+    true(), "low"
+  )
+| table _time src_ip failures targets unique_targets severity
+
+# Alert Settings:
+# - Trigger: Number of Results > 0
+# - Throttle: 300 seconds per src_ip
+# - Action: Send email + Create notable event</code>
+        </div>
+
+        <h3>Alert Actions Configuration</h3>
+        <div class="code-block">
+            <span class="lang-label">Config</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># alert_actions.conf - Email notification
+[email]
+from = siem@company.com
+to = security-team@company.com
+cc = soc-manager@company.com
+server = smtp.company.com:587
+use_tls = true
+subject = [SIEM Alert] $name$ - Severity: $severity$
+
+# Webhook untuk integrasi dengan SOAR/ticketing system
+[webhook]
+url = https://soar.company.com/api/v2/alerts
+payload_format = json
+payload = {
+  "title": "$name$",
+  "severity": "$severity$",
+  "description": "$description$",
+  "src_ip": "$result.src_ip$",
+  "count": "$result.count$",
+  "timestamp": "$trigger_time$"
+}
+
+# Script-based action untuk auto-response
+[script]
+filename = auto_response.py
+passauth = true
+results_file = /tmp/alert_results.csv</code>
+        </div>
+
+        <h3>Saved Searches dan Notable Events</h3>
+        <div class="code-block">
+            <span class="lang-label">Config</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># savedsearches.conf - Advanced alert configuration
+[Suspicious DNS Activity]
+search = index=dns earliest=-1h
+| lookup dns_whitelist.csv domain OUTPUT is_allowed
+| where isnull(is_allowed)
+| stats count by src_ip dest_ip domain
+| where count > 50
+dispatch.earliest_time = -1h
+dispatch.latest_time = now
+dispatch.max_count = 10000
+alert.severity = 3
+alert.track = 1
+alert.suppress = 1
+alert.suppress.fields = src_ip
+alert.suppress.period = 1h
+action.notable = 1
+action.notable.param.severity = high
+action.notable.param.rule_title = Suspicious DNS Query Detected
+action.notable.param.security_domain = network
+action.notable.param.drilldown_name = Investigate Source IP
+action.notable.param.drilldown_search = index=firewall src_ip=$src_ip$</code>
+        </div>
+
+        <h2 id="dashboards">Dashboards</h2>
+        <p>Dashboards menyediakan visualisasi real-time dari data keamanan. Dashboard yang baik membantu tim SOC memahami situasi keamanan secara cepat dan mengidentifikasi tren atau anomali.</p>
+
+        <h3>Dashboard Security Operations Center</h3>
+        <div class="code-block">
+            <span class="lang-label">XML</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code>&lt;dashboard theme="dark"&gt;
+  &lt;label&gt;SOC Security Overview&lt;/label&gt;
+  &lt;description&gt;Security Operations Center Monitoring Dashboard&lt;/description&gt;
+
+  &lt;row&gt;
+    &lt;panel&gt;
+      &lt;title&gt;Failed Logins (24h)&lt;/title&gt;
+      &lt;single&gt;
+        &lt;search&gt;
+          &lt;query&gt;
+            index=security "Failed password" earliest=-24h
+            | stats count
+          &lt;/query&gt;
+          &lt;earliest&gt;-24h&lt;/earliest&gt;
+          &lt;latest&gt;now&lt;/latest&gt;
+          &lt;refresh&gt;5m&lt;/refresh&gt;
+          &lt;refreshType&gt;delay&lt;/refreshType&gt;
+        &lt;/search&gt;
+        &lt;option name="rangeColors"&gt;
+          ["0x53a051","0xf8be34","0xdc4e41"]
+        &lt;/option&gt;
+        &lt;option name="rangeValues"&gt;[50,200]&lt;/option&gt;
+        &lt;option name="underLabel"&gt;attempts&lt;/option&gt;
+      &lt;/single&gt;
+    &lt;/panel&gt;
+    &lt;panel&gt;
+      &lt;title&gt;Unique Attack Sources&lt;/title&gt;
+      &lt;single&gt;
+        &lt;search&gt;
+          &lt;query&gt;
+            index=security "Failed password" earliest=-24h
+            | stats dc(src_ip) as unique_sources
+          &lt;/query&gt;
+        &lt;/search&gt;
+        &lt;option name="underLabel"&gt;unique IPs&lt;/option&gt;
+      &lt;/single&gt;
+    &lt;/panel&gt;
+    &lt;panel&gt;
+      &lt;title&gt;Active Alerts&lt;/title&gt;
+      &lt;single&gt;
+        &lt;search&gt;
+          &lt;query&gt;
+            index=_audit action=alert_fired earliest=-24h
+            | stats count
+          &lt;/query&gt;
+        &lt;/search&gt;
+      &lt;/single&gt;
+    &lt;/panel&gt;
+    &lt;panel&gt;
+      &lt;title&gt;High Risk Events&lt;/title&gt;
+      &lt;single&gt;
+        &lt;search&gt;
+          &lt;query&gt;
+            index=security severity=high OR severity=critical earliest=-24h
+            | stats count
+          &lt;/query&gt;
+        &lt;/search&gt;
+      &lt;/single&gt;
+    &lt;/panel&gt;
+  &lt;/row&gt;
+
+  &lt;row&gt;
+    &lt;panel&gt;
+      &lt;title&gt;Security Events Timeline&lt;/title&gt;
+      &lt;chart&gt;
+        &lt;search&gt;
+          &lt;query&gt;
+            index=security earliest=-24h
+            | timechart span=1h count by sourcetype
+          &lt;/query&gt;
+        &lt;/search&gt;
+        &lt;option name="charting.chart"&gt;line&lt;/option&gt;
+        &lt;option name="charting.drilldown"&gt;all&lt;/option&gt;
+      &lt;/chart&gt;
+    &lt;/panel&gt;
+  &lt;/row&gt;
+
+  &lt;row&gt;
+    &lt;panel&gt;
+      &lt;title&gt;Top Attack Sources&lt;/title&gt;
+      &lt;table&gt;
+        &lt;search&gt;
+          &lt;query&gt;
+            index=security "Failed password" earliest=-24h
+            | rex "from (?&lt;src_ip&gt;\S+)"
+            | top limit=20 src_ip showperc=true
+          &lt;/query&gt;
+        &lt;/search&gt;
+      &lt;/table&gt;
+    &lt;/panel&gt;
+    &lt;panel&gt;
+      &lt;title&gt;Targeted Accounts&lt;/title&gt;
+      &lt;table&gt;
+        &lt;search&gt;
+          &lt;query&gt;
+            index=security "Failed password" earliest=-24h
+            | rex "for (?:invalid user )?(?&lt;user&gt;\S+)"
+            | top limit=20 user showperc=true
+          &lt;/query&gt;
+        &lt;/search&gt;
+      &lt;/table&gt;
+    &lt;/panel&gt;
+  &lt;/row&gt;
+
+  &lt;row&gt;
+    &lt;panel&gt;
+      &lt;title&gt;Attack Geographic Distribution&lt;/title&gt;
+      &lt;map&gt;
+        &lt;search&gt;
+          &lt;query&gt;
+            index=security "Failed password" earliest=-24h
+            | iplocation src_ip
+            | geostats count by Country
+          &lt;/query&gt;
+        &lt;/search&gt;
+      &lt;/map&gt;
+    &lt;/panel&gt;
+  &lt;/row&gt;
+&lt;/dashboard&gt;</code>
+        </div>
+
+        <h2 id="correlation">Correlation Rules</h2>
+        <p>Correlation rules adalah fitur paling powerful dari SIEM. Aturan korelasi menghubungkan beberapa event untuk mendeteksi pola serangan yang kompleks dan multi-stage yang tidak terlihat jika masing-masing event dianalisis secara terpisah.</p>
+
+        <h3>Multi-Stage Attack Detection</h3>
+        <div class="code-block">
+            <span class="lang-label">SPL</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># Correlation Rule: Reconnaissance -> Brute Force -> Lateral Movement
+# Menggunakan subsearch untuk mengkorelasikan multiple stages
+
+# Stage 1: Detect port scanning (reconnaissance)
+| makeresults
+| eval src_ip = "placeholder"
+| append [
+  search index=firewall action=blocked earliest=-1h
+  | bin _time span=10m
+  | stats dc(dest_port) as port_count by src_ip _time
+  | where port_count > 20
+  | eval stage = "reconnaissance"
+  | fields src_ip _time stage
+]
+
+# Stage 2: Detect brute force attempts
+| append [
+  search index=security "Failed password" earliest=-1h
+  | rex "from (?<src_ip>\S+)"
+  | stats count as failed_count by src_ip
+  | where failed_count > 10
+  | eval stage = "brute_force"
+  | fields src_ip failed_count stage
+]
+
+# Stage 3: Detect successful exploitation
+| append [
+  search index=security "Accepted password" earliest=-30m
+  | rex "for (?<user>\S+) from (?<src_ip>\S+)"
+  | eval stage = "exploitation"
+  | fields src_ip user stage
+]
+
+# Correlate all stages
+| stats values(stage) as attack_stages count as total_events
+  by src_ip
+| where mvcount(attack_stages) > 1
+| eval risk_score = mvcount(attack_stages) * 30
+| sort -risk_score</code>
+        </div>
+
+        <h3>DNS-based Threat Detection</h3>
+        <div class="code-block">
+            <span class="lang-label">SPL</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># Detect DNS tunneling - unusually long domain names
+index=dns earliest=-1h
+| eval domain_len = len(query)
+| stats avg(domain_len) as avg_len max(domain_len) as max_len
+  count as query_count by src_ip
+| where avg_len > 50 AND query_count > 100
+| sort -avg_len
+
+# Detect DGA (Domain Generation Algorithm) domains
+index=dns earliest=-1h
+| rex field=query "^(?<domain>[^.]+)\."
+| eval domain_len = len(domain)
+| eval consonant_ratio = (
+    len(replace(domain, "[aeiouAEIOU]", "")) / domain_len
+  )
+| eval has_numbers = if(match(domain, "\d"), 1, 0)
+| where domain_len > 12 AND consonant_ratio > 0.7 AND has_numbers = 1
+| stats count by src_ip domain
+| sort -count
+
+# Correlate DNS with threat intel
+index=dns earliest=-24h
+| lookup threat_intel_domains.csv domain AS query
+  OUTPUT threat_type confidence
+| where isnotnull(threat_type)
+| stats count values(src_ip) as sources
+  values(threat_type) as threats by query
+| sort -count</code>
+        </div>
+
+        <h3>User Behavior Analytics (UBA)</h3>
+        <div class="code-block">
+            <span class="lang-label">SPL</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># Detect impossible travel - login dari lokasi berjauhan
+index=authentication "Accepted"
+| rex "from (?<src_ip>\S+)"
+| iplocation src_ip
+| sort user _time
+| streamstats current=f last(Country) as prev_country
+  last(_time) as prev_time by user
+| eval travel_time = _time - prev_time
+| eval distance_km = if(Country != prev_country, 
+    6371 * 2 * asin(sqrt(
+      sin((to_radians(Lat) - to_radians(prev_Lat))/2)^2 +
+      cos(to_radians(prev_Lat)) * cos(to_radians(Lat)) *
+      sin((to_radians(Lon) - to_radians(prev_Lon))/2)^2
+    )), 0)
+| where distance_km > 500 AND travel_time < 3600
+| table user Country prev_country distance_km travel_time src_ip
+
+# Detect off-hours access
+index=authentication "Accepted" earliest=-24h
+| eval hour = strftime(_time, "%H")
+| eval is_off_hours = if(hour < 6 OR hour > 22, 1, 0)
+| where is_off_hours = 1
+| stats count values(src_ip) as sources by user
+| sort -count</code>
+        </div>
+
+        <h2 id="best-practices">Best Practices SIEM dengan Splunk</h2>
+        <ul>
+            <li><strong>Data Normalization (CIM)</strong> - Gunakan Common Information Model untuk memastikan konsistensi data antar sourcetype. Ini sangat penting untuk correlation rules yang melibatkan multiple data source.</li>
+            <li><strong>Index Design</strong> - Pisahkan data berdasarkan tim kepemilikan, compliance requirement, dan retensi period. Hindari menyimpan semua data dalam satu index besar.</li>
+            <li><strong>Role-Based Access Control</strong> - Implementasikan RBAC untuk membatasi akses data sensitif. Gunakan Splunk roles untuk memisahkan akses SOC analyst, SOC manager, dan compliance team.</li>
+            <li><strong>Performance Optimization</strong> - Optimasi search dengan indexed fields (INDEXED, INDEXED_VALUE), summary indexing untuk report yang sering dijalankan, dan data model acceleration.</li>
+            <li><strong>Data Quality</strong> - Pastikan timestamp dikonfigurasi dengan benar, source type assignment akurat, dan field extraction lengkap sebelum data diindeks.</li>
+            <li><strong>Capacity Planning</strong> - Monitor license usage harian, storage consumption, dan search concurrency. Rencanakan kapasitas 12-18 bulan ke depan.</li>
+            <li><strong>Backup dan DR</strong> - Backup konfigurasi, metadata, dan saved searches secara rutin. Rencanakan disaster recovery untuk deployment cluster.</li>
+            <li><strong>Tuning</strong> - Lakukan tuning alert secara berkala untuk mengurangi false positive. Gunakan suppress dan throttle untuk menghindari alert fatigue.</li>
+        </ul>
+
+        <div class="warning-box">
+            <strong>⚠️ Keamanan Data Sensitif:</strong>
+            <p>Selalu pastikan untuk tidak menyimpan data sensitif seperti password, API key, atau PII dalam log Splunk. Gunakan <code>SEDCMD</code> di props.conf untuk menyensor data sensitif sebelum diindeks. Pastikan juga akses ke Splunk dilindungi dengan SSL/TLS dan multi-factor authentication.</p>
+        </div>
+
+        <div class="code-block">
+            <span class="lang-label">Config</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <code># props.conf - Sensitive data masking
+[security]
+SEDCMD-mask_password = s/password=[^\s,]+/password=****/g
+SEDCMD-mask_apikey = s/api[_-]?key=[^\s,]+/apikey=****/g
+SEDCMD-mask_email = s/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/[REDACTED_EMAIL]/g
+SEDCMD-mask_credit_card = s/\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}/[REDACTED_CC]/g
+SEDCMD-mask_ssn = s/\d{3}-\d{2}-\d{4}/[REDACTED_SSN]/g</code>
+        </div>
+
+        <h2 id="quiz">Quiz: SIEM dengan Splunk</h2>
+        <div class="quiz-container">
+            <h3>🎯 Uji Pemahaman Anda tentang SIEM Splunk</h3>
+            <div class="quiz-question" data-answer="b">
+                <p>1. Komponen Splunk yang bertugas mengumpulkan data dari sumber dan mengirimkannya ke Indexer tanpa memproses data adalah?</p>
+                <ul class="quiz-options">
+                    <li data-option="a">Search Head</li>
+                    <li data-option="b">Universal Forwarder</li>
+                    <li data-option="c">Deployment Server</li>
+                    <li data-option="d">License Master</li>
+                </ul>
+            </div>
+            <div class="quiz-question" data-answer="c">
+                <p>2. Bahasa query yang digunakan di Splunk untuk pencarian dan analisis data adalah?</p>
+                <ul class="quiz-options">
+                    <li data-option="a">SQL</li>
+                    <li data-option="b">KQL (Kusto Query Language)</li>
+                    <li data-option="c">SPL (Search Processing Language)</li>
+                    <li data-option="d">Lucene Query Syntax</li>
+                </ul>
+            </div>
+            <div class="quiz-question" data-answer="a">
+                <p>3. Fitur Splunk untuk menerima data dari aplikasi eksternal via REST API disebut?</p>
+                <ul class="quiz-options">
+                    <li data-option="a">HTTP Event Collector (HEC)</li>
+                    <li data-option="b">Universal Forwarder</li>
+                    <li data-option="c">Data Summary</li>
+                    <li data-option="d">Lookup Table</li>
+                </ul>
+            </div>
+            <div class="quiz-question" data-answer="d">
+                <p>4. Untuk menyensor data sensitif (seperti password) sebelum diindeks di Splunk, konfigurasi yang digunakan adalah?</p>
+                <ul class="quiz-options">
+                    <li data-option="a">FIELD_MASK</li>
+                    <li data-option="b">DATA_HIDE</li>
+                    <li data-option="c">REGEX_FILTER</li>
+                    <li data-option="d">SEDCMD</li>
+                </ul>
+            </div>
+            <div class="quiz-question" data-answer="b">
+                <p>5. Standar normalisasi data yang direkomendasikan Splunk untuk memastikan konsistensi field antar sourcetype adalah?</p>
+                <ul class="quiz-options">
+                    <li data-option="a">STIX/TAXII</li>
+                    <li data-option="b">Common Information Model (CIM)</li>
+                    <li data-option="c">CEF (Common Event Format)</li>
+                    <li data-option="d">LEEF (Log Event Extended Format)</li>
+                </ul>
+            </div>
+            <button class="quiz-btn" aria-label="Periksa jawaban kuis" onclick="submitQuiz('quiz1')">Submit Jawaban</button>
+            <div class="quiz-result" id="quiz1-result"></div>
+        </div>
+
+        <h2>Kesimpulan</h2>
+        <p>Splunk adalah platform SIEM yang sangat powerful untuk security monitoring. Dengan pemahaman yang baik tentang arsitektur, data inputs, SPL, alerts, dashboards, dan correlation rules, Anda dapat membangun sistem deteksi ancaman yang efektif. Ingat bahwa implementasi SIEM yang sukses membutuhkan perencanaan yang matang, tuning berkelanjutan, dan kolaborasi antara tim keamanan dan operasional TI.</p>
+        <p>Mulailah dengan use case sederhana seperti brute force detection dan login anomaly, lalu tingkatkan secara bertahap menuju advanced threat detection dan user behavior analytics.</p>
+    
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/mikrotik-vlan-dhcp.html" class="related-card">
+          <span class="related-category">Other</span>
+          <span class="related-title">MikroTik VLAN & DHCP: Konfigurasi Jaringan Tersegmentasi</span>
+        </a>
+        <a href="/articles/linux-security.html" class="related-card">
+          <span class="related-category">Other</span>
+          <span class="related-title">Keamanan Linux: Panduan Dasar untuk Server & IoT</span>
+        </a>
+        <a href="/articles/roc-functional.html" class="related-card">
+          <span class="related-category">Other</span>
+          <span class="related-title">Roc: Functional Programming with Abilities, Platforms, da...</span>
+        </a>
+
+      </div>
+    </div>
+</article>

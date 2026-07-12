@@ -1,0 +1,783 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Computer Vision</a>
+        <span class="separator">/</span>
+        <span class="current">Object Detection</span>
+      </div>
+      <span class="category-tag">Computer Vision</span>
+      <h1>Computer Vision: Object Detection — YOLO, R-CNN, SSD</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Panduan lengkap Object Detection — konsep dasar, IoU, NMS, anchor boxes, arsitektur populer (YOLO, R-CNN, SSD), mAP metric, dan implementasi YOLOv8 dengan Ultralytics</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 22 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Object Detection</a></li>
+          <li><a href="#iou-nms">IoU &amp; Non-Maximum Suppression (NMS)</a></li>
+          <li><a href="#anchor-boxes">Anchor Boxes &amp; Bounding Box Regression</a></li>
+          <li><a href="#r-cnn">R-CNN Family: R-CNN → Fast R-CNN → Faster R-CNN</a></li>
+          <li><a href="#yolo">YOLO: You Only Look Once</a></li>
+          <li><a href="#ssd">SSD: Single Shot Detector</a></li>
+          <li><a href="#map">mAP: Mean Average Precision</a></li>
+          <li><a href="#implementasi-yolov8">Implementasi: Object Detection dengan YOLOv8</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan          -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Object Detection</h2>
+
+      <p><strong>Object Detection</strong> adalah tugas computer vision yang bertujuan untuk tidak hanya mengenali <strong>apa</strong> objek dalam gambar (klasifikasi), tetapi juga <strong>di mana</strong> objek tersebut berada (lokalisasi). Outputnya berupa <strong>bounding box</strong> (kotak pembatas) beserta <strong>label kelas</strong> dan <strong>confidence score</strong> untuk setiap objek yang terdeteksi.</p>
+
+      <h3>Perbedaan Tugas Computer Vision</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Classification vs Detection vs Segmentation</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Classification vs Detection vs Segmentation</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 351px;" viewBox="0 0 351 584" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M175.5,132L175.5,138.167C175.5,144.333,175.5,156.667,175.5,168.333C175.5,180,175.5,191,175.5,196.5L175.5,202" id="L_cls_det_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_cls_det_0" data-points="W3sieCI6MTc1LjUsInkiOjEzMn0seyJ4IjoxNzUuNSwieSI6MTY5fSx7IngiOjE3NS41LCJ5IjoyMDZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M175.5,354L175.5,360.167C175.5,366.333,175.5,378.667,175.5,390.333C175.5,402,175.5,413,175.5,418.5L175.5,424" id="L_det_seg_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_det_seg_0" data-points="W3sieCI6MTc1LjUsInkiOjM1NH0seyJ4IjoxNzUuNSwieSI6MzkxfSx7IngiOjE3NS41LCJ5Ijo0Mjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel" transform="translate(175.5, 169)"><g class="label" data-id="L_cls_det_0" transform="translate(-44.03125, -12)"><foreignObject width="88.0625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Add location</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(175.5, 391)"><g class="label" data-id="L_det_seg_0" transform="translate(-54.25, -12)"><foreignObject width="108.5" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Add pixel mask</p></span></div></foreignObject></g></g></g><g class="nodes"><g class="root" transform="translate(0, 420)"><g class="clusters"><g class="cluster " id="seg" data-look="classic"><rect style="fill:#2a1f0a !important;stroke:#f59e0b !important;stroke-width:2px !important" x="8" y="8" width="335" height="148"/><g class="cluster-label " transform="translate(100.4609375, 8)"><foreignObject width="150.078125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🎨 SEGMENTATION</p></span></div></foreignObject></g></g></g><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"><g class="node default  " id="flowchart-S1-2" transform="translate(175.5, 82)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Image → Pixel Mask\n(per-pixel class)</p></span></div></foreignObject></g></g></g></g><g class="root" transform="translate(0, 198)"><g class="clusters"><g class="cluster " id="det" data-look="classic"><rect style="fill:#0f1d3a !important;stroke:#60a5fa !important;stroke-width:2px !important" x="8" y="8" width="335" height="148"/><g class="cluster-label " transform="translate(117.0546875, 8)"><foreignObject width="116.890625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🎯 DETECTION</p></span></div></foreignObject></g></g></g><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"><g class="node default  " id="flowchart-D1-1" transform="translate(175.5, 82)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Image → Bounding Box + Label\n'cat (0.95)'</p></span></div></foreignObject></g></g></g></g><g class="root" transform="translate(25.34375, 0)"><g class="clusters"><g class="cluster " id="cls" data-look="classic"><rect style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="8" y="8" width="284.3125" height="124"/><g class="cluster-label " transform="translate(72.734375, 8)"><foreignObject width="154.84375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📊 CLASSIFICATION</p></span></div></foreignObject></g></g></g><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"><g class="node default  " id="flowchart-C1-0" transform="translate(150.15625, 70)"><rect class="basic label-container" style="" x="-104.65625" y="-27" width="209.3125" height="54"/><g class="label" style="" transform="translate(-74.65625, -12)"><rect/><foreignObject width="149.3125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Image → Label\n'cat'</p></span></div></foreignObject></g></g></g></g></g></g></g></svg></div>
+</div>
+      <h3>Aplikasi Object Detection</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aplikasi</th>
+            <th>Deskripsi</th>
+            <th>Contoh</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Mobil Otonom</td><td>Mendeteksi pejalan kaki, kendaraan, rambu lalu lintas</td><td>Tesla Autopilot, Waymo</td></tr>
+          <tr><td>Surveillance / Keamanan</td><td>Mendeteksi orang, aktivitas mencurigakan</td><td>CCTV pintar, intruder detection</td></tr>
+          <tr><td>Medical Imaging</td><td>Mendeteksi tumor, lesi, sel abnormal</td><td>Deteksi kanker dari CT scan</td></tr>
+          <tr><td>E-commerce</td><td>Visual product search</td><td>Cari produk dari foto</td></tr>
+          <tr><td>Manufaktur</td><td>Quality control, defect detection</td><td>Deteksi cacat produk di jalur produksi</td></tr>
+          <tr><td>Pertanian</td><td>Deteksi hama, penyakit tanaman</td><td>Drone monitoring pertanian</td></tr>
+          <tr><td>AR / VR</td><td>Mendeteksi objek real-time untuk augmented reality</td><td>Google Lens, Snapchat filter</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: IoU & NMS           -->
+      <!-- ============================== -->
+      <h2 id="iou-nms">2. IoU &amp; Non-Maximum Suppression (NMS)</h2>
+
+      <h3>Intersection over Union (IoU)</h3>
+      <p><strong>IoU</strong> adalah metrik untuk mengukur seberapa tumpang tindih antara dua bounding box. IoU digunakan untuk mengevaluasi apakah deteksi benar (true positive) atau salah (false positive).</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: IoU (Intersection over Union)</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">IoU (Intersection over Union)</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 480.375px;" viewBox="0 0 480.375 480.28125" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M104.703,62L104.703,66.167C104.703,70.333,104.703,78.667,114.389,86.75C124.075,94.833,143.447,102.667,153.133,106.584L162.819,110.5" id="L_A_Calc_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_Calc_0" data-points="W3sieCI6MTA0LjcwMzEyNSwieSI6NjJ9LHsieCI6MTA0LjcwMzEyNSwieSI6ODd9LHsieCI6MTY2LjUyNzA0MzI2OTIzMDc3LCJ5IjoxMTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M361.891,62L361.891,66.167C361.891,70.333,361.891,78.667,352.205,86.75C342.519,94.833,323.147,102.667,313.461,106.584L303.775,110.5" id="L_B_Calc_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_Calc_0" data-points="W3sieCI6MzYxLjg5MDYyNSwieSI6NjJ9LHsieCI6MzYxLjg5MDYyNSwieSI6ODd9LHsieCI6MzAwLjA2NjcwNjczMDc2OTIsInkiOjExMn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M233.297,166L233.297,170.167C233.297,174.333,233.297,182.667,233.297,190.333C233.297,198,233.297,205,233.297,208.5L233.297,212" id="L_Calc_Result_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Calc_Result_0" data-points="W3sieCI6MjMzLjI5Njg3NSwieSI6MTY2fSx7IngiOjIzMy4yOTY4NzUsInkiOjE5MX0seyJ4IjoyMzMuMjk2ODc1LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M199.136,310.12L185.622,321.981C172.108,333.841,145.079,357.561,131.565,374.921C118.051,392.281,118.051,403.281,118.051,408.781L118.051,414.281" id="L_Result_TP_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Result_TP_0" data-points="W3sieCI6MTk5LjEzNjAxNDY0NDgyMzU1LCJ5IjozMTAuMTIwMzg5NjQ0ODIzNTV9LHsieCI6MTE4LjA1MDc4MTI1LCJ5IjozODEuMjgxMjV9LHsieCI6MTE4LjA1MDc4MTI1LCJ5Ijo0MTguMjgxMjV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M267.458,310.12L280.972,321.981C294.486,333.841,321.515,357.561,335.029,374.921C348.543,392.281,348.543,403.281,348.543,408.781L348.543,414.281" id="L_Result_FP_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Result_FP_0" data-points="W3sieCI6MjY3LjQ1NzczNTM1NTE3NjQ1LCJ5IjozMTAuMTIwMzg5NjQ0ODIzNTV9LHsieCI6MzQ4LjU0Mjk2ODc1LCJ5IjozODEuMjgxMjV9LHsieCI6MzQ4LjU0Mjk2ODc1LCJ5Ijo0MTguMjgxMjV9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_A_Calc_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_B_Calc_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Calc_Result_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(118.05078125, 381.28125)"><g class="label" data-id="L_Result_TP_0" transform="translate(-13.0546875, -12)"><foreignObject width="26.109375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>Yes</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(348.54296875, 381.28125)"><g class="label" data-id="L_Result_FP_0" transform="translate(-10.2265625, -12)"><foreignObject width="20.453125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "><p>No</p></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-A-0" transform="translate(104.703125, 35)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important" x="-96.703125" y="-27" width="193.40625" height="54"/><g class="label" style="" transform="translate(-66.703125, -12)"><rect/><foreignObject width="133.40625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Box A\n(Predicted)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Calc-1" transform="translate(233.296875, 139)"><rect class="basic label-container" style="fill:#2a1f0a !important;stroke:#f59e0b !important;stroke-width:2px !important" x="-120.4921875" y="-27" width="240.984375" height="54"/><g class="label" style="" transform="translate(-90.4921875, -12)"><rect/><foreignObject width="180.984375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>IoU = Intersection / Union</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-B-2" transform="translate(361.890625, 35)"><rect class="basic label-container" style="fill:#0f1d3a !important;stroke:#60a5fa !important" x="-110.484375" y="-27" width="220.96875" height="54"/><g class="label" style="" transform="translate(-80.484375, -12)"><rect/><foreignObject width="160.96875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Box B\n(Ground Truth)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Result-5" transform="translate(233.296875, 280.140625)"><polygon points="64.140625,0 128.28125,-64.140625 64.140625,-128.28125 0,-64.140625" class="label-container" transform="translate(-63.640625, 64.140625)"/><g class="label" style="" transform="translate(-37.140625, -12)"><rect/><foreignObject width="74.28125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>IoU &gt; 0.5?</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-TP-7" transform="translate(118.05078125, 445.28125)"><rect class="basic label-container" style="fill:#0a2a1f !important;stroke:#34d399 !important" x="-88.46875" y="-27" width="176.9375" height="54"/><g class="label" style="" transform="translate(-58.46875, -12)"><rect/><foreignObject width="116.9375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>✅ True Positive</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-FP-9" transform="translate(348.54296875, 445.28125)"><rect class="basic label-container" style="fill:#2a0f0f !important;stroke:#ef4444 !important" x="-92.0234375" y="-27" width="184.046875" height="54"/><g class="label" style="" transform="translate(-62.0234375, -12)"><rect/><foreignObject width="124.046875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>❌ False Positive</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      <h3>Non-Maximum Suppression (NMS)</h3>
+      <p>Object detector sering menghasilkan <strong>banyak bounding box tumpang tindih</strong> untuk satu objek. <strong>NMS</strong> adalah algoritma pasca-pemrosesan yang menghilangkan duplikasi dan hanya menyimpan deteksi terbaik.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Non-Maximum Suppression</div>
+<pre class="mermaid">
+flowchart TB
+    Detect["🔍 Multiple Detections\n(overlapping boxes)"] --> Score["Sort by confidence\nscore"]
+    Score --> Pick["Pick highest score\nbox"]
+    Pick --> Remove["Remove overlapping\nboxes ("IoU > threshold")"]
+    Remove --> Next{"More boxes?"}
+    Next -->|Yes| Pick
+    Next -->|No| Output["✅ Final Detections"]
+
+    style Detect fill:#2a1f0a,stroke:#f59e0b
+    style Score fill:#0f1d3a,stroke:#60a5fa,stroke-width:1.5px
+    style Pick fill:#0f2a1f,stroke:#3ecf8e,stroke-width:1.5px
+    style Output fill:#0a2a1f,stroke:#34d399,stroke-width:2px
+</pre>
+      </div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 860.71875px;" viewBox="0 0 860.71875 406" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M383.461,45.323L342.336,52.269C301.211,59.215,218.961,73.108,177.836,83.554C136.711,94,136.711,101,136.711,104.5L136.711,108" id="L_Cell_A1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Cell_A1_0" data-points="W3sieCI6MzgzLjQ2MDkzNzUsInkiOjQ1LjMyMjkzNzU0OTE2NjM5fSx7IngiOjEzNi43MTA5Mzc1LCJ5Ijo4N30seyJ4IjoxMzYuNzEwOTM3NSwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M444.578,62L444.578,66.167C444.578,70.333,444.578,78.667,444.578,86.333C444.578,94,444.578,101,444.578,104.5L444.578,108" id="L_Cell_A2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Cell_A2_0" data-points="W3sieCI6NDQ0LjU3ODEyNSwieSI6NjJ9LHsieCI6NDQ0LjU3ODEyNSwieSI6ODd9LHsieCI6NDQ0LjU3ODEyNSwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M505.695,45.823L544.451,52.686C583.206,59.549,660.716,73.274,699.471,83.637C738.227,94,738.227,101,738.227,104.5L738.227,108" id="L_Cell_A3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Cell_A3_0" data-points="W3sieCI6NTA1LjY5NTMxMjUsInkiOjQ1LjgyMjc4NDQ3MzM1NTE1fSx7IngiOjczOC4yMjY1NjI1LCJ5Ijo4N30seyJ4Ijo3MzguMjI2NTYyNSwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M136.711,166L136.711,170.167C136.711,174.333,136.711,182.667,168.58,192.216C200.448,201.765,264.186,212.531,296.054,217.914L327.923,223.296" id="L_A1_Match_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A1_Match_0" data-points="W3sieCI6MTM2LjcxMDkzNzUsInkiOjE2Nn0seyJ4IjoxMzYuNzEwOTM3NSwieSI6MTkxfSx7IngiOjMzMS44NjcxODc1LCJ5IjoyMjMuOTYyNjcxNjA2NTY3Mzd9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M444.578,166L444.578,170.167C444.578,174.333,444.578,182.667,444.578,190.333C444.578,198,444.578,205,444.578,208.5L444.578,212" id="L_A2_Match_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A2_Match_0" data-points="W3sieCI6NDQ0LjU3ODEyNSwieSI6MTY2fSx7IngiOjQ0NC41NzgxMjUsInkiOjE5MX0seyJ4Ijo0NDQuNTc4MTI1LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M738.227,166L738.227,170.167C738.227,174.333,738.227,182.667,708.727,192.057C679.227,201.448,620.227,211.896,590.728,217.119L561.228,222.343" id="L_A3_Match_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A3_Match_0" data-points="W3sieCI6NzM4LjIyNjU2MjUsInkiOjE2Nn0seyJ4Ijo3MzguMjI2NTYyNSwieSI6MTkxfSx7IngiOjU1Ny4yODkwNjI1LCJ5IjoyMjMuMDQwODY1MTkyNzUyODJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M444.578,270L444.578,274.167C444.578,278.333,444.578,286.667,444.578,294.333C444.578,302,444.578,309,444.578,312.5L444.578,316" id="L_Match_Best_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Match_Best_0" data-points="W3sieCI6NDQ0LjU3ODEyNSwieSI6MjcwfSx7IngiOjQ0NC41NzgxMjUsInkiOjI5NX0seyJ4Ijo0NDQuNTc4MTI1LCJ5IjozMjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_Cell_A1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Cell_A2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Cell_A3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_A1_Match_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_A2_Match_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_A3_Match_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Match_Best_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-Cell-0" transform="translate(444.578125, 35)"><rect class="basic label-container" style="fill:#0f1d3a !important;stroke:#60a5fa !important;stroke-width:1.5px !important" x="-61.1171875" y="-27" width="122.234375" height="54"/><g class="label" style="" transform="translate(-31.1171875, -12)"><rect/><foreignObject width="62.234375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Grid Cell</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-A1-1" transform="translate(136.7109375, 139)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important" x="-128.7109375" y="-27" width="257.421875" height="54"/><g class="label" style="" transform="translate(-98.7109375, -12)"><rect/><foreignObject width="197.421875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Anchor Box 1\n(wide, short)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-A2-3" transform="translate(444.578125, 139)"><rect class="basic label-container" style="fill:#2a1f0a !important;stroke:#f59e0b !important" x="-129.15625" y="-27" width="258.3125" height="54"/><g class="label" style="" transform="translate(-99.15625, -12)"><rect/><foreignObject width="198.3125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Anchor Box 2\n(tall, narrow)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-A3-5" transform="translate(738.2265625, 139)"><rect class="basic label-container" style="fill:#1a0f2e !important;stroke:#a78bfa !important" x="-114.4921875" y="-27" width="228.984375" height="54"/><g class="label" style="" transform="translate(-84.4921875, -12)"><rect/><foreignObject width="168.984375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Anchor Box 3\n(square)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Match-7" transform="translate(444.578125, 243)"><rect class="basic label-container" style="" x="-112.7109375" y="-27" width="225.421875" height="54"/><g class="label" style="" transform="translate(-82.7109375, -12)"><rect/><foreignObject width="165.421875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>IoU with\nGround Truth</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Best-13" transform="translate(444.578125, 359)"><rect class="basic label-container" style="fill:#0a2a1f !important;stroke:#34d399 !important;stroke-width:2px !important" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Best matching\nanchor selected</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: R-CNN Family        -->
+      <!-- ============================== -->
+      <h2 id="r-cnn">4. R-CNN Family: R-CNN → Fast R-CNN → Faster R-CNN</h2>
+
+      <p>Keluarga <strong>R-CNN</strong> (Regions with CNN features) adalah pendekatan <strong>two-stage</strong> untuk object detection: pertama menghasilkan <strong>region proposals</strong> (kandidat area objek), lalu mengklasifikasi setiap region.</p>
+
+      <h3>Evolusi R-CNN</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Evolusi R-CNN → Faster R-CNN</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Evolusi R-CNN → Faster R-CNN</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 398" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,86L138,90.167C138,94.333,138,102.667,138,110.333C138,118,138,125,138,128.5L138,132" id="L_RCNN_Fast_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_RCNN_Fast_0" data-points="W3sieCI6MTM4LCJ5Ijo4Nn0seyJ4IjoxMzgsInkiOjExMX0seyJ4IjoxMzgsInkiOjEzNn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,214L138,218.167C138,222.333,138,230.667,138,238.333C138,246,138,253,138,256.5L138,260" id="L_Fast_Faster_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Fast_Faster_0" data-points="W3sieCI6MTM4LCJ5IjoyMTR9LHsieCI6MTM4LCJ5IjoyMzl9LHsieCI6MTM4LCJ5IjoyNjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_RCNN_Fast_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Fast_Faster_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-RCNN-0" transform="translate(138, 47)"><rect class="basic label-container" style="fill:#2a0f0f !important;stroke:#ef4444 !important" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>2014: R-CNN\nSelective Search\n(~50s/image)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Fast-1" transform="translate(138, 175)"><rect class="basic label-container" style="fill:#2a1f0a !important;stroke:#f59e0b !important;stroke-width:2px !important" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>2015: Fast R-CNN\nROI Pooling\n(~2s/image)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Faster-3" transform="translate(138, 327)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="-130" y="-63" width="260" height="126"/><g class="label" style="" transform="translate(-100, -48)"><rect/><foreignObject width="200" height="96"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>2016: Faster R-CNN\nRegion Proposal\nNetwork (RPN)\n(~0.2s/image)</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      <h3>Region Proposal Network (RPN)</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Komponen</th>
+            <th>Fungsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Anchor Generator</td><td>Membuat anchor boxes di setiap posisi feature map</td></tr>
+          <tr><td>Classification Head</td><td>Memprediksi apakah setiap anchor berisi objek (objectness)</td></tr>
+          <tr><td>Regression Head</td><td>Memperbaiki posisi anchor boxes</td></tr>
+          <tr><td>Proposal Layer</td><td>Memilih top-N proposals terbaik, lalu NMS</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: YOLO                -->
+      <!-- ============================== -->
+      <h2 id="yolo">5. YOLO: You Only Look Once</h2>
+
+      <p><strong>YOLO</strong> (Joseph Redmon, 2016) merevolusi object detection dengan pendekatan <strong>one-stage</strong> — mendeteksi semua objek dalam satu forward pass. YOLO sangat cepat dan cocok untuk real-time applications.</p>
+
+      <h3>YOLO vs Two-Stage Detectors</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Two-Stage vs One-Stage (YOLO)</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Two-Stage vs One-Stage (YOLO)</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 1405.25px;" viewBox="0 0 1405.25 164" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"><g class="root" transform="translate(0, 0)"><g class="clusters"><g class="cluster " id="onestage" data-look="classic"><rect style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="8" y="8" width="670" height="148"/><g class="cluster-label " transform="translate(266.6953125, 8)"><foreignObject width="152.609375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>ONE-STAGE (YOLO)</p></span></div></foreignObject></g></g></g><g class="edgePaths"><path d="M305.5,82L311.75,82C318,82,330.5,82,342.333,82C354.167,82,365.333,82,370.917,82L376.5,82" id="L_OS1_OS2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_OS1_OS2_0" data-points="W3sieCI6MzA1LjUsInkiOjgyfSx7IngiOjM0MywieSI6ODJ9LHsieCI6MzgwLjUsInkiOjgyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_OS1_OS2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-OS1-2" transform="translate(175.5, 82)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Single pass\nthrough network</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-OS2-3" transform="translate(510.5, 82)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Predict boxes\n+ classes directly</p></span></div></foreignObject></g></g></g></g><g class="root" transform="translate(720, 0)"><g class="clusters"><g class="cluster " id="twostage" data-look="classic"><rect style="fill:#0f1d3a !important;stroke:#60a5fa !important;stroke-width:2px !important" x="8" y="8" width="669.25" height="148"/><g class="cluster-label " transform="translate(294.7734375, 8)"><foreignObject width="95.703125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>TWO-STAGE</p></span></div></foreignObject></g></g></g><g class="edgePaths"><path d="M304.75,82L311,82C317.25,82,329.75,82,341.583,82C353.417,82,364.583,82,370.167,82L375.75,82" id="L_TS1_TS2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_TS1_TS2_0" data-points="W3sieCI6MzA0Ljc1LCJ5Ijo4Mn0seyJ4IjozNDIuMjUsInkiOjgyfSx7IngiOjM3OS43NSwieSI6ODJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_TS1_TS2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-TS1-0" transform="translate(175.125, 82)"><rect class="basic label-container" style="fill:#0f1d3a !important;stroke:#60a5fa !important" x="-129.625" y="-27" width="259.25" height="54"/><g class="label" style="" transform="translate(-99.625, -12)"><rect/><foreignObject width="199.25" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Stage 1: Region\nProposals</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-TS2-1" transform="translate(509.75, 82)"><rect class="basic label-container" style="fill:#0f1d3a !important;stroke:#60a5fa !important" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Stage 2: Classify\n+ Refine boxes</p></span></div></foreignObject></g></g></g></g></g></g></g></svg></div>
+</div>
+      <h3>Cara Kerja YOLO</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: YOLO Grid System</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">YOLO Grid System</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 582" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,62L138,66.167C138,70.333,138,78.667,138,86.333C138,94,138,101,138,104.5L138,108" id="L_Input_Grid_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Input_Grid_0" data-points="W3sieCI6MTM4LCJ5Ijo2Mn0seyJ4IjoxMzgsInkiOjg3fSx7IngiOjEzOCwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,190L138,194.167C138,198.333,138,206.667,138,214.333C138,222,138,229,138,232.5L138,236" id="L_Grid_Cell_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Grid_Cell_0" data-points="W3sieCI6MTM4LCJ5IjoxOTB9LHsieCI6MTM4LCJ5IjoyMTV9LHsieCI6MTM4LCJ5IjoyNDB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,366L138,370.167C138,374.333,138,382.667,138,390.333C138,398,138,405,138,408.5L138,412" id="L_Cell_NMS_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Cell_NMS_0" data-points="W3sieCI6MTM4LCJ5IjozNjZ9LHsieCI6MTM4LCJ5IjozOTF9LHsieCI6MTM4LCJ5Ijo0MTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,470L138,474.167C138,478.333,138,486.667,138,494.333C138,502,138,509,138,512.5L138,516" id="L_NMS_Output_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_NMS_Output_0" data-points="W3sieCI6MTM4LCJ5Ijo0NzB9LHsieCI6MTM4LCJ5Ijo0OTV9LHsieCI6MTM4LCJ5Ijo1MjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_Input_Grid_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Grid_Cell_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Cell_NMS_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_NMS_Output_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-Input-0" transform="translate(138, 35)"><rect class="basic label-container" style="fill:#2a0f1e !important;stroke:#f472b6 !important" x="-127.84375" y="-27" width="255.6875" height="54"/><g class="label" style="" transform="translate(-97.84375, -12)"><rect/><foreignObject width="195.6875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📷 Input Image\n(416×416)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Grid-1" transform="translate(138, 151)"><rect class="basic label-container" style="fill:#0f1d3a !important;stroke:#60a5fa !important;stroke-width:1.5px !important" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Divide into S×S grid\n(e.g. 13×13)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Cell-3" transform="translate(138, 303)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="-130" y="-63" width="260" height="126"/><g class="label" style="" transform="translate(-100, -48)"><rect/><foreignObject width="200" height="96"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Each cell predicts:\n• B bounding boxes\n• Confidence scores\n• Class probabilities</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-NMS-5" transform="translate(138, 443)"><rect class="basic label-container" style="fill:#2a1f0a !important;stroke:#f59e0b !important" x="-109.1484375" y="-27" width="218.296875" height="54"/><g class="label" style="" transform="translate(-79.1484375, -12)"><rect/><foreignObject width="158.296875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Non-Max Suppression</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Output-7" transform="translate(138, 547)"><rect class="basic label-container" style="fill:#0a2a1f !important;stroke:#34d399 !important;stroke-width:2px !important" x="-99.5859375" y="-27" width="199.171875" height="54"/><g class="label" style="" transform="translate(-69.5859375, -12)"><rect/><foreignObject width="139.171875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🎯 Final Detections</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      <h3>Evolusi YOLO</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Versi</th>
+            <th>Tahun</th>
+            <th>Keunggulan</th>
+            <th>Kecepatan</th>
+            <th>mAP (COCO)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>YOLOv1</td><td>2016</td><td>One-stage pioneer, sangat cepat</td><td>45 FPS</td><td>63.4%</td></tr>
+          <tr><td>YOLOv2</td><td>2017</td><td>Batch norm, anchor boxes, multi-scale</td><td>40 FPS</td><td>78.6%</td></tr>
+          <tr><td>YOLOv3</td><td>2018</td><td>FPN, 3 scale detection, Darknet-53</td><td>30 FPS</td><td>84.5%</td></tr>
+          <tr><td>YOLOv4</td><td>2020</td><td>CSPDarknet, SPP, PANet</td><td>62 FPS</td><td>87.5%</td></tr>
+          <tr><td>YOLOv5</td><td>2020</td><td>PyTorch, auto-anchor, easy deploy</td><td>140 FPS</td><td>89.2%</td></tr>
+          <tr><td>YOLOv8</td><td>2023</td><td>Anchor-free, Ultralytics framework</td><td>280 FPS</td><td>92.3%</td></tr>
+          <tr><td>YOLO11</td><td>2024</td><td>Arch improvements, efficiency gains</td><td>300+ FPS</td><td>93.1%</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box info">
+        <div class="info-box-title">📌 Catatan Tentang YOLO Versi</div>
+        <ul>
+          <li><strong>YOLOv1-v3</strong>: Dikembangkan oleh Joseph Redmon (Darknet framework)</li>
+          <li><strong>YOLOv4</strong>: Dikembangkan oleh Alexey Bochkovskiy</li>
+          <li><strong>YOLOv5+</strong>: Dikembangkan oleh Ultralytics (Python/PyTorch, paling populer saat ini)</li>
+          <li><strong>YOLOv8</strong>: Versi terbaru Ultralytics — anchor-free, lebih akurat, API sederhana</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: SSD                 -->
+      <!-- ============================== -->
+      <h2 id="ssd">6. SSD: Single Shot Detector</h2>
+
+      <p><strong>SSD</strong> (Liu et al., 2016) adalah detektor one-stage lainnya yang mendeteksi objek di <strong>multiple scale</strong> dari berbagai layer feature map. SSD sangat efisien dan menjadi dasar banyak arsitektur modern.</p>
+
+      <h3>SSD Multi-Scale Detection</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: SSD Multi-Scale Feature Maps</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">SSD Multi-Scale Feature Maps</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 896px;" viewBox="0 0 896 534" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M448,62L448,66.167C448,70.333,448,78.667,448,86.333C448,94,448,101,448,104.5L448,108" id="L_Input_Backbone_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Input_Backbone_0" data-points="W3sieCI6NDQ4LCJ5Ijo2Mn0seyJ4Ijo0NDgsInkiOjg3fSx7IngiOjQ0OCwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M323.734,159.845L292.779,165.037C261.823,170.23,199.911,180.615,168.956,191.307C138,202,138,213,138,218.5L138,224" id="L_Backbone_F1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Backbone_F1_0" data-points="W3sieCI6MzIzLjczNDM3NSwieSI6MTU5Ljg0NDU1NjQ1MTYxMjl9LHsieCI6MTM4LCJ5IjoxOTF9LHsieCI6MTM4LCJ5IjoyMjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M448,166L448,170.167C448,174.333,448,182.667,448,190.333C448,198,448,205,448,208.5L448,212" id="L_Backbone_F2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Backbone_F2_0" data-points="W3sieCI6NDQ4LCJ5IjoxNjZ9LHsieCI6NDQ4LCJ5IjoxOTF9LHsieCI6NDQ4LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M572.266,159.845L603.221,165.037C634.177,170.23,696.089,180.615,727.044,191.307C758,202,758,213,758,218.5L758,224" id="L_Backbone_F3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Backbone_F3_0" data-points="W3sieCI6NTcyLjI2NTYyNSwieSI6MTU5Ljg0NDU1NjQ1MTYxMjl9LHsieCI6NzU4LCJ5IjoxOTF9LHsieCI6NzU4LCJ5IjoyMjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,306L138,312.167C138,318.333,138,330.667,174.818,343.009C211.636,355.352,285.271,367.704,322.089,373.879L358.907,380.055" id="L_F1_Detect_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_F1_Detect_0" data-points="W3sieCI6MTM4LCJ5IjozMDZ9LHsieCI6MTM4LCJ5IjozNDN9LHsieCI6MzYyLjg1MTU2MjUsInkiOjM4MC43MTcwMzYyOTAzMjI2fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M448,318L448,322.167C448,326.333,448,334.667,448,342.333C448,350,448,357,448,360.5L448,364" id="L_F2_Detect_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_F2_Detect_0" data-points="W3sieCI6NDQ4LCJ5IjozMTh9LHsieCI6NDQ4LCJ5IjozNDN9LHsieCI6NDQ4LCJ5IjozNjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M758,306L758,312.167C758,318.333,758,330.667,721.182,343.009C684.364,355.352,610.729,367.704,573.911,373.879L537.093,380.055" id="L_F3_Detect_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_F3_Detect_0" data-points="W3sieCI6NzU4LCJ5IjozMDZ9LHsieCI6NzU4LCJ5IjozNDN9LHsieCI6NTMzLjE0ODQzNzUsInkiOjM4MC43MTcwMzYyOTAzMjI2fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M448,422L448,426.167C448,430.333,448,438.667,448,446.333C448,454,448,461,448,464.5L448,468" id="L_Detect_Output_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Detect_Output_0" data-points="W3sieCI6NDQ4LCJ5Ijo0MjJ9LHsieCI6NDQ4LCJ5Ijo0NDd9LHsieCI6NDQ4LCJ5Ijo0NzJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_Input_Backbone_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Backbone_F1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Backbone_F2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Backbone_F3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_F1_Detect_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_F2_Detect_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_F3_Detect_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Detect_Output_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-Input-0" transform="translate(448, 35)"><rect class="basic label-container" style="fill:#2a0f1e !important;stroke:#f472b6 !important" x="-84.4765625" y="-27" width="168.953125" height="54"/><g class="label" style="" transform="translate(-54.4765625, -12)"><rect/><foreignObject width="108.953125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>📷 Input Image</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Backbone-1" transform="translate(448, 139)"><rect class="basic label-container" style="fill:#0f1d3a !important;stroke:#60a5fa !important;stroke-width:2px !important" x="-124.265625" y="-27" width="248.53125" height="54"/><g class="label" style="" transform="translate(-94.265625, -12)"><rect/><foreignObject width="188.53125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Backbone\n(VGG/ResNet)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-F1-3" transform="translate(138, 267)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Feature Map 1\n(38×38)\nSmall objects</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-F2-5" transform="translate(448, 267)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Feature Map 2\n(19×19)\nMedium objects</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-F3-7" transform="translate(758, 267)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Feature Map 3\n(10×10)\nLarge objects</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Detect-11" transform="translate(448, 395)"><rect class="basic label-container" style="" x="-85.1484375" y="-27" width="170.296875" height="54"/><g class="label" style="" transform="translate(-55.1484375, -12)"><rect/><foreignObject width="110.296875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Detection Head</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-Output-13" transform="translate(448, 499)"><rect class="basic label-container" style="fill:#0a2a1f !important;stroke:#34d399 !important;stroke-width:2px !important" x="-124.921875" y="-27" width="249.84375" height="54"/><g class="label" style="" transform="translate(-94.921875, -12)"><rect/><foreignObject width="189.84375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>🎯 Multi-scale\nDetections</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      <h3>Perbandingan: YOLO vs SSD vs Faster R-CNN</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>YOLOv8</th>
+            <th>SSD</th>
+            <th>Faster R-CNN</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Stage</td><td>One-stage</td><td>One-stage</td><td>Two-stage</td></tr>
+          <tr><td>Kecepatan</td><td>★★★ Sangat cepat</td><td>★★☆ Cepat</td><td>★☆☆ Lambat</td></tr>
+          <tr><td>Akurasi (mAP)</td><td>★★☆ Tinggi</td><td>★★☆ Cukup tinggi</td><td>★★★ Sangat tinggi</td></tr>
+          <tr><td>Objek Kecil</td><td>★★☆</td><td>★★☆ Multi-scale helps</td><td>★★★</td></tr>
+          <tr><td>Real-time?</td><td>✅ Ya (30-300+ FPS)</td><td>✅ Ya (20-60 FPS)</td><td>⚠️ 5-15 FPS</td></tr>
+          <tr><td>Edge Deployment</td><td>✅ Mudah</td><td>✅ Cukup mudah</td><td>❌ Sulit</td></tr>
+          <tr><td>Best For</td><td>Production, real-time</td><td>Mobile/embedded</td><td>Research, presisi tinggi</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: mAP                 -->
+      <!-- ============================== -->
+      <h2 id="map">7. mAP: Mean Average Precision</h2>
+
+      <p><strong>mAP (Mean Average Precision)</strong> adalah metrik standar untuk mengevaluasi performa object detection. mAP menggabungkan <strong>Precision</strong> dan <strong>Recall</strong> ke dalam satu angka yang komprehensif.</p>
+
+      <h3>Precision &amp; Recall dalam Object Detection</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: TP, FP, FN dalam Object Detection</div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">TP, FP, FN dalam Object Detection</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 1106.875px;" viewBox="0 0 1106.875 340" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M168.438,144L168.438,150.167C168.438,156.333,168.438,168.667,209.111,184.304C249.785,199.941,331.132,218.882,371.806,228.353L412.479,237.823" id="L_tp_Metrics_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_tp_Metrics_0" data-points="W3sieCI6MTY4LjQzNzUsInkiOjE0NH0seyJ4IjoxNjguNDM3NSwieSI6MTgxfSx7IngiOjQxNi4zNzUsInkiOjIzOC43MzA0NDQ4NDg2ODUzfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M546.375,156L546.375,160.167C546.375,164.333,546.375,172.667,546.375,180.333C546.375,188,546.375,195,546.375,198.5L546.375,202" id="L_fp_Metrics_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_fp_Metrics_0" data-points="W3sieCI6NTQ2LjM3NSwieSI6MTU2fSx7IngiOjU0Ni4zNzUsInkiOjE4MX0seyJ4Ijo1NDYuMzc1LCJ5IjoyMDZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M931.375,156L931.375,160.167C931.375,164.333,931.375,172.667,889.525,186.399C847.675,200.131,763.975,219.263,722.125,228.829L680.274,238.394" id="L_fn_Metrics_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_fn_Metrics_0" data-points="W3sieCI6OTMxLjM3NSwieSI6MTU2fSx7IngiOjkzMS4zNzUsInkiOjE4MX0seyJ4Ijo2NzYuMzc1LCJ5IjoyMzkuMjg1NzE0Mjg1NzE0Mjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_tp_Metrics_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_fp_Metrics_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_fn_Metrics_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="root" transform="translate(755.875, 0)"><g class="clusters"><g class="cluster " id="fn" data-look="classic"><rect style="fill:#2a0f0f !important;stroke:#ef4444 !important;stroke-width:2px !important" x="8" y="8" width="335" height="148"/><g class="cluster-label " transform="translate(78.078125, 8)"><foreignObject width="194.84375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>❌ FALSE NEGATIVE (FN)</p></span></div></foreignObject></g></g></g><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"><g class="node default  " id="flowchart-FN1-2" transform="translate(175.5, 82)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Object exists\nbut not detected</p></span></div></foreignObject></g></g></g></g><g class="root" transform="translate(370.875, 0)"><g class="clusters"><g class="cluster " id="fp" data-look="classic"><rect style="fill:#2a0f0f !important;stroke:#ef4444 !important;stroke-width:2px !important" x="8" y="8" width="335" height="148"/><g class="cluster-label " transform="translate(81.4765625, 8)"><foreignObject width="188.046875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>❌ FALSE POSITIVE (FP)</p></span></div></foreignObject></g></g></g><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"><g class="node default  " id="flowchart-F1-1" transform="translate(175.5, 82)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Detected but\nno object there</p></span></div></foreignObject></g></g></g></g><g class="root" transform="translate(0, 12)"><g class="clusters"><g class="cluster " id="tp" data-look="classic"><rect style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="8" y="8" width="320.875" height="124"/><g class="cluster-label " transform="translate(77.6875, 8)"><foreignObject width="181.5" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>✅ TRUE POSITIVE (TP)</p></span></div></foreignObject></g></g></g><g class="edgePaths"/><g class="edgeLabels"/><g class="nodes"><g class="node default  " id="flowchart-T1-0" transform="translate(168.4375, 70)"><rect class="basic label-container" style="" x="-122.9375" y="-27" width="245.875" height="54"/><g class="label" style="" transform="translate(-92.9375, -12)"><rect/><foreignObject width="185.875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Correctly detected\nobject</p></span></div></foreignObject></g></g></g></g><g class="node default  " id="flowchart-Metrics-3" transform="translate(546.375, 269)"><rect class="basic label-container" style="fill:#0f1d3a !important;stroke:#60a5fa !important;stroke-width:2px !important" x="-130" y="-63" width="260" height="126"/><g class="label" style="" transform="translate(-100, -48)"><rect/><foreignObject width="200" height="96"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>📊 Metrics:\nPrecision = TP/(TP+FP)\nRecall = TP/(TP+FN)\nmAP = mean Average Precision</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      <h3>mAP Calculation Steps</h3>
+      <div class="info-box info">
+        <div class="info-box-title">📐 Langkah Menghitung mAP</div>
+        <ol>
+          <li><strong>Untuk setiap kelas</strong>, hitung Precision-Recall curve:
+            <ul>
+              <li>Sort semua deteksi berdasarkan confidence (descending)</li>
+              <li>Untuk setiap deteksi, tentukan TP atau FP berdasarkan IoU threshold</li>
+              <li>Akumulasikan TP dan FP → hitung Precision dan Recall pada setiap titik</li>
+            </ul>
+          </li>
+          <li><strong>Average Precision (AP)</strong> = Area di bawah PR curve untuk satu kelas</li>
+          <li><strong>mAP</strong> = Rata-rata AP dari semua kelas: <code>mAP = Σ APₖ / K</code></li>
+        </ol>
+        <p><strong>COCO mAP</strong>: Rata-rata mAP pada IoU threshold 0.50, 0.55, 0.60, ..., 0.95 (10 threshold)</p>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Menghitung mAP dari Scratch</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import numpy as np
+
+def compute_ap(recalls, precisions):
+    """Hitung Average Precision menggunakan interpolation 11-point"""
+    # 11-point interpolation (PASCAL VOC style)
+    ap = 0.0
+    for t in np.arange(0, 1.1, 0.1):
+        precisions_at_recall = precisions[recalls >= t]
+        if len(precisions_at_recall) > 0:
+            ap += np.max(precisions_at_recall)
+    return ap / 11.0
+
+
+def compute_precision_recall(detections, ground_truths, iou_threshold=0.5):
+    """
+    Hitung precision-recall curve
+    
+    detections: list of (confidence, bbox, class)
+    ground_truths: list of (bbox, class)
+    """
+    # Sort detections berdasarkan confidence (descending)
+    detections = sorted(detections, key=lambda x: x[0], reverse=True)
+    
+    tp = np.zeros(len(detections))
+    fp = np.zeros(len(detections))
+    matched_gt = set()
+    
+    for i, (conf, det_box, det_class) in enumerate(detections):
+        best_iou = 0
+        best_gt_idx = -1
+        
+        for j, (gt_box, gt_class) in enumerate(ground_truths):
+            if j in matched_gt or det_class != gt_class:
+                continue
+            iou = compute_iou(det_box, gt_box)
+            if iou > best_iou:
+                best_iou = iou
+                best_gt_idx = j
+        
+        if best_iou >= iou_threshold:
+            tp[i] = 1
+            matched_gt.add(best_gt_idx)
+        else:
+            fp[i] = 1
+    
+    # Cumulative TP and FP
+    tp_cumsum = np.cumsum(tp)
+    fp_cumsum = np.cumsum(fp)
+    
+    precisions = tp_cumsum / (tp_cumsum + fp_cumsum)
+    recalls = tp_cumsum / len(ground_truths)
+    
+    return recalls, precisions
+
+
+# === CONTOH PERHITUNGAN mAP ===
+# Simulated detections: (confidence, [x1,y1,x2,y2], class)
+detections = [
+    (0.95, [100, 100, 200, 200], 'cat'),
+    (0.88, [300, 300, 400, 400], 'dog'),
+    (0.82, [110, 105, 205, 210], 'cat'),  # Duplicate detection
+    (0.75, [50, 50, 150, 150], 'cat'),    # False positive
+    (0.70, [310, 310, 410, 410], 'dog'),
+]
+
+# Ground truth: ([x1,y1,x2,y2], class)
+ground_truths = [
+    ([105, 105, 205, 205], 'cat'),
+    ([305, 305, 405, 405], 'dog'),
+    ([500, 500, 600, 600], 'dog'),  # Tidak terdeteksi (FN)
+]
+
+# Hitung PR curve
+recalls, precisions = compute_precision_recall(detections, ground_truths)
+
+print("=== Precision-Recall Analysis ===")
+for i, (r, p) in enumerate(zip(recalls, precisions)):
+    print(f"  Deteksi {i+1}: P={p:.3f}, R={r:.3f}")
+
+# Hitung AP
+ap = compute_ap(recalls, precisions)
+print(f"\nAverage Precision (AP): {ap:.3f}")
+
+# mAP = rata-rata AP semua kelas (di sini hanya 1 kelas contoh)
+print(f"mAP@0.5: {ap:.3f}")
+print("\nDi konteks nyata, hitung AP untuk setiap kelas, lalu rata-rata = mAP")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Implementasi YOLOv8 -->
+      <!-- ============================== -->
+      <h2 id="implementasi-yolov8">8. Implementasi: Object Detection dengan YOLOv8</h2>
+
+      <p><strong>YOLOv8</strong> dari Ultralytics adalah framework paling populer saat ini untuk object detection. API-nya sangat sederhana — hanya beberapa baris kode untuk training, validasi, dan inference.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — YOLOv8 Object Detection dengan Ultralytics</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># pip install ultralytics
+from ultralytics import YOLO
+import cv2
+import numpy as np
+
+# === 1. INFERENCE DENGAN PRE-TRAINED MODEL ===
+# Load model pre-trained di COCO dataset (80 kelas)
+model = YOLO('yolov8n.pt')  # 'n'=nano, 's'=small, 'm'=medium, 'l'=large, 'x'=extra-large
+
+# Inference pada gambar
+results = model('https://ultralytics.com/images/bus.jpg')
+
+# Parse results
+for result in results:
+    boxes = result.boxes          # Bounding boxes
+    masks = result.masks          # Segmentation masks (jika ada)
+    probs = result.probs          # Classification probabilities
+    
+    print(f"\n=== Deteksi pada gambar ===")
+    print(f"Jumlah objek terdeteksi: {len(boxes)}")
+    
+    for box in boxes:
+        # Koordinat bounding box
+        x1, y1, x2, y2 = box.xyxy[0].tolist()    # Format (x1, y1, x2, y2)
+        confidence = box.conf[0].item()             # Confidence score
+        class_id = int(box.cls[0].item())           # Class ID
+        class_name = model.names[class_id]          # Class name
+        
+        print(f"  {class_name}: {confidence:.2f} "
+              f"→ [{x1:.0f}, {y1:.0f}, {x2:.0f}, {y2:.0f}]")
+
+# Simpan hasil dengan bounding box
+result_plot = results[0].plot()  # Gambar dengan annotated boxes
+cv2.imwrite('detection_result.jpg', result_plot)
+print("\n✓ Hasil disimpan: detection_result.jpg")
+
+# === 2. VIDEO DETECTION ===
+def detect_video(model, video_path, output_path='output.mp4'):
+    """Object detection pada video"""
+    cap = cv2.VideoCapture(video_path)
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
+    
+    frame_count = 0
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        # Run YOLOv8 inference
+        results = model(frame, verbose=False)
+        
+        # Draw boxes on frame
+        annotated = results[0].plot()
+        out.write(annotated)
+        
+        frame_count += 1
+        if frame_count % 30 == 0:
+            print(f"  Processed {frame_count} frames...")
+    
+    cap.release()
+    out.release()
+    print(f"✓ Video saved: {output_path} ({frame_count} frames)")
+
+# Uncomment untuk proses video:
+# detect_video(model, 'input_video.mp4')
+
+# === 3. WEBCAM REAL-TIME DETECTION ===
+def detect_webcam(model):
+    """Real-time object detection dari webcam"""
+    cap = cv2.VideoCapture(0)  # Camera index 0
+    
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        results = model(frame, verbose=False)
+        annotated = results[0].plot()
+        
+        cv2.imshow('YOLOv8 Real-Time Detection', annotated)
+        
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    
+    cap.release()
+    cv2.destroyAllWindows()
+
+# Uncomment untuk webcam:
+# detect_webcam(model)
+</code></pre>
+      </div>
+
+      <h3>Fine-Tune YOLOv8 pada Custom Dataset</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — Training YOLOv8 Custom Dataset</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from ultralytics import YOLO
+
+# === FINE-TUNE YOLOv8 PADA CUSTOM DATASET ===
+
+# 1. Load pre-trained model (transfer learning)
+model = YOLO('yolov8m.pt')  # Start dari pre-trained medium model
+
+# 2. Training dengan custom dataset
+# Dataset harus dalam format YOLO:
+#   dataset/
+#     ├── train/
+#     │   ├── images/ (gambar .jpg/.png)
+#     │   └── labels/ (label .txt, format: class x_center y_center w h)
+#     ├── val/
+#     │   ├── images/
+#     │   └── labels/
+#     └── data.yaml
+#
+# data.yaml contoh:
+#   train: dataset/train/images
+#   val: dataset/val/images
+#   nc: 3  # jumlah kelas
+#   names: ['cat', 'dog', 'bird']  # nama kelas
+
+results = model.train(
+    data='dataset/data.yaml',   # Path ke data config
+    epochs=100,                 # Jumlah epoch
+    imgsz=640,                  # Ukuran gambar input
+    batch=16,                   # Batch size
+    lr0=0.01,                   # Initial learning rate
+    lrf=0.01,                   # Final learning rate (lr0 * lrf)
+    warmup_epochs=3,            # Warmup epochs
+    optimizer='AdamW',          # Optimizer
+    augment=True,               # Data augmentation
+    mosaic=1.0,                 # Mosaic augmentation probability
+    mixup=0.0,                  # Mixup augmentation
+    copy_paste=0.0,             # Copy-paste augmentation
+    device=0,                   # GPU device (0, 1, 'cpu')
+    project='runs/detect',      # Output directory
+    name='custom_model',        # Experiment name
+    exist_ok=False,
+    pretrained=True,
+    verbose=True,
+)
+
+# 3. Evaluasi model
+metrics = model.val()
+print(f"\n=== Hasil Evaluasi ===")
+print(f"mAP@50:    {metrics.box.map50:.4f}")
+print(f"mAP@50-95: {metrics.box.map:.4f}")
+print(f"Precision: {metrics.box.mp:.4f}")
+print(f"Recall:    {metrics.box.mr:.4f}")
+
+# 4. Export ke berbagai format
+model.export(format='onnx')     # ONNX
+model.export(format='torchscript')  # TorchScript
+# model.export(format='tflite')  # TensorFlow Lite
+# model.export(format='coreml')  # CoreML (iOS)
+
+print("\n✓ Model exported!")
+print("  - ONNX: best.onnx")
+print("  - TorchScript: best.torchscript")
+</code></pre>
+      </div>
+
+      <h3>Menggunakan Pre-trained YOLOv8 untuk Berbagai Tugas</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — YOLOv8 Multi-Task</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>from ultralytics import YOLO
+
+# === YOLOv8 UNTUK BERBAGAI TUGAS ===
+
+# 1. OBJECT DETECTION
+model_det = YOLO('yolov8n.pt')
+results = model_det('image.jpg')
+
+# 2. INSTANCE SEGMENTATION
+model_seg = YOLO('yolov8n-seg.pt')
+results = model_seg('image.jpg')
+
+# 3. IMAGE CLASSIFICATION
+model_cls = YOLO('yolov8n-cls.pt')
+results = model_cls('image.jpg')
+
+# 4. POSE ESTIMATION
+model_pose = YOLO('yolov8n-pose.pt')
+results = model_pose('image.jpg')
+
+# 5. OBB (ORIENTED BOUNDING BOX)
+model_obb = YOLO('yolov8n-obb.pt')
+results = model_obb('image.jpg')
+
+# === CONTOH: POSE ESTIMATION ===
+model_pose = YOLO('yolov8n-pose.pt')
+results = model_pose('person.jpg')
+
+for result in results:
+    keypoints = result.keypoints
+    if keypoints is not None:
+        for person_kp in keypoints:
+            # 17 COCO keypoints
+            # 0=nose, 1=left_eye, 2=right_eye, ...
+            # 5=left_shoulder, 6=right_shoulder
+            # 11=left_hip, 12=right_hip
+            kp_data = person_kp.data[0]  # (17, 3): x, y, confidence
+            print(f"Pose keypoints: {kp_data.shape}")
+            print(f"  Nose: ({kp_data[0][0]:.0f}, {kp_data[0][1]:.0f})")
+
+print("\n✓ Semua model YOLOv8 siap digunakan!")
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" data-quiz-id="objdet-quiz-1">
+        <h3>🧠 Quiz: Object Detection</h3>
+        
+        <div class="quiz-question" data-correct="b">
+          <p><strong>1. Apa perbedaan utama antara Image Classification dan Object Detection?</strong></p>
+          <label><input type="radio" name="q1" value="a"> Classification lebih akurat</label>
+          <label><input type="radio" name="q1" value="b"> Classification hanya mengenali objek, Detection juga menentukan lokasinya dengan bounding box</label>
+          <label><input type="radio" name="q1" value="c"> Detection hanya untuk video</label>
+          <label><input type="radio" name="q1" value="d"> Classification menggunakan CNN, Detection tidak</label>
+        </div>
+
+        <div class="quiz-question" data-correct="c">
+          <p><strong>2. Apa fungsi Non-Maximum Suppression (NMS)?</strong></p>
+          <label><input type="radio" name="q2" value="a"> Meningkatkan resolusi gambar</label>
+          <label><input type="radio" name="q2" value="b"> Menghapus gambar yang tidak relevan dari dataset</label>
+          <label><input type="radio" name="q2" value="c"> Menghilangkan bounding box duplikat/tumpang tindih, hanya menyimpan deteksi terbaik</label>
+          <label><input type="radio" name="q2" value="d"> Menghitung loss function</label>
+        </div>
+
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Mengapa YOLO lebih cepat dari Faster R-CNN?</strong></p>
+          <label><input type="radio" name="q3" value="a"> YOLO menggunakan satu-stage (single forward pass), Faster R-CNN dua-stage (proposals + classification)</label>
+          <label><input type="radio" name="q3" value="b"> YOLO menggunakan CPU, Faster R-CNN pakai GPU</label>
+          <label><input type="radio" name="q3" value="c"> YOLO memproses gambar berukuran lebih kecil</label>
+          <label><input type="radio" name="q3" value="d"> YOLO menggunakan model yang lebih sederhana</label>
+        </div>
+
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4. Apa itu mAP@0.5 dalam object detection?</strong></p>
+          <label><input type="radio" name="q4" value="a"> Mean Average Prediction dengan 50% data</label>
+          <label><input type="radio" name="q4" value="b"> Model Accuracy Percentage pada 50 epoch</label>
+          <label><input class="radio" name="q4" value="c"> Maximum Acceptable Prediction score 0.5</label>
+          <label><input type="radio" name="q4" value="d"> Mean Average Precision dengan IoU threshold 0.5 — rata-rata AP semua kelas di mana deteksi dianggap benar jika IoU ≥ 0.5</label>
+        </div>
+
+        <div class="quiz-question" data-correct="b">
+          <p><strong>5. Apa keunggulan multi-scale detection pada SSD?</strong></p>
+          <label><input type="radio" name="q5" value="a"> Mempercepat training</label>
+          <label><input type="radio" name="q5" value="b"> Mendeteksi objek dengan berbagai ukuran (kecil hingga besar) dari feature map berbeda</label>
+          <label><input type="radio" name="q5" value="c"> Mengurangi jumlah parameter</label>
+          <label><input type="radio" name="q5" value="d"> Menghilangkan kebutuhan akan anchor boxes</label>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">🎯 Ringkasan Artikel</div>
+        <ul>
+          <li><strong>Object Detection</strong> = Klasifikasi + Lokalisasi — mendeteksi "apa" dan "di mana"</li>
+          <li><strong>IoU</strong> mengukur overlap antara prediksi dan ground truth</li>
+          <li><strong>NMS</strong> menghilangkan deteksi duplikat/tumpang tindih</li>
+          <li><strong>Two-stage</strong> (Faster R-CNN): lebih akurat tapi lebih lambat</li>
+          <li><strong>One-stage</strong> (YOLO, SSD): sangat cepat, cocok untuk real-time</li>
+          <li><strong>YOLOv8</strong> (Ultralytics) adalah framework paling populer saat ini — mudah digunakan, sangat cepat, multi-task</li>
+          <li><strong>mAP</strong> adalah metrik standar evaluasi — rata-rata precision pada berbagai recall threshold</li>
+          <li>Untuk project nyata: mulai dengan YOLOv8 pre-trained, fine-tune pada dataset kustom</li>
+        </ul>
+      </div>
+
+    </div>
+  </article>
+
+  <!-- ========== RELATED ARTICLES ========== -->
+  <section class="related-articles">
+    <div class="container">
+      <h2>Artikel Terkait</h2>
+      <div class="article-grid">
+        <a href="dl-transfer-learning.html" class="article-card">
+          <span class="category-tag">Deep Learning</span>
+          <h3>Transfer Learning</h3>
+          <p>Pre-trained models, fine-tuning, feature extraction.</p>
+          <span class="article-date">📅 26 Juni 2026</span>
+        </a>
+        <a href="machine-learning-dasar.html" class="article-card">
+          <span class="category-tag">AI & Data Science</span>
+          <h3>Machine Learning Dasar</h3>
+          <p>Pengenalan konsep dasar ML.</p>
+          <span class="article-date">📅 25 Juni 2026</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

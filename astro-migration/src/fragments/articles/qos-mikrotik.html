@@ -1,0 +1,549 @@
+<div class="search-overlay" id="searchOverlay"><button class="search-close-btn" aria-label="Tutup pencarian">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+  <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Networking</a><span class="separator">/</span><span class="current">QoS MikroTik</span></div><span class="category-tag">Networking</span><h1>QoS di MikroTik: Bandwidth Management Lengkap</h1><p class="article-subtitle">Tutorial QoS MikroTik — simple queue, queue tree, mangle, burst, HTB, dan PCQ untuk ISP dan enterprise</p><div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 16 menit baca</span><span class="difficulty lanjut">Lanjut</span></div></div></section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+  <article class="article-content" id="main-content"><div class="container">
+
+    <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#pengenalan">Pengenalan QoS di MikroTik</a></li>
+      <li><a href="#simple-queue">Simple Queue</a></li>
+      <li><a href="#queue-tree">Queue Tree</a></li>
+      <li><a href="#mangle">Mangle: Packet Marking</a></li>
+      <li><a href="#htb">HTB — Hierarchical Token Bucket</a></li>
+      <li><a href="#burst">Burst: Bandwidth Tambahan Sementara</a></li>
+      <li><a href="#pcq">PCQ — Per Connection Queue</a></li>
+      <li><a href="#isp-setup">Setup QoS untuk ISP</a></li>
+      <li><a href="#monitoring">Monitoring Queue</a></li>
+      <li><a href="#quiz">Quiz Pemahaman</a></li>
+    </ol></div>
+
+    <h2 id="pengenalan">1. Pengenalan QoS di MikroTik</h2>
+    <p><strong>QoS (Quality of Service)</strong> adalah mekanisme untuk mengatur dan memprioritaskan traffic jaringan. Di MikroTik, QoS memungkinkan Anda mengontrol bandwidth per user, per aplikasi, atau per grup — memastikan layanan kritis mendapat prioritas dan bandwidth terbagi adil.</p>
+
+    <h3>1.1 Mengapa QoS Penting?</h3>
+    <ul>
+      <li><strong>Fair usage:</strong> Mencegah satu user menghabiskan semua bandwidth</li>
+      <li><strong>Prioritas:</strong> VoIP dan video conference lebih diprioritaskan dari download</li>
+      <li><strong>Billing:</strong> Menawarkan paket berbeda (1 Mbps, 5 Mbps, 10 Mbps)</li>
+      <li><strong>Stabilitas:</strong> Mencegah link overload yang menyebabkan packet loss</li>
+    </ul>
+
+    <h3>1.2 Metode QoS di MikroTik</h3>
+    <table class="spec-table">
+      <thead><tr><th>Metode</th><th>Tipe</th><th>Kegunaan</th><th>Kompleksitas</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Simple Queue</strong></td><td>HTB</td><td>Limit per IP/user</td><td>Rendah</td></tr>
+        <tr><td><strong>Queue Tree</strong></td><td>HTB</td><td>Hierarchical, global</td><td>Menengah</td></tr>
+        <tr><td><strong>Mangle + Queue</strong></td><td>HTB</td><td>Per aplikasi/protocol</td><td>Tinggi</td></tr>
+        <tr><td><strong>PCQ</strong></td><td>HTB</td><td>Equal bandwidth per user</td><td>Menengah</td></tr>
+      </tbody>
+    </table>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="simple-queue">2. Simple Queue</h2>
+    <p><strong>Simple Queue</strong> adalah cara termudah untuk limit bandwidth. Anda cukup menentukan target (IP address) dan batas kecepatan download/upload.</p>
+
+    <h3>2.1 Membuat Simple Queue</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Simple Queue</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Limit bandwidth per IP
+/queue simple add \
+  name=user-001 \
+  target=192.168.1.10/32 \
+  max-limit=2M/5M \
+  comment="User 001 - 2Mbps up, 5Mbps down"
+
+# Limit bandwidth per subnet
+/queue simple add \
+  name=guest-network \
+  target=192.168.10.0/24 \
+  max-limit=10M/50M \
+  comment="Guest WiFi - shared 10M/50M"
+
+# Limit dengan burst
+/queue simple add \
+  name=user-burst \
+  target=192.168.1.20/32 \
+  max-limit=5M/10M \
+  burst-limit=10M/20M \
+  burst-threshold=3M/7M \
+  burst-time=10s/10s
+
+# Limit berdasarkan waktu (hanya berlaku jam tertentu)
+/queue simple add \
+  name=limited-hours \
+  target=192.168.1.30/32 \
+  max-limit=1M/2M \
+  time=08:00-17:00,mon,tue,wed,thu,fri \
+  comment="Limit only during business hours"
+
+# Lihat semua simple queue
+/queue simple print
+/queue simple print stats
+</code></pre>
+    </div>
+
+    <h3>2.2 Simple Queue Properties</h3>
+    <table class="spec-table">
+      <thead><tr><th>Parameter</th><th>Format</th><th>Keterangan</th></tr></thead>
+      <tbody>
+        <tr><td><code>max-limit</code></td><td>upload/download</td><td>Batas maksimum bandwidth</td></tr>
+        <tr><td><code>limit-at</code></td><td>upload/download</td><td>Bandwidth minimum (guaranteed)</td></tr>
+        <tr><td><code>burst-limit</code></td><td>upload/download</td><td>Batas burst (bandwidth tambahan sementara)</td></tr>
+        <tr><td><code>burst-threshold</code></td><td>upload/download</td><td>Threshold untuk mengaktifkan burst</td></tr>
+        <tr><td><code>burst-time</code></td><td>upload/download</td><td>Durasi burst</td></tr>
+        <tr><td><code>priority</code></td><td>1-8</td><td>Prioritas queue (1 = tertinggi)</td></tr>
+        <tr><td><code>queue</code></td><td>default/default</td><td>Jenis queue (HTB)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box tip"><div class="info-box-title">💡 Simple Queue vs Queue Tree</div>
+    <p>Simple Queue cocok untuk setup sederhana dengan puluhan user. Untuk ratusan hingga ribuan user (ISP), gunakan <strong>Queue Tree + PCQ</strong> yang jauh lebih efisien dan scalable.</p></div>
+
+    <h2 id="queue-tree">3. Queue Tree</h2>
+    <p><strong>Queue Tree</strong> memungkinkan struktur hierarki (parent-child) untuk bandwidth management. Queue tree bekerja berdasarkan <strong>packet mark</strong> dari mangle, bukan IP address langsung.</p>
+
+    <h3>3.1 Struktur Queue Tree</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Queue Tree Setup</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Step 1: Mark packet dengan mangle
+/ip firewall mangle add \
+  chain=forward \
+  src-address=192.168.1.0/24 \
+  action=mark-packet \
+  new-packet-mark=upload \
+  passthrough=no
+
+/ip firewall mangle add \
+  chain=forward \
+  dst-address=192.168.1.0/24 \
+  action=mark-packet \
+  new-packet-mark=download \
+  passthrough=no
+
+# Step 2: Buat parent queue (total bandwidth)
+/queue tree add \
+  name=TOTAL \
+  parent=global \
+  max-limit=100M
+
+# Step 3: Buat child queue untuk download
+/queue tree add \
+  name=DOWNLOAD \
+  parent=TOTAL \
+  packet-mark=download \
+  max-limit=80M \
+  priority=1
+
+# Step 4: Buat child queue untuk upload
+/queue tree add \
+  name=UPLOAD \
+  parent=TOTAL \
+  packet-mark=upload \
+  max-limit=20M \
+  priority=1
+
+# Lihat queue tree
+/queue tree print
+/queue tree print stats
+</code></pre>
+    </div>
+
+    <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide"></div>
+
+    <h2 id="mangle">4. Mangle: Packet Marking</h2>
+    <p><strong>Mangle</strong> adalah fitur di firewall MikroTik yang digunakan untuk <strong>menandai (mark)</strong> paket berdasarkan kriteria tertentu. Mark ini kemudian digunakan oleh queue tree, routing, dan fitur lainnya.</p>
+
+    <h3>4.1 Jenis Marking</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Mangle Rules</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Mark connection (sekali per koneksi)
+/ip firewall mangle add \
+  chain=forward \
+  protocol=tcp \
+  dst-port=80,443 \
+  action=mark-connection \
+  new-connection-mark=http-conn \
+  passthrough=yes
+
+# Mark packet berdasarkan connection mark
+/ip firewall mangle add \
+  chain=forward \
+  connection-mark=http-conn \
+  action=mark-packet \
+  new-packet-mark=http-pkt \
+  passthrough=no
+
+# Mark per IP address
+/ip firewall mangle add \
+  chain=forward \
+  src-address=192.168.1.10 \
+  action=mark-packet \
+  new-packet-mark=user10-upload \
+  passthrough=no
+
+# Mark P2P traffic (BitTorrent, dll)
+/ip firewall mangle add \
+  chain=forward \
+  p2p=all-p2p \
+  action=mark-packet \
+  new-packet-mark=p2p-traffic \
+  passthrough=no
+
+# Mark VoIP (SIP/RTP) untuk prioritas tinggi
+/ip firewall mangle add \
+  chain=forward \
+  protocol=udp \
+  dst-port=5060,10000-20000 \
+  action=mark-packet \
+  new-packet-mark=voip-pkt \
+  passthrough=no
+</code></pre>
+    </div>
+
+    <h2 id="htb">5. HTB — Hierarchical Token Bucket</h2>
+    <p><strong>HTB</strong> adalah algoritma queuing yang digunakan oleh MikroTik. HTB mendukung bandwidth guarantee (limit-at), maximum limit, dan prioritas.</p>
+
+    <h3>5.1 Konsep HTB</h3>
+    <table class="spec-table">
+      <thead><tr><th>Parameter</th><th>Fungsi</th><th>Analogi</th></tr></thead>
+      <tbody>
+        <tr><td><code>limit-at</code></td><td>Bandwidth minimum yang dijamin</td><td>"Pasti dapat ini"</td></tr>
+        <tr><td><code>max-limit</code></td><td>Bandwidth maksimum</td><td>"Tidak lebih dari ini"</td></tr>
+        <tr><td><code>priority</code></td><td>Prioritas saat bandwidth penuh</td><td"Siapa yang duluan"</td></tr>
+      </tbody>
+    </table>
+
+    <h3>5.2 Prioritas HTB (1-8)</h3>
+    <ul>
+      <li><strong>Priority 1:</strong> Tertinggi — untuk VoIP, DNS, ICMP</li>
+      <li><strong>Priority 2-3:</strong> Tinggi — untuk web browsing, email</li>
+      <li><strong>Priority 4-5:</strong> Normal — untuk download reguler</li>
+      <li><strong>Priority 6-7:</strong> Rendah — untuk P2P, update</li>
+      <li><strong>Priority 8:</strong> Terendah — untuk bulk transfer</li>
+    </ul>
+
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — HTB Priority</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Queue untuk VoIP (prioritas tertinggi)
+/queue tree add \
+  name=VOIP \
+  parent=TOTAL \
+  packet-mark=voip-pkt \
+  max-limit=5M \
+  limit-at=2M \
+  priority=1
+
+# Queue untuk web (prioritas tinggi)
+/queue tree add \
+  name=WEB \
+  parent=TOTAL \
+  packet-mark=http-pkt \
+  max-limit=50M \
+  limit-at=20M \
+  priority=3
+
+# Queue untuk P2P (prioritas rendah)
+/queue tree add \
+  name=P2P \
+  parent=TOTAL \
+  packet-mark=p2p-traffic \
+  max-limit=10M \
+  limit-at=1M \
+  priority=7
+
+# Queue default (prioritas normal)
+/queue tree add \
+  name=DEFAULT \
+  parent=TOTAL \
+  packet-mark=no-mark \
+  max-limit=30M \
+  priority=5
+</code></pre>
+    </div>
+
+    <h2 id="burst">6. Burst: Bandwidth Tambahan Sementara</h2>
+    <p><strong>Burst</strong> memungkinkan user mendapatkan bandwidth lebih tinggi dari limit normal untuk durasi singkat. Ini bagus untuk meningkatkan user experience saat browsing awal.</p>
+
+    <h3>6.1 Cara Kerja Burst</h3>
+    <ol>
+      <li>Ketika traffic user di bawah <strong>burst-threshold</strong>, "kredit" burst terakumulasi</li>
+      <li>Ketika user membutuhkan bandwidth tinggi, burst diaktifkan</li>
+      <li>User mendapatkan <strong>burst-limit</strong> selama <strong>burst-time</strong></li>
+      <li>Setelah burst habis, kembali ke <strong>max-limit</strong></li>
+    </ol>
+
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Burst Configuration</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Contoh burst untuk user 5 Mbps
+/queue simple add \
+  name=user-burst \
+  target=192.168.1.50/32 \
+  max-limit=5M/5M \
+  burst-limit=10M/10M \
+  burst-threshold=3M/3M \
+  burst-time=8s/8s
+
+# Penjelasan:
+# max-limit=5M/5M          : Normal 5 Mbps up/down
+# burst-limit=10M/10M      : Burst hingga 10 Mbps
+# burst-threshold=3M/3M    : Burst aktif saat traffic < 3 Mbps
+# burst-time=8s/8s         : Burst bertahan 8 detik
+
+# Burst bekerja sebagai berikut:
+# Saat idle → kredit burst terakumulasi
+# Saat download → burst sampai 10 Mbps selama 8 detik
+# Setelah 8 detik → turun ke 5 Mbps (max-limit)
+# Saat idle lagi → kredit terakumulasi lagi
+</code></pre>
+    </div>
+
+    <div class="info-box warning"><div class="info-box-title">⚠️ Burst Threshold</div>
+    <p>Burst-threshold harus lebih rendah dari max-limit. Jika burst-threshold >= max-limit, burst tidak akan pernah terpicu. Rekomendasi: set burst-threshold sekitar 60% dari max-limit.</p></div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="pcq">7. PCQ — Per Connection Queue</h2>
+    <p><strong>PCQ (Per Connection Queue)</strong> adalah fitur yang membagi bandwidth secara <strong>merata ke semua user</strong> tanpa perlu membuat queue individual per IP. PCQ sangat efisien untuk ISP dengan ratusan pelanggan.</p>
+
+    <h3>7.1 Cara Kerja PCQ</h3>
+    <ol>
+      <li>PCQ membuat queue otomatis untuk setiap source/destination address</li>
+      <li>Bandwidth parent dibagi rata ke semua queue aktif</li>
+      <li>Saat user baru masuk, bandwidth otomatis di-rebalance</li>
+      <li>Saat user keluar, bandwidth dialokasikan ke user lain</li>
+    </ol>
+
+    <h3>7.2 Konfigurasi PCQ</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — PCQ Setup</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Buat PCQ type untuk download (berdasarkan dst-address)
+/queue type add \
+  name=pcq-download \
+  kind=pcq \
+  pcq-rate=5M \
+  pcq-limit=50 \
+  pcq-classifier=dst-address \
+  pcq-total-limit=2000
+
+# Buat PCQ type untuk upload (berdasarkan src-address)
+/queue type add \
+  name=pcq-upload \
+  kind=pcq \
+  pcq-rate=2M \
+  pcq-limit=50 \
+  pcq-classifier=src-address \
+  pcq-total-limit=2000
+
+# Terapkan PCQ di simple queue
+/queue simple add \
+  name=ALL-USERS \
+  target=192.168.1.0/24 \
+  queue=pcq-upload/pcq-download \
+  max-limit=100M/200M \
+  comment="Shared bandwidth - 2M up, 5M down per user"
+
+# Atau terapkan di queue tree (lebih efisien untuk banyak user)
+# Step 1: Mark packet download
+/ip firewall mangle add \
+  chain=forward \
+  dst-address=192.168.1.0/24 \
+  action=mark-packet \
+  new-packet-mark=lan-download \
+  passthrough=no
+
+# Step 2: Mark packet upload
+/ip firewall mangle add \
+  chain=forward \
+  src-address=192.168.1.0/24 \
+  action=mark-packet \
+  new-packet-mark=lan-upload \
+  passthrough=no
+
+# Step 3: Queue tree dengan PCQ
+/queue tree add \
+  name=LAN-DOWNLOAD \
+  parent=global \
+  packet-mark=lan-download \
+  queue=pcq-download \
+  max-limit=200M
+
+/queue tree add \
+  name=LAN-UPLOAD \
+  parent=global \
+  packet-mark=lan-upload \
+  queue=pcq-upload \
+  max-limit=100M
+</code></pre>
+    </div>
+
+    <h3>7.3 PCQ Classifier Options</h3>
+    <table class="spec-table">
+      <thead><tr><th>Classifier</th><th>Kegunaan</th><th>Contoh</th></tr></thead>
+      <tbody>
+        <tr><td><code>src-address</code></td><td>Per source IP (upload)</td><td>Setiap IP dapat jatah upload sama</td></tr>
+        <tr><td><code>dst-address</code></td><td>Per destination IP (download)</td><td>Setiap IP dapat jatah download sama</td></tr>
+        <tr><td><code>src-and-dst-address</code></td><td>Per kombinasi src+dst</td><td>Per koneksi unik</td></tr>
+        <tr><td><code>src-port</code></td><td>Per source port</td><td>Per aplikasi</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="isp-setup">8. Setup QoS untuk ISP</h2>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — ISP QoS Template</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# ============================================
+# QoS Template untuk ISP (PCQ-based)
+# Total bandwidth: 100 Mbps download, 50 Mbps upload
+# Per user: 5 Mbps download, 2 Mbps upload
+# ============================================
+
+# Step 1: Buat PCQ types
+/queue type add name=pcq-down kind=pcq pcq-rate=5M \
+  pcq-classifier=dst-address pcq-total-limit=2000
+/queue type add name=pcq-up kind=pcq pcq-rate=2M \
+  pcq-classifier=src-address pcq-total-limit=2000
+
+# Step 2: Mangle
+/ip firewall mangle add chain=forward \
+  dst-address=10.0.0.0/8 \
+  action=mark-packet new-packet-mark=down passthrough=no
+/ip firewall mangle add chain=forward \
+  src-address=10.0.0.0/8 \
+  action=mark-packet new-packet-mark=up passthrough=no
+
+# Step 3: Queue Tree
+/queue tree add name=TOTAL-DOWN parent=global \
+  max-limit=100M priority=1
+/queue tree add name=TOTAL-UP parent=global \
+  max-limit=50M priority=1
+
+/queue tree add name=USER-DOWN parent=TOTAL-DOWN \
+  packet-mark=down queue=pcq-down
+/queue tree add name=USER-UP parent=TOTAL-UP \
+  packet-mark=up queue=pcq-up
+
+# Step 4: Prioritas VoIP
+/ip firewall mangle add chain=forward \
+  protocol=udp dst-port=5060,10000-20000 \
+  action=mark-packet new-packet-mark=voip passthrough=no
+
+/queue tree add name=VOIP parent=TOTAL-DOWN \
+  packet-mark=voip max-limit=10M limit-at=5M priority=1
+</code></pre>
+    </div>
+
+    <h2 id="monitoring">9. Monitoring Queue</h2>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — Queue Monitoring</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Monitor simple queue
+/queue simple print stats
+
+# Monitor queue tree
+/queue tree print stats
+
+# Monitor realtime (seperti "top" untuk queue)
+/queue simple monitor [find]
+
+# Cek queue yang aktif
+/queue simple print where bytes>0
+
+# Reset counters
+/queue simple reset-counters [find]
+
+# Monitor packet marks
+/ip firewall mangle print stats
+
+# Torch untuk lihat traffic per IP
+/tool torch interface=ether1 src-address=192.168.1.10
+</code></pre>
+    </div>
+
+    <h2 id="quiz">Quiz Pemahaman</h2>
+    <div class="quiz-container" id="quiz10">
+      <h3>🧠 Tes Pemahaman: QoS MikroTik</h3>
+      <div class="quiz-question" data-correct="b">
+        <p><strong>1. Apa perbedaan utama Simple Queue dan Queue Tree?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="1" data-answer="a">a) Simple Queue lebih cepat dari Queue Tree</div>
+          <div class="quiz-option" data-question="1" data-answer="b">b) Simple Queue berdasarkan IP langsung, Queue Tree berdasarkan packet mark</div>
+          <div class="quiz-option" data-question="1" data-answer="c">c) Queue Tree tidak mendukung burst</div>
+          <div class="quiz-option" data-question="1" data-answer="d">d) Tidak ada perbedaan</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="c">
+        <p><strong>2. Apa fungsi PCQ?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="2" data-answer="a">a) Mengenkripsi traffic</div>
+          <div class="quiz-option" data-question="2" data-answer="b">b) Memblokir P2P</div>
+          <div class="quiz-option" data-question="2" data-answer="c">c) Membagi bandwidth secara merata ke semua user</div>
+          <div class="quiz-option" data-question="2" data-answer="d">d) Meningkatkan kecepatan internet</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="a">
+        <p><strong>3. Dalam HTB, priority 1 berarti?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="3" data-answer="a">a) Prioritas tertinggi — pertama mendapat bandwidth</div>
+          <div class="quiz-option" data-question="3" data-answer="b">b) Prioritas terendah</div>
+          <div class="quiz-option" data-question="3" data-answer="c">c) Tidak ada prioritas</div>
+          <div class="quiz-option" data-question="3" data-answer="d">d) Bandwidth di-disable</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="d">
+        <p><strong>4. Mengapa burst-threshold harus lebih rendah dari max-limit?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="4" data-answer="a">a) Agar burst lebih cepat</div>
+          <div class="quiz-option" data-question="4" data-answer="b">b) Agar queue lebih stabil</div>
+          <div class="quiz-option" data-question="4" data-answer="c">c) Agar CPU usage rendah</div>
+          <div class="quiz-option" data-question="4" data-answer="d">d) Agar burst bisa terpicu saat traffic di bawah threshold</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="b">
+        <p><strong>5. Mengapa ISP sebaiknya menggunakan Queue Tree + PCQ daripada Simple Queue?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="5" data-answer="a">a) Simple Queue lebih mahal</div>
+          <div class="quiz-option" data-question="5" data-answer="b">b) PCQ lebih efisien dan scalable untuk ratusan user</div>
+          <div class="quiz-option" data-question="5" data-answer="c">c) Simple Queue tidak mendukung limit</div>
+          <div class="quiz-option" data-question="5" data-answer="d">d) Queue Tree tidak butuh mangle</div>
+        </div>
+      </div>
+      <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+      <div class="quiz-result"></div>
+    </div>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <div class="article-nav">
+      <a href="ospf-multi-area.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">OSPF Multi-Area</span></a>
+      <a href="mikrotik-user-manager.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">MikroTik User Manager</span></a>
+    </div>
+
+  </div>
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/network-monitoring-zabbix.html" class="related-card">
+          <span class="related-category">Networking</span>
+          <span class="related-title">Network Monitoring dengan Zabbix</span>
+        </a>
+        <a href="/articles/mikrotik-hotspot.html" class="related-card">
+          <span class="related-category">Networking</span>
+          <span class="related-title">MikroTik Hotspot Configuration: Panduan Lengkap</span>
+        </a>
+        <a href="/articles/bgp-fundamentals.html" class="related-card">
+          <span class="related-category">Networking</span>
+          <span class="related-title">BGP Fundamentals untuk ISP</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <section class="newsletter-section" id="newsletter"><div class="container"><div class="newsletter-card fade-in"><h2>📬 Dapatkan Tutorial Terbaru</h2><p>Subscribe untuk tutorial networking terbaru. Gratis, tanpa spam.</p><form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form></div></div></section>

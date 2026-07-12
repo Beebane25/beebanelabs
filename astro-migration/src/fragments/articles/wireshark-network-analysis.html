@@ -1,0 +1,915 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Protokol</a>
+        <span class="separator">/</span>
+        <span class="current">Wireshark</span>
+      </div>
+      <span class="category-tag">Protokol IoT</span>
+      <h1>Wireshark: Analisis Jaringan untuk Engineer IoT</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Tutorial komprehensif Wireshark dari instalasi, capture &amp; display filter, analisis protokol MQTT dan TCP, troubleshooting jaringan IoT, hingga mengenali pola umum masalah jaringan</p>
+      <div class="article-meta">
+        <span>📅 25 Juni 2026</span>
+        <span>📖 13 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#instalasi">Instalasi Wireshark</a></li>
+          <li><a href="#capture-filters">Capture Filters</a></li>
+          <li><a href="#display-filters">Display Filters</a></li>
+          <li><a href="#protocol-analysis">Analisis Protokol</a></li>
+          <li><a href="#mqtt-analysis">Analisis Paket MQTT</a></li>
+          <li><a href="#tcp-analysis">Analisis TCP</a></li>
+          <li><a href="#troubleshooting">Troubleshooting dengan Wireshark</a></li>
+          <li><a href="#common-patterns">Pola Umum Masalah Jaringan</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Instalasi            -->
+      <!-- ============================== -->
+      <h2 id="instalasi">1. Instalasi Wireshark</h2>
+
+      <p><strong>Wireshark</strong> adalah tool analisis jaringan (<em>network protocol analyzer</em>) open-source yang paling populer di dunia. Wireshark mampu menangkap dan menganalisis setiap paket data yang melewati antarmuka jaringan secara real-time. Bagi engineer IoT, Wireshark adalah tool wajib untuk memahami dan men-debug komunikasi antar perangkat.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Diagram: Wireshark dalam Ekosistem IoT</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">📡</div>
+            <div class="arch-label">ESP32 / Sensor</div>
+            <div class="arch-desc">Mengirim data MQTT<br>192.168.1.50</div>
+          </div>
+          <div class="arch-arrow">→ Paket →</div>
+          <div class="arch-box info">
+            <div class="arch-icon">🔍</div>
+            <div class="arch-label">Wireshark</div>
+            <div class="arch-desc">Menangkap &amp; menganalisis<br>semua paket jaringan</div>
+          </div>
+          <div class="arch-arrow">→ Paket →</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">🖥️</div>
+            <div class="arch-label">MQTT Broker</div>
+            <div class="arch-desc">Mosquitto server<br>192.168.1.100:1883</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Instalasi di Windows</h3>
+      <ol>
+        <li>Kunjungi <strong>https://www.wireshark.org/download.html</strong></li>
+        <li>Download installer Windows 64-bit (.exe)</li>
+        <li>Jalankan installer — <strong>pastikan mencentang opsi Npcap</strong> (diperlukan untuk menangkap paket)</li>
+        <li>Ikuti wizard hingga selesai, lalu restart komputer</li>
+        <li>Buka Wireshark — Anda akan melihat daftar antarmuka jaringan (Ethernet, Wi-Fi, dll.)</li>
+      </ol>
+
+      <h3>1.2 Instalasi di Linux (Ubuntu/Debian)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Instalasi Wireshark di Linux</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Instal Wireshark dan dependencies
+sudo apt update
+sudo apt install -y wireshark
+
+# Saat dialog muncul, pilih "Yes" agar non-root user bisa capture
+sudo dpkg-reconfigure wireshark-common
+
+# Tambahkan user ke grup wireshark
+sudo usermod -aG wireshark $USER
+
+# Logout dan login kembali, lalu jalankan:
+wireshark &
+
+# Alternatif: capture dari terminal dengan tshark
+sudo tshark -i eth0 -f "tcp port 1883"
+</code></pre>
+      </div>
+
+      <h3>1.3 Antarmuka Wireshark</h3>
+      <p>Saat pertama dibuka, Wireshark menampilkan daftar <strong>network interfaces</strong>. Pilih interface yang ingin di-monitor:</p>
+      <ul>
+        <li><strong>Ethernet:</strong> Untuk jaringan kabel — cocok untuk ESP32 yang terhubung via router kabel</li>
+        <li><strong>Wi-Fi (WLAN):</strong> Untuk jaringan nirkabel — cocok untuk ESP32 WiFi</li>
+        <li><strong>Loopback:</strong> Untuk komunikasi lokal (localhost) — cocok untuk testing broker di komputer yang sama</li>
+        <li><strong>Any / docker0:</strong> Untuk container dan virtual interface</li>
+      </ul>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Cara Menentukan Interface yang Benar</div>
+        <p>Di Wireshark, perhatikan grafik <em>traffic</em> di sebelah setiap interface. Interface yang aktif akan menunjukkan grafik bergerak. Pilih interface yang menunjukkan traffic — artinya ada data yang mengalir. Untuk IoT di jaringan lokal, biasanya pilih Ethernet atau Wi-Fi.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Capture Filters      -->
+      <!-- ============================== -->
+      <h2 id="capture-filters">2. Capture Filters</h2>
+
+      <p><strong>Capture filter</strong> menentukan paket mana yang akan ditangkap dan disimpan oleh Wireshark. Capture filter menggunakan sintaks <strong>BPF (Berkeley Packet Filter)</strong> dan harus ditentukan <strong>sebelum</strong> memulai capture.</p>
+
+      <p>Capture filter sangat penting untuk IoT karena jaringan bisa sangat ramai — tanpa filter, file capture akan sangat besar dan sulit dianalisis.</p>
+
+      <h3>2.1 Sintaks Dasar Capture Filter</h3>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Filter</th>
+            <th>Fungsi</th>
+            <th>Contoh Penggunaan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>host</code></td><td>Filter berdasarkan IP tertentu</td><td><code>host 192.168.1.50</code></td></tr>
+          <tr><td><code>net</code></td><td>Filter berdasarkan subnet</td><td><code>net 192.168.1.0/24</code></td></tr>
+          <tr><td><code>port</code></td><td>Filter berdasarkan port</td><td><code>port 1883</code></td></tr>
+          <tr><td><code>src</code></td><td>Filter sumber paket</td><td><code>src host 192.168.1.50</code></td></tr>
+          <tr><td><code>dst</code></td><td>Filter tujuan paket</td><td><code>dst port 8080</code></td></tr>
+          <tr><td><code>tcp</code></td><td>Hanya paket TCP</td><td><code>tcp</code></td></tr>
+          <tr><td><code>udp</code></td><td>Hanya paket UDP</td><td><code>udp</code></td></tr>
+          <tr><td><code>and / or / not</code></td><td>Operator logika</td><td><code>tcp and port 1883</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.2 Capture Filter untuk IoT</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">BPF Syntax — Capture Filter untuk IoT</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# === Capture Filter untuk MQTT ===
+
+# Tangkap semua traffic MQTT (port 1883)
+port 1883
+
+# Tangkap traffic MQTT dari ESP32 tertentu
+host 192.168.1.50 and port 1883
+
+# Tangkap traffic MQTT + MQTT over TLS (port 8883)
+port 1883 or port 8883
+
+# Tangkap traffic dari semua perangkat IoT di subnet
+net 192.168.1.0/24 and (port 1883 or port 8080 or port 8883)
+
+# Kecualikan traffic dari komputer kita sendiri
+not host 192.168.1.1 and port 1883
+
+# === Capture Filter untuk WebSocket ===
+
+# Tangkap traffic WebSocket
+port 8080
+
+# Tangkap traffic HTTP dan WebSocket
+port 80 or port 443 or port 8080
+
+# === Capture Filter untuk CoAP ===
+
+# CoAP menggunakan UDP port 5683
+udp port 5683
+
+# === Capture Filter untuk HTTP ===
+
+# Tangkap semua traffic HTTP
+tcp port 80
+
+# Tangkap HTTP dari subnet tertentu
+src net 192.168.1.0/24 and tcp port 80
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Capture Filter vs Display Filter</div>
+        <p>Jangan tertukar antara capture filter dan display filter! <strong>Capture filter</strong> ditulis dalam sintaks BPF (seperti <code>port 1883</code>) dan ditentukan sebelum capture dimulai. <strong>Display filter</strong> menggunakan sintaks Wireshark sendiri (seperti <code>tcp.port == 1883</code>) dan bisa diubah kapan saja setelah capture. Paket yang tidak lolos capture filter tidak akan tersimpan sama sekali.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Display Filters      -->
+      <!-- ============================== -->
+      <h2 id="display-filters">3. Display Filters</h2>
+
+      <p><strong>Display filter</strong> digunakan untuk menyaring paket yang <em>sudah ditangkap</em> agar hanya menampilkan yang relevan. Display filter menggunakan sintaks Wireshark sendiri dan jauh lebih fleksibel daripada capture filter.</p>
+
+      <h3>3.1 Sintaks Display Filter</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Wireshark Display Filter — Berbagai Contoh</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# === Filter Berdasarkan Protokol ===
+
+# Tampilkan hanya paket MQTT
+mqtt
+
+# Tampilkan hanya paket TCP
+tcp
+
+# Tampilkan hanya paket DNS
+dns
+
+# Tampilkan hanya paket HTTP
+http
+
+# === Filter Berdasarkan Alamat IP ===
+
+# Paket dari/ke IP tertentu
+ip.addr == 192.168.1.50
+
+# Paket dari IP tertentu saja
+ip.src == 192.168.1.50
+
+# Paket ke IP tertentu saja
+ip.dst == 192.168.1.100
+
+# Paket dari/ke subnet tertentu
+ip.addr == 192.168.1.0/24
+
+# === Filter Berdasarkan Port ===
+
+# Port TCP tertentu
+tcp.port == 1883
+
+# Port sumber tertentu
+tcp.srcport == 1883
+
+# Port tujuan tertentu
+tcp.dstport == 1883
+
+# === Filter Kombinasi (AND / OR / NOT) ===
+
+# MQTT dari ESP32 tertentu
+mqtt && ip.src == 192.168.1.50
+
+# MQTT atau HTTP
+mqtt || http
+
+# Semua kecuali ARP dan DNS
+!arp && !dns
+
+# TCP dari subnet ke broker MQTT
+ip.src == 192.168.1.0/24 && tcp.dstport == 1883
+
+# === Filter Spesifik MQTT ===
+
+# Semua paket MQTT
+mqtt
+
+# Tipe pesan MQTT tertentu (CONNECT, PUBLISH, SUBSCRIBE, dll.)
+mqtt.msgtype == 3          # PUBLISH
+mqtt.msgtype == 1          # CONNECT
+mqtt.msgtype == 8          # SUBSCRIBE
+
+# Topik MQTT tertentu
+mqtt.topic contains "suhu"
+
+# QoS level tertentu
+mqtt.qos == 1
+
+# Client ID tertentu
+mqtt.clientid == "esp32-001"
+
+# === Filter TCP Spesifik ===
+
+# TCP SYN (koneksi baru)
+tcp.flags.syn == 1 && tcp.flags.ack == 0
+
+# TCP RST (koneksi ditolak/reset)
+tcp.flags.reset == 1
+
+# TCP dengan retransmisi
+tcp.analysis.retransmission
+
+# TCP window size kecil (potensi masalah performa)
+tcp.window_size < 1024
+</code></pre>
+      </div>
+
+      <h3>3.2 Filter Expression Builder</h3>
+      <p>Jika Anda kesulitan mengingat sintaks filter, Wireshark menyediakan <strong>Filter Expression Builder</strong>. Klik ikon filter di toolbar, lalu pilih field, operator, dan value secara visual. Ini sangat membantu untuk filter kompleks.</p>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Filter Wireshark</div>
+        <p>Wireshark memiliki fitur <em>auto-complete</em> — cukup mulai mengetik di kolom filter dan Wireshark akan menampilkan saran. Anda juga bisa mengklik kanan pada field di detail paket lalu pilih <strong>"Apply as Filter"</strong> untuk langsung membuat filter berdasarkan field tersebut. Ini sangat mempercepat proses analisis.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Protocol Analysis    -->
+      <!-- ============================== -->
+      <h2 id="protocol-analysis">4. Analisis Protokol</h2>
+
+      <p>Wireshark mampu mendekode dan menampilkan detail ratusan protokol jaringan. Untuk engineer IoT, protokol yang paling penting untuk dipahami adalah:</p>
+
+      <h3>4.1 Struktur Kolom Wireshark</h3>
+      <p>Setiap baris dalam daftar paket Wireshark menampilkan informasi berikut:</p>
+      <ul>
+        <li><strong>No:</strong> Nomor urut paket dalam capture</li>
+        <li><strong>Time:</strong> Timestamp paket (bisa diatur ke relative time dari capture start)</li>
+        <li><strong>Source:</strong> Alamat IP/hostname sumber paket</li>
+        <li><strong>Destination:</strong> Alamat IP/hostname tujuan paket</li>
+        <li><strong>Protocol:</strong> Protokol yang digunakan (TCP, MQTT, HTTP, DNS, dll.)</li>
+        <li><strong>Length:</strong> Ukuran paket dalam byte</li>
+        <li><strong>Info:</strong> Ringkasan isi paket (tergantung protokol)</li>
+      </ul>
+
+      <h3>4.2 Detail Pane (Panel Bawah)</h3>
+      <p>Saat Anda memilih satu paket, panel bawah menampilkan detail berlapis dari setiap layer protokol:</p>
+      <ul>
+        <li><strong>Frame:</strong> Informasi fisik (interface, timestamp, length)</li>
+        <li><strong>Ethernet II:</strong> MAC address sumber dan tujuan</li>
+        <li><strong>Internet Protocol (IPv4/IPv6):</strong> IP address, TTL, flags</li>
+        <li><strong>TCP:</strong> Port, sequence number, flags, window size</li>
+        <li><strong>MQTT / HTTP / dst.:</strong> Data aplikasi sesungguhnya</li>
+      </ul>
+
+      <h3>4.3 Follow TCP Stream</h3>
+      <p>Fitur <strong>"Follow TCP Stream"</strong> sangat berguna untuk melihat keseluruhan percakapan antara dua perangkat. Klik kanan pada paket TCP → <strong>Follow → TCP Stream</strong> untuk melihat data dalam format yang mudah dibaca.</p>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: MQTT Packet Analysis -->
+      <!-- ============================== -->
+      <h2 id="mqtt-analysis">5. Analisis Paket MQTT</h2>
+
+      <p>Wireshark memiliki dissector bawaan untuk protokol MQTT yang memungkinkan kita melihat setiap field pesan MQTT secara detail. Ini sangat berguna untuk debugging masalah koneksi, topik, dan payload.</p>
+
+      <h3>5.1 Filter Paket MQTT</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Wireshark Display Filter — MQTT</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# === Semua paket MQTT ===
+mqtt
+
+# === Berdasarkan tipe pesan ===
+# 1=CONNECT, 2=CONNACK, 3=PUBLISH, 4=PUBACK
+# 8=SUBSCRIBE, 9=SUBACK, 12=PINGREQ, 13=PINGRESP
+# 14=DISCONNECT
+
+mqtt.msgtype == 3          # Hanya PUBLISH
+mqtt.msgtype == 1          # Hanya CONNECT
+mqtt.msgtype == 8          # Hanya SUBSCRIBE
+mqtt.msgtype == 14         # Hanya DISCONNECT
+
+# === Berdasarkan topik ===
+mqtt.topic == "rumah/suhu"
+mqtt.topic contains "sensor"
+mqtt.topic matches "^rumah/.*"
+
+# === Berdasarkan QoS ===
+mqtt.qos == 0              # QoS 0
+mqtt.qos == 1              # QoS 1
+mqtt.qos == 2              # QoS 2
+
+# === Berdasarkan Client ID ===
+mqtt.clientid == "esp32-001"
+mqtt.clientid contains "sensor"
+
+# === Berdasarkan Username ===
+mqtt.username == "admin"
+
+# === Kombinasi filter ===
+mqtt && mqtt.msgtype == 3 && ip.src == 192.168.1.50
+
+# PUBLISH dari ESP32 ke topik suhu dengan QoS 1
+mqtt.msgtype == 3 && mqtt.topic contains "suhu" && mqtt.qos == 1
+
+# Koneksi yang gagal (CONNACK dengan return code != 0)
+mqtt.msgtype == 2 && mqtt.connack.reason != 0
+</code></pre>
+      </div>
+
+      <h3>5.2 Membaca Pesan MQTT di Wireshark</h3>
+      <p>Ketika Anda memilih paket MQTT di Wireshark, detail berikut akan terlihat:</p>
+      <ul>
+        <li><strong>CONNECT packet:</strong> Protocol name, version (3.1.1 atau 5.0), client ID, keep-alive, username, password, will message</li>
+        <li><strong>PUBLISH packet:</strong> Topic name, QoS level, message ID (untuk QoS 1/2), payload data</li>
+        <li><strong>SUBSCRIBE packet:</strong> Topic filter, QoS yang diminta, message ID</li>
+        <li><strong>PINGREQ/PINGRESP:</strong> Heartbeat untuk menjaga koneksi tetap hidup</li>
+      </ul>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Melihat Payload MQTT</div>
+        <p>Untuk melihat payload MQTT dalam format yang mudah dibaca, klik kanan pada paket PUBLISH → <strong>Follow → TCP Stream</strong>. Jika payload berupa JSON, Anda bisa langsung membaca isi data sensor. Untuk payload biner, perhatikan panel detail di bagian <code>MQTT → Message</code>.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: TCP Analysis         -->
+      <!-- ============================== -->
+      <h2 id="tcp-analysis">6. Analisis TCP</h2>
+
+      <p>MQTT, HTTP, dan WebSocket semuanya berjalan di atas TCP. Memahami analisis TCP sangat penting untuk men-debug masalah koneksi yang sering terjadi di IoT.</p>
+
+      <h3>6.1 TCP Three-Way Handshake</h3>
+      <p>Setiap koneksi TCP dimulai dengan proses tiga langkah:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">TCP Handshake — Filter Wireshark</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Filter untuk melihat TCP handshake ke broker MQTT
+
+# Step 1: SYN dari ESP32 ke broker
+tcp.flags.syn == 1 && tcp.flags.ack == 0 && tcp.dstport == 1883
+
+# Step 2: SYN-ACK dari broker ke ESP32
+tcp.flags.syn == 1 && tcp.flags.ack == 1 && tcp.srcport == 1883
+
+# Step 3: ACK dari ESP32 ke broker
+tcp.flags.syn == 0 && tcp.flags.ack == 1 && tcp.dstport == 1883
+
+# Filter untuk melihat SELURUH handshake + data:
+tcp.port == 1883
+
+# === Masalah Umum TCP di IoT ===
+
+# TCP RST - koneksi ditolak/di-reset
+tcp.flags.reset == 1
+
+# TCP Retransmisi - paket hilang, dikirim ulang
+tcp.analysis.retransmission
+
+# TCP Dup ACK - acknowledgement duplikat
+tcp.analysis.duplicate_ack
+
+# TCP Window Full - buffer penuh
+tcp.analysis.window_full
+
+# TCP Zero Window - receiver tidak bisa terima data
+tcp.analysis.zero_window
+
+# TCP Keep-Alive
+tcp.flags.keep_alive == 1
+</code></pre>
+      </div>
+
+      <h3>6.2 Men-debug Masalah TCP</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Wireshark — Expert Information</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Wireshark memiliki fitur "Expert Information"
+# Akses melalui: Analyze → Expert Information
+
+# Level pesan Expert:
+# 🔵 Note    — Informasi umum (misal: TCP keep-alive)
+# 🟡 Warning — Potensi masalah (misal: window size kecil)
+# 🔴 Error   — Masalah nyata (misal: checksum salah)
+# ⚫ Chat    — Informasi percakapan
+
+# Filter Expert Information:
+# Semua warning dan error
+tcp.analysis.flags
+
+# Hanya retransmisi
+tcp.analysis.retransmission
+
+# Hanya duplikat
+tcp.analysis.duplicate_ack
+
+# Out-of-order packets
+tcp.analysis.out_of_order
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Troubleshooting      -->
+      <!-- ============================== -->
+      <h2 id="troubleshooting">7. Troubleshooting dengan Wireshark</h2>
+
+      <p>Berikut panduan troubleshooting umum untuk masalah jaringan IoT menggunakan Wireshark:</p>
+
+      <h3>7.1 ESP32 Tidak Bisa Terhubung ke Broker</h3>
+      <p>Gunakan filter ini untuk men-debug masalah koneksi:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Wireshark — Troubleshooting Koneksi</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Filter untuk koneksi dari ESP32 ke broker
+ip.addr == 192.168.1.50 && tcp.port == 1883
+
+# === Kemungkinan Hasil dan Interpretasi ===
+
+# 1. Tidak ada paket sama sekali:
+#    → ESP32 tidak mengirim data. Cek WiFi, IP address, firewall.
+
+# 2. Ada SYN tapi tidak ada SYN-ACK:
+#    → Broker tidak merespons. Cek broker berjalan, port benar, firewall.
+
+# 3. Ada SYN → RST (reset):
+#    → Broker menolak koneksi. Cek port listener, allow_anonymous.
+
+# 4. Handshake berhasil tapi langsung DISCONNECT:
+#    → Masalah autentikasi MQTT. Cek username, password, client ID.
+
+# 5. CONNECT → CONNACK with error:
+#    → CONNACK return code bukan 0. Cek:
+#    0 = Accepted
+#    1 = Unacceptable protocol
+#    2 = Identifier rejected
+#    3 = Server unavailable
+#    4 = Bad credentials
+#    5 = Not authorized
+</code></pre>
+      </div>
+
+      <h3>7.2 Data Sensor Tidak Muncul di Dashboard</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Wireshark — Troubleshooting Data Flow</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Filter untuk melihat semua pesan PUBLISH MQTT
+mqtt.msgtype == 3
+
+# Periksa:
+# 1. Apakah ESP32 mengirim PUBLISH? → Cek paket dari IP ESP32
+# 2. Apakah topik benar? → Lihat field mqtt.topic
+# 3. Apakah payload terisi? → Lihat panel detail MQTT Message
+# 4. Apakah broker meneruskan? → Cek apakah ada PUBLISH dari broker
+
+# Filter untuk melihat flow lengkap satu device:
+ip.addr == 192.168.1.50 && mqtt
+
+# Urutan yang benar:
+# ESP32 → Broker: CONNECT
+# Broker → ESP32: CONNACK (return code 0)
+# ESP32 → Broker: SUBSCRIBE (jika perlu subscribe)
+# Broker → ESP32: SUBACK
+# ESP32 → Broker: PUBLISH (data sensor)
+# (berulang setiap interval)
+
+# Urutan yang bermasalah:
+# ESP32 → Broker: CONNECT
+# Broker → ESP32: CONNACK (return code 4 = bad credentials)
+# ESP32 → Broker: DISCONNECT
+# → Masalah: credential salah!
+</code></pre>
+      </div>
+
+      <h3>7.3 Menyimpan dan Membuka File Capture</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Wireshark — Save & Load Capture</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Simpan capture (File → Save As)
+# Format: .pcap atau .pcapng (disarankan .pcapng)
+
+# Command line: capture dengan tshark lalu simpan
+sudo tshark -i eth0 -f "port 1883" -w mqtt_capture.pcapng -a duration:60
+
+# Buka file capture sebelumnya
+wireshark mqtt_capture.pcapng
+
+# Export data tertentu (File → Export Specified Packets)
+# Bisa difilter sebelum di-export
+
+# Statistik (Statistics → Protocol Hierarchy)
+# Menampilkan distribusi protokol dalam capture
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Common Patterns      -->
+      <!-- ============================== -->
+      <h2 id="common-patterns">8. Pola Umum Masalah Jaringan</h2>
+
+      <p>Berikut pola-pola yang sering ditemui saat menganalisis traffic jaringan IoT dengan Wireshark:</p>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Pola</th>
+            <th>Gejala di Wireshark</th>
+            <th>Kemungkinan Penyebab</th>
+            <th>Solusi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Retransmisi TCP tinggi</strong></td>
+            <td>Banyak paket <code>tcp.analysis.retransmission</code></td>
+            <td>Jaringan tidak stabil, signal WiFi lemah, congestion</td>
+            <td>Pindahkan ESP32 lebih dekat ke router, gunakan antena eksternal</td>
+          </tr>
+          <tr>
+            <td><strong>Zero Window</strong></td>
+            <td><code>tcp.analysis.zero_window</code></td>
+            <td>Receiver tidak bisa memproses data cukup cepat</td>
+            <td>Optimasi kode receiver, kurangi frekuensi pengiriman</td>
+          </tr>
+          <tr>
+            <td><strong>RST Storm</strong></td>
+            <td>Banyak paket <code>tcp.flags.reset == 1</code></td>
+            <td>Firewall memblokir, broker down, port salah</td>
+            <td>Cek firewall rules, pastikan broker berjalan</td>
+          </tr>
+          <tr>
+            <td><strong>ARP Storm</strong></td>
+            <td>Banyak ARP request berulang</td>
+            <td>IP conflict atau ARP table timeout</td>
+            <td>Cek IP assignment DHCP, gunakan IP statis</td>
+          </tr>
+          <tr>
+            <td><strong>MQTT Keep-Alive timeout</strong></td>
+            <td>Tidak ada PINGREQ dalam interval keep-alive</td>
+            <td>ESP32 hang, loop() terlalu lama, WiFi putus</td>
+            <td>Pastikan <code>client.loop()</code> dipanggil secara reguler</td>
+          </tr>
+          <tr>
+            <td><strong>Large payload</strong></td>
+            <td>Paket MQTT dengan payload > 1KB</td>
+            <td>JSON terlalu besar, data tidak dikompres</td>
+            <td>Kompres payload, gunakan format biner (CBOR/MsgPack)</td>
+          </tr>
+          <tr>
+            <td><strong>DNS delay</strong></td>
+            <td>Delay lama antara DNS query dan response</td>
+            <td>DNS server lambat atau unreachable</td>
+            <td>Gunakan IP langsung untuk broker lokal, atau DNS caching</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Capture di Jaringan yang Menggunakan Switch</div>
+        <p>Di jaringan yang menggunakan switch, Wireshark hanya bisa menangkap paket yang dikirim ke/dari komputer Anda (dan broadcast/multicast). Untuk menangkap paket antara dua perangkat lain (misalnya ESP32 dan broker), Anda perlu mengaktifkan <strong>port mirroring</strong> pada switch, atau menggunakan <strong>hub</strong> (yang mengirim semua paket ke semua port), atau menjalankan Wireshark langsung di broker/server.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                 -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Wireshark:</p>
+
+      <div class="quiz-container" id="quiz10">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa perbedaan antara capture filter dan display filter di Wireshark?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Tidak ada perbedaan, keduanya sama saja</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Capture filter menentukan paket yang ditangkap (sebelum capture), display filter menyaring paket yang sudah ditangkap (setelah capture)</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Capture filter hanya untuk HTTP, display filter untuk semua protokol</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Display filter lebih cepat dari capture filter</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Display filter apa yang digunakan untuk menampilkan hanya pesan MQTT PUBLISH?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) mqtt.type == "PUBLISH"</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) mqtt.msgtype == 3</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) tcp.port == 1883</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) mqtt.packets == publish</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Ketika Anda melihat <code>tcp.analysis.retransmission</code> di Wireshark, apa artinya?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Koneksi TCP baru sedang dibuat</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Paket dikirim ulang karena tidak diterima oleh tujuan (hilang atau timeout)</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Data terenkripsi sedang didekripsi</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Protokol berubah dari TCP ke UDP</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Capture filter BPF apa yang digunakan untuk menangkap semua traffic MQTT (port 1883)?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) mqtt.port == 1883</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) tcp.port == 1883</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) port 1883</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) filter mqtt 1883</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa Wireshark di jaringan dengan switch tidak bisa menangkap semua paket?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Karena switch terlalu cepat untuk Wireshark</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Karena switch hanya mengirim paket ke port tujuan, bukan ke semua port</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Karena Wireshark hanya mendukung WiFi, bukan Ethernet</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Karena switch mengenkripsi semua paket</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="websocket-guide.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">WebSocket: Komunikasi Real-time</span>
+        </a>
+        <a href="prometheus-monitoring.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Prometheus &amp; Grafana Monitoring</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/websocket-guide.html" class="related-card">
+          <span class="related-category">Protokol IoT</span>
+          <span class="related-title">WebSocket: Komunikasi Real-time untuk IoT</span>
+        </a>
+        <a href="/articles/iot-protocols-comparison.html" class="related-card">
+          <span class="related-category">Protokol IoT</span>
+          <span class="related-title">Perbandingan Protokol IoT: WiFi, BLE, LoRa, Zigbee & MQTT</span>
+        </a>
+        <a href="/articles/mqtt-protocol.html" class="related-card">
+          <span class="related-category">Protokol IoT</span>
+          <span class="related-title">Panduan Lengkap MQTT: Protokol Ringan untuk IoT</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

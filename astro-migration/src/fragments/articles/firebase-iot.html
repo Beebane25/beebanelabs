@@ -1,0 +1,1296 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">Firebase</span>
+      </div>
+      <span class="category-tag">Cloud & IoT</span>
+      <h1>Firebase Realtime Database untuk IoT: Panduan Lengkap ESP32</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Tutorial komprehensif Firebase Realtime Database untuk proyek IoT — dari membuat project hingga monitoring suhu dan kontrol relay via ESP32</p>
+      <div class="article-meta">
+        <span>📅 20 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#apa-itu-firebase">Apa itu Firebase?</a></li>
+          <li><a href="#setup-firebase">Setup Firebase Project</a></li>
+          <li><a href="#struktur-database">Struktur Database Firebase untuk IoT</a></li>
+          <li><a href="#kirim-data-sensor">ESP32 + Firebase: Kirim Data Sensor</a></li>
+          <li><a href="#baca-kontrol">ESP32 + Firebase: Baca Data Kontrol</a></li>
+          <li><a href="#security-rules">Firebase Security Rules untuk IoT</a></li>
+          <li><a href="#perbandingan-protokol">Firebase vs MQTT vs HTTP</a></li>
+          <li><a href="#proyek-monitoring">Proyek: Monitoring Suhu + Kontrol Relay</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Apa itu Firebase    -->
+      <!-- ============================== -->
+      <h2 id="apa-itu-firebase">1. Apa itu Firebase?</h2>
+
+      <p>Firebase adalah platform pengembangan aplikasi <em>Backend-as-a-Service</em> (BaaS) yang dikembangkan oleh Google. Firebase menyediakan berbagai layanan siap pakai seperti database, autentikasi, hosting, cloud functions, dan banyak lagi — sehingga pengembang tidak perlu membangun backend dari nol.</p>
+
+      <p>Dalam konteks IoT, Firebase sangat populer karena menyediakan <strong>Realtime Database</strong> yang memungkinkan sinkronisasi data secara <em>real-time</em> antara perangkat (misalnya ESP32) dan cloud tanpa perlu menulis kode server yang rumit.</p>
+
+      <h3>Realtime Database vs Cloud Firestore</h3>
+
+      <p>Firebase menyediakan dua jenis layanan database utama:</p>
+
+      <ul>
+        <li><strong>Realtime Database</strong> — Menyimpan data dalam format JSON tree dan menyinkronkan secara real-time ke semua klien yang terhubung. Sangat cocok untuk IoT karena pembaruan data terjadi instan (milidetik).</li>
+        <li><strong>Cloud Firestore</strong> — Database dokumen generasi terbaru yang lebih scalable dengan fitur query lanjutan. Namun, Firestore memiliki latensi yang sedikit lebih tinggi dan lebih cocok untuk aplikasi web/mobile skala besar.</li>
+      </ul>
+
+      
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips untuk IoT</div>
+        <p>Untuk proyek IoT yang membutuhkan sinkronisasi data real-time dengan perangkat mikrokontroler, <strong>Realtime Database</strong> adalah pilihan yang lebih tepat. Firestore lebih cocok untuk aplikasi web atau mobile yang membutuhkan query data kompleks.</p>
+      </div>
+
+      <h3>Fitur Firebase yang Relevan untuk IoT</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Kegunaan untuk IoT</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Realtime Database</td><td>Menyimpan dan menyinkronkan data sensor secara instan</td></tr>
+          <tr><td>Cloud Functions</td><td>Menjalankan logika otomatis (trigger saat data berubah)</td></tr>
+          <tr><td>Firebase Auth</td><td>Autentikasi perangkat IoT dengan token & API key</td></tr>
+          <tr><td>Security Rules</td><td>Kontrol akses baca/tulis per path database</td></tr>
+          <tr><td>Hosting</td><td>Menyimpan dashboard monitoring IoT</td></tr>
+          <tr><td>Cloud Messaging</td><td>Mengirim notifikasi ke aplikasi mobile saat data berubah</td></tr>
+          <tr><td>Billing (Free Tier)</td><td>1 GB penyimpanan, 10 GB/bulan transfer data, 50K baca/hari</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Setup Firebase      -->
+      <!-- ============================== -->
+      <h2 id="setup-firebase">2. Setup Firebase Project</h2>
+
+      <p>Sebelum menghubungkan ESP32 dengan Firebase, kamu perlu membuat project di Firebase Console dan mendapatkan kredensial yang diperlukan.</p>
+
+      <h3>Langkah 1: Buat Project Firebase</h3>
+      <ol>
+        <li>Buka browser dan kunjungi <strong>https://console.firebase.google.com/</strong></li>
+        <li>Login dengan akun Google kamu</li>
+        <li>Klik tombol <strong>"Add project"</strong> (Proyek baru)</li>
+        <li>Masukkan nama project, misalnya <code>iot-monitoring-project</code></li>
+        <li>Nonaktifkan opsi Google Analytics (opsional, tidak wajib untuk IoT)</li>
+        <li>Klik <strong>"Create project"</strong> dan tunggu hingga selesai</li>
+      </ol>
+
+      <h3>Langkah 2: Aktifkan Realtime Database</h3>
+      <ol>
+        <li>Di Firebase Console, pilih project yang baru dibuat</li>
+        <li>Di menu sidebar kiri, klik <strong>"Realtime Database"</strong></li>
+        <li>Klik tombol <strong>"Create Database"</strong></li>
+        <li>Pilih lokasi server terdekat (misal: <code>us-central1</code> atau <code>asia-southeast1</code>)</li>
+        <li>Pilih mode <strong>"Start in test mode"</strong> (untuk pengembangan)</li>
+        <li>Klik <strong>"Enable"</strong></li>
+      </ol>
+
+      <h3>Langkah 3: Dapatkan API Key & Konfigurasi</h3>
+      <ol>
+        <li>Di menu sidebar, klik ikon <strong>gear</strong> (⚙️) → <strong>"Project settings"</strong></li>
+        <li>Pilih tab <strong>"General"</strong></li>
+        <li>Scroll ke bagian <strong>"Your apps"</strong></li>
+        <li>Klik ikon <strong>"&lt;/&gt;"</strong> (web app) → register app web dengan nama</li>
+        <li>Salin konfigurasi yang ditampilkan, terutama bagian:</li>
+      </ol>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Konfigurasi Firebase (Contoh)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('apiKey, authDomain, databaseURL, projectId, storageBucket, messagingSenderId, appId')">Salin</button>
+        </div>
+<pre><code>const firebaseConfig = {
+  apiKey: "AIzaSyBxxxxxxxxxxxxxxxxxxxxxxx",
+  authDomain: "iot-monitoring-project.firebaseapp.com",
+  databaseURL: "https://iot-monitoring-project-default-rtdb.firebaseio.com",
+  projectId: "iot-monitoring-project",
+  storageBucket: "iot-monitoring-project.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdef1234567890"
+};</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Penting</div>
+        <p>Nilai <code>databaseURL</code> adalah yang paling penting untuk ESP32. URL ini memiliki format: <code>https://&lt;nama-project&gt;-default-rtdb.firebaseio.com</code>. Simpan URL ini baik-baik karena akan digunakan di kode Arduino.</p>
+      </div>
+
+      <h3>Langkah 4: Aktifkan Anonymous Authentication</h3>
+      <p>Untuk kemudahan pengujian, aktifkan autentikasi anonymous:</p>
+      <ol>
+        <li>Klik menu <strong>"Authentication"</strong> di sidebar</li>
+        <li>Pilih tab <strong>"Sign-in method"</strong></li>
+        <li>Klik <strong>"Anonymous"</strong> → Enable → Save</li>
+      </ol>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Struktur Database    -->
+      <!-- ============================== -->
+      <h2 id="struktur-database">3. Struktur Database Firebase untuk IoT</h2>
+
+      <p>Desain struktur database yang baik sangat penting dalam proyek IoT. Firebase Realtime Database menggunakan struktur JSON tree, sehingga kita perlu merancangnya agar efisien untuk pembacaan dan penulisan data.</p>
+
+      <h3>Prinsip Desain Database IoT</h3>
+      <ul>
+        <li><strong>Flat sebisa mungkin</strong> — Hindari nesting terlalu dalam, karena setiap baca di Firebase dihitung untuk setiap node yang dibaca</li>
+        <li><strong>Pisahkan data berdasarkan fungsi</strong> — Pisahkan data sensor (telemetry), data kontrol (command), dan metadata perangkat</li>
+        <li><strong>Gunakan timestamp</strong> — Selalu sertakan timestamp untuk setiap data point</li>
+        <li><strong>Batasi data historis</strong> — Gunakan <code>limitToLast()</code> untuk menghindari pembacaan data yang terlalu besar</li>
+      </ul>
+
+      
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: iot-monitoring-project-default-rtdb</div>
+<pre><code>/&quot;iot-monitoring-project-default-rtdb&quot;/
+/&quot;devices/&quot;/
+/&quot;esp32_001/&quot;/
+info/
+/&quot;name: &#x27;Sensor Ruangan Tamu&#x27;&quot;/
+/&quot;location: &#x27;Lantai 1&#x27;&quot;/
+/&quot;status: &#x27;online&#x27;&quot;/
+sensor/
+/&quot;temperature: 28.5&quot;/
+/&quot;humidity: 65.2&quot;/
+/&quot;timestamp: 1687238400000&quot;/
+/&quot;history/&quot;/
+/&quot;1687238400000: (&quot; temp: 28.5, hum: 65.2 &quot;)&quot;/
+/&quot;1687238460000: (&quot; temp: 28.7, hum: 65.0 &quot;)&quot;/
+/&quot;1687238520000: (&quot; temp: 28.3, hum: 65.4 &quot;)&quot;/
+/&quot;control/&quot;/
+/&quot;relay1: false&quot;/
+/&quot;relay2: true&quot;/
+/&quot;led: true&quot;/
+/&quot;esp32_002/&quot;/
+...
+alerts/
+/&quot;1687238400000:&quot;/
+/&quot;device: &#x27;esp32_001&#x27;&quot;/
+/&quot;type: &#x27;high_temp&#x27;&quot;/
+/&quot;message: &#x27;Suhu melebihi 35°C&#x27;&quot;/
+/&quot;read: false&quot;/
+/&quot;settings/&quot;/
+/&quot;auto_relay: true&quot;/
+/&quot;temp_threshold_high: 35.0&quot;/
+/&quot;temp_threshold_low: 20.0&quot;/</code></pre>
+    </div>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Kenapa Struktur Ini Efisien?</div>
+        <p>Dengan struktur di atas, ESP32 hanya perlu membaca path <code>/devices/esp32_001/control</code> untuk mengecek status relay tanpa harus mengunduh seluruh database. Ini sangat hemat bandwidth dan kuota Firebase gratis.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Kirim Data Sensor   -->
+      <!-- ============================== -->
+      <h2 id="kirim-data-sensor">4. ESP32 + Firebase: Kirim Data Sensor</h2>
+
+      <p>Sekarang saatnya menghubungkan ESP32 dengan Firebase! Kita akan menggunakan library <code>Firebase ESP32 Client</code> oleh mobizt yang merupakan library paling populer dan lengkap untuk Firebase IoT.</p>
+
+      <h3>Instalasi Library Firebase</h3>
+      <ol>
+        <li>Buka Arduino IDE</li>
+        <li>Menu <strong>Tools</strong> → <strong>Manage Libraries</strong> (atau Ctrl+Shift+I)</li>
+        <li>Di kolom pencarian, ketik: <code>Firebase ESP32 Client</code></li>
+        <li>Install library <strong>"Firebase ESP32 Client"</strong> oleh <em>mobizt</em> (versi terbaru)</li>
+      </ol>
+
+      <h3>Wiring: ESP32 + DHT11</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>DHT11 Pin</th>
+            <th>ESP32 Pin</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>VCC (+)</td><td>3.3V</td><td>Tegangan input</td></tr>
+          <tr><td>Data (Out)</td><td>GPIO 4</td><td>Pin data sensor</td></tr>
+          <tr><td>NC</td><td>—</td><td>Tidak terpakai</td></tr>
+          <tr><td>GND (-)</td><td>GND</td><td>Ground</td></tr>
+        </tbody>
+      </table>
+
+      <p>Jangan lupa pasang resistor pull-up 10kΩ antara pin VCC dan Data pada DHT11.</p>
+
+      <h3>Kode: Kirim Suhu & Kelembaban ke Firebase</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ (Arduino)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this.closest('.code-block').querySelector('code').textContent)">Salin</button>
+        </div>
+<pre><code>/*
+ * Kirim Data Sensor DHT11 ke Firebase Realtime Database
+ * ESP32 + Firebase ESP32 Client Library
+ * BeebaneLabs - Tutorial Firebase IoT
+ */
+
+#include &lt;WiFi.h&gt;
+#include &lt;Firebase_ESP32.h&gt;
+#include &lt;DHT.h&gt;
+
+// ===== KONFIGURASI WiFi =====
+#define WIFI_SSID     "NamaWiFiKamu"
+#define WIFI_PASSWORD "PasswordWiFiKamu"
+
+// ===== KONFIGURASI Firebase =====
+#define FIREBASE_HOST "iot-monitoring-project-default-rtdb.firebaseio.com"
+#define FIREBASE_AUTH "AIzaSyBxxxxxxxxxxxxxxxxxxxxxxx"
+
+// ===== KONFIGURASI SENSOR =====
+#define DHT_PIN       4
+#define DHT_TYPE      DHT11
+
+// ===== INISIALISASI =====
+DHT dht(DHT_PIN, DHT_TYPE);
+FirebaseData firebaseData;
+FirebaseConfig firebaseConfig;
+FirebaseAuth firebaseAuth;
+
+// Interval pengiriman data (dalam milidetik)
+unsigned long previousMillis = 0;
+const long interval = 10000; // Kirim data setiap 10 detik
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+  Serial.println("=== Firebase IoT: Kirim Data Sensor ===");
+
+  // Inisialisasi sensor DHT
+  dht.begin();
+  Serial.println("Sensor DHT11 aktif");
+
+  // Koneksi WiFi
+  Serial.print("Menghubungkan WiFi");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println();
+  Serial.print("WiFi terhubung! IP: ");
+  Serial.println(WiFi.localIP());
+
+  // Konfigurasi Firebase
+  firebaseConfig.database_url = FIREBASE_HOST;
+  firebaseConfig.api_key = FIREBASE_AUTH;
+  Firebase.begin(&firebaseConfig, &firebaseAuth);
+
+  // Aktifkan auto-reconnect WiFi
+  Firebase.reconnectWiFi(true);
+
+  // Set ukuran buffer data rx/tx
+  firebaseData.setResponseSize(1024);
+
+  Serial.println("Firebase terhubung! Mulai mengirim data...");
+}
+
+void loop() {
+  unsigned long currentMillis = millis();
+
+  // Kirim data sesuai interval yang ditentukan
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+
+    // Baca data dari sensor DHT11
+    float suhu = dht.readTemperature();  // Celsius
+    float kelembaban = dht.readHumidity();
+
+    // Validasi pembacaan sensor
+    if (isnan(suhu) || isnan(kelembaban)) {
+      Serial.println("Gagal membaca sensor DHT11!");
+      return;
+    }
+
+    // Tampilkan di Serial Monitor
+    Serial.print("Suhu: ");
+    Serial.print(suhu);
+    Serial.print("°C | Kelembaban: ");
+    Serial.print(kelembaban);
+    Serial.println("%");
+
+    // Kirim data suhu ke Firebase
+    String path_suhu = "/devices/esp32_001/sensor/temperature";
+    if (Firebase.setFloat(firebaseData, path_suhu, suhu)) {
+      Serial.println("Suhu terkirim: " + String(suhu));
+    } else {
+      Serial.println("Gagal kirim suhu: " + firebaseData.errorReason());
+    }
+
+    // Kirim data kelembaban ke Firebase
+    String path_hum = "/devices/esp32_001/sensor/humidity";
+    if (Firebase.setFloat(firebaseData, path_hum, kelembaban)) {
+      Serial.println("Kelembaban terkirim: " + String(kelembaban));
+    } else {
+      Serial.println("Gagal kirim kelembaban: " + firebaseData.errorReason());
+    }
+
+    // Kirim timestamp
+    String path_time = "/devices/esp32_001/sensor/timestamp";
+    if (Firebase.setInt(firebaseData, path_time, millis())) {
+      Serial.println("Timestamp terkirim");
+    }
+
+    // Update status device
+    String path_status = "/devices/esp32_001/info/status";
+    Firebase.setString(firebaseData, path_status, "online");
+
+    Serial.println("---");
+  }
+}</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Pengiriman Data</div>
+        <p>Hindari mengirim data terlalu sering ke Firebase (misal setiap 1 detik) karena bisa menghabiskan kuota free tier dengan cepat. Interval <strong>10-30 detik</strong> sudah cukup untuk monitoring suhu pada umumnya.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Baca Data Kontrol   -->
+      <!-- ============================== -->
+      <h2 id="baca-kontrol">5. ESP32 + Firebase: Baca Data Kontrol (LED ON/OFF)</h2>
+
+      <p>Selain mengirim data sensor, ESP32 juga bisa <strong>membaca data dari Firebase</strong> untuk mengontrol perangkat. Misalnya, kita bisa mengontrol LED atau relay dari dashboard web melalui Firebase.</p>
+
+      <h3>Konsep: Stream Listener untuk Kontrol Real-time</h3>
+      <p>Firebase mendukung fitur <strong>streaming</strong>, yaitu ESP32 akan menerima pembaruan data secara otomatis setiap kali nilai di path tertentu berubah. Ini jauh lebih efisien daripada terus-menerus melakukan polling.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Alur Kontrol LED via Firebase</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 950" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,62L138,66.167C138,70.333,138,78.667,138,86.333C138,94,138,101,138,104.5L138,108" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTM4LCJ5Ijo2Mn0seyJ4IjoxMzgsInkiOjg3fSx7IngiOjEzOCwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,166L138,170.167C138,174.333,138,182.667,138,190.333C138,198,138,205,138,208.5L138,212" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTM4LCJ5IjoxNjZ9LHsieCI6MTM4LCJ5IjoxOTF9LHsieCI6MTM4LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,270L138,274.167C138,278.333,138,286.667,138,294.333C138,302,138,309,138,312.5L138,316" id="L_N2_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N3_0" data-points="W3sieCI6MTM4LCJ5IjoyNzB9LHsieCI6MTM4LCJ5IjoyOTV9LHsieCI6MTM4LCJ5IjozMjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,374L138,378.167C138,382.333,138,390.667,138,398.333C138,406,138,413,138,416.5L138,420" id="L_N3_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N4_0" data-points="W3sieCI6MTM4LCJ5IjozNzR9LHsieCI6MTM4LCJ5IjozOTl9LHsieCI6MTM4LCJ5Ijo0MjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,478L138,482.167C138,486.333,138,494.667,138,502.333C138,510,138,517,138,520.5L138,524" id="L_N4_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N4_N5_0" data-points="W3sieCI6MTM4LCJ5Ijo0Nzh9LHsieCI6MTM4LCJ5Ijo1MDN9LHsieCI6MTM4LCJ5Ijo1Mjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,582L138,586.167C138,590.333,138,598.667,138,606.333C138,614,138,621,138,624.5L138,628" id="L_N5_N6_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N5_N6_0" data-points="W3sieCI6MTM4LCJ5Ijo1ODJ9LHsieCI6MTM4LCJ5Ijo2MDd9LHsieCI6MTM4LCJ5Ijo2MzJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,710L138,714.167C138,718.333,138,726.667,138,734.333C138,742,138,749,138,752.5L138,756" id="L_N6_N7_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N6_N7_0" data-points="W3sieCI6MTM4LCJ5Ijo3MTB9LHsieCI6MTM4LCJ5Ijo3MzV9LHsieCI6MTM4LCJ5Ijo3NjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,814L138,818.167C138,822.333,138,830.667,138,838.333C138,846,138,853,138,856.5L138,860" id="L_N7_N8_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N7_N8_0" data-points="W3sieCI6MTM4LCJ5Ijo4MTR9LHsieCI6MTM4LCJ5Ijo4Mzl9LHsieCI6MTM4LCJ5Ijo4NjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N4_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N5_N6_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N6_N7_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N7_N8_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 35)"><rect class="basic label-container" style="fill:#0f2a1f !important;stroke:#3ecf8e !important;stroke-width:2px !important" x="-54.90625" y="-27" width="109.8125" height="54"/><g class="label" style="" transform="translate(-24.90625, -12)"><rect/><foreignObject width="49.8125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>ESP32</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 139)"><rect class="basic label-container" style="" x="-68.5078125" y="-27" width="137.015625" height="54"/><g class="label" style="" transform="translate(-38.5078125, -12)"><rect/><foreignObject width="77.015625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>LED ON ✓</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 243)"><rect class="basic label-container" style="" x="-59.34375" y="-27" width="118.6875" height="54"/><g class="label" style="" transform="translate(-29.34375, -12)"><rect/><foreignObject width="58.6875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Browser</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(138, 347)"><rect class="basic label-container" style="" x="-69.140625" y="-27" width="138.28125" height="54"/><g class="label" style="" transform="translate(-39.140625, -12)"><rect/><foreignObject width="78.28125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Dashboard</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(138, 451)"><rect class="basic label-container" style="" x="-124.2734375" y="-27" width="248.546875" height="54"/><g class="label" style="" transform="translate(-94.2734375, -12)"><rect/><foreignObject width="188.546875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Ubah nilai Stream/Listener</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(138, 555)"><rect class="basic label-container" style="" x="-81.5703125" y="-27" width="163.140625" height="54"/><g class="label" style="" transform="translate(-51.5703125, -12)"><rect/><foreignObject width="103.140625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>→ Firebase →</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N6-6" transform="translate(138, 671)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>relay1 = true Realtime DB Path berubah!</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N7-7" transform="translate(138, 787)"><rect class="basic label-container" style="" x="-48.2265625" y="-27" width="96.453125" height="54"/><g class="label" style="" transform="translate(-18.2265625, -12)"><rect/><foreignObject width="36.453125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>← ←</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N8-8" transform="translate(138, 903)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Status terupdate Kirim status baru</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+
+      <h3>Kode: Kontrol LED & Relay via Firebase Stream</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ (Arduino)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this.closest('.code-block').querySelector('code').textContent)">Salin</button>
+        </div>
+<pre><code>/*
+ * Kontrol LED & Relay via Firebase Realtime Database
+ * ESP32 - Stream Listener untuk perubahan data real-time
+ * BeebaneLabs - Tutorial Firebase IoT
+ */
+
+#include &lt;WiFi.h&gt;
+#include &lt;Firebase_ESP32.h&gt;
+
+// ===== KONFIGURASI WiFi =====
+#define WIFI_SSID     "NamaWiFiKamu"
+#define WIFI_PASSWORD "PasswordWiFiKamu"
+
+// ===== KONFIGURASI Firebase =====
+#define FIREBASE_HOST "iot-monitoring-project-default-rtdb.firebaseio.com"
+#define FIREBASE_AUTH "AIzaSyBxxxxxxxxxxxxxxxxxxxxxxx"
+
+// ===== PIN OUTPUT =====
+#define LED_PIN       2    // LED bawaan ESP32
+#define RELAY1_PIN    16   // Relay module channel 1
+#define RELAY2_PIN    17   // Relay module channel 2
+
+// ===== INISIALISASI =====
+FirebaseData firebaseData;
+FirebaseConfig firebaseConfig;
+FirebaseAuth firebaseAuth;
+
+// Path path di Firebase
+const char* pathControl = "/devices/esp32_001/control";
+
+void streamCallback(StreamData data) {
+  // Dipanggil setiap kali data berubah di path yang di-listen
+  Serial.println("=== DATA BERUBAH ===");
+  Serial.print("Path: ");
+  Serial.println(data.dataPath());
+  Serial.print("Tipe data: ");
+  Serial.println(data.dataType());
+  Serial.print("Nilai baru: ");
+  Serial.println(data.stringData());
+
+  // Cek path yang berubah dan jalankan aksi
+  String path = data.dataPath();
+  String value = data.stringData();
+
+  if (path == "/led") {
+    // Kontrol LED bawaan ESP32
+    if (value == "true") {
+      digitalWrite(LED_PIN, HIGH);
+      Serial.println("LED ON");
+    } else {
+      digitalWrite(LED_PIN, LOW);
+      Serial.println("LED OFF");
+    }
+  }
+  else if (path == "/relay1") {
+    // Kontrol Relay Channel 1
+    if (value == "true") {
+      digitalWrite(RELAY1_PIN, HIGH);
+      Serial.println("Relay 1 ON");
+    } else {
+      digitalWrite(RELAY1_PIN, LOW);
+      Serial.println("Relay 1 OFF");
+    }
+  }
+  else if (path == "/relay2") {
+    // Kontrol Relay Channel 2
+    if (value == "true") {
+      digitalWrite(RELAY2_PIN, HIGH);
+      Serial.println("Relay 2 ON");
+    } else {
+      digitalWrite(RELAY2_PIN, LOW);
+      Serial.println("Relay 2 OFF");
+    }
+  }
+}
+
+void streamTimeoutCallback(bool timeout) {
+  if (timeout) {
+    Stream timeoutStream;
+    Serial.println("Stream timeout, reconnect...");
+    // Mulai ulang stream listener
+    if (!Firebase.readStream(firebaseData)) {
+      Serial.println("Gagal mulai ulang stream: " + firebaseData.errorReason());
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+  Serial.println("=== Firebase IoT: Kontrol LED & Relay ===");
+
+  // Setup pin output
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(RELAY1_PIN, OUTPUT);
+  pinMode(RELAY2_PIN, OUTPUT);
+
+  // Pastikan semua relay OFF saat awal
+  digitalWrite(LED_PIN, LOW);
+  digitalWrite(RELAY1_PIN, LOW);
+  digitalWrite(RELAY2_PIN, LOW);
+
+  // Koneksi WiFi
+  Serial.print("Menghubungkan WiFi");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println();
+  Serial.print("WiFi terhubung! IP: ");
+  Serial.println(WiFi.localIP());
+
+  // Konfigurasi Firebase
+  firebaseConfig.database_url = FIREBASE_HOST;
+  firebaseConfig.api_key = FIREBASE_AUTH;
+  Firebase.begin(&firebaseConfig, &firebaseAuth);
+  Firebase.reconnectWiFi(true);
+
+  // Inisialisasi nilai awal di Firebase (jika belum ada)
+  if (!Firebase.pathExist(firebaseData, "/devices/esp32_001/control")) {
+    Serial.println("Membuat node kontrol awal...");
+    FirebaseJson json;
+    json.set("led", false);
+    json.set("relay1", false);
+    json.set("relay2", false);
+    Firebase.set(firebaseData, "/devices/esp32_001/control", json);
+  }
+
+  // Mulai stream listener untuk path kontrol
+  if (!Firebase.beginStream(firebaseData, pathControl)) {
+    Serial.println("Gagal mulai stream: " + firebaseData.errorReason());
+    return;
+  }
+
+  // Set callback untuk perubahan data
+  Firebase.setStreamCallback(firebaseData, streamCallback, streamTimeoutCallback);
+
+  Serial.println("Stream listener aktif! Menunggu perubahan data...");
+}
+
+void loop() {
+  // Pastikan koneksi WiFi tetap aktif
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi terputus! Menghubungkan ulang...");
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+    }
+    Serial.println("WiFi terhubung kembali!");
+  }
+
+  // Stream listener bekerja di background, tidak perlu polling
+  delay(1000);
+}</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Catatan Penting tentang Stream</div>
+        <p>Gunakan path spesifik saat menggunakan <code>beginStream()</code>. Jangan gunakan path root (<code>/</code>) karena Firebase akan mengalirkan seluruh data database yang akan membebani ESP32.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Security Rules      -->
+      <!-- ============================== -->
+      <h2 id="security-rules">6. Firebase Security Rules untuk IoT</h2>
+
+      <p>Security Rules adalah komponen krusial yang sering diabaikan dalam proyek IoT. Tanpa rules yang tepat, siapa pun bisa membaca data sensor atau mengontrol perangkat kamu dari internet!</p>
+
+      <h3>Mengapa Security Rules Penting untuk IoT?</h3>
+      <ul>
+        <li><strong>Mencegah akses tidak sah</strong> — Seseorang bisa membaca suhu di rumah kamu</li>
+        <li><strong>Mencegah kontrol ilegal</strong> — Seseorang bisa mematikan/menghidupkan perangkat kamu</li>
+        <li><strong>Mencegah penyalahgunaan kuota</strong> — Akun kamu bisa kehabisan kuota free tier</li>
+        <li><strong>Melindungi data historis</strong> — Data sensor berharga tidak boleh dihapus sembarangan</li>
+      </ul>
+
+      <h3>Contoh Security Rules untuk IoT</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Firebase Security Rules (JSON)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this.closest('.code-block').querySelector('code').textContent)">Salin</button>
+        </div>
+<pre><code>{
+  "rules": {
+    "devices": {
+      // Setiap device hanya bisa diakses dengan device ID yang benar
+      "$device_id": {
+        // Info device: baca semua, tulis hanya owner
+        "info": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('users').child(auth.uid).child('devices').child($device_id).exists()"
+        },
+        // Data sensor: baca semua yang terautentikasi, tulis hanya device sendiri
+        "sensor": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('devices').child($device_id).child('info/api_key').val() === data.parent().child('info/api_key').val()"
+        },
+        // Data kontrol: baca semua, tulis semua (untuk dashboard web)
+        "control": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      }
+    },
+    // Pengaturan threshold: baca semua, tulis hanya admin
+    "settings": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+    },
+    // Log aksi: baca semua, tulis hanya device
+    "logs": {
+      ".read": "auth != null",
+      ".write": false,
+      "$log_id": {
+        ".validate": "newData.hasChildren(['timestamp', 'device', 'action'])"
+      }
+    },
+    // Aturan default: tolak semua yang tidak didefinisikan
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}</code></pre>
+      </div>
+
+      <h3>Menjalankan Security Rules</h3>
+      <ol>
+        <li>Di Firebase Console, buka <strong>Realtime Database</strong></li>
+        <li>Klik tab <strong>"Rules"</strong></li>
+        <li>Tempelkan JSON rules di atas (sesuaikan dengan kebutuhanmu)</li>
+        <li>Klik <strong>"Publish"</strong></li>
+      </ol>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan Test Mode</div>
+        <p>Mode <strong>"test mode"</strong> memungkinkan siapa pun membaca dan menulis data tanpa autentikasi. Mode ini hanya untuk pengembangan awal. <strong>SELALU</strong> update ke production rules sebelum menggunakan di proyek nyata!</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Perbandingan        -->
+      <!-- ============================== -->
+      <h2 id="perbandingan-protokol">7. Firebase vs MQTT vs HTTP: Perbandingan</h2>
+
+      <p>Ada beberapa protokol komunikasi yang bisa digunakan untuk IoT cloud. Berikut perbandingan lengkap Firebase Realtime Database, MQTT, dan HTTP REST API.</p>
+
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Arsitektur Komunikasi Tiga Protokol IoT</div>
+<pre><code>ESP32 HTTPS→
+REST API Server
+↓
+Request/Response
+ESP32 TCP→
+MQTT Broker
+↓
+Pub/Sub message
+via Topics
+Firebase Realtime DB MQTT Broker HTTP REST API
+ESP32 HTTPS→
+Firebase Server
+↓
+Real-time sync
+via WebSocket
+Alat: Web Dashboard Alat: Node-RED Alat: Grafana
+Firebase Console Grafana Grafana</code></pre>
+      </div>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Firebase RTDB</th>
+            <th>MQTT</th>
+            <th>HTTP REST</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Protokol dasar</td>
+            <td>WebSocket / HTTPS</td>
+            <td>TCP (port 1883/8883)</td>
+            <td>HTTP/HTTPS</td>
+          </tr>
+          <tr>
+            <td>Kontrol Real-time</td>
+            <td>✅ Otomatis (stream)</td>
+            <td>✅ Pub/Sub instant</td>
+            <td>❌ Harus polling</td>
+          </tr>
+          <tr>
+            <td>Bandwidth</td>
+            <td>Sedang (JSON)</td>
+            <td>🟢 Sangat rendah (binary)</td>
+            <td>🔴 Tinggi (HTTP headers)</td>
+          </tr>
+          <tr>
+            <td>Daya baterai</td>
+            <td>Sedang</td>
+            <td>🟢 Sangat hemat</td>
+            <td>🔴 Boros</td>
+          </tr>
+          <tr>
+            <td>Mudah untuk pemula</td>
+            <td>🟢 Sangat mudah</td>
+            <td>Mudah</td>
+            <td>Mudah</td>
+          </tr>
+          <tr>
+            <td>Dashboard built-in</td>
+            <td>✅ Firebase Console</td>
+            <td>❌ Perlu tool tambahan</td>
+            <td>❌ Perlu buat sendiri</td>
+          </tr>
+          <tr>
+            <td>Autentikasi</td>
+            <td>✅ Built-in (token/API key)</td>
+            <td>Username/password TLS</td>
+            <td>Token/JWT manual</td>
+          </tr>
+          <tr>
+            <td>Query data</td>
+            <td>⚠️ Terbatas</td>
+            <td>❌ Tidak ada (hanya topic)</td>
+            <td>✅ Lengkap (GET param)</td>
+          </tr>
+          <tr>
+            <td>Free tier</td>
+            <td>1 GB storage, 10 GB/mo</td>
+            <td>Broker publik gratis</td>
+            <td>Tergantung provider</td>
+          </tr>
+          <tr>
+            <td>Skalabilitas</td>
+            <td>Google infrastructure</td>
+            <td>Self-hosted atau cloud</td>
+            <td>Tergantung arsitektur</td>
+          </tr>
+          <tr>
+            <td>Kapan pakai?</td>
+            <td>Dashboard monitoring, CRUD mudah</td>
+            <td>Banyak device, hemat daya</td>
+            <td>Integrasi dengan API eksternal</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Kapan Pilih Firebase?</div>
+        <p>Firebase adalah pilihan terbaik ketika kamu membutuhkan <strong>dashboard monitoring real-time</strong> yang cepat dibangun, <strong>kombinasi kirim + kontrol data</strong> dalam satu platform, dan <strong>tidak ingin mengelola broker/server sendiri</strong>. Untuk skala ribuan device, pertimbangkan MQTT atau kombinasi keduanya.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Proyek Monitoring   -->
+      <!-- ============================== -->
+      <h2 id="proyek-monitoring">8. Proyek: Sistem Monitoring Suhu + Kontrol Relay via Firebase</h2>
+
+      <p>Mari kita satukan semua yang sudah dipelajari ke dalam satu proyek lengkap! Proyek ini menggabungkan pengiriman data sensor (suhu + kelembaban) dan kontrol relay (untuk menghidupkan/mematikan perangkat) melalui Firebase Realtime Database.</p>
+
+      <h3>Komponen yang Dibutuhkan</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Komponen</th>
+            <th>Jumlah</th>
+            <th>Fungsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>ESP32 DevKit v1</td><td>1</td><td>Mikrokontroler utama</td></tr>
+          <tr><td>Sensor DHT11/DHT22</td><td>1</td><td>Mengukur suhu dan kelembaban</td></tr>
+          <tr><td>Relay Module 2 Channel 5V</td><td>1</td><td>Mengontrol perangkat AC (lampu, kipas)</td></tr>
+          <tr><td>LED merah + hijau</td><td>2</td><td>Indikator status sistem</td></tr>
+          <tr><td>Resistor 220Ω</td><td>2</td><td>Pembatas arus untuk LED</td></tr>
+          <tr><td>Resistor 10kΩ</td><td>1</td><td>Pull-up untuk DHT11</td></tr>
+          <tr><td>Breadboard + jumper wire</td><td>—</td><td>Prototyping</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Diagram Wiring</h3>
+      <div class="diagram-box">
+        <div class="diagram-label">Diagram: Koneksi ESP32 + DHT11 + Relay + LED</div>
+<pre><code>ESP32 DevKit v1
+DHT11 GPIO 4 (D4)
+LED Hijau GPIO 2 (D2) ← LED Bawaan
+LED Merah GPIO 15 (D15)
+Relay CH1 GPIO 16 (D16) ← Kipas Angin
+Relay CH2 GPIO 17 (D17) ← Lampu
+Relay COM 5V
+DHT11 VCC 3.3V
+DHT11 Pinout:
+DHT11 VCC → 3.3V (ESP32)
+DATA → GPIO 4 + Resistor 10kΩ ke 3.3V
+1 2 3 NC
+GND → GND (ESP32)</code></pre>
+      </div>
+
+      <h3>Kode Lengkap: Proyek Monitoring + Kontrol</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ (Arduino) — Proyek Lengkap</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this.closest('.code-block').querySelector('code').textContent)">Salin</button>
+        </div>
+<pre><code>/*
+ * Proyek Lengkap: Monitoring Suhu + Kontrol Relay via Firebase
+ * ESP32 + DHT11 + Relay 2 Channel
+ * BeebaneLabs - Tutorial Firebase IoT
+ *
+ * Fitur:
+ *   1. Mengirim data suhu & kelembaban ke Firebase setiap 15 detik
+ *   2. Monitoring status LED (online/offline) di Firebase
+ *   3. Kontrol relay real-time via Firebase stream listener
+ *   4. Alert otomatis jika suhu melebihi threshold
+ */
+
+#include &lt;WiFi.h&gt;
+#include &lt;Firebase_ESP32.h&gt;
+#include &lt;DHT.h&gt;
+#include &lt;time.h&gt;
+
+// ===== KONFIGURASI WiFi =====
+#define WIFI_SSID     "NamaWiFiKamu"
+#define WIFI_PASSWORD "PasswordWiFiKamu"
+
+// ===== KONFIGURASI Firebase =====
+#define FIREBASE_HOST "iot-monitoring-project-default-rtdb.firebaseio.com"
+#define FIREBASE_AUTH "AIzaSyBxxxxxxxxxxxxxxxxxxxxxxx"
+
+// ===== PIN KONFIGURASI =====
+#define DHT_PIN       4
+#define DHT_TYPE      DHT11
+#define LED_GREEN     2    // LED indikator online
+#define LED_RED       15   // LED indikator error
+#define RELAY1_PIN    16   // Relay CH1 - Kipas Angin
+#define RELAY2_PIN    17   // Relay CH2 - Lampu
+
+// ===== THRESHOLD =====
+#define TEMP_HIGH     35.0 // Suhu tinggi (°C) - trigger alert
+#define TEMP_LOW      18.0 // Suhu rendah (°C) - trigger alert
+
+// ===== INISIALISASI =====
+DHT dht(DHT_PIN, DHT_TYPE);
+FirebaseData firebaseData;
+FirebaseData streamData;
+FirebaseConfig firebaseConfig;
+FirebaseAuth firebaseAuth;
+
+// Device ID unik
+const String DEVICE_ID = "esp32_001";
+
+// Timing
+unsigned long prevSendTime = 0;
+const long sendInterval = 15000; // 15 detik
+
+// ===== FUNGSI CALLBACK STREAM =====
+void onControlChange(StreamData data) {
+  String path = data.dataPath();
+  String value = data.stringData();
+
+  Serial.printf("[KONTROL] %s = %s\n", path.c_str(), value.c_str());
+
+  if (path == "/relay1") {
+    bool state = (value == "true");
+    digitalWrite(RELAY1_PIN, state ? HIGH : LOW);
+    Serial.printf("  → Relay 1 (Kipas): %s\n", state ? "ON" : "OFF");
+  }
+  else if (path == "/relay2") {
+    bool state = (value == "true");
+    digitalWrite(RELAY2_PIN, state ? HIGH : LOW);
+    Serial.printf("  → Relay 2 (Lampu): %s\n", state ? "ON" : "OFF");
+  }
+}
+
+void onStreamTimeout(bool timeout) {
+  if (timeout) {
+    Serial.println("[STREAM] Timeout! Reconnecting...");
+    Firebase.readStream(streamData);
+  }
+}
+
+// ===== FUNGSI KIRIM ALERT =====
+void sendAlert(String type, String message) {
+  String path = "/alerts/" + String(millis());
+  FirebaseJson alertJson;
+  alertJson.set("device", DEVICE_ID);
+  alertJson.set("type", type);
+  alertJson.set("message", message);
+  alertJson.set("timestamp", millis());
+  alertJson.set("read", false);
+
+  if (Firebase.setJSON(streamData, path, alertJson)) {
+    Serial.println("[ALERT] Terkirim: " + message);
+  }
+}
+
+// ===== FUNGSI KIRIM DATA SENSOR =====
+void sendSensorData(float suhu, float kelembaban) {
+  String basePath = "/devices/" + DEVICE_ID + "/sensor/";
+
+  // Kirim data terkini
+  Firebase.setFloat(streamData, basePath + "temperature", suhu);
+  Firebase.setFloat(streamData, basePath + "humidity", kelembaban);
+  Firebase.setInt(streamData, basePath + "timestamp", millis());
+
+  // Simpan history (opsional, untuk grafik)
+  String historyPath = basePath + "history/" + String(millis()) + "/";
+  FirebaseJson histJson;
+  histJson.set("temp", suhu);
+  histJson.set("hum", kelembaban);
+  Firebase.setJSON(streamData, historyPath, histJson);
+
+  // Cek threshold dan kirim alert
+  if (suhu > TEMP_HIGH) {
+    sendAlert("high_temp", "Suhu " + String(suhu) + "°C melebihi batas " + String(TEMP_HIGH) + "°C");
+  }
+  else if (suhu < TEMP_LOW) {
+    sendAlert("low_temp", "Suhu " + String(suhu) + "°C di bawah batas " + String(TEMP_LOW) + "°C");
+  }
+}
+
+// ===== SETUP =====
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+  Serial.println("========================================");
+  Serial.println("  Firebase IoT - Monitoring + Kontrol");
+  Serial.println("  BeebaneLabs Tutorial");
+  Serial.println("========================================");
+
+  // Setup pin
+  pinMode(LED_GREEN, OUTPUT);
+  pinMode(LED_RED, OUTPUT);
+  pinMode(RELAY1_PIN, OUTPUT);
+  pinMode(RELAY2_PIN, OUTPUT);
+
+  // Default: semua OFF
+  digitalWrite(LED_GREEN, LOW);
+  digitalWrite(LED_RED, LOW);
+  digitalWrite(RELAY1_PIN, LOW);
+  digitalWrite(RELAY2_PIN, LOW);
+
+  // Mulai sensor
+  dht.begin();
+  Serial.println("[INIT] Sensor DHT11 aktif");
+
+  // Koneksi WiFi
+  Serial.print("[WIFI] Menghubungkan");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  int retries = 0;
+  while (WiFi.status() != WL_CONNECTED && retries < 30) {
+    Serial.print(".");
+    delay(500);
+    retries++;
+  }
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("\n[FATAL] WiFi gagal! Restart...");
+    ESP.restart();
+  }
+
+  Serial.println();
+  Serial.printf("[WIFI] Terhubung! IP: %s\n", WiFi.localIP().toString().c_str());
+  digitalWrite(LED_GREEN, HIGH); // LED hijau ON = WiFi OK
+
+  // Setup NTP time
+  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+
+  // Konfigurasi Firebase
+  firebaseConfig.database_url = FIREBASE_HOST;
+  firebaseConfig.api_key = FIREBASE_AUTH;
+  Firebase.begin(&firebaseConfig, &firebaseAuth);
+  Firebase.reconnectWiFi(true);
+  streamData.setResponseSize(4096);
+
+  // Update status online
+  String infoPath = "/devices/" + DEVICE_ID + "/info/";
+  FirebaseJson infoJson;
+  infoJson.set("name", "Monitoring Ruangan");
+  infoJson.set("location", "Lantai 1");
+  infoJson.set("status", "online");
+  infoJson.set("ip", WiFi.localIP().toString());
+  Firebase.setJSON(streamData, infoPath, infoJson);
+
+  // Inisialisasi node kontrol jika belum ada
+  if (!Firebase.pathExist(streamData, "/devices/" + DEVICE_ID + "/control")) {
+    FirebaseJson ctrlJson;
+    ctrlJson.set("relay1", false);
+    ctrlJson.set("relay2", false);
+    Firebase.setJSON(streamData, "/devices/" + DEVICE_ID + "/control", ctrlJson);
+  }
+
+  // Mulai stream listener untuk kontrol
+  String controlPath = "/devices/" + DEVICE_ID + "/control";
+  if (!Firebase.beginStream(streamData, controlPath)) {
+    Serial.println("[STREAM] Gagal mulai: " + streamData.errorReason());
+  } else {
+    Firebase.setStreamCallback(streamData, onControlChange, onStreamTimeout);
+    Serial.println("[STREAM] Listener kontrol aktif");
+  }
+
+  Serial.println("[SYSTEM] Siap! Memulai siklus monitoring...");
+  Serial.println("========================================");
+}
+
+// ===== LOOP =====
+void loop() {
+  unsigned long now = millis();
+
+  // Cek WiFi
+  if (WiFi.status() != WL_CONNECTED) {
+    digitalWrite(LED_GREEN, LOW);
+    digitalWrite(LED_RED, HIGH);
+    Serial.println("[WIFI] Terputus! Menghubungkan ulang...");
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    delay(5000);
+    return;
+  }
+
+  digitalWrite(LED_GREEN, HIGH);
+  digitalWrite(LED_RED, LOW);
+
+  // Kirim data sensor sesuai interval
+  if (now - prevSendTime >= sendInterval) {
+    prevSendTime = now;
+
+    float suhu = dht.readTemperature();
+    float kelembaban = dht.readHumidity();
+
+    if (isnan(suhu) || isnan(kelembaban)) {
+      Serial.println("[SENSOR] Gagal baca DHT11!");
+      Firebase.setString(streamData, "/devices/" + DEVICE_ID + "/info/status", "sensor_error");
+      return;
+    }
+
+    // Kirim ke Firebase
+    sendSensorData(suhu, kelembaban);
+
+    // Cek status relay dari Firebase
+    FirebaseJson relayStatus;
+    String relayPath = "/devices/" + DEVICE_ID + "/control";
+    if (Firebase.getJSON(streamData, relayPath)) {
+      FirebaseJson &json = streamData.jsonObject();
+      FirebaseJsonData jsonData;
+
+      if (json.get(jsonData, "relay1")) {
+        Serial.printf("  Relay1: %s\n", jsonData.stringValue);
+      }
+      if (json.get(jsonData, "relay2")) {
+        Serial.printf("  Relay2: %s\n", jsonData.stringValue);
+      }
+    }
+
+    Serial.printf("[DATA] Suhu: %.1f°C | Kelembaban: %.1f%%\n", suhu, kelembaban);
+    Serial.println("---");
+  }
+
+  delay(100);
+}</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Ekspansi Proyek</div>
+        <p>Proyek ini bisa dikembangkan lebih lanjut dengan menambahkan: (1) Dashboard web menggunakan Chart.js untuk grafik data sensor, (2) Notifikasi push ke smartphone via Firebase Cloud Messaging, (3) Logika otomatis menggunakan Firebase Cloud Functions, atau (4) Multiple ESP32 yang terhubung ke project yang sama.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang Firebase untuk IoT:</p>
+
+      <div class="quiz-container" id="quiz11">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Layanan Firebase mana yang paling cocok untuk sinkronisasi data real-time dengan mikrokontroler seperti ESP32?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Realtime Database</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Cloud Firestore</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Firebase Hosting</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Cloud Functions</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Fungsi dari <code>Firebase.beginStream()</code> dalam kode ESP32 adalah...</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Mengirim data sensor ke Firebase</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Menghapus data dari Firebase</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Membuka listener yang memantau perubahan data secara real-time</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Membuat project Firebase baru</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Mengapa disarankan untuk tidak mengirim data sensor ke Firebase setiap 1 detik?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Karena Firebase tidak mendukung data cepat</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Karena akan menghabiskan kuota free tier dengan cepat</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Karena ESP32 akan overheating</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Karena Firebase akan memblokir device</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Pernyataan berikut yang BENAR tentang keamanan Firebase untuk IoT adalah...</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Security Rules hanya berlaku untuk Firestore</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Mode test mode aman digunakan di production</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Security Rules Realtime Database menggunakan format JSON</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Security Rules tidak bisa membatasi akses per path</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Protokol mana yang paling hemat bandwidth untuk komunikasi IoT?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) HTTP REST API</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Firebase Realtime Database</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) WebSocket tanpa kompresi</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) MQTT dengan binary payload</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="raspberry-pi-iot.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Raspberry Pi untuk IoT</span>
+        </a>
+        <a href="mikrotik-firewall.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">MikroTik Firewall</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/python-async.html" class="related-card">
+          <span class="related-category">Python untuk IoT</span>
+          <span class="related-title">Async Python: Pemrograman Asinkron untuk IoT</span>
+        </a>
+        <a href="/articles/stm32-bare-metal.html" class="related-card">
+          <span class="related-category">IoT</span>
+          <span class="related-title">STM32 Bare Metal Programming: Register-Level, Linker Scri...</span>
+        </a>
+        <a href="/articles/tailwind-css.html" class="related-card">
+          <span class="related-category">Web Development</span>
+          <span class="related-title">Tailwind CSS: Utility-First CSS Framework</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

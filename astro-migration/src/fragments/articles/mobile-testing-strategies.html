@@ -1,0 +1,657 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a><span class="separator">/</span>
+        <a href="../index.html#categories">Mobile Development</a><span class="separator">/</span>
+        <span class="current">Mobile Testing Strategies</span>
+      </div>
+      <span class="category-tag">Mobile Development</span>
+      <h1>Mobile Testing Strategies</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Strategi testing mobile — unit test, widget/UI test, integration test, E2E dengan Detox & Playwright, snapshot testing, dan test strategy</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  <article class="article-content" id="main-content">
+    <div class="container>
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#testing-pyramid">Testing Pyramid</a></li>
+          <li><a href="#unit-testing">Unit Testing</a></li>
+          <li><a href="#widget-testing">Widget / UI Testing</a></li>
+          <li><a href="#e2e-testing">E2E Testing</a></li>
+          <li><a href="#snapshot-testing">Snapshot Testing</a></li>
+          <li><a href="#test-strategy">Test Strategy</a></li>
+          <li><a href="#test-tips">Tips Testing</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+
+      <h2 id="testing-pyramid">1. Testing Pyramid</h2>
+      <p>Testing di mobile development mengikuti piramida: banyak <strong>unit test</strong> di bawah, sedikit <strong>integration test</strong> di tengah, dan beberapa <strong>E2E test</strong> di puncak.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Mobile Testing Pyramid</div>
+        <div class="arch-row">
+          <div class="arch-box highlight"><div class="arch-icon">🔺</div><div class="arch-label">E2E (5-10%)</div><div class="arch-desc">Full user journey<br>Detox, Playwright</div></div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box purple"><div class="arch-icon">🔶</div><div class="arch-label">Integration (15-25%)</div><div class="arch-desc">Multi-component<br>Widget tests</div></div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box"><div class="arch-icon">✅</div><div class="arch-label">Unit (70-80%)</div><div class="arch-desc">Fast, isolated<br>ViewModel, Utils</div></div>
+        </div>
+      </div>
+
+      <table class="spec-table">
+        <thead><tr><th>Level</th><th>Kecepatan</th><th>Biaya</th><th>Cakupan</th><th>Tool</th></tr></thead>
+        <tbody>
+          <tr><td>Unit</td><td>Detik</td><td>Rendah</td><td>Fungsi/Class</td><td>JUnit, XCTest, flutter_test</td></tr>
+          <tr><td>Integration</td><td>Menit</td><td>Sedang</td><td>Multi-component</td><td>Espresso, XCUITest, integration_test</td></tr>
+          <tr><td>E2E</td><td>Puluhan menit</td><td>Tinggi</td><td>Full flow</td><td>Detox, Playwright, Appium</td></tr>
+          <tr><td>Snapshot</td><td>Detik</td><td>Rendah</td><td>Visual regression</td><td>Paparazzi, swift-snapshot-testing</td></tr>
+        </tbody>
+      </table>
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="unit-testing">2. Unit Testing</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — ViewModel Unit Test</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+@RunWith(MockitoJUnitRunner::class)
+class ProductViewModelTest {
+
+    @Mock lateinit var repository: ProductRepository
+    @Mock lateinit var analytics: AnalyticsService
+
+    private lateinit var viewModel: ProductViewModel
+
+    @Before
+    fun setup() {
+        viewModel = ProductViewModel(repository, analytics)
+    }
+
+    @Test
+    fun `load products updates state to success`() = runTest {
+        // Arrange
+        val products = listOf(
+            Product("1", "Laptop", 15_000_000),
+            Product("2", "Phone", 8_000_000)
+        )
+        whenever(repository.getProducts()).thenReturn(products)
+
+        // Act
+        viewModel.loadProducts()
+
+        // Assert
+        val state = viewModel.uiState.value
+        assertTrue(state is UiState.Success)
+        assertEquals(2, (state as UiState.Success).products.size)
+    }
+
+    @Test
+    fun `load products updates state to error on failure`() = runTest {
+        whenever(repository.getProducts()).thenThrow(RuntimeException("Network error"))
+
+        viewModel.loadProducts()
+
+        val state = viewModel.uiState.value
+        assertTrue(state is UiState.Error)
+        assertEquals("Network error", (state as UiState.Error).message)
+    }
+
+    @Test
+    fun `search filters products by query`() = runTest {
+        val products = listOf(
+            Product("1", "Laptop ASUS", 15_000_000),
+            Product("2", "Phone Samsung", 8_000_000),
+            Product("3", "Laptop Dell", 12_000_000)
+        )
+        whenever(repository.getProducts()).thenReturn(products)
+        viewModel.loadProducts()
+
+        viewModel.search("Laptop")
+
+        val state = viewModel.uiState.value as UiState.Success
+        assertEquals(2, state.products.size)
+    }
+}
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dart — Flutter Unit Test</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
+
+class MockApiService extends Mock implements ApiService {}
+
+void main() {
+  late ProductViewModel viewModel;
+  late MockApiService mockApi;
+
+  setUp(() {
+    mockApi = MockApiService();
+    viewModel = ProductViewModel(api: mockApi);
+  });
+
+  group('ProductViewModel', () {
+    test('loadProducts updates state to success', () async {
+      when(mockApi.getProducts()).thenAnswer(
+        (_) async => [Product(id: '1', name: 'Laptop')],
+      );
+
+      await viewModel.loadProducts();
+
+      expect(viewModel.state, isA<SuccessState>());
+      expect(viewModel.products.length, 1);
+      expect(viewModel.products.first.name, 'Laptop');
+    });
+
+    test('loadProducts updates state to error on failure', () async {
+      when(mockApi.getProducts()).thenThrow(Exception('Network error'));
+
+      await viewModel.loadProducts();
+
+      expect(viewModel.state, isA<ErrorState>());
+    });
+
+    test('search filters products', () async {
+      when(mockApi.getProducts()).thenAnswer(
+        (_) async => [
+          Product(id: '1', name: 'Laptop ASUS'),
+          Product(id: '2', name: 'Phone Samsung'),
+          Product(id: '3', name: 'Laptop Dell'),
+        ],
+      );
+      await viewModel.loadProducts();
+
+      viewModel.search('Laptop');
+
+      expect(viewModel.filteredProducts.length, 2);
+    });
+  });
+}
+</code></pre>
+      </div>      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="widget-testing">3. Widget / UI Testing</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dart — Flutter Widget Test</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
+
+void main() {
+  group('SearchBar Widget', () {
+    testWidgets('displays initial query', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: SearchBar(
+            query: 'Hello',
+            onQueryChange: (_) {},
+            onSearch: () {},
+          ),
+        ),
+      ));
+
+      expect(find.text('Hello'), findsOneWidget);
+    });
+
+    testWidgets('calls onQueryChange when text entered', (tester) async {
+      String changedQuery = '';
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: SearchBar(
+            query: '',
+            onQueryChange: (q) => changedQuery = q,
+            onSearch: () {},
+          ),
+        ),
+      ));
+
+      await tester.enterText(find.byType(TextField), 'Test');
+      expect(changedQuery, 'Test');
+    });
+
+    testWidgets('calls onSearch when button tapped', (tester) async {
+      bool searched = false;
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: SearchBar(
+            query: 'Hello',
+            onQueryChange: (_) {},
+            onSearch: () => searched = true,
+          ),
+        ),
+      ));
+
+      await tester.tap(find.byIcon(Icons.search));
+      expect(searched, true);
+    });
+  });
+}
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — Espresso Test</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+@RunWith(AndroidJUnit4::class)
+class LoginActivityTest {
+
+    @get:Rule
+    val activityRule = ActivityScenarioRule(LoginActivity::class.java)
+
+    @Test
+    fun loginWithValidCredentials_showsHome() {
+        onView(withId(R.id.emailInput))
+            .perform(typeText("user@test.com"), closeSoftKeyboard())
+
+        onView(withId(R.id.passwordInput))
+            .perform(typeText("password123"), closeSoftKeyboard())
+
+        onView(withId(R.id.loginButton)).perform(click())
+
+        onView(withId(R.id.homeTitle))
+            .check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun loginWithInvalidCredentials_showsError() {
+        onView(withId(R.id.emailInput))
+            .perform(typeText("wrong@email.com"), closeSoftKeyboard())
+
+        onView(withId(R.id.passwordInput))
+            .perform(typeText("wrongpass"), closeSoftKeyboard())
+
+        onView(withId(R.id.loginButton)).perform(click())
+
+        onView(withText("Email atau password salah"))
+            .check(matches(isDisplayed()))
+    }
+}
+</code></pre>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="e2e-testing">4. E2E Testing</h2>
+
+      <h3>4.1 Detox (React Native)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Detox E2E</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// e2e/login.test.js
+describe('Login Flow', () => {
+  beforeAll(async () => {
+    await device.launchApp({ newInstance: true });
+  });
+
+  beforeEach(async () => {
+    await device.reloadReactNative();
+  });
+
+  it('should login successfully', async () => {
+    await element(by.id('email-input')).typeText('user@test.com');
+    await element(by.id('password-input')).typeText('password123');
+    await element(by.id('login-button')).tap();
+
+    await expect(element(by.id('home-screen'))).toBeVisible();
+    await expect(element(by.text('Selamat datang!'))).toBeVisible();
+  });
+
+  it('should show error for invalid credentials', async () => {
+    await element(by.id('email-input')).typeText('wrong@email.com');
+    await element(by.id('password-input')).typeText('wrong');
+    await element(by.id('login-button')).tap();
+
+    await expect(element(by.text('Login gagal'))).toBeVisible();
+  });
+
+  it('should navigate to product detail', async () => {
+    // Login first
+    await element(by.id('email-input')).typeText('user@test.com');
+    await element(by.id('password-input')).typeText('password123');
+    await element(by.id('login-button')).tap();
+
+    // Navigate
+    await element(by.id('product-list')).scrollTo('bottom');
+    await element(by.id('product-item-0')).tap();
+
+    await expect(element(by.id('product-detail'))).toBeVisible();
+    await expect(element(by.id('product-name'))).toBeVisible();
+  });
+});
+</code></pre>
+      </div>
+
+      <h3>4.2 Playwright (Flutter Web / Mobile)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Playwright E2E</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// tests/app.spec.js
+const { test, expect } = require('@playwright/test');
+
+test.describe('App E2E Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:8080');
+  });
+
+  test('homepage loads correctly', async ({ page }) => {
+    await expect(page.locator('h1')).toHaveText('Beranda');
+    await expect(page.locator('.product-card')).toHaveCount(10);
+  });
+
+  test('search filters products', async ({ page }) => {
+    await page.fill('[data-testid="search-input"]', 'Laptop');
+    await page.click('[data-testid="search-button"]');
+
+    const products = page.locator('.product-card');
+    await expect(products).toHaveCount(3);
+    await expect(products.first().locator('.name')).toContainText('Laptop');
+  });
+
+  test('product detail shows info', async ({ page }) => {
+    await page.click('.product-card:first-child');
+
+    await expect(page.locator('.product-name')).toBeVisible();
+    await expect(page.locator('.product-price')).toBeVisible();
+    await expect(page.locator('.product-description')).toBeVisible();
+  });
+
+  test('add to cart works', async ({ page }) => {
+    await page.click('.product-card:first-child');
+    await page.click('[data-testid="add-to-cart"]');
+
+    await expect(page.locator('.cart-count')).toHaveText('1');
+  });
+});
+</code></pre>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="snapshot-testing">5. Snapshot Testing</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — Paparazzi Snapshot</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+class ProductCardSnapshotTest {
+
+    @get:Rule
+    val paparazzi = Paparazzi(
+        deviceConfig = DeviceConfig.PIXEL_5,
+        renderingMode = SessionParams.RenderingMode.NORMAL,
+    )
+
+    @Test
+    fun productCard_default() {
+        paparazzi.snapshot {
+            MaterialTheme {
+                ProductCard(
+                    product = Product(
+                        name = "Laptop ASUS ROG",
+                        price = 15_000_000,
+                        imageUrl = "",
+                        rating = 4.5f,
+                    )
+                )
+            }
+        }
+    }
+
+    @Test
+    fun productCard_loading() {
+        paparazzi.snapshot {
+            MaterialTheme {
+                ProductCardLoading()
+            }
+        }
+    }
+
+    @Test
+    fun productCard_error() {
+        paparazzi.snapshot {
+            MaterialTheme {
+                ProductCardError(message = "Gagal memuat data")
+            }
+        }
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>5.1 Snapshot Workflow</h3>
+      <table class="spec-table">
+        <thead><tr><th>Step</th><th>Command</th><th>Yang Terjadi</th></tr></thead>
+        <tbody>
+          <tr><td>Record</td><td>./gradlew recordPaparazziDebug</td><td>Simpan baseline screenshots</td></tr>
+          <tr><td>Verify</td><td>./gradlew verifyPaparazziDebug</td><td>Bandakan dengan baseline</td></tr>
+          <tr><td>Update</td><td>./gradlew recordPaparazziDebug</td><td>Update baseline jika perubahan disetujui</td></tr>
+        </tbody>
+      </table>
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="test-strategy">6. Test Strategy</h2>
+      <table class="spec-table">
+        <thead><tr><th>Layer</th><th>Apa yang di-test</th><th>Tool</th></tr></thead>
+        <tbody>
+          <tr><td>Model/Entity</td><td>Data class, serialization</td><td>Unit test</td></tr>
+          <tr><td>ViewModel/BLoC</td><td>Business logic, state</td><td>Unit test + mock</td></tr>
+          <tr><td>Repository</td><td>Data fetching, caching</td><td>Integration test</td></tr>
+          <tr><td>UI Components</td><td>Rendering, interaction</td><td>Widget/UI test</td></tr>
+          <tr><td>Visual Regression</td><td>Tampilan konsisten</td><td>Snapshot test</td></tr>
+          <tr><td>User Flow</td><td>End-to-end journey</td><td>E2E test</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Testing Tips</div>
+        <p>Tulis test SEBELUM atau BERSAMAAN dengan kode (TDD). Test yang ditulis setelah production sering ditulis dengan asumsi yang sama seperti kode — sehingga tidak mendeteksi bug.</p>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="test-tips">7. Tips Testing Efektif</h2>
+      <table class="spec-table">
+        <thead><tr><th>Tips</th><th>Alasan</th></tr></thead>
+        <tbody>
+          <tr><td>Fokus pada ViewModel/Business Logic</td><td>ROI tertinggi, paling banyak bug</td></tr>
+          <tr><td>Mock external dependencies</td><td>Isolasi unit under test</td></tr>
+          <tr><td>Gunakan factory untuk test data</td><td>Konsisten, mudah diubah</td></tr>
+          <tr><td>Test edge cases (null, empty, error)</td><td>Bug paling sering di edge cases</td></tr>
+          <tr><td>Snapshot test untuk visual regression</td><td>Deteksi perubahan UI yang tidak disengaja</td></tr>
+          <tr><td>Run E2E di CI (nightly build)</td><td>E2E lambat, jangan di setiap commit</td></tr>
+          <tr><td>Measure test coverage</td><td>Target 70-80%, fokus area kritis</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="quiz">Quiz Pemahaman</h2>
+      <div class="quiz-container" id="quiz10">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Berapa persentase unit test yang ideal di testing pyramid?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) 5-10%</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) 15-25%</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) 70-80%</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) 100%</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Tool apa untuk E2E testing di React Native?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Jest</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) React Testing Library</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Detox</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Espresso</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa yang dilakukan snapshot testing?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Test performa</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Bandingkan screenshot dengan baseline</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Test security</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Test API</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Framework apa untuk widget testing di Flutter?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) flutter_test</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Mockito</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) integration_test</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) dart:test</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa yang harus di-mock saat unit testing ViewModel?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) UI widgets</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) External dependencies (API, DB)</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) State management</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Navigation</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+      <div class="article-nav">
+        <a href="../index.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">Kembali ke Beranda</span></a>
+        <a href="../kategori.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">Lihat Kategori</span></a>
+      </div>
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/mobile-ci-cd.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">Mobile CI/CD Pipeline</span>
+        </a>
+        <a href="/articles/flutter-push-notifications.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">Flutter Push Notifications: Panduan Lengkap FCM & Local N...</span>
+        </a>
+        <a href="/articles/maui-cross-platform.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">.NET MAUI Cross-Platform Development</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

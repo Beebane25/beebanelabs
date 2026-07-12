@@ -1,0 +1,675 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../kategori/dashboard.html">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Cheatsheet Grafana &amp; Node-RED</span>
+      </div>
+      <span class="category-tag">Dashboard</span>
+      <h1>Cheatsheet Grafana &amp; Node-RED: PromQL, Dashboard, dan Flow Automation</h1>
+      <span class="access-badge gratis">GRATIS</span>
+      <p class="article-subtitle">Referensi cepat Grafana &amp; Node-RED — PromQL queries, grafana variables, panel types, Node-RED nodes, MQTT, JavaScript function, dan alerting rules</p>
+      <div class="article-meta">
+        <span>📅 3 Juli 2026</span>
+        <span>📖 10 menit baca</span>
+        <span class="difficulty pemula">Pemula</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+  <article class="article-content cheatsheet" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#promql">PromQL Queries</a></li>
+          <li><a href="#promql-advanced">PromQL Lanjutan</a></li>
+          <li><a href="#grafana-variables">Grafana Variables</a></li>
+          <li><a href="#panel-types">Grafana Panel Types</a></li>
+          <li><a href="#grafana-alert">Grafana Alerting</a></li>
+          <li><a href="#nodered-nodes">Node-RED Node Types</a></li>
+          <li><a href="#nodered-mqtt">Node-RED MQTT</a></li>
+          <li><a href="#nodered-function">Function Node JavaScript</a></li>
+          <li><a href="#nodered-json">Dashboard JSON Structure</a></li>
+          <li><a href="#docker-compose">Docker Compose Setup</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1: PromQL -->
+      <h2 id="promql">1. PromQL — Query Dasar</h2>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips</div>
+        <p>PromQL adalah bahasa query untuk Prometheus. Gunakan Grafana Explore untuk test query sebelum masuk ke dashboard.</p>
+      </div>
+
+      <h3>Instant Vector (nilai saat ini)</h3>
+      <div class="code-block"><pre><code># Semua nilai metrik
+http_requests_total
+
+# Filter label
+http_requests_total{job="api-server"}
+http_requests_total{method="GET", handler="/api/v1"}
+http_requests_total{status=~"5.."}    # Regex match
+http_requests_total{handler!~"/admin.*"} # Regex not match</code></pre></div>
+
+      <h3>Range Vector (banyak nilai dalam rentang waktu)</h3>
+      <div class="code-block"><pre><code># Rate: per detik (counter)
+rate(http_requests_total[5m])
+
+# Per-second rate dari gauge
+deriv(cpu_temperature[5m])
+
+# Increase: total kenaikan dalam range
+increase(http_requests_total[1h])</code></pre></div>
+
+      <h3>Fungsi Aggregasi</h3>
+      <div class="code-block"><pre><code># Sum total requests
+sum(http_requests_total)
+
+# Sum per label
+sum by (method) (rate(http_requests_total[5m]))
+sum without (instance) (http_requests_total)
+
+# Rata-rata
+avg(node_cpu_seconds_total)
+avg by (mode) (rate(node_cpu_seconds_total[5m]))
+
+# Min / Max
+min(node_memory_MemFree_bytes)
+max by (instance) (rate(http_requests_total[5m]))
+
+# Count
+count(up == 1)
+count by (job) (up)
+
+# Top/Bottom N
+topk(5, rate(http_requests_total[5m]))
+bottomk(3, node_memory_MemFree_bytes)</code></pre></div>
+
+      <!-- SECTION 2: PromQL Advanced -->
+      <h2 id="promql-advanced">2. PromQL — Query Lanjutan</h2>
+
+      <h3>Histogram Quantile</h3>
+      <div class="code-block"><pre><code># P95 latency
+histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+
+# P99 latency per handler
+histogram_quantile(0.99, 
+  sum by (handler, le) (rate(http_request_duration_seconds_bucket[5m]))
+)
+
+# P50 (median)
+histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))</code></pre></div>
+
+      <h3>Math Operations</h3>
+      <div class="code-block"><pre><code># CPU usage percentage
+100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])))
+
+# Memory usage percentage
+100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+
+# Disk usage percentage
+100 * (1 - node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+
+# Error rate
+sum(rate(http_requests_total{status=~"5.."}[5m])) 
+  / sum(rate(http_requests_total[5m])) * 100
+
+# Request per second by service
+sum by (job) (rate(http_requests_total[5m]))</code></pre></div>
+
+      <h3>Fungsi Waktu</h3>
+      <div class="code-block"><pre><code># Offset: bandingkan dengan sebelumnya
+http_requests_total offset 1h        # 1 jam lalu
+rate(http_requests_total[5m] offset 1d)  # 1 hari lalu
+
+# Time-based functions
+changes(node_boot_time_seconds[24h])   # Berapa kali berubah
+resets(http_requests_total[1h])        # Counter resets
+absent(up{job="api"})                  # Cek metrik hilang
+absent_over_time(up{job="api"}[5m])    # Cek hilang dalam range
+
+# Clamp & clamp_min / clamp_max
+clamp_min(node_temperature, 0)
+clamp_max(node_temperature, 100)
+
+# Predict linear (prediksi 1 jam ke depan)
+predict_linear(node_filesystem_avail_bytes[6h], 3600)</code></pre></div>
+
+      <h3>Tabel PromQL Populer</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>Kebutuhan</th><th>Query PromQL</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Request/detik</td><td><code>sum(rate(http_requests_total[5m]))</code></td></tr>
+          <tr><td>Error rate (%)</td><td><code>sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) * 100</code></td></tr>
+          <tr><td>P99 latency</td><td><code>histogram_quantile(0.99, sum by(le)(rate(http_request_duration_seconds_bucket[5m])))</code></td></tr>
+          <tr><td>CPU usage %</td><td><code>100*(1-avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[5m])))</code></td></tr>
+          <tr><td>Memory usage %</td><td><code>100*(1-node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes)</code></td></tr>
+          <tr><td>Disk usage %</td><td><code>100*(1-node_filesystem_avail_bytes/node_filesystem_size_bytes)</code></td></tr>
+          <tr><td>Uptime (jam)</td><td><code>(time() - node_boot_time_seconds) / 3600</code></td></tr>
+          <tr><td>Container restart</td><td><code>sum by(name)(increase(container_restart_count[1h]))</code></td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 3: Grafana Variables -->
+      <h2 id="grafana-variables">3. Grafana Variables</h2>
+
+      <h3>Tipe Variable</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>Tipe</th><th>Kegunaan</th><th>Contoh Query</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Query</td><td>Ambil dari data source</td><td><code>label_values(up, job)</code></td></tr>
+          <tr><td>Custom</td><td>Daftar manual</td><td><code>prod,staging,dev</code></td></tr>
+          <tr><td>Interval</td><td>Auto interval</td><td><code>auto,1m,5m,1h,1d</code></td></tr>
+          <tr><td>Data Source</td><td>Pilih data source</td><td><code>prometheus</code></td></tr>
+          <tr><td>Constant</td><td>Nilai tetap</td><td><code>production</code></td></tr>
+          <tr><td>Ad hoc filters</td><td>Filter dinamis</td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Variable Functions</h3>
+      <div class="code-block"><pre><code># Label values (dari metrik)
+label_values(up, job)
+label_values(http_requests_total{job="api"}, handler)
+label_values(node_uname_info, nodename)
+
+# Query result
+query_result(topk(5, http_requests_total))
+
+# Regex filter
+label_values(http_requests_total{job=~"$job"}, status)
+
+# Multi-value & All
+# Aktifkan "Multi-value" dan "Include All option"
+# Gunakan di query: {job=~"$job"}
+# Regex match (~=) otomatis handle multi-select</code></pre></div>
+
+      <h3>Penggunaan Variable dalam Query</h3>
+      <div class="code-block"><pre><code># Variable $job
+sum by (handler) (rate(http_requests_total{job="$job"}[5m]))
+
+# Variable $interval
+rate(http_requests_total{job="$job"}[$interval])
+
+# Multi-value $status
+http_requests_total{status=~"$status"}
+
+# Variable chaining
+label_values(http_requests_total{job="$job"}, handler)</code></pre></div>
+
+      <!-- SECTION 4: Panel Types -->
+      <h2 id="panel-types">4. Grafana Panel Types</h2>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Panel</th><th>Kegunaan</th><th>Kapan Dipakai</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Time Series</b></td><td>Grafik waktu</td><td>Default untuk sebagian besar metrik</td></tr>
+          <tr><td><b>Stat</b></td><td>Angka besar dengan warna</td><td>KPI, counter, uptime</td></tr>
+          <tr><td><b>Gauge</b></td><td>Pengukur analog</td><td>CPU %, memory %, disk %</td></tr>
+          <tr><td><b>Bar Gauge</b></td><td>Bar horizontal/vertikal</td><td>Perbandingan antar service</td></tr>
+          <tr><td><b>Table</b></td><td>Tabel data</td><td>Daftar host, top-N, log</td></tr>
+          <tr><td><b>Heatmap</b></td><td>Densitas warna</td><td>Histogram latency, distribusi</td></tr>
+          <tr><td><b>Pie Chart</b></td><td>Diagram lingkaran</td><td>Distribusi status code, traffic</td></tr>
+          <tr><td><b>Bar Chart</b></td><td>Diagram batang</td><td>Perbandingan kategori</td></tr>
+          <tr><td><b>Logs</b></td><td>Log viewer</td><td>Loki/ES log exploration</td></tr>
+          <tr><td><b>Node Graph</b></td><td>Graph topology</td><td>Service dependency</td></tr>
+          <tr><td><b>Alert List</b></td><td>Daftar alert aktif</td><td>Monitoring dashboard</td></tr>
+          <tr><td><b>Text</b></td><td>Markdown/HTML</td><td>Dokumentasi, judul section</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Panel Options Umum</h3>
+      <div class="code-block"><pre><code>// Override satuan (Panel → Overrides)
+// CPU: Unit = percent (0-100)
+// Memory: Unit = bytes (IEC)
+// Latency: Unit = seconds (s)
+// Requests: Unit = requests per second (reqps)
+
+// Thresholds
+// Green: &lt; 70% | Yellow: 70-90% | Red: > 90%
+
+// Value mapping
+// 0 = "Down" (red) | 1 = "Up" (green)</code></pre></div>
+
+      <!-- SECTION 5: Alerting -->
+      <h2 id="grafana-alert">5. Grafana Alerting Rules</h2>
+
+      <div class="code-block"><pre><code># Contoh alert rule (Unified Alerting)
+
+# Alert: High CPU Usage
+# Condition: avg() of query(A, 5m, now) > 80
+# PromQL:
+100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])))
+
+# Alert: High Error Rate
+# Condition: sum() of query(A, 5m, now) > 5
+# PromQL:
+sum(rate(http_requests_total{status=~"5.."}[5m])) 
+  / sum(rate(http_requests_total[5m])) * 100
+
+# Alert: Disk Almost Full (&lt; 10% free)
+# PromQL:
+100 * (1 - node_filesystem_avail_bytes{mountpoint="/"} 
+  / node_filesystem_size_bytes{mountpoint="/"}) > 90
+
+# Alert: Service Down
+# PromQL:
+up == 0
+
+# Alert: High Memory Usage (&gt; 90%)
+# PromQL:
+100 * (1 - node_memory_MemAvailable_bytes 
+  / node_memory_MemTotal_bytes) > 90</code></pre></div>
+
+      <h3>Notification Channels</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>Channel</th><th>Contoh Config</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Email</td><td><code>smtp.server: mail.example.com:587</code></td></tr>
+          <tr><td>Slack</td><td>Webhook URL: <code>https://hooks.slack.com/...</code></td></tr>
+          <tr><td>Telegram</td><td>Bot Token + Chat ID</td></tr>
+          <tr><td>Discord</td><td>Webhook URL</td></tr>
+          <tr><td>PagerDuty</td><td>Integration Key</td></tr>
+          <tr><td>Webhook</td><td>Custom HTTP endpoint</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 6: Node-RED Nodes -->
+      <h2 id="nodered-nodes">6. Node-RED Node Types</h2>
+
+      <h3>Input Nodes</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>Node</th><th>Fungsi</th><th>Output</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>inject</b></td><td>Trigger manual/timer</td><td>Timestamp atau payload</td></tr>
+          <tr><td><b>http in</b></td><td>HTTP endpoint</td><td>Request object</td></tr>
+          <tr><td><b>mqtt in</b></td><td>Subscribe MQTT</td><td>Payload message</td></tr>
+          <tr><td><b>tcp in</b></td><td>TCP connection</td><td>Buffer/string</td></tr>
+          <tr><td><b>websocket in</b></td><td>WebSocket server/client</td><td>Message</td></tr>
+          <tr><td><b>file in</b></td><td>Baca file</td><td>String/buffer</td></tr>
+          <tr><td><b>csv</b></td><td>Parse CSV</td><td>Array/object</td></tr>
+          <tr><td><b>json</b></td><td>Parse JSON</td><td>Object</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Output Nodes</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>Node</th><th>Fungsi</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>debug</b></td><td>Tampilkan di sidebar debug</td></tr>
+          <tr><td><b>http response</b></td><td>Kirim HTTP response</td></tr>
+          <tr><td><b>mqtt out</b></td><td>Publish ke MQTT broker</td></tr>
+          <tr><td><b>file</b></td><td>Tulis/append ke file</td></tr>
+          <tr><td><b>email</b></td><td>Kirim email (SMTP)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Logic &amp; Processing</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>Node</th><th>Fungsi</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>function</b></td><td>Custom JavaScript logic</td></tr>
+          <tr><td><b>switch</b></td><td>Routing berdasarkan kondisi</td></tr>
+          <tr><td><b>change</b></td><td>Set/change/delete property</td></tr>
+          <tr><td><b>filter</b></td><td>Filter pesan (debounce, dedupe)</td></tr>
+          <tr><td><b>delay</b></td><td>Delay/rate limit pesan</td></tr>
+          <tr><td><b>split</b></td><td>Split array/object</td></tr>
+          <tr><td><b>join</b></td><td>Join messages</td></tr>
+          <tr><td><b>batch</b></td><td>Batch messages</td></tr>
+          <tr><td><b>template</b></td><td>Mustache template</td></tr>
+          <tr><td><b>exec</b></td><td>Run shell command</td></tr>
+          <tr><td><b>html</b></td><td>Parse HTML (cheerio)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 7: MQTT -->
+      <h2 id="nodered-mqtt">7. Node-RED MQTT</h2>
+
+      <h3>MQTT In Node (Subscribe)</h3>
+      <div class="code-block"><pre><code>// Config: Server = broker.hivemq.com:1883
+// Topic = sensor/+/suhu
+// QoS = 1
+// Output = auto-detect (string/parsed JSON)
+
+// Wildcard:
+// sensor/+/suhu  — single level (sensor/ruang1/suhu)
+// sensor/#       — multi level (sensor/ruang1/suhu, sensor/ruang1/lembab)</code></pre></div>
+
+      <h3>MQTT Out Node (Publish)</h3>
+      <div class="code-block"><pre><code>// Topic: actuator/relay/1
+// QoS: 1
+// Retain: true/false
+
+// Inject node → Change (set msg.payload = "ON") → MQTT Out
+
+// Publish JSON:
+// msg.payload = JSON.stringify({ relay: 1, state: "ON", ts: Date.now() })
+// msg.topic = "actuator/relay/1"</code></pre></div>
+
+      <h3>Contoh Flow: Sensor → MQTT → Dashboard</h3>
+      <div class="code-block"><pre><code>// Flow:
+// [inject 5s] → [function: baca sensor] → [mqtt out: sensor/suhu]
+// [mqtt in: sensor/suhu] → [json] → [chart → dashboard]
+
+// Function node "baca sensor":
+msg.payload = {
+  suhu: (Math.random() * 15 + 20).toFixed(1),
+  kelembaban: (Math.random() * 30 + 50).toFixed(1),
+  timestamp: new Date().toISOString()
+};
+msg.topic = "sensor/ruang1/data";
+return msg;</code></pre></div>
+
+      <!-- SECTION 8: Function Node -->
+      <h2 id="nodered-function">8. Function Node JavaScript</h2>
+
+      <div class="code-block"><pre><code>// Basic: ubah payload
+msg.payload = msg.payload.toUpperCase();
+return msg;
+
+// Akses context (penyimpanan antar eksekusi)
+let counter = flow.get("counter") || 0;
+counter++;
+flow.set("counter", counter);
+msg.payload = counter;
+return msg;
+
+// Global context
+global.set("lastUpdate", new Date());
+
+// Conditional output (multi output)
+if (msg.payload > 30) {
+  return [msg, null];     // Output 1: panas
+} else {
+  return [null, msg];     // Output 2: normal
+}
+
+// Multiple messages
+let messages = [null, null];
+messages[0] = { payload: "Alert: Suhu tinggi!" };
+messages[1] = { payload: msg.payload };
+return messages;
+
+// Array manipulation
+let data = msg.payload;
+let avg = data.reduce((a, b) => a + b, 0) / data.length;
+msg.payload = { average: avg.toFixed(2), count: data.length };
+return msg;
+
+// HTTP request (pakai node "http request" lebih mudah)
+// Tapi bisa juga di function:
+const got = global.get("got"); // Perlu install got library</code></pre></div>
+
+      <h3>Error Handling di Function Node</h3>
+      <div class="code-block"><pre><code>// Validasi payload
+if (!msg.payload || typeof msg.payload !== 'object') {
+    node.error("Invalid payload", msg);
+    return null; // Hentikan flow
+}
+
+// Try-catch
+try {
+    let data = JSON.parse(msg.payload);
+    msg.payload = data;
+    return msg;
+} catch (e) {
+    node.warn("Parse error: " + e.message);
+    return null;
+}
+
+// Send to catch node
+if (msg.payload.error) {
+    node.error("Data error", msg);
+    return null;
+}</code></pre></div>
+
+      <!-- SECTION 9: Dashboard JSON -->
+      <h2 id="nodered-json">9. Dashboard JSON Structure</h2>
+
+      <h3>Node-RED Dashboard (node-red-dashboard)</h3>
+      <div class="code-block"><pre><code>// Tab config (ui_base)
+// Set tab name di dashboard config
+
+// Widget types:
+// ui_button    — Tombol aksi
+// ui_slider    — Input slider (range)
+// ui_switch    — Toggle on/off
+// ui_numeric   — Input angka
+// ui_text_input— Input teks
+// ui_dropdown  — Dropdown select
+// ui_colour_picker — Pilih warna
+// ui_chart     — Grafik (line/bar/scatter)
+// ui_gauge     — Gauge analog
+// ui_text      — Tampilkan teks
+// ui_notification — Toast notification
+// ui_spacer    — Spacer/separator
+
+// Chart configuration (ui_chart node):
+{
+  "group": "group1",
+  "order": 0,
+  "width": 6,
+  "height": 4,
+  "label": "Suhu",
+  "chartType": "line",
+  "legend": true,
+  "xformat": "HH:mm:ss",
+  "interpolate": "linear",
+  "nodata": "Tidak ada data",
+  "options": {
+    "yaxis": { "min": 0, "max": 50 }
+  }
+}</code></pre></div>
+
+      <h3>Grafana Dashboard JSON (Export/Import)</h3>
+      <div class="code-block"><pre><code>// Struktur dasar dashboard JSON Grafana:
+{
+  "dashboard": {
+    "title": "Monitoring IoT",
+    "tags": ["iot", "monitoring"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "type": "timeseries",
+        "title": "Suhu Sensor",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "sensor_temperature{location=\"ruang1\"}",
+            "legendFormat": "{{sensor}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "celsius",
+            "thresholds": {
+              "steps": [
+                { "value": null, "color": "green" },
+                { "value": 35, "color": "yellow" },
+                { "value": 40, "color": "red" }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "location",
+          "type": "query",
+          "query": "label_values(sensor_temperature, location)"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  },
+  "overwrite": false
+}</code></pre></div>
+
+      <!-- SECTION 10: Docker Compose -->
+      <h2 id="docker-compose">10. Docker Compose Setup</h2>
+
+      <div class="code-block"><pre><code># docker-compose.yml — Full Stack Monitoring
+version: "3.8"
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=30d'
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+  nodered:
+    image: nodered/node-red:latest
+    ports:
+      - "1880:1880"
+    volumes:
+      - nodered-data:/data
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    pid: host
+
+volumes:
+  grafana-storage:
+  nodered-data:</code></pre></div>
+
+      <h3>Prometheus Config (prometheus.yml)</h3>
+      <div class="code-block"><pre><code>global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']</code></pre></div>
+
+      <!-- NAVIGATION -->
+      <div class="article-nav-bottom">
+        <a href="dashboard-monitoring.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Dashboard Monitoring IoT</span>
+        </a>
+        <a href="../index.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Artikel Lainnya</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/firebase-iot.html" class="related-card">
+          <span class="related-category">Cloud & IoT</span>
+          <span class="related-title">Firebase Realtime Database untuk IoT: Panduan Lengkap ESP32</span>
+        </a>
+        <a href="/articles/android-kotlin.html" class="related-card">
+          <span class="related-category">Mobile</span>
+          <span class="related-title">Android Development dengan Kotlin</span>
+        </a>
+        <a href="/articles/python-design-patterns.html" class="related-card">
+          <span class="related-category">Python</span>
+          <span class="related-title">Python Design Patterns: Panduan Lengkap</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk cheatsheet Grafana &amp; monitoring terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

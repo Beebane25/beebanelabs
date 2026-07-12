@@ -1,0 +1,534 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a><span class="separator">/</span>
+        <a href="../index.html#categories">Mobile Development</a><span class="separator">/</span>
+        <span class="current">Mobile App Performance Optimization</span>
+      </div>
+      <span class="category-tag">Mobile Development</span>
+      <h1>Mobile App Performance Optimization</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Optimasi performa aplikasi mobile — memory profiling, rendering, network caching, battery optimization, dan cold start</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 14 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  <article class="article-content" id="main-content">
+    <div class="container>
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#intro-performance">Mengapa Performance Penting</a></li>
+          <li><a href="#memory-profiling">Memory Profiling</a></li>
+          <li><a href="#rendering">Rendering Performance</a></li>
+          <li><a href="#network">Network Optimization</a></li>
+          <li><a href="#battery">Battery Optimization</a></li>
+          <li><a href="#cold-start">Cold Start Optimization</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+
+      <h2 id="intro-performance">1. Mengapa Performance Penting?</h2>
+      <p>Performa aplikasi mobile secara langsung memengaruhi <strong>user retention</strong>, <strong>rating di app store</strong>, dan <strong>konversi bisnis</strong>. Studi menunjukkan bahwa penundaan 1 detik dalam loading time dapat menurunkan konversi hingga 7%.</p>
+
+      <table class="spec-table">
+        <thead><tr><th>Metrik</th><th>Target</th><th>Dampak</th></tr></thead>
+        <tbody>
+          <tr><td>Cold Start</td><td>&lt; 2 detik</td><td>53% user abandon jika &gt; 3 detik</td></tr>
+          <tr><td>Frame Rate</td><td>60 fps (16.6ms/frame)</td><td>Jank terlihat di bawah 50 fps</td></tr>
+          <tr><td>Memory</td><td>&lt; 200 MB (target)</td><td>OOM crash di device low-end</td></tr>
+          <tr><td>Battery drain</td><td>&lt; 5% per jam aktif</td><td>User uninstall app boros baterai</td></tr>
+          <tr><td>Network</td><td>&lt; 500ms API response</td><td>User percepat app lambat</td></tr>
+        </tbody>
+      </table>
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="memory-profiling">2. Memory Profiling</h2>
+      <p>Memory leak adalah penyebab utama crash di mobile. Profiling tools membantu mendeteksi alokasi berlebihan dan leak.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Android Memory Profiling</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Menggunakan Android Studio Profiler
+# 1. Buka View > Tool Windows > Profiler
+# 2. Pilih device & process
+# 3. Click "Memory" row
+
+# Menggunakan adb untuk quick check
+adb shell dumpsys meminfo com.myapp
+
+# Output contoh:
+# App Summary:
+#   Java Heap:    15,234 KB
+#   Native Heap:  8,456 KB
+#   Code:         12,789 KB
+#   Stack:        1,234 KB
+#   Graphics:     25,678 KB
+#   Total PSS:    63,391 KB
+
+# Memory heap dump
+adb shell am dumpheap com.myapp /data/local/tmp/heap.hprof
+adb pull /data/local/tmp/heap.hprof
+
+# Analyze dengan Android Studio atau MAT (Memory Analyzer Tool)
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Swift — iOS Memory Debugging</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Instruments > Leaks
+// Xcode > Debug Memory Graph
+
+// Detect retain cycles
+class ViewController: UIViewController {
+    var onComplete: (() -> Void)?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // ❌ Retain cycle: self -> onComplete -> self
+        onComplete = {
+            self.view.backgroundColor = .red
+        }
+
+        // ✅ Fix: gunakan weak self
+        onComplete = { [weak self] in
+            self?.view.backgroundColor = .red
+        }
+    }
+}
+
+// Memory warning handler
+override func didReceiveMemoryWarning() {
+    super.didReceiveMemoryWarning()
+    // Clear caches
+    ImageCache.shared.removeAll()
+    URLCache.shared.removeAllCachedResponses()
+}
+</code></pre>
+      </div>
+
+      <h3>2.1 Common Memory Issues</h3>
+      <table class="spec-table">
+        <thead><tr><th>Issue</th><th>Penyebab</th><th>Solusi</th></tr></thead>
+        <tbody>
+          <tr><td>Retain Cycle</td><td>Circular reference</td><td>weak/unowned reference</td></tr>
+          <tr><td>Large Bitmap</td><td>Load gambar tanpa resize</td><td>Downsample &amp; cache</td></tr>
+          <tr><td>Leaked Activity/Fragment</td><td>Callback ke destroyed view</td><td>Lifecycle-aware component</td></tr>
+          <tr><td>Cache overflow</td><td>Tanpa eviction policy</td><td>LRU cache dengan max size</td></tr>
+        </tbody>
+      </table>
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="rendering">3. Rendering Performance</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — RecyclerView Optimization</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// ❌ Buruk: inflate baru setiap kali
+override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    val view = LayoutInflater.from(parent.context)
+        .inflate(R.layout.item_complex, parent, false)
+    return ViewHolder(view)
+}
+
+// ✅ Baik: gunakan ListAdapter + DiffUtil
+class ItemAdapter : ListAdapter&lt;Item, ItemAdapter.ViewHolder&gt;(DiffCallback()) {
+
+    class DiffCallback : DiffUtil.ItemCallback&lt;Item&gt;() {
+        override fun areItemsTheSame(old: Item, new: Item) = old.id == new.id
+        override fun areContentsTheSame(old: Item, new: Item) = old == new
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(getItem(position))
+    }
+
+    inner class ViewHolder(private val binding: ItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: Item) {
+            binding.title.text = item.title
+            // ✅ Gunakan placeholder & cache untuk gambar
+            Glide.with(binding.root)
+                .load(item.imageUrl)
+                .placeholder(R.drawable.placeholder)
+                .override(200, 200)  // Resize!
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(binding.image)
+        }
+    }
+}
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Dart — Flutter Rendering Tips</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// ❌ Buruk: rebuild semua widget
+State build(BuildContext context) {
+  return Column(
+    children: items.map((item) => ItemWidget(item: item)).toList(),
+  );
+}
+
+// ✅ Baik: gunakan ListView.builder (lazy build)
+ListView.builder(
+  itemCount: items.length,
+  itemBuilder: (context, index) {
+    return ItemWidget(item: items[index]);
+  },
+)
+
+// ✅ Cache expensive computations
+Widget build(BuildContext context) {
+  return RepaintBoundary(
+    child: CustomPaint(
+      painter: ChartPainter(data: data),  // Hanya repaint jika data berubah
+    ),
+  );
+}
+
+// ✅ Gunakan const widgets
+const Text('Hello')  // Tidak rebuild
+Text('Hello')        // Bisa rebuild
+</code></pre>
+      </div>      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="network">4. Network Optimization</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — OkHttp Caching</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+val client = OkHttpClient.Builder()
+    .cache(Cache(
+        directory = File(context.cacheDir, "http_cache"),
+        maxSize = 50L * 1024 * 1024  // 50 MB
+    ))
+    .addInterceptor { chain ->
+        val request = if (isNetworkAvailable()) {
+            chain.request().newBuilder()
+                .cacheControl(CacheControl.FORCE_NETWORK)
+                .build()
+        } else {
+            chain.request().newBuilder()
+                .cacheControl(CacheControl.FORCE_CACHE)
+                .build()
+        }
+        chain.proceed(request)
+    }
+    .addNetworkInterceptor { chain ->
+        val response = chain.proceed(chain.request())
+        response.newBuilder()
+            .header("Cache-Control", "public, max-age=300")
+            .build()
+    }
+    .connectTimeout(15, TimeUnit.SECONDS)
+    .readTimeout(15, TimeUnit.SECONDS)
+    .build()
+</code></pre>
+      </div>
+
+      <h3>4.1 Network Best Practices</h3>
+      <table class="spec-table">
+        <thead><tr><th>Praktik</th><th>Manfaat</th></tr></thead>
+        <tbody>
+          <tr><td>HTTP caching (Cache-Control)</td><td>Kurangi request ke server</td></tr>
+          <tr><td>Request batching</td><td>Satu request untuk banyak data</td></tr>
+          <tr><td>Pagination / infinite scroll</td><td>Tidak load semua data sekaligus</td></tr>
+          <tr><td>Compress response (gzip)</td><td>Kurangi payload size</td></tr>
+          <tr><td>Retry with exponential backoff</td><td>Handle transient failures</td></tr>
+          <tr><td>Prefetch data</td><td>Load sebelum user butuh</td></tr>
+        </tbody>
+      </table>
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="battery">5. Battery Optimization</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — Battery-Efficient Background Work</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Gunakan WorkManager untuk background task
+class SyncWorker(
+    context: Context,
+    params: WorkerParameters
+) : CoroutineWorker(context, params) {
+
+    override suspend fun doWork(): Result {
+        return try {
+            // Sync data
+            val data = api.fetchUpdates()
+            database.saveAll(data)
+            Result.success()
+        } catch (e: Exception) {
+            Result.retry()
+        }
+    }
+}
+
+// Schedule dengan constraints
+val constraints = Constraints.Builder()
+    .setRequiredNetworkType(NetworkType.UNMETERED)  // WiFi only
+    .setRequiresBatteryNotLow(true)
+    .build()
+
+val syncRequest = PeriodicWorkRequestBuilder&lt;SyncWorker&gt;(
+    repeatInterval = 6, repeatIntervalTimeUnit = TimeUnit.HOURS
+)
+    .setConstraints(constraints)
+    .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
+    .build()
+
+WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+    "data_sync", ExistingPeriodicWorkPolicy.KEEP, syncRequest
+)
+</code></pre>
+      </div>      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Hindari WakeLock</div>
+        <p>Jangan gunakan <code>WakeLock</code> langsung. Gunakan WorkManager atau <code>AlarmManager</code> untuk scheduled tasks. Android akan menghentikan app yang menyalahgunakan WakeLock.</p>
+      </div>      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="cold-start">6. Cold Start Optimization</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">XML — Android Splash Screen</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+<!-- themes.xml -->
+<style name="Theme.App.Starting" parent="Theme.SplashScreen">
+    <item name="windowSplashScreenBackground">@color/primary</item>
+    <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+    <item name="postSplashScreenTheme">@style/Theme.MyApp</item>
+</style>
+
+<!-- AndroidManifest.xml -->
+<activity
+    android:name=".MainActivity"
+    android:theme="@style/Theme.App.Starting">
+    <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+</activity>
+</code></pre>
+      </div>      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Kotlin — Lazy Initialization</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+class MyApplication : Application() {
+    // ❌ Eager init — lambat di startup
+    val heavyService = HeavyService()
+
+    // ✅ Lazy init — init saat pertama kali diakses
+    val analytics by lazy { AnalyticsService(this) }
+    val database by lazy { Room.databaseBuilder(this, AppDb::class.java, "db").build() }
+
+    override fun onCreate() {
+        super.onCreate()
+        // ✅ Hanya init yang benar-benar diperlukan
+        initCrashReporting()  // Penting: harus duluan
+
+        // ❌ Jangan init semua di sini
+        // initAnalytics()
+        // initImageLoader()
+        // initPushNotification()
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>6.1 Cold Start Timeline</h3>
+      <table class="spec-table">
+        <thead><tr><th>Fase</th><th>Yang Terjadi</th><th>Optimasi</th></tr></thead>
+        <tbody>
+          <tr><td>Process creation</td><td>OS fork process</td><td>Tidak bisa dioptimasi</td></tr>
+          <tr><td>Application.onCreate</td><td>Inisialisasi library</td><td>Lazy init, defer non-essential</td></tr>
+          <tr><td>Activity creation</td><td>Layout inflate</td><td>ViewStub, reduce hierarchy</td></tr>
+          <tr><td>First frame</td><td>Render pertama</td><td>Shimmer/placeholder</td></tr>
+          <tr><td>Data loaded</td><td>API response</td><td>Cache, prefetch</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <h2 id="quiz">Quiz Pemahaman</h2>
+      <div class="quiz-container" id="quiz06">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Target cold start time yang ideal untuk mobile app?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) &lt; 10 detik</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) &lt; 5 detik</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) &lt; 2 detik</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) &lt; 1 detik</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa penyebab utama memory leak di mobile?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Terlalu banyak variabel</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Retain cycle / circular reference</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Bitmap besar</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Cache kebanyakan</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Komponen apa untuk background task yang battery-efficient di Android?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) AsyncTask</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) IntentService</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) WorkManager</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Thread</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Pola apa yang menggantikan eager initialization di Application class?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Singleton</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Factory</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Lazy initialization</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Builder</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Apa yang dilakukan DiffUtil di RecyclerView?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Mengurangi memory</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Menghitung perbedaan item untuk update efisien</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Meng-cache gambar</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Mengompres data</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+      <div class="article-nav">
+        <a href="../index.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">Kembali ke Beranda</span></a>
+        <a href="../kategori.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">Lihat Kategori</span></a>
+      </div>
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/flutter-push-notifications.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">Flutter Push Notifications: Panduan Lengkap FCM & Local N...</span>
+        </a>
+        <a href="/articles/flutter-web-desktop.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">Flutter Web & Desktop Development</span>
+        </a>
+        <a href="/articles/cheatsheet-flutter-dart.html" class="related-card">
+          <span class="related-category">Mobile Development</span>
+          <span class="related-title">Cheatsheet Flutter & Dart: Referensi Cepat Widget, State,...</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

@@ -1,0 +1,737 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Database</a>
+        <span class="separator">/</span>
+        <span class="current">SQL Window Functions</span>
+      </div>
+      <span class="category-tag">Database</span>
+      <h1>SQL Window Functions: Panduan Lengkap</h1>
+      <p class="article-subtitle">Kuasai ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD, NTILE, NTILE, dan frame clauses — teknik SQL tingkat lanjut untuk analisis data</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Window Functions</a></li>
+          <li><a href="#syntax-dasar">Syntax Dasar &amp; OVER Clause</a></li>
+          <li><a href="#partition-by">PARTITION BY — Membagi Window</a></li>
+          <li><a href="#row-number">ROW_NUMBER() — Penomoran Baris</a></li>
+          <li><a href="#rank">RANK() &amp; DENSE_RANK() — Peringkat</a></li>
+          <li><a href="#lag-lead">LAG() &amp; LEAD() — Akses Baris Lain</a></li>
+          <li><a href="#ntile">NTILE() — Pembagian Kelompok</a></li>
+          <li><a href="#frame-clause">Frame Clause — ROWS &amp; RANGE</a></li>
+          <li><a href="#aggregate-windows">Aggregate Functions sebagai Window</a></li>
+          <li><a href="#studi-kasus">Studi Kasus Nyata</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan           -->
+      <!-- ============================== -->
+      <h2 id="pengenalan">1. Pengenalan Window Functions</h2>
+
+      <p><strong>Window Functions</strong> adalah salah satu fitur paling powerful dalam SQL modern. Berbeda dengan fungsi agregat biasa (seperti <code>SUM()</code>, <code>COUNT()</code>) yang mereduksi baris menjadi satu hasil, window functions melakukan perhitungan pada <strong>sekumpulan baris</strong> tanpa menggabungkannya — setiap baris tetap ada di hasil query.</p>
+
+      <p>Bayangkan Anda punya spreadsheet dan ingin menambah kolom "peringkat penjualan" di sebelah data penjualan. Window functions melakukan persis hal itu — menambah kolom hasil perhitungan ke setiap baris, berdasarkan "jendela" (window) data yang Anda definisikan.</p>
+
+      <h3>Mengapa Window Functions Penting?</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Aggregate Function</th>
+            <th>Window Function</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Jumlah baris hasil</td><td>Dikurangi (per grup jadi 1 baris)</td><td>Tetap (semua baris dipertahankan)</td></tr>
+          <tr><td>Akses kolom lain</td><td>Hanya kolom di GROUP BY + agregat</td><td>Bisa akses kolom detail + agregat</td></tr>
+          <tr><td>Contoh penggunaan</td><td>Total penjualan per kota</td><td>Peringkat penjualan per kota, dengan detail penjualan</td></tr>
+          <tr><td>Syntax</td><td>GROUP BY</td><td>OVER (PARTITION BY ...)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: ROW_NUMBER</div>
+<pre><code>ROW_NUMBER(&quot;) OVER(ORDER BY gaji DESC&quot;) Dina  Mar...
+1
+2
+3
+4
+5
+6
+7
+8
+PARTITION BY departemen Each partition gets own...
+/&quot;Use Cases: Top N per group (WHERE rn=1) Paginat...&quot;/
+/&quot;ROW_NUMBER selalu unik — tidak pernah tie. Guna...&quot;/</code></pre>
+    </div>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ ROW_NUMBER vs RANK</div>
+        <p><code>ROW_NUMBER()</code> selalu menghasilkan nomor unik (tidak pernah tie). Jika dua baris punya nilai sama, keduanya tetap dapat nomor berbeda. Urutannya tergantung database engine. Jika Anda ingin handling tie, gunakan <code>RANK()</code> atau <code>DENSE_RANK()</code>.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: RANK & DENSE_RANK    -->
+      <!-- ============================== -->
+      <h2 id="rank">5. RANK() &amp; DENSE_RANK() — Peringkat</h2>
+
+      <p>Berbeda dengan <code>ROW_NUMBER()</code>, <code>RANK()</code> dan <code>DENSE_RANK()</code> bisa menghasilkan peringkat yang sama untuk baris dengan nilai yang sama (tie/imbang).</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — RANK vs DENSE_RANK</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div></div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 1334" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,86L138,90.167C138,94.333,138,102.667,138,110.333C138,118,138,125,138,128.5L138,132" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTM4LCJ5Ijo4Nn0seyJ4IjoxMzgsInkiOjExMX0seyJ4IjoxMzgsInkiOjEzNn1d" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,190L138,194.167C138,198.333,138,206.667,138,214.333C138,222,138,229,138,232.5L138,236" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTM4LCJ5IjoxOTB9LHsieCI6MTM4LCJ5IjoyMTV9LHsieCI6MTM4LCJ5IjoyNDB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,294L138,298.167C138,302.333,138,310.667,138,318.333C138,326,138,333,138,336.5L138,340" id="L_N2_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N3_0" data-points="W3sieCI6MTM4LCJ5IjoyOTR9LHsieCI6MTM4LCJ5IjozMTl9LHsieCI6MTM4LCJ5IjozNDR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,398L138,402.167C138,406.333,138,414.667,138,422.333C138,430,138,437,138,440.5L138,444" id="L_N3_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N4_0" data-points="W3sieCI6MTM4LCJ5IjozOTh9LHsieCI6MTM4LCJ5Ijo0MjN9LHsieCI6MTM4LCJ5Ijo0NDh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,502L138,506.167C138,510.333,138,518.667,138,526.333C138,534,138,541,138,544.5L138,548" id="L_N4_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N4_N5_0" data-points="W3sieCI6MTM4LCJ5Ijo1MDJ9LHsieCI6MTM4LCJ5Ijo1Mjd9LHsieCI6MTM4LCJ5Ijo1NTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,606L138,610.167C138,614.333,138,622.667,138,630.333C138,638,138,645,138,648.5L138,652" id="L_N5_N6_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N5_N6_0" data-points="W3sieCI6MTM4LCJ5Ijo2MDZ9LHsieCI6MTM4LCJ5Ijo2MzF9LHsieCI6MTM4LCJ5Ijo2NTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,710L138,714.167C138,718.333,138,726.667,138,734.333C138,742,138,749,138,752.5L138,756" id="L_N6_N7_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N6_N7_0" data-points="W3sieCI6MTM4LCJ5Ijo3MTB9LHsieCI6MTM4LCJ5Ijo3MzV9LHsieCI6MTM4LCJ5Ijo3NjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,814L138,818.167C138,822.333,138,830.667,138,838.333C138,846,138,853,138,856.5L138,860" id="L_N7_N8_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N7_N8_0" data-points="W3sieCI6MTM4LCJ5Ijo4MTR9LHsieCI6MTM4LCJ5Ijo4Mzl9LHsieCI6MTM4LCJ5Ijo4NjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,918L138,922.167C138,926.333,138,934.667,138,942.333C138,950,138,957,138,960.5L138,964" id="L_N8_N9_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N8_N9_0" data-points="W3sieCI6MTM4LCJ5Ijo5MTh9LHsieCI6MTM4LCJ5Ijo5NDN9LHsieCI6MTM4LCJ5Ijo5Njh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,1070L138,1074.167C138,1078.333,138,1086.667,138,1094.333C138,1102,138,1109,138,1112.5L138,1116" id="L_N9_N10_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N9_N10_0" data-points="W3sieCI6MTM4LCJ5IjoxMDcwfSx7IngiOjEzOCwieSI6MTA5NX0seyJ4IjoxMzgsInkiOjExMjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,1198L138,1202.167C138,1206.333,138,1214.667,138,1222.333C138,1230,138,1237,138,1240.5L138,1244" id="L_N10_N11_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N10_N11_0" data-points="W3sieCI6MTM4LCJ5IjoxMTk4fSx7IngiOjEzOCwieSI6MTIyM30seyJ4IjoxMzgsInkiOjEyNDh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N4_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N5_N6_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N6_N7_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N7_N8_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N8_N9_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N9_N10_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N10_N11_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 47)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Nama Gaji ROW_NUM RANK DENSE_RANK Note</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 163)"><rect class="basic label-container" style="" x="-81.59375" y="-27" width="163.1875" height="54"/><g class="label" style="" transform="translate(-51.59375, -12)"><rect/><foreignObject width="103.1875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Dina 18jt 1 1 1</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 267)"><rect class="basic label-container" style="" x="-88.265625" y="-27" width="176.53125" height="54"/><g class="label" style="" transform="translate(-58.265625, -12)"><rect/><foreignObject width="116.53125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Gilang 17jt 2 2 2</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(138, 371)"><rect class="basic label-container" style="" x="-81.1484375" y="-27" width="162.296875" height="54"/><g class="label" style="" transform="translate(-51.1484375, -12)"><rect/><foreignObject width="102.296875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Budi 15jt 3 3 3</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(138, 475)"><rect class="basic label-container" style="" x="-84.265625" y="-27" width="168.53125" height="54"/><g class="label" style="" transform="translate(-54.265625, -12)"><rect/><foreignObject width="108.53125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Hana 14jt 4 4 4</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(138, 579)"><rect class="basic label-container" style="" x="-82.4765625" y="-27" width="164.953125" height="54"/><g class="label" style="" transform="translate(-52.4765625, -12)"><rect/><foreignObject width="104.953125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Ali 8jt 6 6 6 tie!</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N6-6" transform="translate(138, 683)"><rect class="basic label-container" style="" x="-90.484375" y="-27" width="180.96875" height="54"/><g class="label" style="" transform="translate(-60.484375, -12)"><rect/><foreignObject width="120.96875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Joko 8jt 7 6 6 tie!</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N7-7" transform="translate(138, 787)"><rect class="basic label-container" style="" x="-80.6875" y="-27" width="161.375" height="54"/><g class="label" style="" transform="translate(-50.6875, -12)"><rect/><foreignObject width="101.375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Fitri 7.5jt 8 8 7</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N8-8" transform="translate(138, 891)"><rect class="basic label-container" style="" x="-85.59375" y="-27" width="171.1875" height="54"/><g class="label" style="" transform="translate(-55.59375, -12)"><rect/><foreignObject width="111.1875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Indra 7.2jt 9 9 8</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N9-9" transform="translate(138, 1019)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>ROW_NUMBER 6, 7 Selalu unik, tidak ada tie Urut...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N10-10" transform="translate(138, 1159)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>RANK 6, 8  (gap!) Tie = sama, lalu loncat Cocok...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N11-11" transform="translate(138, 1287)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>DENSE_RANK 6, 7  (no gap) Tie = sama, lanjut be...</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      </div>
+
+      <h3>Perbedaan RANK vs DENSE_RANK</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>RANK()</th>
+            <th>DENSE_RANK()</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Saat tie</td><td>Sama, tapi loncat setelah tie</td><td>Sama, langsung lanjut berikutnya</td></tr>
+          <tr><td>Contoh: 1,1,?</td><td>1, 1, 3</td><td>1, 1, 2</td></tr>
+          <tr><td>Cocok untuk</td><td>Kompetisi (ada "juara kosong")</td><td>Ranking tanpa gap</td></tr>
+          <tr><td>Total rank unik</td><td>Bisa lebih sedikit (ada gap)</td><td>Sama dengan jumlah nilai unik</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: LAG & LEAD           -->
+      <!-- ============================== -->
+      <h2 id="lag-lead">6. LAG() &amp; LEAD() — Akses Baris Lain</h2>
+
+      <p><code>LAG()</code> mengakses nilai dari baris <strong>sebelumnya</strong>, sedangkan <code>LEAD()</code> mengakses nilai dari baris <strong>berikutnya</strong>. Ini sangat berguna untuk perhitungan selisih, pertumbuhan, dan perbandingan antar periode.</p></div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 814" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,62L138,66.167C138,70.333,138,78.667,138,86.333C138,94,138,101,138,104.5L138,108" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTM4LCJ5Ijo2Mn0seyJ4IjoxMzgsInkiOjg3fSx7IngiOjEzOCwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,166L138,170.167C138,174.333,138,182.667,138,190.333C138,198,138,205,138,208.5L138,212" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTM4LCJ5IjoxNjZ9LHsieCI6MTM4LCJ5IjoxOTF9LHsieCI6MTM4LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,270L138,274.167C138,278.333,138,286.667,138,294.333C138,302,138,309,138,312.5L138,316" id="L_N2_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N3_0" data-points="W3sieCI6MTM4LCJ5IjoyNzB9LHsieCI6MTM4LCJ5IjoyOTV9LHsieCI6MTM4LCJ5IjozMjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,398L138,402.167C138,406.333,138,414.667,138,422.333C138,430,138,437,138,440.5L138,444" id="L_N3_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N4_0" data-points="W3sieCI6MTM4LCJ5IjozOTh9LHsieCI6MTM4LCJ5Ijo0MjN9LHsieCI6MTM4LCJ5Ijo0NDh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,526L138,530.167C138,534.333,138,542.667,138,550.333C138,558,138,565,138,568.5L138,572" id="L_N4_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N4_N5_0" data-points="W3sieCI6MTM4LCJ5Ijo1MjZ9LHsieCI6MTM4LCJ5Ijo1NTF9LHsieCI6MTM4LCJ5Ijo1NzZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,678L138,682.167C138,686.333,138,694.667,138,702.333C138,710,138,717,138,720.5L138,724" id="L_N5_N6_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N5_N6_0" data-points="W3sieCI6MTM4LCJ5Ijo2Nzh9LHsieCI6MTM4LCJ5Ijo3MDN9LHsieCI6MTM4LCJ5Ijo3Mjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N4_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N5_N6_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 35)"><rect class="basic label-container" style="" x="-122.9453125" y="-27" width="245.890625" height="54"/><g class="label" style="" transform="translate(-92.9453125, -12)"><rect/><foreignObject width="185.890625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Andi — Jan Revenue: 45jt</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 139)"><rect class="basic label-container" style="" x="-123.8359375" y="-27" width="247.671875" height="54"/><g class="label" style="" transform="translate(-93.8359375, -12)"><rect/><foreignObject width="187.671875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Andi — Feb Revenue: 52jt</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 243)"><rect class="basic label-container" style="" x="-123.828125" y="-27" width="247.65625" height="54"/><g class="label" style="" transform="translate(-93.828125, -12)"><rect/><foreignObject width="187.65625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Andi — Mar Revenue: 38jt</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(138, 359)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>LAG(revenue, 1, 0) Feb gets Jan value: 45jt</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(138, 487)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>LEAD(revenue, 1, 0) Jan gets Feb value: 52jt</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(138, 627)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Result — LAG Example Bulan Revenue LAG (prev) S...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N6-6" transform="translate(138, 767)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>LEAD = look forward  |  LAG = look backward  | ...</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <h3>Parameter LAG &amp; LEAD</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Deskripsi</th>
+            <th>Default</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>kolom</td><td>Kolom yang nilainya diakses</td><td>(wajib)</td></tr>
+          <tr><td>offset</td><td>Berapa baris ke belakang/maju</td><td>1</td></tr>
+          <tr><td>default</td><td>Nilai jika tidak ada baris (offset melewati batas)</td><td>NULL</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: NTILE                -->
+      <!-- ============================== -->
+      <h2 id="ntile">7. NTILE() — Pembagian Kelompok</h2>
+
+      <p><code>NTILE(n)</code> membagi baris menjadi <strong>n kelompok</strong> yang sama besar dan menetapkan nomor kelompok (1 sampai n) ke setiap baris. Berguna untuk membuat kuartil, persentil, atau kategori.</p>
+
+      </div>
+<div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 1102" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,62L138,66.167C138,70.333,138,78.667,138,86.333C138,94,138,101,138,104.5L138,108" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTM4LCJ5Ijo2Mn0seyJ4IjoxMzgsInkiOjg3fSx7IngiOjEzOCwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,166L138,170.167C138,174.333,138,182.667,138,190.333C138,198,138,205,138,208.5L138,212" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTM4LCJ5IjoxNjZ9LHsieCI6MTM4LCJ5IjoxOTF9LHsieCI6MTM4LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,294L138,298.167C138,302.333,138,310.667,138,318.333C138,326,138,333,138,336.5L138,340" id="L_N2_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N3_0" data-points="W3sieCI6MTM4LCJ5IjoyOTR9LHsieCI6MTM4LCJ5IjozMTl9LHsieCI6MTM4LCJ5IjozNDR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,398L138,402.167C138,406.333,138,414.667,138,422.333C138,430,138,437,138,440.5L138,444" id="L_N3_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N4_0" data-points="W3sieCI6MTM4LCJ5IjozOTh9LHsieCI6MTM4LCJ5Ijo0MjN9LHsieCI6MTM4LCJ5Ijo0NDh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,502L138,506.167C138,510.333,138,518.667,138,526.333C138,534,138,541,138,544.5L138,548" id="L_N4_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N4_N5_0" data-points="W3sieCI6MTM4LCJ5Ijo1MDJ9LHsieCI6MTM4LCJ5Ijo1Mjd9LHsieCI6MTM4LCJ5Ijo1NTJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,606L138,610.167C138,614.333,138,622.667,138,630.333C138,638,138,645,138,648.5L138,652" id="L_N5_N6_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N5_N6_0" data-points="W3sieCI6MTM4LCJ5Ijo2MDZ9LHsieCI6MTM4LCJ5Ijo2MzF9LHsieCI6MTM4LCJ5Ijo2NTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,710L138,714.167C138,718.333,138,726.667,138,734.333C138,742,138,749,138,752.5L138,756" id="L_N6_N7_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N6_N7_0" data-points="W3sieCI6MTM4LCJ5Ijo3MTB9LHsieCI6MTM4LCJ5Ijo3MzV9LHsieCI6MTM4LCJ5Ijo3NjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,814L138,818.167C138,822.333,138,830.667,138,838.333C138,846,138,853,138,856.5L138,860" id="L_N7_N8_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N7_N8_0" data-points="W3sieCI6MTM4LCJ5Ijo4MTR9LHsieCI6MTM4LCJ5Ijo4Mzl9LHsieCI6MTM4LCJ5Ijo4NjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,966L138,970.167C138,974.333,138,982.667,138,990.333C138,998,138,1005,138,1008.5L138,1012" id="L_N8_N9_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N8_N9_0" data-points="W3sieCI6MTM4LCJ5Ijo5NjZ9LHsieCI6MTM4LCJ5Ijo5OTF9LHsieCI6MTM4LCJ5IjoxMDE2fV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N4_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N5_N6_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N6_N7_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N7_N8_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N8_N9_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 35)"><rect class="basic label-container" style="" x="-102.046875" y="-27" width="204.09375" height="54"/><g class="label" style="" transform="translate(-72.046875, -12)"><rect/><foreignObject width="144.09375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Dina 18jt Gilang 17jt</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 139)"><rect class="basic label-container" style="" x="-84.109375" y="-27" width="168.21875" height="54"/><g class="label" style="" transform="translate(-54.109375, -12)"><rect/><foreignObject width="108.21875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Q1 — Top 25%</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 255)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Budi 15jt Hana 14jt Eka 8.5jt</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(138, 371)"><rect class="basic label-container" style="" x="-80.6953125" y="-27" width="161.390625" height="54"/><g class="label" style="" transform="translate(-50.6953125, -12)"><rect/><foreignObject width="101.390625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Q2 — 25-50%</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(138, 475)"><rect class="basic label-container" style="" x="-86.03125" y="-27" width="172.0625" height="54"/><g class="label" style="" transform="translate(-56.03125, -12)"><rect/><foreignObject width="112.0625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Ali 8jt Joko 7.8jt</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(138, 579)"><rect class="basic label-container" style="" x="-80.6953125" y="-27" width="161.390625" height="54"/><g class="label" style="" transform="translate(-50.6953125, -12)"><rect/><foreignObject width="101.390625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Q3 — 50-75%</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N6-6" transform="translate(138, 683)"><rect class="basic label-container" style="" x="-128.2578125" y="-27" width="256.515625" height="54"/><g class="label" style="" transform="translate(-98.2578125, -12)"><rect/><foreignObject width="196.515625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Fitri 7.5jt Indra 7.2jt Citra 7jt</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N7-7" transform="translate(138, 787)"><rect class="basic label-container" style="" x="-96.6953125" y="-27" width="193.390625" height="54"/><g class="label" style="" transform="translate(-66.6953125, -12)"><rect/><foreignObject width="133.390625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Q4 — Bottom 25%</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N8-8" transform="translate(138, 915)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>NTILE membagi baris menjadi N kelompok sama bes...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N9-9" transform="translate(138, 1055)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>NTILE(2) → Top/Bottom  |  NTILE(3) → Tinggi/Sed...</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+    </div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Frame Clause         -->
+      <!-- ============================== -->
+      <h2 id="frame-clause">8. Frame Clause — ROWS &amp; RANGE</h2>
+
+      <p>Frame clause mendefinisikan secara tepat baris mana saja yang termasuk dalam window. Ini memungkinkan perhitungan seperti <strong>running total</strong>, <strong>moving average</strong>, dan <strong>cumulative sum</strong>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Frame Clause</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+</div>
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: Frame Clause</div>
+<pre><code>n PRECEDING
+n FOLLOWING
+RUNNING TOTAL ROWS BETWEEN UNBOUNDED PRECEDING ...
+/&quot;Jan:45  Feb:97  Mar:135&quot;/
+Jan:45
+Feb:97
+Mar:135
+MOVING AVERAGE ROWS BETWEEN 1 PRECEDING AND 1 F...
+/&quot;avg(prev + curr + next)&quot;/
+prev
+next
+/&quot;ROWS = physical rows  |  RANGE = logical values...&quot;/</code></pre>
+    </div>
+      </div>
+
+      <h3>ROWS vs RANGE</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Tipe</th>
+            <th>Deskripsi</th>
+            <th>Cocok Untuk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>ROWS</td><td>Berdasarkan jumlah baris fisik</td><td>Moving average, running total</td></tr>
+          <tr><td>RANGE</td><td>Berdasarkan nilai ORDER BY</td><td>Window berdasarkan nilai/logika</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Default Frame</div>
+        <p>Jika Anda menulis <code>ORDER BY</code> di dalam <code>OVER()</code> tanpa frame clause, defaultnya adalah <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>. Ini berbeda dari <code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code> — perbedaannya terlihat saat ada nilai duplikat di kolom ORDER BY.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Aggregate Windows    -->
+      <!-- ============================== -->
+      <h2 id="aggregate-windows">9. Aggregate Functions sebagai Window</h2>
+
+      <p>Semua fungsi agregat standar — <code>SUM()</code>, <code>AVG()</code>, <code>COUNT()</code>, <code>MIN()</code>, <code>MAX()</code> — bisa digunakan sebagai window function dengan menambahkan <code>OVER()</code>.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Aggregate sebagai Window Function</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- Analisis Lengkap dengan Multiple Windows
+-- =============================================
+SELECT
+    nama,
+    departemen,
+    gaji,
+    -- Perbandingan dengan rata-rata departemen
+    AVG(gaji) OVER(PARTITION BY departemen) AS avg_dept,
+    gaji - AVG(gaji) OVER(PARTITION BY departemen) AS selisih_avg,
+
+    -- Perbandingan dengan rata-rata keseluruhan
+    AVG(gaji) OVER() AS avg_total,
+
+    -- Persentil dalam departemen
+    COUNT(*) OVER(PARTITION BY departemen) AS jumlah_dept,
+    ROUND(
+        COUNT(*) OVER(
+            PARTITION BY departemen
+            ORDER BY gaji DESC
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) * 100.0 / COUNT(*) OVER(PARTITION BY departemen), 0
+    ) AS persentil_dept,
+
+    -- Gap dengan gaji tertinggi di departemen
+    MAX(gaji) OVER(PARTITION BY departemen) - gaji AS gap_max_dept,
+
+    -- Gap dengan gaji terendah di departemen
+    gaji - MIN(gaji) OVER(PARTITION BY departemen) AS gap_min_dept
+FROM karyawan
+ORDER BY departemen, gaji DESC;
+
+
+-- =============================================
+-- COUNT sebagai Window: Total per partisi
+-- =============================================
+SELECT
+    nama_sales,
+    wilayah,
+    bulan,
+    revenue,
+    COUNT(*) OVER(PARTITION BY wilayah) AS total_transaksi_wilayah,
+    COUNT(DISTINCT nama_sales) OVER(PARTITION BY wilayah) AS unique_sales_wilayah
+FROM penjualan;
+
+
+-- =============================================
+-- Conditional Aggregation + Window Function
+-- =============================================
+SELECT
+    nama,
+    departemen,
+    gaji,
+    -- Persentase gaji terhadap total departemen
+    ROUND(
+        gaji * 100.0 / SUM(gaji) OVER(PARTITION BY departemen), 2
+    ) AS pct_of_dept,
+    -- Kumulatif departemen (urut gaji DESC)
+    SUM(gaji) OVER(
+        PARTITION BY departemen
+        ORDER BY gaji DESC
+    ) AS cumulative_dept
+FROM karyawan
+ORDER BY departemen, gaji DESC;
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Studi Kasus         -->
+      <!-- ============================== -->
+      <h2 id="studi-kasus">10. Studi Kasus Nyata</h2>
+
+      <h3>Studi Kasus 1: Analisis Penjualan E-Commerce</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Studi Kasus E-Commerce</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- Tabel: orders (pesanan e-commerce)
+-- =============================================
+-- Analisis: Top 3 produk per kategori berdasarkan revenue
+
+WITH product_revenue AS (
+    SELECT
+        p.nama_produk,
+        p.kategori,
+        SUM(dp.subtotal) AS total_revenue,
+        SUM(dp.jumlah)   AS total_qty,
+        ROW_NUMBER() OVER(
+            PARTITION BY p.kategori
+            ORDER BY SUM(dp.subtotal) DESC
+        ) AS rank_in_category
+    FROM detail_pesanan dp
+    JOIN produk p ON dp.id_produk = p.id_produk
+    JOIN pesanan ps ON dp.id_pesanan = ps.id_pesanan
+    WHERE ps.status = 'selesai'
+    GROUP BY p.nama_produk, p.kategori
+)
+SELECT
+    nama_produk,
+    kategori,
+    total_revenue,
+    total_qty,
+    rank_in_category
+FROM product_revenue
+WHERE rank_in_category <= 3
+ORDER BY kategori, rank_in_category;
+
+
+-- =============================================
+-- Analisis: Trend penjualan bulanan + pertumbuhan
+-- =============================================
+WITH monthly_sales AS (
+    SELECT
+        DATE_FORMAT(tanggal_pesanan, '%Y-%m') AS bulan,
+        COUNT(*) AS jumlah_order,
+        SUM(total) AS revenue,
+        AVG(total) AS avg_order_value
+    FROM pesanan
+    WHERE status != 'batal'
+    GROUP BY DATE_FORMAT(tanggal_pesanan, '%Y-%m')
+)
+SELECT
+    bulan,
+    jumlah_order,
+    revenue,
+    avg_order_value,
+    LAG(revenue) OVER(ORDER BY bulan) AS prev_revenue,
+    ROUND(
+        (revenue - LAG(revenue) OVER(ORDER BY bulan)) * 100.0
+        / NULLIF(LAG(revenue) OVER(ORDER BY bulan), 0), 2
+    ) AS revenue_growth_pct,
+    SUM(revenue) OVER(ORDER BY bulan) AS cumulative_revenue,
+    AVG(revenue) OVER(
+        ORDER BY bulan
+        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+    ) AS moving_avg_3m
+FROM monthly_sales
+ORDER BY bulan;
+</code></pre>
+      </div>
+
+      <h3>Studi Kasus 2: Analisis HR — Distribusi Gaji</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Studi Kasus HR</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- Dashboard HR: Lengkap dengan window functions
+-- =============================================
+WITH salary_analysis AS (
+    SELECT
+        nama,
+        departemen,
+        posisi,
+        gaji,
+        tanggal_masuk,
+        -- Peringkat dalam departemen
+        DENSE_RANK() OVER(
+            PARTITION BY departemen
+            ORDER BY gaji DESC
+        ) AS rank_dept,
+
+        -- Quartile keseluruhan
+        NTILE(4) OVER(ORDER BY gaji DESC) AS quartile,
+
+        -- Running count berdasarkan tanggal masuk
+        ROW_NUMBER() OVER(
+            ORDER BY tanggal_masuk
+        ) AS urutan_masuk,
+
+        -- Bandingkan dengan rata-rata
+        gaji - AVG(gaji) OVER() AS selisih_avg_global,
+        gaji - AVG(gaji) OVER(PARTITION BY departemen) AS selisih_avg_dept,
+
+        -- Persentase dari max gaji departemen
+        ROUND(
+            gaji * 100.0 / MAX(gaji) OVER(PARTITION BY departemen), 2
+        ) AS pct_of_max_dept,
+
+        -- Total karyawan di departemen
+        COUNT(*) OVER(PARTITION BY departemen) AS total_anggota
+    FROM karyawan
+)
+SELECT
+    nama,
+    departemen,
+    posisi,
+    gaji,
+    rank_dept,
+    CASE quartile
+        WHEN 1 THEN 'Q1 (Top 25%)'
+        WHEN 2 THEN 'Q2 (25-50%)'
+        WHEN 3 THEN 'Q3 (50-75%)'
+        WHEN 4 THEN 'Q4 (Bottom 25%)'
+    END AS salary_quartile,
+    selisih_avg_dept,
+    pct_of_max_dept,
+    total_anggota
+FROM salary_analysis
+ORDER BY departemen, gaji DESC;
+</code></pre>
+      </div>
+
+      <h3>Studi Kasus 3: Cohort Analysis</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — Cohort Analysis</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>-- =============================================
+-- Cohort Analysis: Retensi pelanggan per bulan
+-- =============================================
+WITH customer_cohort AS (
+    SELECT
+        c.id_pelanggan,
+        DATE_FORMAT(c.tanggal_daftar, '%Y-%m') AS cohort_month,
+        DATE_FORMAT(p.tanggal_pesanan, '%Y-%m') AS order_month,
+        -- Hitung bulan ke-n sejak daftar
+        TIMESTAMPDIFF(MONTH,
+            c.tanggal_daftar,
+            p.tanggal_pesanan
+        ) AS months_since_signup
+    FROM pelanggan c
+    JOIN pesanan p ON c.id_pelanggan = p.id_pelanggan
+    WHERE p.status != 'batal'
+),
+cohort_size AS (
+    SELECT
+        cohort_month,
+        COUNT(DISTINCT id_pelanggan) AS cohort_customers
+    FROM customer_cohort
+    GROUP BY cohort_month
+)
+SELECT
+    cc.cohort_month,
+    cs.cohort_customers,
+    cc.months_since_signup,
+    COUNT(DISTINCT cc.id_pelanggan) AS active_customers,
+    ROUND(
+        COUNT(DISTINCT cc.id_pelanggan) * 100.0 / cs.cohort_customers, 2
+    ) AS retention_pct
+FROM customer_cohort cc
+JOIN cohort_size cs ON cc.cohort_month = cs.cohort_month
+GROUP BY cc.cohort_month, cs.cohort_customers, cc.months_since_signup
+ORDER BY cc.cohort_month, cc.months_since_signup;
+</code></pre>
+      </div>
+
+      <h3>Tips Performa Window Functions</h3>
+
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Tips</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Gunakan PARTITION BY yang terindeks</td><td>Database lebih cepat memproses partisi yang terindeks</td></tr>
+          <tr><td>Minimalkan jumlah window functions</td><td>Setiap OVER() = satu pass data. Gabungkan jika PARTITION BY dan ORDER BY sama</td></tr>
+          <tr><td>Gunakan WINDOW clause</td><td>Definisikan window sekali, pakai berulang kali — lebih clean dan efisien</td></tr>
+          <tr><td>Filter dulu, window sesudahnya</td><td>Gunakan WHERE sebelum window function untuk mengurangi data yang diproses</td></tr>
+          <tr><td>Hindari ORDER BY tanpa tujuan</td><td>ORDER BY di OVER() tanpa frame clause = default RANGE, yang bisa lambat</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">11. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang SQL Window Functions:</p>
+
+      <div class="quiz-container" id="quiz09">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa perbedaan utama antara RANK() dan DENSE_RANK()?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) RANK() lebih cepat dari DENSE_RANK()</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) DENSE_RANK() tidak punya gap setelah tie, RANK() punya gap</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) RANK() hanya bisa di PostgreSQL, DENSE_RANK() universal</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Tidak ada perbedaan, keduanya identik</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Fungsi apa yang digunakan untuk mengakses nilai baris sebelumnya?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) LEAD()</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) PREVIOUS()</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) LAG()</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) BEFORE()</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Mengapa window functions tidak bisa digunakan di clause WHERE?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Karena window functions hanya untuk PostgreSQL</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Karena window functions dieksekusi setelah WHERE dalam urutan SQL</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Karena window functions membutuhkan HAVING</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Sebenarnya bisa, tidak ada batasan</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi dari NTILE(4)?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Mengambil 4 baris pertama</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Membagi baris menjadi 4 kelompok (quartile)</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Menampilkan 4 kolom terakhir</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Mengurutkan 4 baris secara descending</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Untuk membuat moving average 3 bulan, frame clause yang tepat adalah?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) ROWS BETWEEN 3 PRECEDING AND 3 FOLLOWING</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="sql-dasar.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">SQL Dasar: Panduan Lengkap untuk Pemula</span>
+        </a>
+        <a href="sql-indexes-advanced.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">SQL Indexes: Panduan Advanced</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/couchdb-basics.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">Apache CouchDB: NoSQL Document Database Lengkap</span>
+        </a>
+        <a href="/articles/turso-edge-database.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">Turso: Edge Database dengan libSQL</span>
+        </a>
+        <a href="/articles/neo4j-graph-database.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">Neo4j: Graph Database — Cypher, Nodes, Relationships & Pa...</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

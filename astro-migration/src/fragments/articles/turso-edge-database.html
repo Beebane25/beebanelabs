@@ -1,0 +1,821 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a><span class="separator">/</span>
+        <a href="../index.html#categories">Database</a><span class="separator">/</span>
+        <span class="current">Turso</span>
+      </div>
+      <span class="category-tag">Database</span>
+      <h1>Turso: Edge Database dengan libSQL</h1>
+      <p class="article-subtitle">Tutorial komprehensif Turso — serverless edge database berbasis libSQL (fork SQLite). Pelajari embedded replicas, database branching, vector search, integrasi dengan framework modern, dan arsitektur serverless untuk aplikasi yang membutuhkan latensi rendah di edge</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 14 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+    </div>
+  </section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan">Pengenalan Turso</a></li>
+          <li><a href="#setup">Setup &amp; Instalasi</a></li>
+          <li><a href="#libsql">libSQL Fundamentals</a></li>
+          <li><a href="#embedded-replicas">Embedded Replicas</a></li>
+          <li><a href="#branching">Database Branching</a></li>
+          <li><a href="#vector-search">Vector Search</a></li>
+          <li><a href="#integrasi">Integrasi Framework</a></li>
+          <li><a href="#best-practices">Best Practices &amp; Pricing</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="pengenalan">1. Pengenalan Turso</h2>
+
+      <p><strong>Turso</strong> adalah platform database serverless yang dibangun di atas <strong>libSQL</strong> — fork open-source dari SQLite yang dikembangkan oleh tim Turso. Konsep utama Turso adalah membawa database sedekat mungkin ke aplikasi Anda — bukan di satu data center, tetapi di <strong>edge locations</strong> di seluruh dunia, sehingga setiap query memiliki latensi sub-milidetik.</p>
+
+      <p>Berbeda dengan database cloud tradisional yang berpusat di satu atau beberapa region, Turso mereplikasi data ke lokasi terdekat dengan pengguna menggunakan <strong>embedded replicas</strong>. Data primer (primary) bisa di satu region, sementara salinan read-only (replica) berada di edge function atau server Anda — memungkinkan read lokal tanpa network round trip.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Arsitektur Turso Edge Database</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">👤</div>
+            <div class="arch-label">Users (Global)</div>
+            <div class="arch-desc">Request dari<br>seluruh dunia</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box info">
+            <div class="arch-icon">🌐</div>
+            <div class="arch-label">Edge Replica</div>
+            <div class="arch-desc">Read lokal,<br>sub-ms latency</div>
+          </div>
+          <div class="arch-arrow">→ sync →</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">💾</div>
+            <div class="arch-label">Primary Database</div>
+            <div class="arch-desc">Write &amp; source of truth<br>di satu region</div>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box success">
+            <div class="arch-icon">🔄</div>
+            <div class="arch-label">Auto Sync</div>
+            <div class="arch-desc">Replikasi otomatis<br>ke semua replicas</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Keunggulan Turso</h3>
+      <ul>
+        <li><strong>Edge Latency:</strong> Read dari embedded replica = sub-milidetik, bukan puluhan ms ke data center</li>
+        <li><strong>SQLite Compatible:</strong> Semua yang Anda tahu tentang SQLite bisa digunakan</li>
+        <li><strong>Database Per User:</strong> Dengan pricing yang terjangkau, Anda bisa punya database per-tenant</li>
+        <li><strong>Branching:</strong> Membuat branch database untuk testing, seperti git branching untuk kode</li>
+        <li><strong>Vector Search:</strong> Built-in vector search tanpa perlu database terpisah</li>
+        <li><strong>Generous Free Tier:</strong> 9GB total storage, 500 database, 25 miliar row reads/bulan</li>
+      </ul>
+
+      <h3>1.2 Kapan Menggunakan Turso?</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Cocok Untuk</th><th>Pertimbangkan Alternatif</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Aplikasi global butuh low latency reads</td><td>Single region, heavy writes</td></tr>
+          <tr><td>Edge functions (Cloudflare Workers, Vercel)</td><td>Traditional server deployment</td></tr>
+          <tr><td>Multi-tenant SaaS (database per user)</td><td>Shared database besar</td></tr>
+          <tr><td>Read-heavy workload</td><td>Write-heavy, transaksi kompleks</td></tr>
+          <tr><td>Aplikasi skala kecil-menengah</td><td>Petabyte-scale analytics</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="setup">2. Setup &amp; Instalasi</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Setup Turso CLI &amp; Database</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Instal Turso CLI
+curl -sSfL https://get.tur.so/install.sh | bash
+source ~/.bashrc
+
+# Login ke Turso
+turso auth login
+
+# Membuat database
+turso db create my-app-db
+
+# Mendapatkan URL database dan token
+turso db show my-app-db --url
+turso db tokens create my-app-db
+
+# Membuat database di region tertentu
+turso db create my-app-db --location sjc  # San Jose
+
+# Menambah replica di region lain
+turso db replicate my-app-db ams  # Amsterdam
+turso db replicate my-app-db sin  # Singapore
+
+# Lihat status database
+turso db show my-app-db
+
+# Koneksi via turso CLI shell
+turso db shell my-app-db
+
+# Atau menggunakan libSQL client
+npm install @libsql/client
+</code></pre>
+      </div>
+
+      <h3>2.1 Membuat Database &amp; Tabel</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">SQL — DDL di Turso/libSQL</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+-- Membuat tabel (SQLite syntax)
+CREATE TABLE IF NOT EXISTS posts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    content TEXT,
+    author_id INTEGER NOT NULL,
+    category TEXT DEFAULT 'general',
+    published BOOLEAN DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (author_id) REFERENCES authors(id)
+);
+
+CREATE TABLE IF NOT EXISTS authors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    bio TEXT
+);
+
+-- Membuat index
+CREATE INDEX idx_posts_author ON posts(author_id);
+CREATE INDEX idx_posts_category ON posts(category);
+CREATE INDEX idx_posts_published ON posts(published, created_at);
+
+-- Full-text search (FTS5)
+CREATE VIRTUAL TABLE posts_fts USING fts5(
+    title, content,
+    content='posts',
+    content_rowid='id'
+);
+
+-- Trigger untuk sync FTS
+CREATE TRIGGER posts_ai AFTER INSERT ON posts BEGIN
+    INSERT INTO posts_fts(rowid, title, content)
+    VALUES (new.id, new.title, new.content);
+END;
+
+CREATE TRIGGER posts_ad AFTER DELETE ON posts BEGIN
+    INSERT INTO posts_fts(posts_fts, rowid, title, content)
+    VALUES ('delete', old.id, old.title, old.content);
+END;
+</code></pre>
+      </div>
+
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide"></div>
+
+      <!-- SECTION 3 -->
+      <h2 id="libsql">3. libSQL Fundamentals</h2>
+
+      <p><strong>libSQL</strong> adalah fork SQLite yang menambahkan fitur-fitur penting seperti native async support, replication, HTTP API, dan vector search — sambil tetap mempertahankan kompatibilitas dengan SQLite.</p>
+
+      <h3>3.1 Koneksi dari Aplikasi</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — @libsql/client</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import { createClient } from '@libsql/client';
+
+// Koneksi ke Turso Cloud
+const db = createClient({
+    url: 'libsql://my-app-db.turso.io',
+    authToken: process.env.TURSO_AUTH_TOKEN,
+});
+
+// Koneksi ke local file (development)
+// const db = createClient({ url: 'file:local.db' });
+
+// Membuat tabel
+await db.execute(`
+    CREATE TABLE IF NOT EXISTS todos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        completed BOOLEAN DEFAULT 0,
+        created_at TEXT DEFAULT (datetime('now'))
+    )
+`);
+
+// INSERT
+await db.execute({
+    sql: 'INSERT INTO todos (title) VALUES (?)',
+    args: ['Belajar Turso']
+});
+
+// INSERT batch
+await db.batch([
+    {
+        sql: 'INSERT INTO todos (title) VALUES (?)',
+        args: ['Setup edge replicas']
+    },
+    {
+        sql: 'INSERT INTO todos (title) VALUES (?)',
+        args: ['Deploy ke production']
+    }
+], 'write');
+
+// SELECT
+const result = await db.execute('SELECT * FROM todos');
+for (const row of result.rows) {
+    console.log(`${row.id}: ${row.title} [${row.completed ? '✓' : '○'}]`);
+}
+
+// SELECT dengan parameter
+const filtered = await db.execute({
+    sql: 'SELECT * FROM todos WHERE completed = ?',
+    args: [0]
+});
+
+// Transaction
+const tx = await db.transaction('write');
+try {
+    await tx.execute({
+        sql: 'UPDATE todos SET completed = 1 WHERE id = ?',
+        args: [1]
+    });
+    await tx.execute({
+        sql: 'INSERT INTO todos (title) VALUES (?)',
+        args: ['Tugas baru']
+    });
+    await tx.commit();
+} catch (e) {
+    await tx.rollback();
+    throw e;
+}
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Python — libsql-experimental</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import libsql_experimental as libsql
+
+# Koneksi ke Turso
+conn = libsql.connect(
+    database="libsql://my-app-db.turso.io",
+    auth_token=os.environ.get("TURSO_AUTH_TOKEN")
+)
+
+# Atau koneksi local
+# conn = libsql.connect("local.db")
+
+# DDL
+conn.execute("""
+    CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        price REAL NOT NULL,
+        category TEXT,
+        stock INTEGER DEFAULT 0
+    )
+""")
+
+# INSERT
+conn.execute(
+    "INSERT INTO products (name, price, category, stock) VALUES (?, ?, ?, ?)",
+    ["Laptop Gaming", 15000000.0, "Electronics", 50]
+)
+
+# SELECT
+rows = conn.execute("SELECT * FROM products WHERE price > ?", [1000000]).fetchall()
+for row in rows:
+    print(f"{row[1]}: Rp {row[2]:,.0f}")
+
+# Commit
+conn.commit()
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="embedded-replicas">4. Embedded Replicas</h2>
+
+      <p><strong>Embedded Replicas</strong> adalah fitur unggulan Turso yang memungkinkan Anda menjalankan replica database <strong>di dalam proses aplikasi Anda</strong> — bukan di data center Turso. Data di-sync dari primary ke replica lokal, sehingga read berjalan dari file lokal (sangat cepat) sementara write di-route ke primary.</p>
+
+      <h3>4.1 Mengkonfigurasi Embedded Replicas</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Embedded Replicas Configuration</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import { createClient } from '@libsql/client';
+
+// Embedded replica: data disimpan lokal, di-sync dari primary
+const db = createClient({
+    url: 'file:local-replica.db',     // File lokal untuk replica
+    syncUrl: 'libsql://my-app-db.turso.io',  // Primary URL
+    authToken: process.env.TURSO_AUTH_TOKEN,
+    syncInterval: 60,  // Sync setiap 60 detik (detik)
+});
+
+// Manual sync (opsional, untuk sync on-demand)
+await db.sync();
+
+// Read lokal (cepat!)
+const result = await db.execute('SELECT * FROM products WHERE category = ?', ['Electronics']);
+console.log(result.rows); // Dibaca dari file lokal
+
+// Write tetap di-route ke primary
+await db.execute({
+    sql: 'INSERT INTO products (name, price, category) VALUES (?, ?, ?)',
+    args: ['New Product', 100000, 'Electronics']
+});
+
+// Cek sync status
+const syncResult = await db.sync();
+console.log(`Synced ${syncResult.frames_applied} frames`);
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Eventual Consistency pada Reads</div>
+        <p>Dengan embedded replicas, reads mungkin membaca data yang sedikit outdated karena sync berjalan periodik. Jika Anda membutuhkan data paling baru setelah write, gunakan <code>sync()</code> manual setelah write atau set <code>syncInterval</code> yang sangat rendah.</p>
+      </div>
+
+      <h3>4.2 Embedded Replica di Edge Runtime</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Cloudflare Worker dengan Embedded Replica</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// Cloudflare Worker dengan Turso embedded replica
+import { createClient } from '@libsql/client';
+
+export default {
+    async fetch(request, env) {
+        const db = createClient({
+            url: 'file:turso-replica.db',  // Di-sync oleh platform
+            syncUrl: env.TURSO_DB_URL,
+            authToken: env.TURSO_AUTH_TOKEN,
+        });
+
+        const url = new URL(request.url);
+
+        if (url.pathname === '/api/products') {
+            // Read dari local replica — sangat cepat!
+            const result = await db.execute('SELECT * FROM products LIMIT 50');
+            return Response.json(result.rows);
+        }
+
+        if (request.method === 'POST' && url.pathname === '/api/products') {
+            const body = await request.json();
+            // Write di-route ke primary
+            const result = await db.execute({
+                sql: 'INSERT INTO products (name, price, category) VALUES (?, ?, ?)',
+                args: [body.name, body.price, body.category]
+            });
+            return Response.json({ success: true, id: Number(result.last_insert_rowid) });
+        }
+
+        return new Response('Not Found', { status: 404 });
+    }
+};
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 5 -->
+      <h2 id="branching">5. Database Branching</h2>
+
+      <p>Turso mendukung <strong>database branching</strong> — membuat salinan database untuk testing atau pengembangan tanpa mempengaruhi produksi. Mirip dengan git branch, tetapi untuk database.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Database Branching</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Membuat branch dari database utama
+turso db branch create my-app-db staging
+
+# Lihat semua branches
+turso db branch list my-app-db
+
+# Mendapatkan URL branch untuk testing
+turso db show my-app-db --branch staging
+
+# Koneksi ke branch
+turso db shell my-app-db --branch staging
+
+# Menghapus branch
+turso db branch drop my-app-db staging
+
+# Reset branch ke state primary
+turso db branch reset my-app-db staging
+
+# Menggunakan branch di CI/CD pipeline
+# 1. Buat branch dari production
+# 2. Jalankan migration di branch
+# 3. Jalankan tests
+# 4. Merge branch ke production (atau promote)
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">GitHub Actions — CI/CD dengan Turso Branching</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# .github/workflows/test.yml
+name: Test with Turso Branch
+on: [pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Turso branch
+        run: |
+          turso auth login
+          BRANCH_NAME="pr-${{ github.event.pull_request.number }}"
+          turso db branch create my-app-db $BRANCH_NAME
+
+      - name: Run migrations
+        env:
+          TURSO_DB_URL: ${{ secrets.TURSO_DB_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+        run: |
+          BRANCH_URL=$(turso db show my-app-db --branch "pr-${{ github.event.pull_request.number }}" --url)
+          # Run migrations terhadap branch
+          npm run migrate -- --url=$BRANCH_URL
+
+      - name: Run tests
+        run: npm test
+
+      - name: Cleanup
+        if: always()
+        run: |
+          turso db branch drop my-app-db "pr-${{ github.event.pull_request.number }}"
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="vector-search">6. Vector Search</h2>
+
+      <p>Turso mendukung <strong>vector search</strong> secara native melalui ekstensi vector di libSQL. Ini memungkinkan Anda menyimpan embedding vectors dan melakukan similarity search langsung di database — tanpa perlu vector database terpisah seperti Pinecone atau Qdrant.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Vector Search di Turso</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+import { createClient } from '@libsql/client';
+
+const db = createClient({
+    url: 'libsql://my-app-db.turso.io',
+    authToken: process.env.TURSO_AUTH_TOKEN,
+});
+
+// Tabel untuk menyimpan vectors
+await db.execute(`
+    CREATE TABLE IF NOT EXISTS documents (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        content TEXT NOT NULL,
+        embedding F32_BLOB(384),  -- 384-dimension float32 vector
+        metadata TEXT
+    )
+`);
+
+// Membuat vector index
+await db.execute(`
+    CREATE INDEX IF NOT EXISTS idx_docs_embedding
+    ON documents(libsql_vector_idx(embedding))
+`);
+
+// Menyimpan dokumen dengan embedding
+// (embedding dihasilkan oleh model seperti OpenAI, Sentence Transformers, dll.)
+const documents = [
+    { content: 'CockroachDB adalah distributed SQL database', embedding: [...] },
+    { content: 'ClickHouse untuk analytical queries', embedding: [...] },
+    { content: 'Redis digunakan sebagai caching layer', embedding: [...] },
+];
+
+for (const doc of documents) {
+    await db.execute({
+        sql: `INSERT INTO documents (content, embedding)
+              VALUES (?, vector32(?))`,
+        args: [doc.content, new Float32Array(doc.embedding)]
+    });
+}
+
+// Vector similarity search (cosine distance)
+const queryEmbedding = [...]; // embedding dari query user
+
+const results = await db.execute({
+    sql: `
+        SELECT
+            content,
+            vector_distance_cos(embedding, vector32(?)) AS distance
+        FROM documents
+        ORDER BY distance
+        LIMIT 5
+    `,
+    args: [new Float32Array(queryEmbedding)]
+});
+
+for (const row of results.rows) {
+    console.log(`[Distance: ${row.distance.toFixed(4)}] ${row.content}`);
+}
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tipe Vector di libSQL</div>
+        <p>libSQL mendukung beberapa tipe vector: <code>F32_BLOB(dim)</code> untuk float32, <code>F64_BLOB(dim)</code> untuk float64, dan <code>F16_BLOB(dim)</code> untuk float16 (lebih hemat storage). Fungsi yang tersedia: <code>vector_distance_cos()</code> (cosine), <code>vector_distance_l2()</code> (Euclidean), dan <code>vector_distance_l1()</code> (Manhattan).</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 7 -->
+      <h2 id="integrasi">7. Integrasi Framework</h2>
+
+      <h3>7.1 Next.js dengan Turso</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Next.js + Turso + Drizzle ORM</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// db/index.ts
+import { createClient } from '@libsql/client';
+import { drizzle } from 'drizzle-orm/libsql';
+
+const client = createClient({
+    url: process.env.TURSO_DATABASE_URL!,
+    authToken: process.env.TURSO_AUTH_TOKEN!,
+});
+
+export const db = drizzle(client);
+
+// db/schema.ts
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+
+export const posts = sqliteTable('posts', {
+    id: integer('id').primaryKey(),
+    title: text('title').notNull(),
+    content: text('content'),
+    published: integer('published', { mode: 'boolean' }).default(false),
+    createdAt: text('created_at').default(new Date().toISOString()),
+});
+
+// app/api/posts/route.ts
+import { db } from '@/db';
+import { posts } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+
+export async function GET() {
+    const allPosts = await db.select().from(posts)
+        .where(eq(posts.published, true));
+    return Response.json(allPosts);
+}
+
+export async function POST(request: Request) {
+    const body = await request.json();
+    const result = await db.insert(posts).values({
+        title: body.title,
+        content: body.content,
+    }).returning();
+    return Response.json(result[0], { status: 201 });
+}
+</code></pre>
+      </div>
+
+      <h3>7.2 SvelteKit dengan Turso</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — SvelteKit + Turso</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// src/lib/server/db.ts
+import { createClient } from '@libsql/client';
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from '$env/static/private';
+
+export const db = createClient({
+    url: TURSO_DATABASE_URL,
+    authToken: TURSO_AUTH_TOKEN,
+});
+
+// src/routes/+page.server.ts
+import { db } from '$lib/server/db';
+
+export async function load() {
+    const result = await db.execute(
+        'SELECT * FROM posts WHERE published = 1 ORDER BY created_at DESC'
+    );
+    return { posts: result.rows };
+}
+
+export const actions = {
+    create: async ({ request }) => {
+        const data = await request.formData();
+        await db.execute({
+            sql: 'INSERT INTO posts (title, content) VALUES (?, ?)',
+            args: [data.get('title'), data.get('content')]
+        });
+        return { success: true };
+    }
+};
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="best-practices">8. Best Practices &amp; Pricing</h2>
+
+      <h3>8.1 Best Practices</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Aspek</th><th>Rekomendasi</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Embedded Replicas</td><td>Gunakan untuk read-heavy apps, sync interval sesuaikan kebutuhan freshness</td></tr>
+          <tr><td>Branching</td><td>Buat branch untuk setiap PR di CI/CD, hapus setelah testing</td></tr>
+          <tr><td>Connection</td><td>Reuse client instance, jangan buat koneksi baru per request</td></tr>
+          <tr><td>Batch Operations</td><td>Gunakan <code>db.batch()</code> untuk multiple operations dalam satu round trip</td></tr>
+          <tr><td>Transactions</td><td>Gunakan transactions untuk operasi yang harus atomic</td></tr>
+          <tr><td>Vector Search</td><td>Buat vector index untuk tabel dengan banyak vectors</td></tr>
+        </tbody>
+      </table>
+
+      <h3>8.2 Pricing (per 2026)</h3>
+      <table class="spec-table">
+        <thead>
+          <tr><th>Tier</th><th>Storage</th><th>Row Reads</th><th>Databases</th><th>Harga</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Starter (Free)</td><td>9 GB</td><td>25 miliar/bulan</td><td>500</td><td>Gratis</td></tr>
+          <tr><td>Scaler</td><td>24 GB</td><td>100 miliar/bulan</td><td>10.000</td><td>$29/bulan</td></tr>
+          <tr><td>Pro</td><td>100 GB+</td><td>Custom</td><td>Unlimited</td><td>Custom</td></tr>
+        </tbody>
+      </table>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 9 -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quiz4">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa itu libSQL?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Database NoSQL baru yang tidak kompatibel dengan SQL</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Fork open-source dari SQLite dengan fitur tambahan seperti replication dan vector search</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Wrapper JavaScript untuk PostgreSQL</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Bahasa query proprietary Turso</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa keunggulan utama embedded replicas di Turso?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Menggandakan kapasitas storage</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Read dari file lokal dengan latensi sub-milidetik</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Menghilangkan kebutuhan untuk write operations</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Mengenkripsi semua data otomatis</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa yang terjadi saat write dilakukan melalui embedded replica?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Write disimpan di local file lalu di-sync ke primary</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Write ditolak, harus langsung ke primary</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Write di-route ke primary database secara otomatis</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Write disimpan di semua replicas sekaligus</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa fungsi database branching di Turso?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Membagi database ke beberapa shard</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Membuat salinan database untuk testing tanpa mempengaruhi produksi</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Mengelola user permissions</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Mengotomatiskan backup</div>
+          </div>
+        </div>
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa Turso cocok untuk multi-tenant SaaS?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Karena mendukung transaksi yang sangat besar</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Karena pricing memungkinkan banyak database dengan cost rendah</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Karena otomatis membuat REST API</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Karena hanya mendukung read operations</div>
+          </div>
+        </div>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="scylladb-nosql.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">ScyllaDB: High Performance NoSQL</span>
+        </a>
+        <a href="vector-database-qdrant.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Qdrant Vector Database</span>
+        </a>
+      </div>
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/redis-streams.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">Redis Streams untuk Event Sourcing</span>
+        </a>
+        <a href="/articles/prisma-orm.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">Prisma ORM: Database Modern untuk JavaScript</span>
+        </a>
+        <a href="/articles/database-sharding-vitess.html" class="related-card">
+          <span class="related-category">Database</span>
+          <span class="related-title">Database Sharding dengan Vitess</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial Database terbaru langsung di inbox kamu.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

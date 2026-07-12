@@ -1,0 +1,1485 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">DevOps & Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">Ansible</span>
+      </div>
+      <span class="category-tag">DevOps & Cloud</span>
+      <h1>Ansible: Automation Platform</h1>
+      <span class="access-badge gratis">GRATIS</span>
+      <p class="article-subtitle">Tutorial lengkap Ansible — playbooks, roles, inventory, modules, ad-hoc commands, variables, Jinja2 templates, dan best practices untuk automation</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty pemula">Pemula - Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="ad-slot ad-slot-wide"></div>
+  </div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-ansible">Pengenalan Ansible</a></li>
+          <li><a href="#instalasi-ansible">Instalasi Ansible</a></li>
+          <li><a href="#inventory">Inventory</a></li>
+          <li><a href="#ad-hoc">Ad-Hoc Commands</a></li>
+          <li><a href="#playbooks">Playbooks</a></li>
+          <li><a href="#modules">Modules</a></li>
+          <li><a href="#variables">Variables &amp; Facts</a></li>
+          <li><a href="#roles">Roles</a></li>
+          <li><a href="#jinja2-templates">Jinja2 Templates</a></li>
+          <li><a href="#ansible-vault">Ansible Vault</a></li>
+          <li><a href="#best-practices">Best Practices</a></li>
+          <li><a href="#quiz-ansible">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan Ansible   -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-ansible">1. Pengenalan Ansible</h2>
+
+      <p><strong>Ansible</strong> adalah platform automation open-source yang dikembangkan oleh Red Hat (sekarang IBM). Ansible memungkinkan Anda mengotomatiskan provisioning, configuration management, application deployment, dan orchestration — semuanya tanpa menginstal agen di target server.</p>
+
+      <p>Keunggulan utama Ansible dibanding tool sejenis (Puppet, Chef) adalah pendekatan <strong>agentless</strong>. Ansible menggunakan SSH untuk berkomunikasi dengan target server, sehingga tidak perlu menginstal software tambahan. Cukup punya Python di target, dan Ansible sudah bisa bekerja.</p>
+
+      <h3>Mengapa Ansible Penting?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Keunggulan</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Agentless</td><td>Tidak perlu instal agen di target — cukup SSH + Python</td></tr>
+          <tr><td>Idempotent</td><td>Menjalankan playbook berkali-kali tetap aman — hanya melakukan perubahan jika diperlukan</td></tr>
+          <tr><td>YAML-Based</td><td>Mudah dibaca dan ditulis — menggunakan format YAML yang human-readable</td></tr>
+          <tr><td>Modular</td><td>Ratusan module built-in untuk berbagai kebutuhan automation</td></tr>
+          <tr><td>Galaxy</td><td>Ekosistem roles dan collections dari komunitas</td></tr>
+          <tr><td>Scalabel</td><td>Bisa mengelola ratusan hingga ribuan server sekaligus</td></tr>
+          <tr><td>Cross-Platform</td><td>Support Linux, Windows, macOS, network devices, cloud providers</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Ansible Architecture</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 950" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:Inter,system-ui,sans-serif;font-size:16px;fill:#ccc;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#a44141;}#mermaid-svg .error-text{fill:#ddd;stroke:#ddd;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#3ecf8e;stroke:#3ecf8e;}#mermaid-svg .marker.cross{stroke:#3ecf8e;}#mermaid-svg svg{font-family:Inter,system-ui,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:Inter,system-ui,sans-serif;color:#E7E8F5;}#mermaid-svg .cluster-label text{fill:#3ecf8e;}#mermaid-svg .cluster-label span{color:#3ecf8e;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#E7E8F5;color:#E7E8F5;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#1f2020;stroke:#ccc;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#3ecf8e!important;stroke-width:0;stroke:#3ecf8e;}#mermaid-svg .arrowheadPath{fill:lightgrey;}#mermaid-svg .edgePath .path{stroke:#3ecf8e;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#3ecf8e;fill:none;}#mermaid-svg .edgeLabel{background-color:#0f1011;text-align:center;}#mermaid-svg .edgeLabel p{background-color:#0f1011;}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:#0f1011;fill:#0f1011;}#mermaid-svg .labelBkg{background-color:rgba(15, 16, 17, 0.5);}#mermaid-svg .cluster rect{fill:rgba(62, 207, 142, 0.08);stroke:#3ecf8e;stroke-width:1px;}#mermaid-svg .cluster text{fill:#3ecf8e;}#mermaid-svg .cluster span{color:#3ecf8e;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:Inter,system-ui,sans-serif;font-size:12px;background:#1a1f2e;border:1px solid rgba(255, 255, 255, 0.25);border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#ccc;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:#0f1011;text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:#0f1011;padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:#0f1011;fill:#0f1011;}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:Inter,system-ui,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,62L138,66.167C138,70.333,138,78.667,138,86.333C138,94,138,101,138,104.5L138,108" id="L_N0_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N1_0" data-points="W3sieCI6MTM4LCJ5Ijo2Mn0seyJ4IjoxMzgsInkiOjg3fSx7IngiOjEzOCwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,166L138,170.167C138,174.333,138,182.667,138,190.333C138,198,138,205,138,208.5L138,212" id="L_N1_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N1_N2_0" data-points="W3sieCI6MTM4LCJ5IjoxNjZ9LHsieCI6MTM4LCJ5IjoxOTF9LHsieCI6MTM4LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,270L138,274.167C138,278.333,138,286.667,138,294.333C138,302,138,309,138,312.5L138,316" id="L_N2_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N3_0" data-points="W3sieCI6MTM4LCJ5IjoyNzB9LHsieCI6MTM4LCJ5IjoyOTV9LHsieCI6MTM4LCJ5IjozMjB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,374L138,378.167C138,382.333,138,390.667,138,398.333C138,406,138,413,138,416.5L138,420" id="L_N3_N4_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N4_0" data-points="W3sieCI6MTM4LCJ5IjozNzR9LHsieCI6MTM4LCJ5IjozOTl9LHsieCI6MTM4LCJ5Ijo0MjR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,478L138,482.167C138,486.333,138,494.667,138,502.333C138,510,138,517,138,520.5L138,524" id="L_N4_N5_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N4_N5_0" data-points="W3sieCI6MTM4LCJ5Ijo0Nzh9LHsieCI6MTM4LCJ5Ijo1MDN9LHsieCI6MTM4LCJ5Ijo1Mjh9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,582L138,586.167C138,590.333,138,598.667,138,606.333C138,614,138,621,138,624.5L138,628" id="L_N5_N6_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N5_N6_0" data-points="W3sieCI6MTM4LCJ5Ijo1ODJ9LHsieCI6MTM4LCJ5Ijo2MDd9LHsieCI6MTM4LCJ5Ijo2MzJ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,686L138,690.167C138,694.333,138,702.667,138,710.333C138,718,138,725,138,728.5L138,732" id="L_N6_N7_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N6_N7_0" data-points="W3sieCI6MTM4LCJ5Ijo2ODZ9LHsieCI6MTM4LCJ5Ijo3MTF9LHsieCI6MTM4LCJ5Ijo3MzZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,790L138,794.167C138,798.333,138,806.667,138,814.333C138,822,138,829,138,832.5L138,836" id="L_N7_N8_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N7_N8_0" data-points="W3sieCI6MTM4LCJ5Ijo3OTB9LHsieCI6MTM4LCJ5Ijo4MTV9LHsieCI6MTM4LCJ5Ijo4NDB9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N1_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N4_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N4_N5_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N5_N6_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N6_N7_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N7_N8_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 35)"><rect class="basic label-container" style="" x="-92.1953125" y="-27" width="184.390625" height="54"/><g class="label" style="" transform="translate(-62.1953125, -12)"><rect/><foreignObject width="124.390625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Inventory hosts</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 139)"><rect class="basic label-container" style="" x="-89.734375" y="-27" width="179.46875" height="54"/><g class="label" style="" transform="translate(-59.734375, -12)"><rect/><foreignObject width="119.46875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Playbook tasks</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 243)"><rect class="basic label-container" style="" x="-101.6328125" y="-27" width="203.265625" height="54"/><g class="label" style="" transform="translate(-71.6328125, -12)"><rect/><foreignObject width="143.265625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Config ansible.cfg</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(138, 347)"><rect class="basic label-container" style="" x="-123.3203125" y="-27" width="246.640625" height="54"/><g class="label" style="" transform="translate(-93.3203125, -12)"><rect/><foreignObject width="186.640625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Modules 2000+ built-in</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N4-4" transform="translate(138, 451)"><rect class="basic label-container" style="" x="-94.1171875" y="-27" width="188.234375" height="54"/><g class="label" style="" transform="translate(-64.1171875, -12)"><rect/><foreignObject width="128.234375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>SSH (Agentless)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N5-5" transform="translate(138, 555)"><rect class="basic label-container" style="" x="-122.4765625" y="-27" width="244.953125" height="54"/><g class="label" style="" transform="translate(-92.4765625, -12)"><rect/><foreignObject width="184.953125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Server 1 web Python ✓</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N6-6" transform="translate(138, 659)"><rect class="basic label-container" style="" x="-116.0859375" y="-27" width="232.171875" height="54"/><g class="label" style="" transform="translate(-86.0859375, -12)"><rect/><foreignObject width="172.171875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Server 2 db Python ✓</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N7-7" transform="translate(138, 763)"><rect class="basic label-container" style="" x="-129.625" y="-27" width="259.25" height="54"/><g class="label" style="" transform="translate(-99.625, -12)"><rect/><foreignObject width="199.25" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Server 3 cache Python ✓</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N8-8" transform="translate(138, 891)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Kunci Ansible: • Tidak ada agen di target serve...</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      </div>
+
+      <p>Konsep dasar Ansible meliputi:</p>
+      <ul>
+        <li><strong>Control Node</strong> — mesin tempat Ansible diinstall dan playbook dijalankan</li>
+        <li><strong>Managed Nodes</strong> — server yang dikelola oleh Ansible (target)</li>
+        <li><strong>Inventory</strong> — daftar host yang akan dikelola</li>
+        <li><strong>Playbook</strong> — file YAML berisi daftar task yang akan dijalankan</li>
+        <li><strong>Module</strong> — unit kerja dasar (copy file, install package, manage service, dll)</li>
+        <li><strong>Role</strong> — cara mengorganisir playbook, tasks, variables, dan handlers</li>
+      </ul>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Instalasi            -->
+      <!-- ============================== -->
+      <h2 id="instalasi-ansible">2. Instalasi Ansible</h2>
+
+      <p>Ansible hanya perlu diinstall di control node. Target server hanya butuh Python dan SSH access.</p>
+
+      <h3>Linux (Ubuntu/Debian)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Tambah PPA repository
+sudo apt update
+sudo apt install -y software-properties-common
+sudo add-apt-repository --yes --update ppa:ansible/ansible
+
+# Install Ansible
+sudo apt install -y ansible
+
+# Verifikasi
+ansible --version
+# ansible [core 2.17.0]
+#   config file = /etc/ansible/ansible.cfg
+#   python version = 3.12.3
+</code></pre>
+      </div>
+
+      <h3>Linux (RHEL/CentOS/Fedora)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Fedora
+sudo dnf install -y ansible
+
+# RHEL/CentOS
+sudo yum install -y epel-release
+sudo yum install -y ansible
+</code></pre>
+      </div>
+
+      <h3>macOS</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Install menggunakan Homebrew
+brew install ansible
+
+# Verifikasi
+ansible --version
+</code></pre>
+      </div>
+
+      <h3>menggunakan pip (Semua Platform)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Install dengan pip (Python package manager)
+pip install ansible
+
+# Install dengan pipx (isolated environment)
+pip install pipx
+pipx install ansible
+
+# Install specific version
+pip install ansible==9.5.1
+
+# Install collections dan roles
+ansible-galaxy collection install community.general
+ansible-galaxy install geerlingguy.nginx
+</code></pre>
+      </div>
+
+      <h3>Setup SSH Keys</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Generate SSH key pair
+ssh-keygen -t ed25519 -C "ansible@beebanelabs" -f ~/.ssh/ansible_key
+
+# Copy public key ke target servers
+ssh-copy-id -i ~/.ssh/ansible_key.pub user@server1
+ssh-copy-id -i ~/.ssh/ansible_key.pub user@server2
+ssh-copy-id -i ~/.ssh/ansible_key.pub user@server3
+
+# Test koneksi
+ssh -i ~/.ssh/ansible_key user@server1 "echo OK"
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Inventory            -->
+      <!-- ============================== -->
+      <h2 id="inventory">3. Inventory</h2>
+
+      <p><strong>Inventory</strong> adalah daftar host (server) yang akan dikelola oleh Ansible. Inventory bisa berupa file statis (INI atau YAML) atau dinamis (script yang menghasilkan daftar host).</p>
+
+      <h3>Inventory Statis (INI Format)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">INI</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># inventory/hosts.ini
+# === Server Web ===
+web1 ansible_host=192.168.1.10 ansible_user=deploy
+web2 ansible_host=192.168.1.11 ansible_user=deploy
+web3 ansible_host=192.168.1.12 ansible_user=deploy
+
+# === Server Database ===
+db1 ansible_host=192.168.1.20 ansible_user=dbadmin ansible_port=2222
+db2 ansible_host=192.168.1.21 ansible_user=dbadmin ansible_port=2222
+
+# === Server Cache ===
+redis1 ansible_host=192.168.1.30 ansible_user=deploy
+
+# === Server Monitoring ===
+monitor1 ansible_host=192.168.1.40 ansible_user=admin
+
+# === Groups ===
+[webservers]
+web1
+web2
+web3
+
+[dbservers]
+db1
+db2
+
+[cacheservers]
+redis1
+
+[monitoring]
+monitor1
+
+# === Group of Groups (Parent Group) ===
+[production:children]
+webservers
+dbservers
+cacheservers
+monitoring
+
+# === Group Variables ===
+[webservers:vars]
+http_port=80
+https_port=443
+nginx_version=1.27.0
+
+[dbservers:vars]
+mysql_port=3306
+mysql_datadir=/var/lib/mysql
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+</code></pre>
+      </div>
+
+      <h3>Inventory Format YAML</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># inventory/hosts.yaml
+all:
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  children:
+    production:
+      children:
+        webservers:
+          hosts:
+            web1:
+              ansible_host: 192.168.1.10
+              ansible_user: deploy
+            web2:
+              ansible_host: 192.168.1.11
+              ansible_user: deploy
+            web3:
+              ansible_host: 192.168.1.12
+              ansible_user: deploy
+          vars:
+            http_port: 80
+            https_port: 443
+            nginx_version: "1.27.0"
+
+        dbservers:
+          hosts:
+            db1:
+              ansible_host: 192.168.1.20
+              ansible_user: dbadmin
+              ansible_port: 2222
+            db2:
+              ansible_host: 192.168.1.21
+              ansible_user: dbadmin
+              ansible_port: 2222
+          vars:
+            mysql_port: 3306
+
+        cacheservers:
+          hosts:
+            redis1:
+              ansible_host: 192.168.1.30
+              ansible_user: deploy
+
+        monitoring:
+          hosts:
+            monitor1:
+              ansible_host: 192.168.1.40
+              ansible_user: admin
+</code></pre>
+      </div>
+
+      <h3>Perintah Inventory Berguna</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># List semua host
+ansible-inventory -i inventory/hosts.yaml --list
+
+# List host dalam format grafik
+ansible-inventory -i inventory/hosts.yaml --graph
+
+# List host dari group tertentu
+ansible-inventory -i inventory/hosts.yaml --graph webservers
+
+# List semua group
+ansible-inventory -i inventory/hosts.yaml --list --yaml
+
+# Verifikasi koneksi ke semua host
+ansible all -i inventory/hosts.yaml -m ping
+
+# Verifikasi koneksi ke group tertentu
+ansible webservers -i inventory/hosts.yaml -m ping
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Ad-Hoc Commands      -->
+      <!-- ============================== -->
+      <h2 id="ad-hoc">4. Ad-Hoc Commands</h2>
+
+      <p><strong>Ad-hoc commands</strong> adalah perintah Ansible yang dijalankan langsung dari command line tanpa menggunakan playbook. Berguna untuk task satu kali atau testing koneksi.</p>
+
+      <h3>Sintaks Dasar</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Sintaks umum
+ansible &lt;target&gt; -m &lt;module&gt; -a "&lt;args&gt;" -i &lt;inventory&gt;
+
+# Contoh: ping semua host
+ansible all -m ping -i inventory/hosts.yaml
+# web1 | SUCCESS =&gt; {"changed": false, "ping": "pong"}
+# web2 | SUCCESS =&gt; {"changed": false, "ping": "pong"}
+# db1  | SUCCESS =&gt; {"changed": false, "ping": "pong"}
+
+# Jalankan command shell di semua host
+ansible all -m command -a "uptime" -i inventory/hosts.yaml
+ansible all -m shell -a "df -h" -i inventory/hosts.yaml
+
+# Lihat info sistem
+ansible all -m setup -i inventory/hosts.yaml
+ansible all -m setup -a "filter=ansible_distribution" -i inventory/hosts.yaml
+</code></pre>
+      </div>
+
+      <h3>Contoh Ad-Hoc Commands</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Install package di semua web servers
+ansible webservers -m apt -a "name=nginx state=present" \
+  -i inventory/hosts.yaml --become
+
+# Restart service nginx
+ansible webservers -m service -a "name=nginx state=restarted" \
+  -i inventory/hosts.yaml --become
+
+# Copy file ke semua servers
+ansible webservers -m copy \
+  -a "src=./config/nginx.conf dest=/etc/nginx/nginx.conf mode=0644" \
+  -i inventory/hosts.yaml --become
+
+# Buat user baru
+ansible all -m user \
+  -a "name=deploy state=present shell=/bin/bash" \
+  -i inventory/hosts.yaml --become
+
+# Cek disk space
+ansible all -m shell -a "df -h /" -i inventory/hosts.yaml
+
+# Cek memory usage
+ansible all -m shell -a "free -m" -i inventory/hosts.yaml
+
+# Tambah SSH authorized key
+ansible all -m authorized_key \
+  -a "user=deploy key='{{ lookup(\"file\", \"~/.ssh/ansible_key.pub\") }}'" \
+  -i inventory/hosts.yaml
+
+# Jalankan dengan parallel (fork 10)
+ansible all -m ping -i inventory/hosts.yaml -f 10
+
+# Jalankan dengan sudo (--become)
+ansible webservers -m shell -a "apt update" \
+  -i inventory/hosts.yaml --become
+
+# Jalankan dengan specific user
+ansible webservers -m ping -i inventory/hosts.yaml \
+  -u deploy --private-key ~/.ssh/ansible_key
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Playbooks            -->
+      <!-- ============================== -->
+      <h2 id="playbooks">5. Playbooks</h2>
+
+      <p><strong>Playbook</strong> adalah file YAML yang berisi daftar <strong>plays</strong>. Setiap play mendefinisikan sekumpulan <strong>tasks</strong> yang akan dijalankan pada host tertentu. Playbook adalah cara utama menggunakan Ansible untuk automation yang kompleks.</p>
+
+      <h3>Struktur Playbook</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># playbooks/setup-webserver.yaml
+---
+- name: Setup Web Server          # Nama play
+  hosts: webservers               # Target hosts
+  become: yes                     # Gunakan sudo
+  vars:                           # Variables untuk play ini
+    nginx_version: "1.27.0"
+    app_port: 8080
+  tasks:                          # Daftar tasks
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Nginx
+      apt:
+        name: "nginx={{ nginx_version }}"
+        state: present
+
+    - name: Copy Nginx config
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart Nginx
+
+    - name: Ensure Nginx is running
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Open firewall port
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - "22"
+        - "80"
+        - "443"
+
+  handlers:                       # Handlers (triggered by notify)
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
+</code></pre>
+      </div>
+
+      <h3>Multi-Play Playbook</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># playbooks/full-stack.yaml
+---
+# Play 1: Setup Database Server
+- name: Setup Database Server
+  hosts: dbservers
+  become: yes
+  tasks:
+    - name: Install MySQL
+      apt:
+        name:
+          - mysql-server
+          - mysql-client
+          - python3-mysqldb
+        state: present
+
+    - name: Start MySQL
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Create database
+      mysql_db:
+        name: "{{ app_db_name }}"
+        state: present
+        encoding: utf8mb4
+        collation: utf8mb4_unicode_ci
+
+    - name: Create database user
+      mysql_user:
+        name: "{{ app_db_user }}"
+        password: "{{ app_db_password }}"
+        priv: "{{ app_db_name }}.*:ALL"
+        state: present
+
+# Play 2: Setup Web Server
+- name: Setup Web Server
+  hosts: webservers
+  become: yes
+  vars:
+    app_port: 8080
+  tasks:
+    - name: Install packages
+      apt:
+        name:
+          - nginx
+          - python3
+          - python3-pip
+          - certbot
+          - python3-certbot-nginx
+        state: present
+
+    - name: Copy app config
+      template:
+        src: templates/app.conf.j2
+        dest: /etc/nginx/sites-available/app.conf
+      notify: Restart Nginx
+
+    - name: Enable site
+      file:
+        src: /etc/nginx/sites-available/app.conf
+        dest: /etc/nginx/sites-enabled/app.conf
+        state: link
+      notify: Restart Nginx
+
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
+
+# Play 3: Setup Monitoring
+- name: Setup Monitoring
+  hosts: monitoring
+  become: yes
+  tasks:
+    - name: Install Prometheus
+      apt:
+        name: prometheus
+        state: present
+
+    - name: Install Grafana
+      apt:
+        name: grafana
+        state: present
+</code></pre>
+      </div>
+
+      <h3>Error Handling di Playbook</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Error handling dengan block/rescue/always
+- name: Deploy application with error handling
+  hosts: webservers
+  become: yes
+  tasks:
+    - block:
+        - name: Pull latest code
+          git:
+            repo: "https://github.com/app/repo.git"
+            dest: /opt/app
+            version: main
+
+        - name: Install dependencies
+          command: pip install -r requirements.txt
+          args:
+            chdir: /opt/app
+
+        - name: Restart application
+          service:
+            name: myapp
+            state: restarted
+
+      rescue:
+        - name: Rollback to previous version
+          git:
+            repo: "https://github.com/app/repo.git"
+            dest: /opt/app
+            version: "{{ previous_version }}"
+
+        - name: Send failure notification
+          mail:
+            to: admin@example.com
+            subject: "Deploy FAILED on {{ inventory_hostname }}"
+            body: "Deploy gagal, rolling back ke {{ previous_version }}"
+
+      always:
+        - name: Log deployment result
+          lineinfile:
+            path: /var/log/deployments.log
+            line: "{{ ansible_date_time.iso8601 }} - Deploy attempted on {{ inventory_hostname }}"
+            create: yes
+</code></pre>
+      </div>
+
+      <h3>Menjalankan Playbook</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Jalankan playbook
+ansible-playbook -i inventory/hosts.yaml playbooks/setup-webserver.yaml
+
+# Dry-run (check mode) — tanpa eksekusi
+ansible-playbook -i inventory/hosts.yaml playbooks/setup-webserver.yaml --check
+
+# Verbose mode (-v, -vv, -vvv)
+ansible-playbook -i inventory/hosts.yaml playbooks/setup-webserver.yaml -vvv
+
+# Jalankan dengan specific tag
+ansible-playbook -i inventory/hosts.yaml playbooks/setup-webserver.yaml --tags "nginx,firewall"
+
+# Skip tags tertentu
+ansible-playbook -i inventory/hosts.yaml playbooks/setup-webserver.yaml --skip-tags "firewall"
+
+# Jalankan dengan extra variables
+ansible-playbook -i inventory/hosts.yaml playbooks/setup-webserver.yaml \
+  -e "nginx_version=1.27.1 app_port=9090"
+
+# Limit ke host tertentu
+ansible-playbook -i inventory/hosts.yaml playbooks/setup-webserver.yaml \
+  --limit web1,web2
+
+# Step-by-step (konfirmasi setiap task)
+ansible-playbook -i inventory/hosts.yaml playbooks/setup-webserver.yaml --step
+
+# Mulai dari task tertentu
+ansible-playbook -i inventory/hosts.yaml playbooks/setup-webserver.yaml \
+  --start-at-task="Copy Nginx config"
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Modules              -->
+      <!-- ============================== -->
+      <h2 id="modules">6. Modules</h2>
+
+      <p><strong>Module</strong> adalah unit kerja dasar Ansible. Setiap task menggunakan satu module. Ansible memiliki ratusan module built-in dan ribuan lagi dari komunitas.</p>
+
+      <h3>Module Populer</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th>Fungsi</th>
+            <th>Contoh</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>apt</td><td>Manage packages Debian/Ubuntu</td><td><code>apt: name=nginx state=present</code></td></tr>
+          <tr><td>yum</td><td>Manage packages RHEL/CentOS</td><td><code>yum: name=nginx state=present</code></td></tr>
+          <tr><td>service</td><td>Manage system services</td><td><code>service: name=nginx state=started</code></td></tr>
+          <tr><td>copy</td><td>Copy file dari local ke remote</td><td><code>copy: src=./file dest=/etc/file</code></td></tr>
+          <tr><td>template</td><td>Render Jinja2 template lalu copy</td><td><code>template: src=t.j2 dest=/etc/t</code></td></tr>
+          <tr><td>file</td><td>Manage file/directory</td><td><code>file: path=/opt/app state=directory</code></td></tr>
+          <tr><td>user</td><td>Manage user accounts</td><td><code>user: name=deploy state=present</code></td></tr>
+          <tr><td>git</td><td>Manage Git repositories</td><td><code>git: repo=... dest=/opt/app</code></td></tr>
+          <tr><td>command</td><td>Run command (no shell)</td><td><code>command: ls -la /opt</code></td></tr>
+          <tr><td>shell</td><td>Run shell command</td><td><code>shell: cat /etc/passwd | grep root</code></td></tr>
+          <tr><td>docker_container</td><td>Manage Docker containers</td><td><code>docker_container: name=web image=nginx</code></td></tr>
+          <tr><td>pip</td><td>Manage Python packages</td><td><code>pip: name=flask state=present</code></td></tr>
+          <tr><td>cron</td><td>Manage cron jobs</td><td><code>cron: name="backup" job="/opt/backup.sh"</code></td></tr>
+          <tr><td>lineinfile</td><td>Manage lines in text file</td><td><code>lineinfile: path=/etc/hosts line="..."</code></td></tr>
+          <tr><td>ufw</td><td>Manage firewall (UFW)</td><td><code>ufw: rule=allow port=80</code></td></tr>
+          <tr><td>systemd</td><td>Manage systemd services</td><td><code>systemd: name=nginx state=restarted</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Contoh Penggunaan Module</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Module apt — install packages
+- name: Install required packages
+  apt:
+    name:
+      - nginx
+      - python3
+      - git
+      - curl
+    state: present
+    update_cache: yes
+
+# Module file — buat direktori
+- name: Create app directory
+  file:
+    path: /opt/myapp
+    state: directory
+    owner: deploy
+    group: deploy
+    mode: '0755'
+
+# Module git — clone repository
+- name: Clone application repository
+  git:
+    repo: "https://github.com/app/repo.git"
+    dest: /opt/myapp
+    version: main
+    force: yes
+
+# Module template — render dan copy config
+- name: Generate nginx config
+  template:
+    src: templates/nginx.conf.j2
+    dest: /etc/nginx/sites-available/myapp.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart nginx
+
+# Module service — manage service
+- name: Ensure nginx is running
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+
+# Module user — buat user
+- name: Create application user
+  user:
+    name: deploy
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+    create_home: yes
+
+# Module cron — tambah cron job
+- name: Add backup cron job
+  cron:
+    name: "Database backup"
+    minute: "0"
+    hour: "2"
+    job: "/opt/scripts/backup.sh &gt;&gt; /var/log/backup.log 2&gt;&amp;1"
+    user: deploy
+
+# Module lineinfile — edit file
+- name: Set timezone
+  lineinfile:
+    path: /etc/environment
+    regexp: "^TZ="
+    line: "TZ=Asia/Jakarta"
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Variables & Facts    -->
+      <!-- ============================== -->
+      <h2 id="variables">7. Variables &amp; Facts</h2>
+
+      <p><strong>Variables</strong> memungkinkan playbook menjadi fleksibel dan reusable. <strong>Facts</strong> adalah informasi tentang sistem target yang dikumpulkan otomatis oleh Ansible.</p>
+
+      <h3>Definisi Variables</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Definisi di playbook
+- name: Configure web server
+  hosts: webservers
+  vars:
+    app_name: "myapp"
+    app_port: 8080
+    app_env: "production"
+    db_host: "192.168.1.20"
+    max_clients: 200
+  tasks:
+    - name: Print variables
+      debug:
+        msg: "Deploying {{ app_name }} on port {{ app_port }}"
+
+# Definisi di file terpisah
+# group_vars/webservers.yaml
+app_name: "myapp"
+app_port: 8080
+db_host: "192.168.1.20"
+
+# group_vars/dbservers.yaml
+mysql_root_password: "{{ vault_mysql_root_password }}"
+mysql_datadir: "/var/lib/mysql"
+
+# host_vars/web1.yaml
+app_port: 9090   # Override untuk web1 saja
+</code></pre>
+      </div>
+
+      <h3>Facts</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Lihat semua facts dari host
+# ansible web1 -m setup -i inventory/hosts.yaml
+
+# Gunakan facts di playbook
+- name: Print system info
+  hosts: all
+  tasks:
+    - name: Show OS info
+      debug:
+        msg: "{{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+    - name: Show IP address
+      debug:
+        msg: "IP: {{ ansible_default_ipv4.address }}"
+
+    - name: Show memory
+      debug:
+        msg: "RAM: {{ ansible_memtotal_mb }} MB"
+
+    - name: Conditional berdasarkan OS
+      apt:
+        name: nginx
+        state: present
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Conditional berdasarkan versi
+      yum:
+        name: nginx
+        state: present
+      when: ansible_distribution == "CentOS" and ansible_distribution_major_version == "8"
+</code></pre>
+      </div>
+
+      <h3>Register Variables</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Simpan output task ke variable
+- name: Check service status
+  hosts: webservers
+  tasks:
+    - name: Check nginx status
+      command: systemctl is-active nginx
+      register: nginx_status
+      ignore_errors: yes
+
+    - name: Print status
+      debug:
+        msg: "Nginx status: {{ nginx_status.stdout }}"
+
+    - name: Start nginx if not running
+      service:
+        name: nginx
+        state: started
+      when: nginx_status.rc != 0
+
+    - name: Get disk usage
+      command: df -h /
+      register: disk_info
+
+    - name: Print disk usage
+      debug:
+        msg: "{{ disk_info.stdout_lines }}"
+</code></pre>
+      </div>
+
+      <h3>Loops</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Simple loop
+- name: Install multiple packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - nginx
+    - python3
+    - git
+    - curl
+
+# Loop dengan dictionary
+- name: Create multiple users
+  user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups }}"
+    shell: "{{ item.shell }}"
+  loop:
+    - { name: "deploy", groups: "sudo", shell: "/bin/bash" }
+    - { name: "monitor", groups: "adm", shell: "/bin/bash" }
+    - { name: "backup", groups: "www-data", shell: "/bin/sh" }
+
+# Loop dengan register
+- name: Check multiple services
+  command: systemctl is-active {{ item }}
+  loop:
+    - nginx
+    - mysql
+    - redis
+  register: service_results
+  ignore_errors: yes
+
+- name: Show failed services
+  debug:
+    msg: "{{ item.item }} is {{ item.stdout }}"
+  loop: "{{ service_results.results }}"
+  when: item.rc != 0
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Roles                -->
+      <!-- ============================== -->
+      <h2 id="roles">8. Roles</h2>
+
+      <p><strong>Roles</strong> adalah cara Ansible untuk mengorganisir playbook, tasks, variables, handlers, dan files ke dalam struktur direktori yang terstruktur dan reusable. Role mempromosikan reusability dan separation of concerns.</p>
+
+      <h3>Struktur Role</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Struktur Direktori</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+</div>
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: # Membuat role baru dengan ansible-galaxy</div>
+<pre><code>/&quot;No. Membuat role baru dengan ansible-galaxy&quot;/
+/&quot;defaults/&quot;/
+/&quot;main.yml&quot;/
+files/
+/&quot;handlers/&quot;/
+/&quot;main.yml&quot;/
+meta/
+/&quot;main.yml&quot;/
+tasks/
+/&quot;main.yml&quot;/
+/&quot;templates/&quot;/
+tests/
+/&quot;inventory&quot;/
+/&quot;test.yml&quot;/
+vars/
+/&quot;main.yml&quot;/
+/&quot;README.md&quot;/</code></pre>
+    </div>
+      </div>
+
+      <h3>Contoh Role Lengkap: Nginx</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML (defaults/main.yml)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># roles/nginx/defaults/main.yml
+nginx_port: 80
+nginx_worker_processes: "auto"
+nginx_worker_connections: 1024
+nginx_keepalive_timeout: 65
+nginx_client_max_body_size: "16m"
+nginx_server_name: "localhost"
+nginx_root_dir: "/var/www/html"
+nginx_enable_ssl: false
+nginx_ssl_certificate: ""
+nginx_ssl_certificate_key: ""
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML (tasks/main.yml)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># roles/nginx/tasks/main.yml
+---
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+  tags: install
+
+- name: Remove default config
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  tags: config
+
+- name: Copy Nginx configuration
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart Nginx
+  tags: config
+
+- name: Copy site configuration
+  template:
+    src: site.conf.j2
+    dest: /etc/nginx/sites-available/{{ nginx_server_name }}.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload Nginx
+  tags: config
+
+- name: Enable site
+  file:
+    src: /etc/nginx/sites-available/{{ nginx_server_name }}.conf
+    dest: /etc/nginx/sites-enabled/{{ nginx_server_name }}.conf
+    state: link
+  notify: Reload Nginx
+  tags: config
+
+- name: Ensure Nginx is running
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+  tags: service
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML (handlers/main.yml)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># roles/nginx/handlers/main.yml
+---
+- name: Restart Nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: Reload Nginx
+  service:
+    name: nginx
+    state: reloaded
+</code></pre>
+      </div>
+
+      <h3>Menggunakan Role di Playbook</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># playbooks/site.yaml
+---
+- name: Configure Web Servers
+  hosts: webservers
+  become: yes
+  roles:
+    - role: common         # Role dasar (selalu dipakai)
+    - role: nginx           # Role Nginx
+      vars:
+        nginx_port: 80
+        nginx_server_name: "app.example.com"
+        nginx_enable_ssl: true
+    - role: app             # Role aplikasi custom
+      tags: app
+
+- name: Configure Database Servers
+  hosts: dbservers
+  become: yes
+  roles:
+    - role: common
+    - role: mysql
+      vars:
+        mysql_port: 3306
+    - role: monitoring
+</code></pre>
+      </div>
+
+      <h3>Role dari Ansible Galaxy</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Cari role di Galaxy
+ansible-galaxy search nginx
+
+# Install role
+ansible-galaxy install geerlingguy.nginx
+ansible-galaxy install geerlingguy.mysql
+ansible-galaxy install geerlingguy.redis
+
+# Install collection
+ansible-galaxy collection install community.general
+ansible-galaxy collection install community.docker
+
+# Install dari requirements file
+ansible-galaxy install -r requirements.yml
+
+# List installed roles
+ansible-galaxy list
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Jinja2 Templates     -->
+      <!-- ============================== -->
+      <h2 id="jinja2-templates">9. Jinja2 Templates</h2>
+
+      <p>Ansible menggunakan <strong>Jinja2</strong> sebagai template engine. Template memungkinkan Anda membuat file konfigurasi yang dinamis berdasarkan variables.</p>
+
+      <h3>Contoh Template Nginx</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Jinja2</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># templates/nginx.conf.j2
+# Managed by Ansible — jangan edit manual!
+# Generated: {{ ansible_date_time.iso8601 }}
+
+worker_processes {{ nginx_worker_processes }};
+
+events {
+    worker_connections {{ nginx_worker_connections }};
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile      on;
+    keepalive_timeout {{ nginx_keepalive_timeout }};
+
+    # Logging
+    log_format main '$remote_addr - $remote_user [$time_local] '
+                    '"$request" $status $body_bytes_sent '
+                    '"$http_referer" "$http_user_agent"';
+
+    access_log /var/log/nginx/access.log main;
+    error_log  /var/log/nginx/error.log warn;
+
+    # Gzip
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript;
+
+    server {
+        listen {{ nginx_port }};
+        server_name {{ nginx_server_name }};
+        root {{ nginx_root_dir }};
+        client_max_body_size {{ nginx_client_max_body_size }};
+
+{% if nginx_enable_ssl %}
+        listen 443 ssl http2;
+        ssl_certificate {{ nginx_ssl_certificate }};
+        ssl_certificate_key {{ nginx_ssl_certificate_key }};
+        ssl_protocols TLSv1.2 TLSv1.3;
+{% endif %}
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+
+        location /api {
+            proxy_pass http://127.0.0.1:{{ app_port }};
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+
+{% for server in upstream_servers %}
+        upstream backend_{{ server.name }} {
+            server {{ server.address }}:{{ server.port }};
+        }
+{% endfor %}
+    }
+}
+</code></pre>
+      </div>
+
+      <h3>Loop di Template</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Jinja2</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># templates/hosts.j2
+# Managed by Ansible
+127.0.0.1   localhost
+{% for host in groups['webservers'] %}
+{{ hostvars[host]['ansible_default_ipv4']['address'] }}  {{ host }}
+{% endfor %}
+{% for host in groups['dbservers'] %}
+{{ hostvars[host]['ansible_default_ipv4']['address'] }}  {{ host }}
+{% endfor %}
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Ansible Vault       -->
+      <!-- ============================== -->
+      <h2 id="ansible-vault">10. Ansible Vault</h2>
+
+      <p><strong>Ansible Vault</strong> memungkinkan Anda mengenkripsi sensitive data seperti password, API keys, dan certificates. Data terenkripsi bisa disimpan bersama playbook di Git tanpa khawatir kebocoran.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Buat encrypted file
+ansible-vault create secrets.yml
+
+# Edit encrypted file
+ansible-vault edit secrets.yml
+
+# Encrypt file yang sudah ada
+ansible-vault encrypt group_vars/production/secrets.yml
+
+# Decrypt file
+ansible-vault decrypt secrets.yml
+
+# View encrypted file (tanpa decrypt)
+ansible-vault view secrets.yml
+
+# Change vault password
+ansible-vault rekey secrets.yml
+
+# Jalankan playbook dengan vault password
+ansible-playbook site.yml --ask-vault-pass
+
+# Jalankan dengan vault password file
+ansible-playbook site.yml --vault-password-file ~/.vault_pass
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">YAML (Encrypted)</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># group_vars/production/secrets.yml (encrypted)
+$ANSIBLE_VAULT;1.1;AES256
+38326665383036346463356266363964323531306363656238393539383232323838376537656439
+...
+
+# Referensi di playbook
+- name: Configure database
+  mysql_user:
+    name: "{{ app_db_user }}"
+    password: "{{ vault_db_password }}"  # Disimpan di file terenkripsi
+    priv: "{{ app_db_name }}.*:ALL"
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 11: Best Practices      -->
+      <!-- ============================== -->
+      <h2 id="best-practices">11. Best Practices</h2>
+
+      <h3>Struktur Proyek Ansible</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Struktur</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+</div>
+<div class="diagram-box">
+        <div class="diagram-label">Diagram: ansible-project/</div>
+<pre><code>/&quot;ansible-project/&quot;/
+/&quot;ansible.cfg&quot;/
+/&quot;inventory/&quot;/
+/&quot;production/&quot;/
+/&quot;hosts.yaml&quot;/
+/&quot;group_vars/&quot;/
+/&quot;all.yaml&quot;/
+/&quot;webservers.yaml&quot;/
+/&quot;dbservers.yaml&quot;/
+/&quot;host_vars/&quot;/
+/&quot;web1.yaml&quot;/
+/&quot;staging/&quot;/
+/&quot;hosts.yaml&quot;/
+/&quot;group_vars/&quot;/
+roles/
+common/
+nginx/
+mysql/
+app/
+/&quot;playbooks/&quot;/
+/&quot;site.yaml&quot;/
+/&quot;webservers.yaml&quot;/
+/&quot;dbservers.yaml&quot;/
+/&quot;deploy.yaml&quot;/
+/&quot;templates/&quot;/
+files/
+/&quot;requirements.yml&quot;/
+/&quot;README.md&quot;/</code></pre>
+    </div>
+      </div>
+
+      <h3>Checklist Best Practices</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Praktik</th>
+            <th>Rekomendasi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Idempotency</td><td>Pastikan playbook idempotent — jalankan berkali-kali hasilnya sama</td></tr>
+          <tr><td>Tags</td><td>Gunakan tags untuk menjalankan sebagian playbook</td></tr>
+          <tr><td>Lint</td><td>Jalankan <code>ansible-lint</code> sebelum commit</td></tr>
+          <tr><td>Vault</td><td>Enkripsi semua sensitive data dengan Ansible Vault</td></tr>
+          <tr><td>Roles</td><td>Gunakan roles untuk organisasi playbook yang baik</td></tr>
+          <tr><td>Versions</td><td>Pin versi roles di requirements.yml</td></tr>
+          <tr><td>Testing</td><td>Gunakan <code>--check</code> mode sebelum deploy ke production</td></tr>
+          <tr><td>Documentation</td><td>Tambahkan README.md di setiap role</td></tr>
+          <tr><td>Handlers</td><td>Gunakan handlers untuk restart service (bukan task biasa)</td></tr>
+          <tr><td>Minimal Privilege</td><td>Gunakan <code>become: yes</code> hanya saat diperlukan</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan</div>
+        <p>Jangan pernah menyimpan password atau API keys dalam plaintext di inventory atau playbook. Selalu gunakan Ansible Vault atau external secret management (HashiCorp Vault, AWS Secrets Manager) untuk data sensitif.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- ============================== -->
+      <!-- SECTION 12: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz-ansible">12. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quizAnsible01">
+        <div class="quiz-question" data-answer="b">
+          <p><strong>1. Apa arti "agentless" pada Ansible?</strong></p>
+          <label class="quiz-option"><input type="radio" name="q1" value="a"> Ansible tidak membutuhkan control node</label>
+          <label class="quiz-option"><input type="radio" name="q1" value="b"> Ansible tidak perlu menginstal agen di target server — cukup SSH</label>
+          <label class="quiz-option"><input type="radio" name="q1" value="c"> Ansible tidak bisa mengelola remote server</label>
+          <label class="quiz-option"><input type="radio" name="q1" value="d"> Ansible hanya bisa dijalankan secara lokal</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question" data-answer="c">
+          <p><strong>2. Apa perbedaan antara "command" dan "shell" module?</strong></p>
+          <label class="quiz-option"><input type="radio" name="q2" value="a"> Tidak ada perbedaan</label>
+          <label class="quiz-option"><input type="radio" name="q2" value="b"> command lebih cepat dari shell</label>
+          <label class="quiz-option"><input type="radio" name="q2" value="c"> shell mendukung pipe (|), redirect (&gt;), dan environment variables; command tidak</label>
+          <label class="quiz-option"><input type="radio" name="q2" value="d"> command lebih aman karena tidak bisa di-injection</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question" data-answer="a">
+          <p><strong>3. Apa fungsi Ansible Vault?</strong></p>
+          <label class="quiz-option"><input type="radio" name="q3" value="a"> Mengenkripsi sensitive data seperti password dan API keys</label>
+          <label class="quiz-option"><input type="radio" name="q3" value="b"> Menyimpan backup dari server yang dikelola</label>
+          <label class="quiz-option"><input type="radio" name="q3" value="c"> Mengelola version control untuk playbook</label>
+          <label class="quiz-option"><input type="radio" name="q3" value="d"> Mengenkripsi SSH traffic ke target server</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question" data-answer="d">
+          <p><strong>4. Apa fungsi "handlers" di Ansible playbook?</strong></p>
+          <label class="quiz-option"><input type="radio" name="q4" value="a"> Menangani error yang terjadi saat playbook berjalan</label>
+          <label class="quiz-option"><input type="radio" name="q4" value="b"> Mengelola variabel yang berubah selama playbook berjalan</label>
+          <label class="quiz-option"><input type="radio" name="q4" value="c"> Menghapus file yang tidak diperlukan</label>
+          <label class="quiz-option"><input type="radio" name="q4" value="d"> Task yang hanya dijalankan ketika dipanggil via "notify" dari task lain</label>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question" data-answer="b">
+          <p><strong>5. Apa itu "idempotent" dalam konteks Ansible?</strong></p>
+          <label class="quiz-option"><input type="radio" name="q5" value="a"> Playbook hanya bisa dijalankan sekali</label>
+          <label class="quiz-option"><input type="radio" name="q5" value="b"> Menjalankan playbook berkali-kali tetap aman — hanya perubahan yang diperlukan yang dilakukan</label>
+          <label class="quiz-option"><input type="radio" name="q5" value="c"> Semua task dijalankan secara paralel</label>
+          <label class="quiz-option"><input type="radio" name="q5" value="d"> Playbook tidak memerlukan sudo</label>
+          <div class="quiz-feedback"></div>
+        </div>
+      </div>
+
+    </div>
+  </article>
+
+  <section class="related-articles">
+    <div class="container">
+      <h2>Artikel Terkait</h2>
+      <div class="related-grid">
+        <a href="kubernetes-helm.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <h3>Kubernetes Helm: Package Manager</h3>
+          <p>Charts, values, releases, dan repositories</p>
+        </a>
+        <a href="docker-dasar.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <h3>Docker untuk Developer</h3>
+          <p>Panduan praktis containers, Dockerfile, dan Docker Compose</p>
+        </a>
+        <a href="prometheus-grafana-advanced.html" class="related-card">
+          <span class="related-category">DevOps & Cloud</span>
+          <h3>Prometheus &amp; Grafana Advanced</h3>
+          <p>Custom metrics, alerts, dan dashboards</p>
+        </a>
+      </div>
+    </div>
+  </section>

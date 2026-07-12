@@ -1,0 +1,470 @@
+<div class="search-overlay" id="searchOverlay"><button class="search-close-btn" aria-label="Tutup pencarian">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." autocomplete="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+  <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Networking</a><span class="separator">/</span><span class="current">MPLS</span></div><span class="category-tag">Networking</span><h1>MPLS dan Traffic Engineering: Panduan Lengkap</h1><p class="article-subtitle">Tutorial MPLS untuk ISP — LDP, RSVP-TE, fast reroute, VPLS, dan Layer 3 VPN pada MikroTik RouterOS</p><div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 16 menit baca</span><span class="difficulty lanjut">Lanjut</span></div></div></section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+  <article class="article-content" id="main-content"><div class="container">
+
+    <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#pengenalan">Pengenalan MPLS</a></li>
+      <li><a href="#ldp">LDP — Label Distribution Protocol</a></li>
+      <li><a href="#rsvp-te">RSVP-TE dan Traffic Engineering</a></li>
+      <li><a href="#fast-reroute">Fast Reroute &amp; Protection</a></li>
+      <li><a href="#vpls">VPLS — Virtual Private LAN Service</a></li>
+      <li><a href="#l3vpn">Layer 3 VPN (VRF)</a></li>
+      <li><a href="#mikrotik">Konfigurasi MPLS di MikroTik</a></li>
+      <li><a href="#troubleshooting">Troubleshooting MPLS</a></li>
+      <li><a href="#quiz">Quiz Pemahaman</a></li>
+    </ol></div>
+
+    <h2 id="pengenalan">1. Pengenalan MPLS</h2>
+    <p><strong>MPLS (Multiprotocol Label Switching)</strong> adalah teknologi yang menggabungkan kecepatan switching Layer 2 dengan fleksibilitas routing Layer 3. MPLS menggunakan label (angka pendek) untuk meneruskan paket, bukan berdasarkan IP address lookup yang kompleks.</p>
+    <p>MPLS sangat populer di kalangan ISP untuk backbone network karena mendukung VPN, traffic engineering, dan fast reroute — fitur yang sulit dicapai dengan IP routing murni.</p>
+
+    <div class="arch-diagram">
+      <div class="arch-title">Cara Kerja MPLS</div>
+      <div class="arch-row">
+        <div class="arch-box highlight"><div class="arch-icon">📨</div><div class="arch-label">IP Packet Masuk</div><div class="arch-desc">Ingress LER<br>Push label</div></div>
+        <div class="arch-arrow">→ Label →</div>
+        <div class="arch-box info"><div class="arch-icon">🔀</div><div class="arch-label">LSR (Core)</div><div class="arch-desc">Swap label<br>L3 switching</div></div>
+        <div class="arch-arrow">→ Label →</div>
+        <div class="arch-box purple"><div class="arch-icon">📤</div><div class="arch-label">IP Packet Keluar</div><div class="arch-desc">Egress LER<br>Pop label</div></div>
+      </div>
+    </div>
+
+    <h3>1.1 Komponen MPLS</h3>
+    <table class="spec-table">
+      <thead><tr><th>Komponen</th><th>Nama Lengkap</th><th>Fungsi</th></tr></thead>
+      <tbody>
+        <tr><td><strong>LER</strong></td><td>Label Edge Router</td><td>Router di tepi yang menambah/menghapus label</td></tr>
+        <tr><td><strong>LSR</strong></td><td>Label Switch Router</td><td>Router di core yang menukar label</td></tr>
+        <tr><td><strong>LSP</strong></td><td>Label Switched Path</td><td>Jalur MPLS dari ingress ke egress</td></tr>
+        <tr><td><strong>FEC</strong></td><td>Forwarding Equivalence Class</td><td>Kelompok paket dengan treatment sama</td></tr>
+        <tr><td><strong>LDP</strong></td><td>Label Distribution Protocol</td><td>Protokol untuk distribusi label otomatis</td></tr>
+        <tr><td><strong>RSVP-TE</strong></td><td>Resource Reservation Protocol-TE</td><td>Protokol untuk traffic engineering</td></tr>
+      </tbody>
+    </table>
+
+    <h3>1.2 MPLS Label Structure</h3>
+    <ul>
+      <li><strong>Label Value:</strong> 20 bit (0-1048575) — nomor label</li>
+      <li><strong>TC (Traffic Class):</strong> 3 bit — QoS / EXP bits</li>
+      <li><strong>S (Bottom of Stack):</strong> 1 bit — menandai label terbawah</li>
+      <li><strong>TTL:</strong> 8 bit — Time To Live</li>
+    </ul>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <h2 id="ldp">2. LDP — Label Distribution Protocol</h2>
+    <p><strong>LDP</strong> adalah protokol yang digunakan untuk mendistribusikan label MPLS secara otomatis antar router. LDP membuat LSP (Label Switched Path) yang mengikuti jalur IGP terpendek (biasanya OSPF atau IS-IS).</p>
+
+    <h3>2.1 Cara Kerja LDP</h3>
+    <ol>
+      <li>Setiap LSR menjalankan IGP (OSPF/IS-IS) untuk mengetahui topologi jaringan</li>
+      <li>LSR membuat label lokal untuk setiap FEC (prefix) yang diketahui</li>
+      <li>LSR meng-announce label ke LDP neighbor via TCP port 646</li>
+      <li>LSR menerima label dari neighbor dan membangun LFIB (Label Forwarding Information Base)</li>
+      <li>Paket diteruskan berdasarkan swap/push/pop label, bukan IP lookup</li>
+    </ol>
+
+    <h3>2.2 Konfigurasi LDP di MikroTik</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — LDP Setup</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Aktifkan MPLS pada interface core
+/mpls ldp set enabled=yes \
+  transport-address=10.0.0.1 \
+  lsr-id=10.0.0.1
+
+# Tambah interface LDP (interface yang terhubung ke LSR lain)
+/mpls ldp interface add interface=ether1
+/mpls ldp interface add interface=ether2
+
+# Verifikasi LDP neighbors
+/mpls ldp neighbor print
+
+# Verifikasi LDP bindings (label)
+/mpls ldp bindings print
+
+# Verifikasi LSP
+/mpls forwarding-table print
+</code></pre>
+    </div>
+
+    <h3>2.3 LDP vs RSVP-TE</h3>
+    <table class="spec-table">
+      <thead><tr><th>Fitur</th><th>LDP</th><th>RSVP-TE</th></tr></thead>
+      <tbody>
+        <tr><td>Konfigurasi</td><td>Otomatis (mengikuti IGP)</td><td>Manual (explicit path)</td></tr>
+        <tr><td>Traffic Engineering</td><td>Tidak (shortest path only)</td><td>Ya (bisa pilih jalur)</td></tr>
+        <tr><td>Bandwidth Reservation</td><td>Tidak</td><td>Ya</td></tr>
+        <tr><td>Fast Reroute</td><td>Tidak</td><td>Ya (FRR)</td></tr>
+        <tr><td>Kompleksitas</td><td>Rendah</td><td>Tinggi</td></tr>
+        <tr><td>Cocok Untuk</td><td>Topologi sederhana</td><td>Backbone ISP besar</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="rsvp-te">3. RSVP-TE dan Traffic Engineering</h2>
+    <p><strong>RSVP-TE (Resource Reservation Protocol - Traffic Engineering)</strong> memungkinkan Anda membuat LSP eksplisit yang tidak mengikuti jalur IGP terpendek, melainkan jalur yang Anda tentukan sendiri berdasarkan kebutuhan bandwidth dan policy.</p>
+
+    <h3>3.1 Konsep Traffic Engineering</h3>
+    <p>Tanpa TE, semua traffic akan mengikuti jalur terpendek — yang bisa menyebabkan link utama overload sementara link lain idle. Dengan TE, Anda bisa mendistribusikan traffic merata ke semua link yang tersedia.</p>
+
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — RSVP-TE Setup</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Aktifkan RSVP-TE pada interface
+/mpls traffic-eng interface add \
+  interface=ether1 \
+  bandwidth=100M
+
+/mpls traffic-eng interface add \
+  interface=ether2 \
+  bandwidth=100M
+
+# Buat tunnel RSVP-TE dengan explicit path
+/mpls traffic-eng tunnel add \
+  name=tunnel-to-siteB \
+  to-address=10.0.0.2 \
+  primary-path=path1 \
+  bandwidth=50M \
+  record-route=yes
+
+# Definisikan explicit path
+/mpls traffic-eng path add \
+  name=path1 \
+  node=10.0.0.3 strict=yes
+
+/mpls traffic-eng path add \
+  name=path1 \
+  node=10.0.0.2 strict=yes
+</code></pre>
+    </div>
+
+    <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide"></div>
+
+    <h2 id="fast-reroute">4. Fast Reroute &amp; Protection</h2>
+    <p><strong>Fast Reroute (FRR)</strong> adalah mekanisme untuk memulihkan LSP dengan sangat cepat (< 50ms) ketika terjadi kegagalan link. Ini kritis untuk layanan yang membutuhkan availability tinggi seperti VoIP dan video conference.</p>
+
+    <h3>4.1 Jenis Protection</h3>
+    <ul>
+      <li><strong>Facility Backup (Many-to-One):</strong> Satu backup tunnel melindungi banyak LSP yang melewati link yang sama. Lebih efisien.</li>
+      <li><strong>One-to-One (Detour):</strong> Setiap LSP memiliki backup path sendiri. Lebih presisi tapi kurang scalable.</li>
+      <li><strong>Link Protection:</strong> Melindungi kegagalan link tertentu.</li>
+      <li><strong>Node Protection:</strong> Melindungi kegagalan node tertentu (lebih komprehensif).</li>
+    </ul>
+
+    <div class="info-box tip"><div class="info-box-title">💡 FRR di MikroTik</div>
+    <p>MikroTik RouterOS mendukung RSVP-TE fast reroute dengan backup tunnel. Konfigurasikan backup path pada tunnel RSVP-TE untuk proteksi otomatis terhadap kegagalan link.</p></div>
+
+    <h2 id="vpls">5. VPLS — Virtual Private LAN Service</h2>
+    <p><strong>VPLS</strong> memungkinkan Anda membuat koneksi Layer 2 (Ethernet) point-to-multipoint di atas jaringan MPLS. Ini seperti memiliki switch virtual yang tersebar di beberapa lokasi geografis.</p>
+
+    <h3>5.1 Konfigurasi VPLS di MikroTik</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — VPLS Setup</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Buat VPLS tunnel (PE Router A)
+/interface vpls add \
+  name=vpls-siteB \
+  remote-peer=10.0.0.2 \
+  vpls-id=100:1 \
+  l2mtu=1500 \
+  disabled=no
+
+# Buat bridge untuk menggabungkan VPLS dengan local interface
+/interface bridge add name=bridge-vpls
+/interface bridge port add bridge=bridge-vpls interface=ether3
+/interface bridge port add bridge=bridge-vpls interface=vpls-siteB
+
+# Di PE Router B (site lain):
+/interface vpls add \
+  name=vpls-siteA \
+  remote-peer=10.0.0.1 \
+  vpls-id=100:1 \
+  l2mtu=1500 \
+  disabled=no
+
+/interface bridge add name=bridge-vpls
+/interface bridge port add bridge=bridge-vpls interface=ether3
+/interface bridge port add bridge=bridge-vpls interface=vpls-siteA
+</code></pre>
+    </div>
+
+    <h3>5.2 Kegunaan VPLS</h3>
+    <ul>
+      <li><strong>Transparent LAN Service:</strong> Menghubungkan kantor cabang dalam satu segmen Ethernet</li>
+      <li><strong>Layer 2 Extension:</strong> Memperpanjang VLAN antar lokasi</li>
+      <li><strong>Data Center Interconnect:</strong> Menghubungkan DC yang berbeda</li>
+      <li><strong>Broadcast/Multicast:</strong> Mendukung L2 broadcast dan multicast</li>
+    </ul>
+
+    <h2 id="l3vpn">6. Layer 3 VPN (VRF)</h2>
+    <p><strong>Layer 3 VPN</strong> (L3VPN) menggunakan MPLS untuk membuat VPN berbasis routing. Setiap pelanggan memiliki routing table terpisah (VRF) yang diisolasi dari pelanggan lain.</p>
+
+    <h3>6.1 Konfigurasi VRF di MikroTik</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — L3VPN/VRF Setup</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Buat routing instance (VRF) untuk pelanggan A
+/routing table add \
+  name=customer-a \
+  fib
+
+# Assign interface ke VRF
+/ip address add address=10.1.1.1/24 interface=ether3 \
+  routing-table=customer-a
+
+# Konfigurasi BGP untuk VPN
+/routing bgp instance add \
+  name=vpn-a \
+  as=65000 \
+  routing-table=customer-a
+
+/routing bgp peer add \
+  name=remote-pe \
+  instance=vpn-a \
+  remote-address=10.0.0.2 \
+  remote-as=65000 \
+  address-families=ip \
+  vrf=customer-a
+
+# Route leaking antar VRF (jika diperlukan)
+/routing filter add \
+  chain=leak-to-customer-a \
+  rule="if (dst in 10.2.2.0/24) { accept }"
+</code></pre>
+    </div>
+
+    <h2 id="mikrotik">7. Konfigurasi MPLS Lengkap di MikroTik</h2>
+    <div class="code-block"><div class="code-header"><span class="code-lang">MikroTik — MPLS Full Setup</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# LANGKAH 1: Pastikan IGP (OSPF) sudah berjalan
+/routing ospf instance set [find] mpls-te-area=0.0.0.0
+
+# LANGKAH 2: Aktifkan MPLS
+/mpls set enabled=yes
+
+# LANGKAH 3: Konfigurasi LDP
+/mpls ldp set enabled=yes \
+  transport-address=10.0.0.1 \
+  lsr-id=10.0.0.1
+
+# LANGKAH 4: Tambah LDP interface
+/mpls ldp interface add interface=ether1
+/mpls ldp interface add interface=ether2
+
+# LANGKAH 5: Verifikasi
+/mpls ldp neighbor print
+/mpls ldp bindings print
+/mpls forwarding-table print
+/interface mpls print
+</code></pre>
+    </div>
+
+    <div class="info-box warning"><div class="info-box-title">⚠️ Prasyarat MPLS</div>
+    <p>MPLS membutuhkan IGP (OSPF atau IS-IS) yang sudah berjalan dengan stabil. Pastikan semua LSR memiliki routing table yang konsisten sebelum mengaktifkan MPLS. Juga pastikan semua interface MPLS memiliki MTU yang memadai (minimal 1526 bytes) untuk menampung label header.</p></div>
+
+    <h2 id="ldp-detail">9. LDP Session States &amp; Monitoring</h2>
+    <p>Memahami LDP session state dan cara monitoring sangat penting untuk troubleshooting MPLS backbone.</p>
+
+    <h3>9.1 LDP Session States</h3>
+    <table class="spec-table">
+      <thead><tr><th>State</th><th>Keterangan</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Non Existent</strong></td><td>Session belum dimulai</td></tr>
+        <tr><td><strong>Initialized</strong></td><td>TCP connection established, menunggu init message</td></tr>
+        <tr><td><strong>Open Recv</strong></td><td>Init message diterima, menunggu keepalive</td></tr>
+        <tr><td><strong>Operational</strong></td><td>Session aktif, label exchange berjalan</td></tr>
+      </tbody>
+    </table>
+
+    <h3>9.2 Label Operations</h3>
+    <ul>
+      <li><strong>Push:</strong> Menambahkan label baru ke packet stack (ingress LER)</li>
+      <li><strong>Swap:</strong> Menukar label lama dengan label baru (core LSR)</li>
+      <li><strong>Pop:</strong> Menghapus label dari stack (egress LER)</li>
+      <li><strong>PHP (Penultimate Hop Popping):</strong> LSR sebelum egress pop label, sehingga egress tinggal forward IP packet</li>
+    </ul>
+
+    <h3>9.3 MPLS MTU Considerations</h3>
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — MPLS MTU</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Set MPLS MTU pada interface
+# Setiap label MPLS = 4 bytes, jadi perlu ruang ekstra
+# Minimal MPLS MTU = IP MTU + 4 * jumlah label
+
+# Set interface MTU ke 1526+ untuk MPLS
+/interface ethernet set ether1 mtu=1526
+/interface ethernet set ether2 mtu=1526
+
+# Set MPLS MTU
+/mpls set mtu=1526
+
+# Verifikasi
+/interface ethernet print detail where name~"ether"
+/mpls print
+
+# Troubleshooting MTU issues:
+# - Packet fragmentasi → naikkan MTU
+# - TCP MSS clamp → pastikan MSS <= MTU - 40 (IP+TCP header)
+# - Ping test dengan DF bit set:
+# /ping 10.0.0.2 size=1500 do-not-fragment=yes
+</code></pre>
+    </div>
+
+    <h3>9.4 MPLS Label Distribution Modes</h3>
+    <table class="spec-table">
+      <thead><tr><th>Mode</th><th>Keterangan</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Independent Control</strong></td><td>Label langsung di-assign tanpa menunggu downstream (default MikroTik)</td></tr>
+        <tr><td><strong>Ordered Control</strong></td><td>Label di-assign setelah menerima label dari downstream</td></tr>
+        <tr><td><strong>Unsolicited Downstream</strong></td><td>Label di-announce ke semua neighbor proactively</td></tr>
+        <tr><td><strong>Downstream on Demand</strong></td><td>Label diminta oleh upstream router</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box tip"><div class="info-box-title">💡 MPLS di MikroTik</div>
+    <p>MikroTik menggunakan mode <strong>Independent Control + Unsolicited Downstream</strong> secara default. Ini berarti label langsung di-assign dan di-announce tanpa menunggu — sehingga konvergensi lebih cepat. Untuk jaringan besar, pastikan semua LSR memiliki konsistensi dalam mode distribusi label.</p></div>
+
+    <h2 id="troubleshooting">10. Troubleshooting MPLS</h2>
+    <table class="spec-table">
+      <thead><tr><th>Masalah</th><th>Penyebab</th><th>Solusi</th></tr></thead>
+      <tbody>
+        <tr><td>LDP neighbor tidak muncul</td><td>IGP belum converge</td><td>Pastikan OSPF/IS-IS berjalan stabil</td></tr>
+        <tr><td>Label binding kosong</td><td>Loopback tidak ter-announce</td><td>Pastikan loopback di-announce via IGP</td></tr>
+        <tr><td>VPLS tidak terbentuk</td><td>VPLS ID salah</td><td>Pastikan vpls-id sama di kedua PE</td></tr>
+        <tr><td>Packet drop di MPLS</td><td>MTU terlalu kecil</td><td>Naikkan MTU minimal 1526 bytes</td></tr>
+        <tr><td>VPN routing salah</td><td>VRF tidak ter-assign</td><td>Cek routing-table assignment</td></tr>
+      </tbody>
+    </table>
+
+    <div class="code-block"><div class="code-header"><span class="code-lang">Terminal MikroTik — MPLS Debug</span><button class="code-copy" aria-label="Salin kode">Salin</button></div>
+<pre><code>
+# Debug MPLS
+/mpls ldp neighbor print detail
+/mpls ldp bindings print detail
+/mpls forwarding-table print detail
+
+# Cek label untuk prefix tertentu
+/mpls forwarding-table print where dst-address~"10.0.0"
+
+# Trace route dengan MPLS
+/tool traceroute address=10.0.0.2 use-mpls=yes
+
+# Log MPLS
+/system logging add topics=mpls action=memory
+/log print where topics~"mpls"
+</code></pre>
+    </div>
+
+    <h2 id="quiz">Quiz Pemahaman</h2>
+    <div class="quiz-container" id="quiz10">
+      <h3>🧠 Tes Pemahaman: MPLS &amp; TE</h3>
+      <div class="quiz-question" data-correct="b">
+        <p><strong>1. Apa keunggulan utama MPLS dibanding IP routing murni?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="1" data-answer="a">a) MPLS lebih aman</div>
+          <div class="quiz-option" data-question="1" data-answer="b">b) MPLS menggunakan label untuk forwarding yang lebih cepat dan mendukung TE</div>
+          <div class="quiz-option" data-question="1" data-answer="c">c) MPLS tidak membutuhkan routing protocol</div>
+          <div class="quiz-option" data-question="1" data-answer="d">d) MPLS hanya bisa digunakan untuk IPv6</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="c">
+        <p><strong>2. LDP mengikuti jalur apa untuk membuat LSP?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="2" data-answer="a">a) Jalur tercepat berdasarkan bandwidth</div>
+          <div class="quiz-option" data-question="2" data-answer="b">b) Jalur yang ditentukan manual</div>
+          <div class="quiz-option" data-question="2" data-answer="c">c) Jalur IGP terpendek (shortest path)</div>
+          <div class="quiz-option" data-question="2" data-answer="d">d) Jalur acak</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="a">
+        <p><strong>3. Apa itu VPLS?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="3" data-answer="a">a) Layanan Layer 2 VPN point-to-multipoint di atas MPLS</div>
+          <div class="quiz-option" data-question="3" data-answer="b">b) Protokol routing baru</div>
+          <div class="quiz-option" data-question="3" data-answer="c">c) Firewall untuk MPLS</div>
+          <div class="quiz-option" data-question="3" data-answer="d">d) Jenis switch hardware</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="d">
+        <p><strong>4. Apa yang dimaksud dengan PHP (Penultimate Hop Popping)?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="4" data-answer="a">a) Menggandakan label MPLS</div>
+          <div class="quiz-option" data-question="4" data-answer="b">b) Mengenkripsi label MPLS</div>
+          <div class="quiz-option" data-question="4" data-answer="c">c) Menambahkan label baru di stack</div>
+          <div class="quiz-option" data-question="4" data-answer="d">d) Router sebelum egress mempop label terakhir</div>
+        </div>
+      </div>
+      <div class="quiz-question" data-correct="b">
+        <p><strong>5. Mengapa Fast Reroute penting untuk ISP?</strong></p>
+        <div class="quiz-options">
+          <div class="quiz-option" data-question="5" data-answer="a">a) Menghemat bandwidth</div>
+          <div class="quiz-option" data-question="5" data-answer="b">b) Pemulihan sangat cepat (&lt;50ms) saat link gagal</div>
+          <div class="quiz-option" data-question="5" data-answer="c">c) Menghapus kebutuhan OSPF</div>
+          <div class="quiz-option" data-question="5" data-answer="d">d) Menggantikan BGP</div>
+        </div>
+      </div>
+      <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+      <div class="quiz-result"></div>
+    </div>
+
+    <h2 id="best-practices-quiz">11. MPLS Best Practices Summary</h2>
+    <ul>
+      <li><strong>Always run IGP first</strong> — pastikan OSPF/IS-IS stabil sebelum aktifkan MPLS</li>
+      <li><strong>Use loopback for LSR-ID</strong> — loopback interface tidak pernah down, sehingga LDP session stabil</li>
+      <li><strong>Set consistent MTU</strong> — semua interface MPLS harus MTU yang sama (minimal 1526)</li>
+      <li><strong>Use RSVP-TE for backbone</strong> — LDP untuk edge, RSVP-TE untuk core</li>
+      <li><strong>Implement FRR</strong> — fast reroute untuk link kritis</li>
+      <li><strong>Monitor LSP health</strong> — gunakan SNMP atau script untuk monitoring</li>
+      <li><strong>Document VPLS/VPN config</strong> — buat diagram MPLS topology dengan VPLS ID</li>
+      <li><strong>Test failover regularly</strong> — simulasi link failure untuk validasi FRR bekerja</li>
+    </ul>
+
+    <div class="info-box tip"><div class="info-box-title">💡 MPLS vs SD-WAN</div>
+    <p>Untuk ISP kecil-menengah, SD-WAN bisa menjadi alternatif MPLS yang lebih murah dan mudah. Namun, untuk ISP besar dengan backbone sendiri, MPLS tetap menjadi pilihan utama karena kontrol penuh terhadap path, QoS, dan reliability yang tidak bisa ditandingi oleh overlay SD-WAN.</p></div>
+
+    <h3>11.1 MPLS Deployment Checklist</h3>
+    <ol>
+      <li>Pastikan IGP (OSPF/IS-IS) stabil dan converge dengan cepat</li>
+      <li>Set MPLS MTU minimal 1526 bytes pada semua interface</li>
+      <li>Konfigurasi LDP transport-address ke loopback</li>
+      <li>Aktifkan RSVP-TE hanya untuk link yang butuh TE</li>
+      <li>Setup backup tunnel FRR untuk link kritis backbone</li>
+      <li>Konfigurasi VPLS dengan VPLS ID yang terdokumentasi</li>
+      <li>Test failover dengan simulasi link failure</li>
+      <li>Monitor LDP neighbor dan forwarding table secara berkala</li>
+    </ol>
+
+    <div class="ad-slot ad-slot-wide"></div>
+
+    <div class="article-nav">
+      <a href="bgp-fundamentals.html" class="nav-prev"><span class="nav-label">← Sebelumnya</span><span class="nav-title">BGP Fundamentals</span></a>
+      <a href="wifi-6-deployment.html" class="nav-next"><span class="nav-label">Selanjutnya →</span><span class="nav-title">Wi-Fi 6/6E Deployment</span></a>
+    </div>
+
+  </div>
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/bgp-fundamentals.html" class="related-card">
+          <span class="related-category">Networking</span>
+          <span class="related-title">BGP Fundamentals untuk ISP</span>
+        </a>
+        <a href="/articles/mikrotik-hotspot.html" class="related-card">
+          <span class="related-category">Networking</span>
+          <span class="related-title">MikroTik Hotspot Configuration: Panduan Lengkap</span>
+        </a>
+        <a href="/articles/mikrotik-user-manager.html" class="related-card">
+          <span class="related-category">Networking</span>
+          <span class="related-title">MikroTik User Manager: RADIUS Server Lengkap</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <section class="newsletter-section" id="newsletter"><div class="container"><div class="newsletter-card fade-in"><h2>📬 Dapatkan Tutorial Terbaru</h2><p>Subscribe untuk tutorial networking terbaru. Gratis, tanpa spam.</p><form class="newsletter-form" onsubmit="handleSubscribe(event)"><input type="email" placeholder="email@kamu.com" required><button type="submit" class="btn-primary">Subscribe</button></form></div></div></section>

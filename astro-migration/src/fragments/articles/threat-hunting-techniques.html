@@ -1,0 +1,536 @@
+<div class="search-overlay" id="searchOverlay"><button class="search-close-btn" aria-label="Tutup pencarian">&times;</button><div class="search-box"><div class="search-input-wrapper"><input type="text" id="searchInput" placeholder="Cari tutorial..."></div><div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div></div></div>
+  <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Keamanan</a><span class="separator">/</span><span class="current">Threat Hunting Techniques</span></div><span class="category-tag">Keamanan</span><h1>Threat Hunting Techniques</h1><p class="article-subtitle">Panduan lengkap threat hunting — hypothesis-driven approach, MITRE ATT&CK, IOC/IOA hunting, behavioral analytics, dan hunting program</p><div class="article-meta"><span>📅 29 Juni 2026</span><span>📖 16 menit baca</span><span class="difficulty lanjut">Lanjut</span></div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div></div></section>
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+  <article class="article-content" id="main-content"><div class="container">
+    <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
+      <li><a href="#pengenalan">Pengenalan</a></li>
+      <li><a href="#hypothesis">Hypothesis-Driven</a></li>
+      <li><a href="#mitre">MITRE ATT&CK</a></li>
+      <li><a href="#ioc">IOC Hunting</a></li>
+      <li><a href="#behavioral">Behavioral Analytics</a></li>
+      <li><a href="#techniques">Hunting Techniques</a></li>
+      <li><a href="#tools">Hunting Tools</a></li>
+      <li><a href="#maturity">Maturity Model</a></li>
+      <li><a href="#quiz">Quiz</a></li>
+    </ol></div>
+
+      <h2 id="pengenalan">1. Pengenalan Threat Hunting</h2>
+      <p><strong>Threat Hunting</strong> adalah proses proaktif untuk mencari indikator serangan tersembunyi yang tidak terdeteksi tools otomatis. Mengasumsikan attacker sudah ada di dalam jaringan.</p>
+      <div class="info-box info"><div class="info-box-title">📋 Apa yang Dipelajari</div><ul>
+        <li>Hypothesis-driven threat hunting</li>
+        <li>MITRE ATT&CK framework mapping</li>
+        <li>IOC dan IOA hunting</li>
+        <li>Behavioral analytics</li>
+        <li>Membangun hunting program</li>
+      </ul></div>
+      <p>Rata-rata waktu deteksi breach adalah 197 hari. Automated tools hanya mendeteksi sebagian ancaman. Threat hunting menutup gap ini dengan pendekatan proaktif yang dipimpin analis manusia.</p>
+
+      <h2 id="hypothesis">2. Hypothesis-Driven Hunting</h2>
+      <p>Pendekatan dimulai dengan hipotesis tentang bagaimana attacker beroperasi, lalu mengumpulkan data untuk membuktikan atau menyanggah.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Template — Hunting Hypothesis</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
++# Threat Hunting Hypothesis Template
++# =============================================
+
++# HYPOTHESIS 1: Lateral Movement via PsExec
++# ------------------------------------------------
++# Premise: Attacker menggunakan PsExec untuk
++# bergerak lateral setelah akses awal
++# 
++# Expected Evidence:
++# - Event ID 7045 (service installation) PsExec
++# - Event ID 4624 Type 3 logon dari unusual source
++# - Named pipe \*\pipe\psexecsvc
++#
++# Query:
++index=windows (EventCode=7045 AND Image="*PSEXESVC*")
++  OR (EventCode=4624 AND Logon_Type=3)
++| stats count by ComputerName, Account_Name, IpAddress
++| where count > 3
+
++# HYPOTHESIS 2: DNS Tunneling for Exfiltration
++# ------------------------------------------------
++# Premise: Attacker menggunakan DNS untuk C2/exfil
++#
++# Query:
++index=dns
++| eval query_len=len(query)
++| where query_len > 50
++| stats count avg(query_len) as avg_len
++  by dest
++| where count > 100 AND avg_len > 50</code></pre>
+      </div>
+
+      <h2 id="mitre">3. MITRE ATT&CK Mapping</h2>
+      <p>MITRE ATT&CK mendokumentasikan TTP (Tactics, Techniques, Procedures) attacker. Mapping hunting ke ATT&CK memastikan coverage komprehensif.</p>
+      <table class="net-table"><thead><tr><th>Tactic</th><th>Technique</th><th>Hunting Focus</th></tr></thead><tbody>
+        <tr><td>Initial Access</td><td>T1566 Phishing</td><td>Email attachments, URLs</td></tr>
+        <tr><td>Execution</td><td>T1059 Command/Script</td><td>PowerShell, WMI</td></tr>
+        <tr><td>Persistence</td><td>T1053 Scheduled Task</td><td>New tasks, registry keys</td></tr>
+        <tr><td>Priv Escalation</td><td>T1068 Exploitation</td><td>Unusual process parents</td></tr>
+        <tr><td>Defense Evasion</td><td>T1070 Indicator Removal</td><td>Log clearing, timestomping</td></tr>
+        <tr><td>Credential Access</td><td>T1003 Credential Dump</td><td>LSASS access</td></tr>
+        <tr><td>Lateral Movement</td><td>T1021 Remote Services</td><td>RDP, SMB, PsExec</td></tr>
+        <tr><td>Exfiltration</td><td>T1048 Exfiltration</td><td>Large outbound, DNS tunnel</td></tr>
+      </tbody></table>
+
+      <h2 id="ioc">4. IOC-Based Hunting</h2>
+      <p>IOC hunting mencari artifact spesifik yang terkait serangan — IP, domain, file hash, atau registry key.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Splunk — IOC Hunting</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
++# IOC Hunting Queries
++# =============================================
+
++# 1. Known malicious IPs
++| inputlookup threat_intel_ips.csv
++| join type=inner ip [
++    search index=network sourcetype=firewall
++    | fields src_ip, dest_ip
++    | rename dest_ip as ip
++  ]
+
++# 2. File hash hunting
++index=sysmon EventCode=1
++| where hash IN ("abc123...", "def456...")
++| table _time, Computer, User, Image, hash
+
++# 3. Registry persistence
++index=sysmon EventCode=13
++| where TargetObject LIKE "%CurrentVersion\Run%"
++| table _time, Computer, TargetObject, Details
+
++# 4. PowerShell encoded command
++index=windows EventCode=4104
++| where ScriptBlockText LIKE "%-enc%"
++  OR ScriptBlockText LIKE "%FromBase64String%"
++| table _time, Computer, ScriptBlockText</code></pre>
+      </div>
+
+      <h2 id="behavioral">5. Behavioral Analytics</h2>
+      <p>Mencari anomali perilaku yang menyimpang dari baseline, mengindikasikan kompromi tanpa IOC yang diketahui.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Splunk — Behavioral Hunting</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
++# Behavioral Analytics Hunting
++# =============================================
+
++# 1. Impossible travel detection
++index=auth sourcetype=*
++| iplocation src_ip
++| stats earliest(_time) as first,
++        latest(_time) as last,
++        values(Country) as countries
++  by user
++| where mvcount(countries) > 1
++| eval time_diff = last - first
++| where time_diff < 3600
+
++# 2. Unusual process tree
++index=sysmon EventCode=1
++| stats values(ParentImage) as parents by Image
++| where mvcount(parents) > 1
++| where match(Image, "cmd|powershell|wscript")
+
++# 3. Beaconing detection
++index=proxy
++| bin _time span=1h
++| stats count by _time, dest_domain
++| eventstats avg(count) as avg_count,
++    stdev(count) as std_count by dest_domain
++| where count > avg_count + (3 * std_count)</code></pre>
+      </div>
+
+      <h2 id="techniques">6. Hunting Techniques</h2>
+      <h3>Stacking (Frequency Analysis)</h3>
+      <p>Menemukan anomali dengan menghitung frekuensi kemunculan. Nilai yang sangat jarang layak diperiksa.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Splunk — Stacking</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
++# Stacking Analysis
++# =============================================
+
++# Rare process names
++index=sysmon EventCode=1
++| rare limit=20 Image by Computer
+
++# Rare parent-child combinations
++index=sysmon EventCode=1
++| eval combo=ParentImage." -> ".Image
++| rare limit=20 combo
+
++# Rare user-agent strings
++index=proxy
++| rare limit=20 user_agent
+
++# Rare service installations
++index=windows EventCode=7045
++| rare limit=20 ServiceName, ImagePath</code></pre>
+      </div>
+
+      <h2 id="tools">7. Hunting Tools &amp; Infrastructure</h2>
+      <table class="net-table"><thead><tr><th>Category</th><th>Tools</th><th>Purpose</th></tr></thead><tbody>
+        <tr><td><strong>SIEM</strong></td><td>Splunk, Elastic, Sentinel</td><td>Centralized log &amp; query</td></tr>
+        <tr><td><strong>Threat Intel</strong></td><td>MISP, OpenCTI, OTX</td><td>IOC feeds &amp; enrichment</td></tr>
+        <tr><td><strong>Endpoint</strong></td><td>Sysmon, OSQuery, Velociraptor</td><td>Deep endpoint visibility</td></tr>
+        <tr><td><strong>Network</strong></td><td>Zeek, Suricata, RITA</td><td>Network traffic analysis</td></tr>
+        <tr><td><strong>Sandbox</strong></td><td>Cuckoo, ANY.RUN, CAPE</td><td>Malware analysis</td></tr>
+      </tbody></table>
+
+      <h2 id="maturity">8. Hunting Maturity Model</h2>
+      <table class="net-table"><thead><tr><th>Level</th><th>Description</th><th>Capabilities</th></tr></thead><tbody>
+        <tr><td><strong>HM0</strong></td><td>Initial</td><td>Hanya automated alert, no hunting</td></tr>
+        <tr><td><strong>HM1</strong></td><td>Minimal</td><td>IOC-based, minimal data</td></tr>
+        <tr><td><strong>HM2</strong></td><td>Procedural</td><td>Documented procedures, regular hunts</td></tr>
+        <tr><td><strong>HM3</strong></td><td>Innovative</td><td>Hypothesis-driven, custom analytics</td></tr>
+        <tr><td><strong>HM4</strong></td><td>Leading</td><td>ML-assisted, automated, continuous</td></tr>
+      </tbody></table>
+
+      <h3>Hunting with YARA Rules</h3>
+      <p>YARA adalah pattern matching tool yang sangat powerful untuk mengidentifikasi dan mengkategorikan malware samples. Dalam threat hunting, YARA digunakan untuk scanning endpoint dan memory.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">YARA — Threat Hunting Rules</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
++# YARA Rules untuk Threat Hunting
++# =============================================
+
++# Detect Cobalt Strike Beacon
++rule CobaltStrike_Beacon {
++    meta:
++        description = "Detects Cobalt Strike Beacon"
++        author = "Threat Hunter"
++        severity = "high"
++    strings:
++        $beacon_config = { 00 01 00 01 00 02 ?? ?? 00 02 00 01 00 02 ?? ?? }
++        $pipe = "\\.\pipe\msagent_" ascii
++        $sleep_mask = { 4C 8B 53 08 45 8B 0A 45 8B 5A 04 4D 8D 52 08 45 85 C9 }
++    condition:
++        uint16(0) == 0x5A4D and 2 of them
++}
+
++# Detect suspicious PowerShell patterns
++rule Suspicious_PowerShell_Hunting {
++    meta:
++        description = "Suspicious PowerShell for hunting"
++    strings:
++        $enc1 = "-EncodedCommand" nocase
++        $enc2 = "-enc " nocase
++        $bypass = "Set-ExecutionPolicy Bypass" nocase
++        $download = "DownloadString" nocase
++        $download2 = "DownloadFile" nocase
++        $invoke = "IEX" nocase
++        $hidden = "-WindowStyle Hidden" nocase
++        $amsi = "AmsiUtils" nocase
++        $etw = "ETW" nocase
++    condition:
++        3 of them
++}
+
++# Hunting on endpoints with YARA
++# Scan running processes
++yara64 -p 20 rules.yar /proc/*/mem
+
++# Scan files on disk
++yara64 -r rules.yar /home/ /tmp/ /var/
+
++# Scan with Velociraptor
++# VQL: SELECT * FROM glob(globs="/**/*.{exe,dll,sys}")
++#       WHERE yara(file=FullPath, rules=yara_rules)</code></pre>
+      </div>
+
+      <h3>Memory Forensics for Hunting</h3>
+      <p>Memory forensik sangat penting untuk threat hunting karena banyak malware yang hanya hidup di memory (fileless malware). Tool seperti Volatility memungkinkan analisis memory dump.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Memory Forensics</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
++# Memory Forensics untuk Threat Hunting
++# =============================================
+
++# 1. Capture memory (Windows)
++# Using WinPmem
++winpmem_mini_x64.exe memdump.raw
+
++# Using DumpIt
++DumpIt.exe
+
++# 2. Capture memory (Linux)
++sudo dd if=/dev/mem of=/tmp/memdump.raw bs=1M
++# Or using AVML
++sudo ./avml /tmp/memdump.raw
+
++# 3. Analyze with Volatility 3
++# List processes
++vol -f memdump.raw windows.pslist
+
++# Detect hidden processes
++vol -f memdump.raw windows.psscan
+
++# Network connections
++vol -f memdump.raw windows.netscan
+
++# Command line arguments
++vol -f memdump.raw windows.cmdline
+
++# DLLs loaded by process
++vol -f memdump.raw windows.dlls --pid 1234
+
++# Injected code detection
++vol -f memdump.raw windows.malfind
+
++# Extract suspicious process
++vol -f memdump.raw windows.memmap --pid 1234 --dump
+
++# 4. Scan memory dump with YARA
++vol -f memdump.raw windows.vadyarascan \
++  --yara-rules hunting_rules.yar</code></pre>
+      </div>
+
+      <h3>Network-Based Hunting</h3>
+      <p>Network traffic analysis mengungkap komunikasi C2, data exfiltration, dan lateral movement yang mungkin tidak terlihat di endpoint logs.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Zeek — Network Hunting Scripts</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+<pre><code># =============================================
++# Network Hunting dengan Zeek (Bro)
++# =============================================
+
++# 1. Detect DNS tunneling
++zeek -r capture.pcap dns_tunnel_detect.zeek
+
++# dns_tunnel_detect.zeek content:
++# @load base/frameworks/notice
++# module DNS_TUNNEL;
++# export {
++#     redef enum Notice::Type += {
++#         Long_DNS_Query,
++#         High_DNS_Volume
++#     };
++# }
++# event dns_request(c: connection, msg: dns_msg, query: string) {
++#     if (|query| > 50) {
++#         NOTICE([
++#             $note=Long_DNS_Query,
++#             $conn=c,
++#             $msg=fmt("Long DNS query: %s", query)
++#         ]);
++#     }
++# }
+
++# 2. JA3/JA3S fingerprinting (TLS)
++# Detect C2 frameworks by TLS fingerprint
++zeek -r capture.pcap ja3.zeek
++# Compare JA3 hashes against known C2 hashes
+
++# 3. Beaconing detection with RITA
++rita import capture.pcap hunting_db
++rita show-beacons hunting_db
++# High scores indicate regular communication patterns (C2)
+
++# 4. Analyze with tshark
++# DNS query analysis
++tshark -r capture.pcap -Y "dns" \
++  -T fields -e dns.qry.name -e dns.qry.type \
++  | sort | uniq -c | sort -rn | head -50</code></pre>
+      </div>
+
+
++      <h3>Hunting Playbooks</h3>
++      <p>Hunting playbook mendokumentasikan prosedur berburu yang dapat direplikasi. Setiap playbook terdiri dari hipotesis, data sources, queries, dan triage criteria.</p>
++      <div class="code-block"><div class="code-header"><span class="code-lang">Template — Hunting Playbook</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
++<pre><code># =============================================
++# Hunting Playbook: Credential Dumping
++# =============================================
+
++# PLAYBOOK ID: HP-001
++# TITLE: LSASS Memory Access Detection
++# ATT&CK: T1003.001 (OS Credential Dumping)
++# PRIORITY: High
++# ESTIMATED TIME: 2-4 hours
+
++# HYPOTHESIS:
++# Attacker yang sudah mendapatkan akses ke endpoint
++# mungkin menggunakan credential dumping tools untuk
++# mencumpah LSASS memory dan mendapatkan NTLM hashes.
+
++# DATA SOURCES:
++# 1. Sysmon Event ID 10 (Process Access)
++# 2. Windows Security Event ID 4688 (Process Create)
++# 3. EDR telemetry (CrowdStrike, SentinelOne)
+
++# DETECTION QUERIES:
++# Query 1: Sysmon LSASS access
++index=sysmon EventCode=10
++  TargetImage="*\lsass.exe"
++| where SourceImage != "*\svchost.exe"
++  AND SourceImage != "*\csrss.exe"
++  AND SourceImage != "*\services.exe"
++| table _time, Computer, SourceImage, GrantedAccess
+
++# Query 2: Suspicious parent processes
++index=windows EventCode=4688
++  NewProcessName="*\lsass.exe"
++| where ParentProcessName != "wininit.exe"
++| table _time, Computer, NewProcessName, ParentProcessName
+
++# Query 3: Known tool signatures
++index=* (mimikatz OR sekurlsa OR pypykatz
++  OR "dumpert" OR "handlekatz")
++| table _time, Computer, _raw
+
++# TRIAGE CRITERIA:
++# CONFIRMED if:
++# - GrantedAccess contains 0x1010 or 0x1410
++# - SourceImage is not a known legitimate process
++# - Correlated with EDR credential access alert
++#
++# FALSE POSITIVE if:
++# - SourceImage is antivirus/EDR scanner
++# - Occurs during scheduled security scan
++# - SourceImage is legitimate admin tool with audit trail
+
++# RESPONSE ACTIONS:
++# 1. Isolate affected endpoint
++# 2. Capture memory dump for analysis
++# 3. Force password reset for all accounts
++#    that were logged into the endpoint
++# 4. Check for lateral movement using
++#    compromised credentials</code></pre>
++      </div>
++
++      <h3>Automating Hunts with Jupyter Notebooks</h3>
++      <p>Jupyter Notebooks sangat baik untuk threat hunting karena mendukung iteraktif data analysis, visualisasi, dan dokumentasi dalam satu file.</p>
++      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Jupyter Hunting Notebook</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
++<pre><code># =============================================
++# Threat Hunting Jupyter Notebook
++# =============================================
+
++# Cell 1: Import libraries
++import pandas as pd
++import matplotlib.pyplot as plt
++from datetime import datetime, timedelta
++import numpy as np
+
++# Cell 2: Load data from SIEM export
++df = pd.read_csv('windows_logons_30d.csv',
++    parse_dates=['timestamp'])
+
++# Cell 3: Impossible travel detection
++# Group by user, find logons from different countries
++def detect_impossible_travel(df, max_hours=2):
++    users = df.groupby('username')
++    alerts = []
++    for user, group in users:
++        group = group.sort_values('timestamp')
++        for i in range(1, len(group)):
++            curr = group.iloc[i]
++            prev = group.iloc[i-1]
++            time_diff = (curr['timestamp'] -
++                        prev['timestamp']).total_seconds() / 3600
++            if (curr['country'] != prev['country']
++                and time_diff &lt; max_hours):
++                alerts.append({
++                    'user': user,
++                    'from': prev['country'],
++                    'to': curr['country'],
++                    'hours': round(time_diff, 1),
++                    'risk': 'HIGH'
++                })
++    return pd.DataFrame(alerts)
+
++alerts = detect_impossible_travel(df)
++print(f"Found {len(alerts)} impossible travel alerts")
++alerts.head(20)
+
++# Cell 4: Visualize logon patterns
++df.groupby(df['timestamp'].dt.hour).size().plot(
++    kind='bar', title='Logons by Hour')
++plt.xlabel('Hour')
++plt.ylabel('Count')
++plt.show()
+
++# Cell 5: Rare process execution
++process_counts = df['process_name'].value_counts()
++rare = process_counts[process_counts &lt; 5]
++print(f"Rare processes (&lt;5 occurrences): {len(rare)}")
++rare.head(20)</code></pre>
++      </div>
++
++      <h3>Hunting Metrics &amp; Reporting</h3>
++      <table class="net-table"><thead><tr><th>Metric</th><th>Description</th><th>Target</th></tr></thead><tbody>
++        <tr><td><strong>Hunts/month</strong></td><td>Jumlah hunting yang dilakukan</td><td>&gt;= 4 per bulan</td></tr>
++        <tr><td><strong>True positive rate</strong></td><td>% hunts yang menemukan ancaman nyata</td><td>&gt;= 20%</td></tr>
++        <tr><td><strong>Time to hunt</strong></td><td>Rata-rata waktu per hunting session</td><td>2-4 jam</td></tr>
++        <tr><td><strong>New detections</strong></td><td>Detection baru yang dibuat dari hunting</td><td>&gt;= 2 per bulan</td></tr>
++        <tr><td><strong>ATT&CK coverage</strong></td><td>% teknik yang sudah di-hunt</td><td>&gt;= 50%</td></tr>
++      </tbody></table>
++
+      <h2 id="quiz">9. Quiz Pemahaman</h2>
+      <div class="quiz-container">
+        <div class="quiz-question" data-correct="1">
+          <p><strong>1. Perbedaan threat hunting dan SOC monitoring?</strong></p>
+          <label><input type="radio" name="q1" value="0"> Tidak beda</label>
+          <label><input type="radio" name="q1" value="1"> Hunting proaktif, SOC reaktif menunggu alert</label>
+          <label><input type="radio" name="q1" value="2"> SOC lebih canggih</label>
+          <label><input type="radio" name="q1" value="3"> Hunting hanya forensik</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>2. Apa itu MITRE ATT&CK?</strong></p>
+          <label><input type="radio" name="q2" value="0"> Antivirus</label>
+          <label><input type="radio" name="q2" value="1"> Framework dokumentasi TTP attacker</label>
+          <label><input type="radio" name="q2" value="2"> Firewall rules</label>
+          <label><input type="radio" name="q2" value="3"> Pentest tool</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>3. Teknik 'stacking' dalam hunting?</strong></p>
+          <label><input type="radio" name="q3" value="0"> Tumpuk log files</label>
+          <label><input type="radio" name="q3" value="1"> Frequency analysis untuk temukan nilai rare</label>
+          <label><input type="radio" name="q3" value="2"> Gabung SIEM</label>
+          <label><input type="radio" name="q3" value="3"> Stack trace analysis</label>
+        </div>
+        <div class="quiz-question" data-correct="1">
+          <p><strong>4. Perbedaan IOC dan IOA?</strong></p>
+          <label><input type="radio" name="q4" value="0"> Sama</label>
+          <label><input type="radio" name="q4" value="1"> IOC artifact serangan masa lalu, IOA indikator serangan berlangsung</label>
+          <label><input type="radio" name="q4" value="2"> IOA lebih tua</label>
+          <label><input type="radio" name="q4" value="3"> IOC hanya malware</label>
+        </div>
+        <div class="quiz-question" data-correct="2">
+          <p><strong>5. Level hypothesis-driven approach di HMM?</strong></p>
+          <label><input type="radio" name="q5" value="0"> HM0</label>
+          <label><input type="radio" name="q5" value="1"> HM1</label>
+          <label><input type="radio" name="q5" value="2"> HM3</label>
+          <label><input type="radio" name="q5" value="3"> HM4</label>
+        </div>
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+      <h3>Rangkuman</h3>
+      <div class="info-box info"><div class="info-box-title">📝 Poin Penting</div><ul>
+        <li><strong>Proaktif</strong> — Mengasumsikan attacker sudah di dalam, tidak menunggu alert</li>
+        <li><strong>Hypothesis</strong> — Pendekatan dimulai dari hipotesis tentang TTP attacker</li>
+        <li><strong>MITRE ATT&CK</strong> — Framework mapping untuk coverage komprehensif</li>
+        <li><strong>Behavioral</strong> — Anomali detection tanpa IOC — impossible travel, beaconing</li>
+        <li><strong>Maturity</strong> — HM0-HM4 — progres dari automated-only ke ML-assisted hunting</li>
+      </ul></div>
+  </div>
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/cryptography-developer.html" class="related-card">
+          <span class="related-category">Keamanan</span>
+          <span class="related-title">Kriptografi untuk Developer</span>
+        </a>
+        <a href="/articles/zero-trust-implementation.html" class="related-card">
+          <span class="related-category">Keamanan</span>
+          <span class="related-title">Zero Trust Architecture Implementation</span>
+        </a>
+        <a href="/articles/wireless-penetration-testing.html" class="related-card">
+          <span class="related-category">Keamanan</span>
+          <span class="related-title">Wireless Penetration Testing</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+  <script src="../js/app.js?v=19.2"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}</script>

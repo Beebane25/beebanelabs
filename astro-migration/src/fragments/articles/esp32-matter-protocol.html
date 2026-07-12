@@ -1,0 +1,589 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a><span class="separator">/</span>
+        <a href="../index.html#categories">IoT</a><span class="separator">/</span>
+        <span class="current">ESP32 Matter</span>
+      </div>
+      <span class="category-tag">IoT</span>
+      <h1>ESP32 Matter Smart Home: Thread, Commissioning &amp; Multi-Admin</h1>
+      <span class="access-badge token">TOKEN</span>
+      <p class="article-subtitle">Bangun perangkat smart home interoperabel yang bisa dikontrol dari Apple Home, Google Home, dan Amazon Alexa dengan ESP32 dan Matter</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 16 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#apa-itu-matter">Apa itu Matter?</a></li>
+          <li><a href="#arsitektur">Arsitektur Matter</a></li>
+          <li><a href="#thread">Thread Border Router</a></li>
+          <li><a href="#setup">Setup Matter SDK untuk ESP32</a></li>
+          <li><a href="#device-types">Device Types &amp; Clusters</a></li>
+          <li><a href="#light-switch">Proyek: Smart Light Switch</a></li>
+          <li><a href="#commissioning">Commissioning Process</a></li>
+          <li><a href="#multi-admin">Multi-Admin &amp; Fabric</a></li>
+          <li><a href="#ota">OTA Update untuk Matter</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="apa-itu-matter">1. Apa itu Matter?</h2>
+
+      <p>Matter adalah standar smart home terbuka yang dikembangkan oleh <strong>CSA (Connectivity Standards Alliance)</strong> — sebelumnya Zigbee Alliance — dengan dukungan dari Apple, Google, Amazon, Samsung, dan 300+ perusahaan teknologi lainnya. Matter memungkinkan perangkat smart home dari vendor berbeda untuk saling berinteroperasi tanpa terkendala ekosistem.</p>
+
+      <p>Dengan Matter, satu perangkat ESP32 bisa dikontrol dari <strong>Apple Home</strong>, <strong>Google Home</strong>, dan <strong>Amazon Alexa</strong> secara bersamaan — tanpa perlu membuat integrasi khusus untuk masing-masing platform.</p>
+
+      <h3>Mengapa Matter Penting?</h3>
+
+      <div class="compare-grid cols-2">
+        <div class="compare-card" style="--card-color: #ff6b6b">
+          <div class="cc-icon">😤</div>
+          <div class="cc-title">Sebelum Matter</div>
+          <div class="cc-subtitle">Fragmented &amp; Membosankan</div>
+          <ul class="cc-features">
+            <li><span class="cross">❌</span> Tiap platform punya protokol sendiri</li>
+            <li><span class="cross">❌</span> Perlu develop 3-4 integrasi</li>
+            <li><span class="cross">❌</span> Cloud-dependent</li>
+            <li><span class="cross">❌</span> Keamanan berbeda-beda</li>
+            <li><span class="cross">❌</span> User bingung pilih ekosistem</li>
+          </ul>
+        </div>
+        <div class="compare-card" style="--card-color: #00e5ff">
+          <div class="cc-icon">🎉</div>
+          <div class="cc-title">Dengan Matter</div>
+          <div class="cc-subtitle">Interoperable &amp; Mudah</div>
+          <ul class="cc-features">
+            <li><span class="check">✅</span> Satu protokol universal</li>
+            <li><span class="check">✅</span> Develop sekali, jalan di mana-mana</li>
+            <li><span class="check">✅</span> Local-first (bisa tanpa cloud)</li>
+            <li><span class="check">✅</span> Built-in keamanan (CASE, PASE)</li>
+            <li><span class="check">✅</span> User bebas pilih platform</li>
+          </ul>
+        </div>
+      </div>
+
+      <table class="spec-table">
+        <thead><tr><th>Aspek</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Transport</td><td>Wi-Fi, Thread (802.15.4), Ethernet</td></tr>
+          <tr><td>Network Layer</td><td>IPv6-only (6LoWPAN untuk Thread)</td></tr>
+          <tr><td>Security</td><td>SPAKE2+ (PASE), Certificate (CASE), AES-CCM</td></tr>
+          <tr><td>Data Model</td><td>Node → Endpoint → Cluster → Attribute/Command</td></tr>
+          <tr><td>Discovery</td><td>DNS-SD (mDNS)</td></tr>
+          <tr><td>Commissioning</td><td>BLE, SoftAP, QR Code, NFC</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="arsitektur">2. Arsitektur Matter</h2>
+
+      <p>Matter menggunakan arsitektur berlapis yang terdiri dari <strong>Node</strong>, <strong>Endpoint</strong>, <strong>Cluster</strong>, dan <strong>Attribute/Command</strong>.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">Hierarki Data Model Matter</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">🏠</div>
+            <div class="arch-label">Node</div>
+            <div class="arch-desc">ESP32 Device</div>
+          </div>
+        </div>
+        <div class="arch-arrow down">↓</div>
+        <div class="arch-row">
+          <div class="arch-box info">
+            <div class="arch-icon">0️⃣</div>
+            <div class="arch-label">Endpoint 0</div>
+            <div class="arch-desc">Root Node</div>
+          </div>
+          <div class="arch-box purple">
+            <div class="arch-icon">1️⃣</div>
+            <div class="arch-label">Endpoint 1</div>
+            <div class="arch-desc">Light</div>
+          </div>
+          <div class="arch-box warn">
+            <div class="arch-icon">2️⃣</div>
+            <div class="arch-label">Endpoint 2</div>
+            <div class="arch-desc">Temperature</div>
+          </div>
+        </div>
+        <div class="arch-arrow down">↓</div>
+        <div class="arch-row">
+          <div class="arch-box danger">
+            <div class="arch-icon">💡</div>
+            <div class="arch-label">On/Off Cluster</div>
+            <div class="arch-desc">onOff attr</div>
+          </div>
+          <div class="arch-box danger">
+            <div class="arch-icon">🔆</div>
+            <div class="arch-label">Level Control</div>
+            <div class="arch-desc">currentLevel</div>
+          </div>
+          <div class="arch-box info">
+            <div class="arch-icon">🌡️</div>
+            <div class="arch-label">Temp Measurement</div>
+            <div class="arch-desc">measuredValue</div>
+          </div>
+        </div>
+      </div>
+
+      <ul>
+        <li><strong>Node:</strong> Perangkat fisik (ESP32)</li>
+        <li><strong>Endpoint:</strong> Fungsi logis (lampu, sensor, switch)</li>
+        <li><strong>Cluster:</strong> Grup fitur terkait (On/Off, Level Control, Color)</li>
+        <li><strong>Attribute:</strong> State/nilai (onOff = true, brightness = 128)</li>
+        <li><strong>Command:</strong> Aksi yang bisa dilakukan (Toggle, MoveToLevel)</li>
+      </ul>
+
+      <!-- SECTION 3 -->
+      <h2 id="thread">3. Thread Border Router</h2>
+
+      <p>Thread adalah protokol mesh networking berbasis IPv6 yang cocok untuk perangkat low-power dalam smart home. Matter bisa berjalan di atas Thread atau WiFi. Untuk perangkat Thread, diperlukan <strong>Thread Border Router</strong> (TBR) sebagai jembatan ke jaringan IP.</p>
+
+      <table class="spec-table">
+        <thead><tr><th>Aspek</th><th>WiFi</th><th>Thread</th></tr></thead>
+        <tbody>
+          <tr><td>Daya</td><td>~80 mA</td><td>~10 mA</td></tr>
+          <tr><td>Mesh</td><td>Tidak</td><td>Ya (self-healing)</td></tr>
+          <tr><td>Range</td><td>~30-50 m</td><td>~30 m per hop, extendable</td></tr>
+          <tr><td>Koneksi ke cloud</td><td>Langsung</td><td>Via Border Router</td></tr>
+          <tr><td>Kapasitas</td><td>~20 device/AP</td><td>250+ device/mesh</td></tr>
+          <tr><td>Latency</td><td>Rendah</td><td>Medium (hop-by-hop)</td></tr>
+          <tr><td>Cocok untuk</td><td>Camera, streaming, display</td><td>Sensor, switch, lock, bulb</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Thread Border Router</div>
+        <p>Apple HomePod Mini, Google Nest Hub (2nd gen), dan Amazon Echo (4th gen) sudah memiliki built-in Thread Border Router. ESP32-H2 juga bisa dikonfigurasi sebagai Thread Border Router dengan ESP-IDF Thread Border Router component.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="setup">4. Setup Matter SDK untuk ESP32</h2>
+
+      <p>Espressif menyediakan <code>esp-matter</code> SDK yang memudahkan pengembangan perangkat Matter di ESP32. SDK ini dibangun di atas ConnectedHomeIP (CHIP) dari CSA.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash (Setup)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code># 1. Install ESP-IDF v5.1+ (prerequisite)
+mkdir -p ~/esp
+cd ~/esp
+git clone --recursive https://github.com/espressif/esp-idf.git
+cd esp-idf
+git checkout v5.2.3
+./install.sh esp32
+source export.sh
+
+# 2. Clone esp-matter SDK
+cd ~/esp
+git clone --recursive https://github.com/espressif/esp-matter.git
+cd esp-matter
+
+# 3. Install Python dependencies
+pip install -r requirements.txt
+
+# 4. Set environment
+export ESP_MATTER_PATH=$(pwd)
+export PATH="$ESP_MATTER_PATH/tools:$PATH"
+
+# 5. Build contoh light
+cd examples/light
+idf.py set-target esp32c6
+idf.py build
+idf.py flash monitor</code></pre>
+      </div>
+
+      <h3>Supported ESP32 Chips untuk Matter</h3>
+
+      <table class="spec-table">
+        <thead><tr><th>Chip</th><th>WiFi</th><th>Thread</th><th>BLE</th><th>Matter Support</th></tr></thead>
+        <tbody>
+          <tr><td>ESP32</td><td>✅</td><td>❌</td><td>✅</td><td>✅ (WiFi only)</td></tr>
+          <tr><td>ESP32-S3</td><td>✅</td><td>❌</td><td>✅</td><td>✅ (WiFi only)</td></tr>
+          <tr><td>ESP32-C6</td><td>✅</td><td>✅</td><td>✅</td><td>✅ (WiFi + Thread)</td></tr>
+          <tr><td>ESP32-H2</td><td>❌</td><td>✅</td><td>✅</td><td>✅ (Thread only)</td></tr>
+          <tr><td>ESP32-C3</td><td>✅</td><td>❌</td><td>✅</td><td>✅ (WiFi only)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 5 -->
+      <h2 id="device-types">5. Device Types &amp; Clusters</h2>
+
+      <p>Matter mendefinisikan device types standar yang memetakan ke kombinasi cluster tertentu. Ini memastikan interoperabilitas antar vendor.</p>
+
+      <table class="spec-table">
+        <thead><tr><th>Device Type</th><th>ID</th><th>Clusters Utama</th></tr></thead>
+        <tbody>
+          <tr><td>On/Off Light</td><td>0x0100</td><td>On/Off, Level Control</td></tr>
+          <tr><td>Dimmable Light</td><td>0x0101</td><td>On/Off, Level Control</td></tr>
+          <tr><td>Color Light</td><td>0x0102</td><td>On/Off, Level Control, Color Control</td></tr>
+          <tr><td>On/Off Plug</td><td>0x010A</td><td>On/Off</td></tr>
+          <tr><td>Temperature Sensor</td><td>0x0302</td><td>Temperature Measurement</td></tr>
+          <tr><td>Contact Sensor</td><td>0x0015</td><td>Boolean State</td></tr>
+          <tr><td>Door Lock</td><td>0x000A</td><td>Door Lock</td></tr>
+          <tr><td>Thermostat</td><td>0x0301</td><td>Thermostat, Fan Control</td></tr>
+          <tr><td>Window Covering</td><td>0x0202</td><td>Window Covering</td></tr>
+        </tbody>
+      </table>
+
+      <!-- SECTION 6 -->
+      <h2 id="light-switch">6. Proyek: Smart Light Switch</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ (Matter Light)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>#include &lt;esp_matter.h&gt;
+#include &lt;esp_matter_console.h&gt;
+#include &lt;esp_matter_ota.h&gt;
+#include &lt;app-common/zap-generated/ids/Attributes.h&gt;
+#include &lt;app-common/zap-generated/ids/Clusters.h&gt;
+#include &lt;app/server/CommissioningWindowManager.h&gt;
+
+using namespace esp_matter;
+using namespace esp_matter::attribute;
+using namespace esp_matter::endpoint;
+
+// GPIO untuk LED
+#define LED_GPIO 2
+#define BUTTON_GPIO 0
+
+// Callback saat attribute berubah
+static esp_err_t app_attribute_change_cb(
+  callback_type_t type,
+  uint16_t endpoint_id,
+  uint32_t cluster_id,
+  uint32_t attribute_id,
+  esp_matter_attr_val_t *val,
+  void *priv_data)
+{
+  if (type == PRE_UPDATE) {
+    // Sebelum update — bisa validasi di sini
+    ESP_LOGI("APP", "Attribute update: ep=%d cluster=0x%x attr=0x%x",
+      endpoint_id, cluster_id, attribute_id);
+  }
+
+  if (type == POST_UPDATE) {
+    // Setelah update — kontrol hardware
+    if (endpoint_id == 1 &amp;&amp;
+        cluster_id == OnOff::Id &amp;&amp;
+        attribute_id == OnOff::Attributes::OnOff::Id) {
+      // Kontrol LED
+      bool state = val->val.b;
+      gpio_set_level(LED_GPIO, state ? 1 : 0);
+      ESP_LOGI("APP", "LED %s", state ? "ON" : "OFF");
+    }
+  }
+
+  return ESP_OK;
+}
+
+extern "C" void app_main() {
+  // Init NVS
+  nvs_flash_init();
+
+  // Inisialisasi Matter
+  node::config_t node_config;
+  node_t *node = node::create(&amp;node_config, app_attribute_change_cb, NULL);
+
+  // Buat endpoint On/Off Light (endpoint 1)
+  on_off_light::config_t light_config;
+  light_config.on_off.on_off = false;
+  light_config.on_off.lighting.start_up_on_off = false;
+  endpoint_t *light_ep = on_off_light::create(node, &amp;light_config, ENDPOINT_FLAG_NONE, NULL);
+
+  // Start Matter
+  esp_matter::start();
+
+  // Setup GPIO
+  gpio_reset_pin(LED_GPIO);
+  gpio_set_direction(LED_GPIO, GPIO_MODE_OUTPUT);
+  gpio_set_level(LED_GPIO, 0);
+
+  // Print pairing code
+  ESP_LOGI("APP", "Matter Light siap!");
+  ESP_LOGI("APP", "Pairing code: 34970112332");
+  ESP_LOGI("APP", "QR Code: MT:Y3.13OTB00KA0648G00");
+
+  // Setup button untuk factory reset
+  gpio_reset_pin(BUTTON_GPIO);
+  gpio_set_direction(BUTTON_GPIO, GPIO_MODE_INPUT);
+  gpio_set_pull_mode(BUTTON_GPIO, GPIO_PULLUP_ONLY);
+
+  // Factory reset: tahan tombol BOOT 5 detik
+  int hold_count = 0;
+  while (true) {
+    if (gpio_get_level(BUTTON_GPIO) == 0) {
+      hold_count++;
+      if (hold_count &gt; 50) {  // 5 detik
+        ESP_LOGW("APP", "Factory Reset!");
+        esp_matter::factory_reset();
+      }
+    } else {
+      hold_count = 0;
+    }
+    vTaskDelay(pdMS_TO_TICKS(100));
+  }
+}</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 7 -->
+      <h2 id="commissioning">7. Commissioning Process</h2>
+
+      <p>Commissioning adalah proses menghubungkan perangkat Matter ke jaringan dan menambahkannya ke ekosistem smart home. Proses ini menggunakan QR code atau pairing code numerik.</p>
+
+      <h3>Tipe Commissioning</h3>
+
+      <table class="spec-table">
+        <thead><tr><th>Metode</th><th>Koneksi Awal</th><th>Transport</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>BLE Commissioning</td><td>BLE</td><td>BLE → WiFi/Thread</td><td>Paling umum, QR code</td></tr>
+          <tr><td>SoftAP</td><td>WiFi AP</td><td>WiFi AP → WiFi STA</td><td>Device buat hotspot</td></tr>
+          <tr><td>On-Network</td><td>Sudah di jaringan</td><td>WiFi/Thread langsung</td><td>Untuk re-commissioning</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Langkah Commissioning</h3>
+
+      <ol>
+        <li><strong>Discovery:</strong> Controller menemukan device via BLE advertising atau mDNS</li>
+        <li><strong>PASE (Passcode-Authenticated Session Establishment):</strong> Koneksi terenkripsi menggunakan SPAKE2+ dengan passcode</li>
+        <li><strong>Certificate Provisioning:</strong> Device menerima operational certificate</li>
+        <li><strong>Network Commissioning:</strong> Device diarahkan ke WiFi/Thread network</li>
+        <li><strong>CASE (Certificate-Authenticated Session Establishment):</strong> Koneksi operasional terenkripsi</li>
+        <li><strong>ACL Setup:</strong> Access control list dikonfigurasi</li>
+      </ol>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Commissioning Flow</div>
+        <p>Setelah commissioning selesai, device beroperasi di jaringan lokal. Controller (Apple Home, Google Home) berkomunikasi langsung dengan device tanpa perlu cloud. QR code dan pairing code tersimpan di NVS device dan bisa di-reset via factory reset.</p>
+      </div>
+
+      <!-- SECTION 8 -->
+      <h2 id="multi-admin">8. Multi-Admin &amp; Fabric</h2>
+
+      <p>Fitur <strong>Multi-Admin</strong> memungkinkan satu perangkat Matter dikontrol oleh beberapa controller sekaligus. Misalnya, satu lampu ESP32 bisa dikontrol dari Apple Home DAN Google Home secara bersamaan.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ (Multi-Fabric)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>// Enable multi-fabric dalam menuconfig
+// CONFIG_ENABLE_MULTI_FABRIC=y
+// Atau dalam sdkconfig.defaults:
+
+// sdkconfig.defaults
+CONFIG_ENABLE_MULTI_FABRIC=y
+CONFIG_MAX_ACTIVE_FABRICS=5
+CONFIG_MAX_DEFINED_FABRICS=5
+
+// Kode untuk enable multi-admin
+void enableMultiAdmin() {
+  // Setelah commissioning pertama selesai (fabric 1),
+  // buka commissioning window lagi untuk fabric 2
+
+  // Delay 30 detik sebelum buka commissioning window berikutnya
+  vTaskDelay(pdMS_TO_TICKS(30000));
+
+  commissioning_window_params_t params = {
+    .window_timeout = 300,    // 5 menit
+    .iteration = 1000,        // SPAKE2+ iteration count
+    .discriminator = 3840,    // Discriminator
+    .salt = nullptr,
+    .salt_len = 0,
+  };
+
+  esp_err_t err = esp_matter::commissioning_window_open(&amp;params);
+  if (err == ESP_OK) {
+    ESP_LOGI("APP", "Commissioning window dibuka untuk fabric baru!");
+    ESP_LOGI("APP", "Pairing code baru: %d", params.setup_pin_code);
+  }
+}</code></pre>
+      </div>
+
+      <!-- SECTION 9 -->
+      <h2 id="ota">9. OTA Update untuk Matter</h2>
+
+      <p>Matter mendukung OTA (Over-The-Air) update langsung dari controller. Apple Home dan Google Home bisa mengirim firmware update ke perangkat Matter secara otomatis.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ (OTA Setup)</span>
+          <button class="copy-btn" onclick="copyCode(this)">📋 Salin</button>
+        </div>
+        <pre><code>#include &lt;esp_matter_ota.h&gt;
+
+// Konfigurasi OTA
+void setupOTA() {
+  // OTA provider: memberikan firmware ke requester
+  ota::config_t ota_config = {
+    .ota_requestor = true,    // Device bisa menerima OTA
+    .ota_provider = false,    // Bukan provider untuk device lain
+  };
+
+  // Inisialisasi OTA
+  ota::init(&amp;ota_config);
+
+  ESP_LOGI("APP", "OTA diaktifkan");
+  ESP_LOGI("APP", "Device siap menerima firmware update");
+}
+
+// Callback progress OTA
+void otaProgressCallback(uint8_t progress) {
+  ESP_LOGI("OTA", "Progress: %d%%", progress);
+  // Bisa update LED indicator atau display
+  if (progress &gt;= 100) {
+    ESP_LOGI("OTA", "Update selesai! Restart...");
+    esp_restart();
+  }
+}</code></pre>
+      </div>
+
+      <!-- SECTION 10 -->
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+
+      <div class="quiz-container" id="quiz01">
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Matter menggunakan model data apa untuk mengorganisir informasi?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) JSON-RPC</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Node → Endpoint → Cluster → Attribute</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) REST API</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) MQTT Topic</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: ESP32 mana yang mendukung Thread DAN WiFi untuk Matter?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) ESP32</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) ESP32-S3</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) ESP32-C6</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) ESP32-H2</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi Thread Border Router?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Mengontrol perangkat Thread dari smartphone</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Menghubungkan mesh Thread ke jaringan IP</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Menggantikan WiFi router</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Menyimpan data sensor Thread</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Multi-Admin memungkinkan satu device dikontrol oleh?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Hanya satu controller</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Beberapa controller sekaligus (Apple Home + Google Home)</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Hanya Google Home</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Hanya Apple Home</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Commissioning menggunakan protokol keamanan apa untuk koneksi awal?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) TLS 1.3</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) WPA3</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) SPAKE2+ (PASE)</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) RSA-2048</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="esp32-sleep-modes.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">ESP32 Deep Sleep</span>
+        </a>
+        <a href="arduino-libraries.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Arduino Library</span>
+        </a>
+      </div>
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/sensor-interfacing.html" class="related-card">
+          <span class="related-category">IoT</span>
+          <span class="related-title">🌡️ Sensor Interfacing dengan Microcontroller</span>
+        </a>
+        <a href="/articles/mqtt-lengkap.html" class="related-card">
+          <span class="related-category">IoT</span>
+          <span class="related-title">📨 MQTT Protocol: Panduan Lengkap</span>
+        </a>
+        <a href="/articles/raspberry-pi-kubernetes.html" class="related-card">
+          <span class="related-category">IoT</span>
+          <span class="related-title">Raspberry Pi Kubernetes Cluster: k3s Multi-Node dengan Pe...</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

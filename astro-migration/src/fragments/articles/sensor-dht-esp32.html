@@ -1,0 +1,1428 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Sensor</a>
+        <span class="separator">/</span>
+        <span class="current">DHT11 &amp; DHT22</span>
+      </div>
+      <span class="category-tag">Sensor</span>
+      <h1>Monitoring Suhu &amp; Kelembaban dengan Sensor DHT11/DHT22 + ESP32</h1>
+      <span class="access-badge gratis">GRATIS</span>
+      <p class="article-subtitle">Panduan lengkap dari pengenalan sensor, wiring, program Arduino, kalibrasi, penyimpanan data, hingga proyek MQTT + Web Dashboard</p>
+      <div class="article-meta">
+        <span>📅 20 Juni 2026</span>
+        <span>📖 18 menit baca</span>
+        <span class="difficulty pemula">Pemula</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-dht">Pengenalan Sensor DHT11 &amp; DHT22</a></li>
+          <li><a href="#perbandingan-sensor">Perbandingan DHT11 vs DHT22 vs BME280</a></li>
+          <li><a href="#wiring-koneksi">Wiring &amp; Koneksi ke ESP32</a></li>
+          <li><a href="#setup-library">Setup Library Arduino IDE</a></li>
+          <li><a href="#program-dht">Program Membaca Suhu &amp; Kelembaban</a></li>
+          <li><a href="#kalibrasi-error">Kalibrasi &amp; Error Handling</a></li>
+          <li><a href="#simpan-data">Menyimpan Data ke EEPROM/SD Card</a></li>
+          <li><a href="#proyek-mqtt-dashboard">Proyek: Sensor + MQTT + Web Dashboard</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan DHT      -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-dht">1. Pengenalan Sensor DHT11 &amp; DHT22</h2>
+
+      <p>Family sensor <strong>DHT</strong> (Digital Humidity Temperature) merupakan salah satu sensor digital paling populer untuk proyek IoT. Sensor ini mampu mengukur <strong>suhu</strong> dan <strong>kelembaban udara</strong> secara bersamaan dalam satu modul kecil yang sangat terjangkau. Dua varian utama yang banyak digunakan adalah <strong>DHT11</strong> dan <strong>DHT22</strong> (dikenal juga sebagai AM2302).</p>
+
+      <p>Sensor DHT bekerja dengan memanfaatkan komponen kapasitif untuk mengukur kelembaban dan termistor NTC untuk mengukur suhu. Data dikirim secara digital melalui satu jalur data (single-wire interface), sehingga sangat hemat pin GPIO pada mikrokontroler seperti ESP32.</p>
+
+      <h3>Spesifikasi DHT11</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Nilai</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Rentang Suhu</td><td>0°C — 50°C</td></tr>
+          <tr><td>Akurasi Suhu</td><td>±2°C</td></tr>
+          <tr><td>Rentang Kelembaban</td><td>20% — 80% RH</td></tr>
+          <tr><td>Akurasi Kelembaban</td><td>±5% RH</td></tr>
+          <tr><td>Resolusi</td><td>1 bit (8 bit per pembacaan)</td></tr>
+          <tr><td>Tegangan Operasi</td><td>3.3V — 5.5V DC</td></tr>
+          <tr><td>Arus Kerja</td><td>2.5 mA (rata-rata)</td></tr>
+          <tr><td>Sampling Rate</td><td>1 Hz (1 pembacaan per detik)</td></tr>
+          <tr><td>Ukuran Fisik</td><td>12 × 15.5 × 5.5 mm</td></tr>
+          <tr><td>Harga (rata-rata)</td><td>Rp 10.000 — Rp 20.000</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Spesifikasi DHT22 (AM2302)</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Nilai</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Rentang Suhu</td><td>-40°C — 80°C</td></tr>
+          <tr><td>Akurasi Suhu</td><td>±0.5°C</td></tr>
+          <tr><td>Rentang Kelembaban</td><td>0% — 100% RH</td></tr>
+          <tr><td>Akurasi Kelembaban</td><td>±2% RH</td></tr>
+          <tr><td>Resolusi</td><td>0.1°C / 0.1% RH (16 bit)</td></tr>
+          <tr><td>Tegangan Operasi</td><td>3.3V — 6V DC</td></tr>
+          <tr><td>Arus Kerja</td><td>1.5 mA (rata-rata)</td></tr>
+          <tr><td>Sampling Rate</td><td>0.5 Hz (1 pembacaan per 2 detik)</td></tr>
+          <tr><td>Ukuran Fisik</td><td>15 × 25 × 7.7 mm</td></tr>
+          <tr><td>Harga (rata-rata)</td><td>Rp 25.000 — Rp 45.000</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Kapan Pilih DHT11 vs DHT22?</div>
+        <p><strong>Pilih DHT11</strong> untuk proyek pemula, sekadar belajar, atau monitoring kasar (misal: indikator ruangan). <strong>Pilih DHT22</strong> jika membutuhkan akurasi lebih baik, rentang suhu lebih lebar, atau untuk data logging jangka panjang. Perbedaan harga sekitar Rp 15.000—25.000 sangat worth it untuk presisi yang jauh lebih baik.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Perbandingan        -->
+      <!-- ============================== -->
+      <h2 id="perbandingan-sensor">2. Perbandingan DHT11 vs DHT22 vs BME280</h2>
+
+      <p>Jika DHT11 dan DHT22 populer karena harganya yang murah, sensor <strong>BME280</strong> (buatan Bosch) hadir sebagai alternatif premium dengan fitur lebih lengkap, termasuk pengukuran tekanan udara (barometrik). Berikut tabel perbandingan lengkap:</p>
+
+      <div class="compare-grid cols-3">
+        <div class="compare-card">
+          <div class="compare-header">
+            <span class="compare-icon">🔵</span>
+            <h4>DHT11</h4>
+            <span class="compare-tag">Murah &amp; Mudah</span>
+          </div>
+          <ul class="compare-list">
+            <li><strong>Jenis:</strong> Digital</li>
+            <li><strong>Suhu:</strong> 0–50°C (±2°C)</li>
+            <li><strong>Kelembaban:</strong> 20–80% (±5%)</li>
+            <li><strong>Tekanan Udara:</strong> ❌</li>
+            <li><strong>Protokol:</strong> Single-wire</li>
+            <li><strong>Tegangan:</strong> 3.3–5.5V</li>
+            <li><strong>Arus Kerja:</strong> 2.5 mA</li>
+            <li><strong>Sampling Rate:</strong> 1 Hz</li>
+            <li><strong>Antarmuka:</strong> 1 GPIO</li>
+            <li><strong>Kesulitan:</strong> ⭐ Mudah</li>
+            <li><strong>Harga:</strong> Rp 10–20rb</li>
+            <li><strong>Cocok Untuk:</strong> Pemula, proyek sederhana</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <div class="compare-header">
+            <span class="compare-icon">⚪</span>
+            <h4>DHT22</h4>
+            <span class="compare-tag">Akurat &amp; Andal</span>
+          </div>
+          <ul class="compare-list">
+            <li><strong>Jenis:</strong> Digital</li>
+            <li><strong>Suhu:</strong> -40–80°C (±0.5°C)</li>
+            <li><strong>Kelembaban:</strong> 0–100% (±2%)</li>
+            <li><strong>Tekanan Udara:</strong> ❌</li>
+            <li><strong>Protokol:</strong> Single-wire</li>
+            <li><strong>Tegangan:</strong> 3.3–6V</li>
+            <li><strong>Arus Kerja:</strong> 1.5 mA</li>
+            <li><strong>Sampling Rate:</strong> 0.5 Hz</li>
+            <li><strong>Antarmuka:</strong> 1 GPIO</li>
+            <li><strong>Kesulitan:</strong> ⭐ Mudah</li>
+            <li><strong>Harga:</strong> Rp 25–45rb</li>
+            <li><strong>Cocok Untuk:</strong> Monitoring akurat</li>
+          </ul>
+        </div>
+        <div class="compare-card">
+          <div class="compare-header">
+            <span class="compare-icon">🟢</span>
+            <h4>BME280</h4>
+            <span class="compare-tag">Premium &amp; Lengkap</span>
+          </div>
+          <ul class="compare-list">
+            <li><strong>Jenis:</strong> Digital (MEMS)</li>
+            <li><strong>Suhu:</strong> -40–85°C (±1°C)</li>
+            <li><strong>Kelembaban:</strong> 0–100% (±3%)</li>
+            <li><strong>Tekanan Udara:</strong> ✅ (300–1100 hPa)</li>
+            <li><strong>Protokol:</strong> I2C / SPI</li>
+            <li><strong>Tegangan:</strong> 1.71–3.6V</li>
+            <li><strong>Arus Kerja:</strong> 3.6 µA @ 1Hz</li>
+            <li><strong>Sampling Rate:</strong> Hingga 100 Hz</li>
+            <li><strong>Antarmuka:</strong> 4+ pin (I2C/SPI)</li>
+            <li><strong>Kesulitan:</strong> ⭐⭐ Sedang</li>
+            <li><strong>Harga:</strong> Rp 40–80rb</li>
+            <li><strong>Cocok Untuk:</strong> Weather station, IoT lanjut</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Rekomendasi Pilihan</div>
+        <p><strong>Pemula</strong>: Mulai dengan DHT11 (murah, mudah). <strong>Sedang</strong>: Gunakan DHT22 untuk akurasi lebih baik tanpa kompleksitas wiring. <strong>Lanjut</strong>: Pilih BME280 jika butuh data tekanan udara untuk aplikasi weather station atau prediksi cuaca. Ketiga sensor kompatibel dengan ESP32 tanpa masalah.</p>
+      </div>
+
+      <div class="compare-grid cols-3">
+        <div class="compare-card">
+          <div class="compare-header">
+            <span class="compare-icon">🔵</span>
+            <h4>DHT11</h4>
+            <span class="compare-tag">12 × 15.5 mm</span>
+          </div>
+          <div class="pinout-visual">
+            <div class="pin-label-row">
+              <div class="pin-slot"><div class="pin-dot" style="background:#ef4444"></div>1 <span>VCC</span></div>
+              <div class="pin-slot"><div class="pin-dot" style="background:#f97316"></div>2 <span>DATA</span></div>
+              <div class="pin-slot"><div class="pin-dot" style="background:#94a3b8"></div>3 <span>NC</span></div>
+              <div class="pin-slot"><div class="pin-dot" style="background:#22c55e"></div>4 <span>GND</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="compare-card">
+          <div class="compare-header">
+            <span class="compare-icon">⚪</span>
+            <h4>DHT22</h4>
+            <span class="compare-tag">15 × 25 mm</span>
+          </div>
+          <div class="pinout-visual">
+            <div class="pin-label-row">
+              <div class="pin-slot"><div class="pin-dot" style="background:#ef4444"></div>1 <span>VCC</span></div>
+              <div class="pin-slot"><div class="pin-dot" style="background:#f97316"></div>2 <span>DATA</span></div>
+              <div class="pin-slot"><div class="pin-dot" style="background:#94a3b8"></div>3 <span>NC</span></div>
+              <div class="pin-slot"><div class="pin-dot" style="background:#22c55e"></div>4 <span>GND</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="compare-card">
+          <div class="compare-header">
+            <span class="compare-icon">🟢</span>
+            <h4>BME280</h4>
+            <span class="compare-tag">Modul Kecil (I2C)</span>
+          </div>
+          <div class="pinout-visual">
+            <div class="pin-label-row">
+              <div class="pin-slot"><div class="pin-dot" style="background:#ef4444"></div><span>VCC</span></div>
+              <div class="pin-slot"><div class="pin-dot" style="background:#22c55e"></div><span>GND</span></div>
+              <div class="pin-slot"><div class="pin-dot" style="background:#3b82f6"></div><span>SDA</span></div>
+              <div class="pin-slot"><div class="pin-dot" style="background:#a855f7"></div><span>SCL</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Wiring              -->
+      <!-- ============================== -->
+      <h2 id="wiring-koneksi">3. Wiring &amp; Koneksi ke ESP32</h2>
+
+      <p>Koneksi sensor DHT11/DHT22 ke ESP32 sangat sederhana karena hanya membutuhkan <strong>3 kabel</strong>: VCC (power), DATA (sinyal), dan GND (ground). Pin DATA membutuhkan resistor pull-up 10kΩ untuk menjaga stabilitas sinyal komunikasi.</p>
+
+      <h3>Kebutuhan Komponen</h3>
+      <ul>
+        <li>1x ESP32 DevKit v1</li>
+        <li>1x Sensor DHT11 atau DHT22</li>
+        <li>1x Resistor 10kΩ (pull-up)</li>
+        <li>Kabel jumper (jantan-jantan)</li>
+        <li>1x Breadboard (opsional, untuk prototipe)</li>
+      </ul>
+
+      <div class="wiring-diagram">
+        <div class="wiring-title">🔌 Wiring ESP32 + DHT11 / DHT22</div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#ef4444"></div><span class="pin-name">ESP32 3.3V</span></div>
+          <div class="wiring-line"></div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#ef4444"></div><span class="pin-name">DHT VCC (Pin 1)</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#f97316"></div><span class="pin-name">ESP32 GPIO4</span></div>
+          <div class="wiring-line"><span style="font-size:0.7rem;color:#94a3b8">via 10kΩ pull-up ke 3.3V</span></div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#f97316"></div><span class="pin-name">DHT DATA (Pin 2)</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#94a3b8"></div><span class="pin-name">—</span></div>
+          <div class="wiring-line"><span style="font-size:0.7rem;color:#94a3b8;text-decoration:line-through">Tidak terhubung</span></div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#94a3b8"></div><span class="pin-name">DHT NC (Pin 3)</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#22c55e"></div><span class="pin-name">ESP32 GND</span></div>
+          <div class="wiring-line"></div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#22c55e"></div><span class="pin-name">DHT GND (Pin 4)</span></div>
+        </div>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Resistor Pull-up 10kΩ</div>
+        <p>Resistor 10kΩ dipasang antara pin <strong>DATA (2)</strong> dan <strong>VCC (1)</strong> sebagai pull-up resistor. Beberapa modul DHT sudah memiliki resistor internal — periksa modul Anda sebelum memasang.</p>
+      </div>
+
+      <h3>Wiring Multi-Sensor (DHT11 + DHT22)</h3>
+      <p>Jika ingin menggunakan dua sensor sekaligus untuk komparasi, masing-masing sensor terhubung ke GPIO berbeda:</p>
+
+      <div class="wiring-diagram">
+        <div class="wiring-title">🔌 Wiring Dua Sensor DHT pada ESP32</div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#ef4444"></div><span class="pin-name">ESP32 3.3V</span></div>
+          <div class="wiring-line">↘</div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#ef4444"></div><span class="pin-name">DHT11 VCC</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#ef4444"></div><span class="pin-name">ESP32 3.3V</span></div>
+          <div class="wiring-line">↗</div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#ef4444"></div><span class="pin-name">DHT22 VCC</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#f97316"></div><span class="pin-name">ESP32 GPIO4</span></div>
+          <div class="wiring-line"><span style="font-size:0.7rem;color:#94a3b8">via 10kΩ pull-up</span></div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#f97316"></div><span class="pin-name">DHT11 DATA</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#eab308"></div><span class="pin-name">ESP32 GPIO5</span></div>
+          <div class="wiring-line"><span style="font-size:0.7rem;color:#94a3b8">via 10kΩ pull-up</span></div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#eab308"></div><span class="pin-name">DHT22 DATA</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#22c55e"></div><span class="pin-name">ESP32 GND</span></div>
+          <div class="wiring-line">↘</div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#22c55e"></div><span class="pin-name">DHT11 GND</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#22c55e"></div><span class="pin-name">ESP32 GND</span></div>
+          <div class="wiring-line">↗</div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#22c55e"></div><span class="pin-name">DHT22 GND</span></div>
+        </div>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Peringatan Penting</div>
+        <ul>
+          <li>ESP32 beroperasi pada tegangan <strong>3.3V</strong>. Jangan hubungkan pin GPIO langsung ke tegangan 5V tanpa level shifter.</li>
+          <li>Beberapa modul DHT11/DHT22 sudah memiliki resistor pull-up internal (modul breakout board). Periksa datasheet modul Anda sebelum memasang resistor eksternal.</li>
+          <li>Panjang kabel jumper idealnya kurang dari <strong>20 cm</strong> untuk menghindari gangguan noise pada sinyal data.</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Setup Library       -->
+      <!-- ============================== -->
+      <h2 id="setup-library">4. Setup Library Arduino IDE</h2>
+
+      <p>Untuk menggunakan sensor DHT11/DHT22 di Arduino IDE, kita membutuhkan library dari <strong>Adafruit</strong>. Adafruit menyediakan library DHT yang sudah sangat stabil dan banyak digunakan komunitas maker di seluruh dunia.</p>
+
+      <h3>Langkah 1: Instalasi Library DHT</h3>
+      <ol>
+        <li>Buka Arduino IDE</li>
+        <li>Buka menu <strong>Sketch → Include Library → Manage Libraries</strong></li>
+        <li>Pada kolom pencarian, ketik <strong>"DHT sensor library"</strong></li>
+        <li>Pilih <strong>"DHT sensor library"</strong> oleh <strong>Adafruit</strong></li>
+        <li>Klik tombol <strong>Install</strong></li>
+        <li>Jika muncul prompt instalasi dependency, klik <strong>"Install All"</strong></li>
+      </ol>
+
+      <p>Library ini akan otomatis menginstal <strong>Adafruit Unified Sensor</strong> sebagai dependency, yang merupakan library dasar untuk semua sensor digital Adafruit.</p>
+
+      <h3>Langkah 2: Verifikasi Instalasi</h3>
+      <p>Setelah instalasi selesai, pastikan library berhasil dimuat dengan cara:</p>
+      <ol>
+        <li>Buka menu <strong>Sketch → Include Library</strong></li>
+        <li>Scroll ke bawah, cari <strong>"DHT sensor library"</strong> di bagian Contributed Libraries</li>
+        <li>Jika sudah muncul, berarti instalasi berhasil</li>
+      </ol>
+
+      <h3>Struktur Include di Kode</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — Header yang Diperlukan</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard('#include \u0022DHT.h\u0022')">Salin</button>
+        </div>
+<pre><code>
+// Library utama untuk sensor DHT
+#include "DHT.h"
+
+// Definisi pin dan tipe sensor
+#define DHT_PIN 4        // GPIO4 terhubung ke pin DATA sensor
+#define DHT_TYPE DHT11   // Ganti ke DHT22 jika pakai DHT22
+
+// Inisialisasi objek sensor
+DHT sensorSuhu(DHT_PIN, DHT_TYPE);
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Ganti Tipe Sensor</div>
+        <p>Jika menggunakan DHT22, cukup ganti baris <code>#define DHT_TYPE DHT11</code> menjadi <code>#define DHT_TYPE DHT22</code>. Kode lainnya tetap sama — library akan otomatis menyesuaikan protokol pembacaan.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Program DHT         -->
+      <!-- ============================== -->
+      <h2 id="program-dht">5. Program Membaca Suhu &amp; Kelembaban</h2>
+
+      <p>Sekarang kita akan membuat program Arduino untuk membaca data suhu dan kelembaban dari sensor DHT. Program ini termasuk penanganan error jika sensor gagal membaca, serta perhitungan <strong>Heat Index</strong> (indec panas) yang sangat berguna untuk monitoring kenyamanan ruangan.</p>
+
+      <h3>Program Dasar Pembacaan DHT</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — baca_dht_lengkap.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// =============================================
+// Program Membaca Suhu &amp; Kelembaban DHT11/DHT22
+// BeebaneLabs - https://beebanelabs.pages.dev
+// =============================================
+
+#include "DHT.h"
+
+// === Konfigurasi Sensor ===
+#define DHT_PIN   4         // GPIO4 terhubung ke pin DATA
+#define DHT_TYPE  DHT11     // Ganti ke DHT22 jika diperlukan
+#define LED_PIN   2         // LED internal ESP32 (GPIO2)
+
+// === Interval Pembacaan ===
+const unsigned long INTERVAL_BACA = 5000;  // Baca setiap 5 detik
+
+// === Objek Sensor ===
+DHT sensorDHT(DHT_PIN, DHT_TYPE);
+
+// === Variabel Penyimpanan ===
+float suhuTerkini      = 0.0;
+float kelembabanTerkini = 0.0;
+float heatIndex         = 0.0;
+unsigned long totalPembacaan = 0;
+unsigned long totalError     = 0;
+
+// === Fungsi Pembacaan dengan Validasi ===
+bool bacaSensor() {
+  float s = sensorDHT.readTemperature();      // Celsius
+  float h = sensorDHT.readHumidity();         // Persen
+  float f = sensorDHT.readTemperature(true);  // Fahrenheit
+
+  // Validasi: cek apakah pembacaan valid
+  if (isnan(s) || isnan(h)) {
+    totalError++;
+    Serial.println("[ERROR] Gagal membaca sensor DHT!");
+    Serial.println("  Penyebab: koneksi longgar, resistor belum dipasang, atau sensor rusak.");
+    return false;
+  }
+
+  suhuTerkini      = s;
+  kelembabanTerkini = h;
+  heatIndex         = sensorDHT.computeHeatIndex(s, h, false);
+  totalPembacaan++;
+  return true;
+}
+
+// === Fungsi Tampilkan Data ke Serial ===
+void tampilkanData() {
+  Serial.println("┌────────────────────────────────┐");
+  Serial.println("│      Pembacaan Sensor DHT      │");
+  Serial.println("├────────────────────────────────┤");
+  Serial.print("│ Suhu        : ");
+  Serial.print(suhuTerkini, 1);
+  Serial.println(" °C        │");
+  Serial.print("│ Kelembaban  : ");
+  Serial.print(kelembabanTerkini, 1);
+  Serial.println(" %          │");
+  Serial.print("│ Heat Index  : ");
+  Serial.print(heatIndex, 1);
+  Serial.println(" °C        │");
+  Serial.print("│ Pembacaan # : ");
+  Serial.print(totalPembacaan);
+  Serial.println("              │");
+  Serial.println("└────────────────────────────────┘");
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+
+  Serial.println("╔══════════════════════════════════════╗");
+  Serial.println("║  Sensor DHT11/DHT22 + ESP32         ║");
+  Serial.println("║  BeebaneLabs - https://beebanelabs.pages.dev          ║");
+  Serial.println("╚══════════════════════════════════════╝");
+
+  // Mulai sensor
+  sensorDHT.begin();
+  delay(2000);  // Waktu stabilisasi sensor
+
+  Serial.println("Sensor dimulai. Menunggu pembacaan pertama...");
+}
+
+void loop() {
+  static unsigned long lastBaca = 0;
+  unsigned long sekarang = millis();
+
+  if (sekarang - lastBaca >= INTERVAL_BACA) {
+    lastBaca = sekarang;
+
+    if (bacaSensor()) {
+      tampilkanData();
+
+      // Kedipkan LED saat pembacaan berhasil
+      digitalWrite(LED_PIN, HIGH);
+      delay(100);
+      digitalWrite(LED_PIN, LOW);
+    }
+  }
+}
+</code></pre>
+      </div>
+
+      <div class="output-block">
+        <strong>Output Serial Monitor:</strong>
+╔══════════════════════════════════════╗
+║  Sensor DHT11/DHT22 + ESP32         ║
+║  BeebaneLabs - https://beebanelabs.pages.dev          ║
+╚══════════════════════════════════════╝
+Sensor dimulai. Menunggu pembacaan pertama...
+┌────────────────────────────────┐
+│      Pembacaan Sensor DHT      │
+├────────────────────────────────┤
+│ Suhu        : 28.0 °C         │
+│ Kelembaban  : 72.5 %          │
+│ Heat Index  : 30.1 °C         │
+│ Pembacaan # : 1               │
+└────────────────────────────────┘
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Apa itu Heat Index?</div>
+        <p>Heat Index (indeks panas) adalah suhu yang "terasa" oleh tubuh manusia, menggabungkan efek suhu aktual dan kelembaban. Semakin tinggi kelembaban, semakin panas suhu terasa. Contoh: suhu 30°C dengan kelembaban 80% terasa seperti 36°C! Heat Index sangat berguna untuk monitoring kenyamanan ruangan atau sistem pendingin otomatis.</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Kalibrasi & Error   -->
+      <!-- ============================== -->
+      <h2 id="kalibrasi-error">6. Kalibrasi &amp; Error Handling</h2>
+
+      <p>Sensor DHT11/DHT22, seperti semua sensor, memiliki toleransi pembacaan tertentu. Untuk proyek yang membutuhkan akurasi lebih tinggi, diperlukan proses kalibrasi. Selain itu, implementasi error handling yang baik akan memastikan sistem tetap stabil meskipun sensor mengalami gangguan sementara.</p>
+
+      <h3>Teknik Kalibrasi Dasar</h3>
+      <p>Metode kalibrasi paling sederhana adalah <strong>perbandingan dengan referensi</strong>. Gunakan termometer digital akurat (misal: termometer laboratorium atau sensor BME280 sebagai referensi) untuk menentukan offset sensor DHT Anda.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — kalibrasi_dht.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// =============================================
+// Kalibrasi &amp; Error Handling Sensor DHT
+// BeebaneLabs - https://beebanelabs.pages.dev
+// =============================================
+
+#include "DHT.h"
+
+#define DHT_PIN   4
+#define DHT_TYPE  DHT11
+
+DHT sensorDHT(DHT_PIN, DHT_TYPE);
+
+// === Faktor Kalibrasi ===
+// Nilai ini didapatkan dari perbandingan dengan sensor referensi
+// Contoh: jika DHT11 membaca 30.5°C tapi referensi menunjuk 29.8°C
+//          maka offset_suhu = 29.8 - 30.5 = -0.7
+const float OFFSET_SUHU         = -0.7;   // Koreksi suhu (°C)
+const float OFFSET_KELEMBABAN   = 2.0;    // Koreksi kelembaban (%)
+const float BATAS_SUHU_MIN      = -10.0;  // Batas bawah suhu valid
+const float BATAS_SUHU_MAX      = 60.0;   // Batas atas suhu valid
+const float BATAS_RH_MIN        = 0.0;    // Batas bawah kelembaban
+const float BATAS_RH_MAX        = 100.0;  // Batas atas kelembaban
+const int   MAX_ERROR_BERUNTUN  = 5;      // Max error berturut sebelum reset
+
+// === Counter Error ===
+int errorBeruntun = 0;
+
+// === Fungsi Kalibrasi ===
+float kalibrasiSuhu(float raw) {
+  return raw + OFFSET_SUHU;
+}
+
+float kalibrasiKelembaban(float raw) {
+  float calibrated = raw + OFFSET_KELEMBABAN;
+  // Clamp ke rentang valid
+  if (calibrated &lt; BATAS_RH_MIN) calibrated = BATAS_RH_MIN;
+  if (calibrated &gt; BATAS_RH_MAX) calibrated = BATAS_RH_MAX;
+  return calibrated;
+}
+
+// === Fungsi Pembacaan dengan Error Handling Lanjut ===
+bool bacaSensorLanjut(float* suhu, float* kelembaban) {
+  float rawSuhu = sensorDHT.readTemperature();
+  float rawRH   = sensorDHT.readHumidity();
+
+  // Error 1: Pembacaan NaN
+  if (isnan(rawSuhu) || isnan(rawRH)) {
+    errorBeruntun++;
+    Serial.printf("[ERROR #%d/%d] NaN diterima dari sensor!\n",
+                  errorBeruntun, MAX_ERROR_BERUNTUN);
+
+    if (errorBeruntun >= MAX_ERROR_BERUNTUN) {
+      Serial.println("[CRITICAL] Terlalu banyak error berturut. Mencoba reset...");
+      sensorDHT.begin();
+      delay(3000);
+      errorBeruntun = 0;
+    }
+    return false;
+  }
+
+  // Error 2: Nilai di luar rentang fisik
+  float calibratedSuhu = kalibrasiSuhu(rawSuhu);
+  float calibratedRH   = kalibrasiKelembaban(rawRH);
+
+  if (calibratedSuhu &lt; BATAS_SUHU_MIN || calibratedSuhu &gt; BATAS_SUHU_MAX) {
+    errorBeruntun++;
+    Serial.printf("[WARN] Suhu %.1f°C di luar rentang valid (%.0f–%.0f°C)\n",
+                  calibratedSuhu, BATAS_SUHU_MIN, BATAS_SUHU_MAX);
+    return false;
+  }
+
+  // Error 3: Kelembaban di luar rentang
+  if (calibratedRH &lt; BATAS_RH_MIN || calibratedRH &gt; BATAS_RH_MAX) {
+    errorBeruntun++;
+    Serial.printf("[WARN] Kelembaban %.1f%% di luar rentang valid\n", calibratedRH);
+    return false;
+  }
+
+  // Error 4: Perubahan mendadak (sensor terlepas?)
+  static float lastSuhu = 0;
+  if (lastSuhu != 0 &amp;&amp; abs(calibratedSuhu - lastSuhu) &gt; 10.0) {
+    Serial.printf("[WARN] Lompatan suhu ekstrem: %.1f → %.1f°C\n",
+                  lastSuhu, calibratedSuhu);
+    // Tidak return false, tapi catat warning
+  }
+  lastSuhu = calibratedSuhu;
+
+  // Semua valid
+  *suhu       = calibratedSuhu;
+  *kelembaban = calibratedRH;
+  errorBeruntun = 0;
+  return true;
+}
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("=== Sistem Kalibrasi DHT ===");
+  sensorDHT.begin();
+  delay(2000);
+
+  Serial.printf("Offset Suhu       : %.1f°C\n", OFFSET_SUHU);
+  Serial.printf("Offset Kelembaban : %.1f%%\n", OFFSET_KELEMBABAN);
+  Serial.printf("Rentang Suhu      : %.0f ~ %.0f°C\n", BATAS_SUHU_MIN, BATAS_SUHU_MAX);
+}
+
+void loop() {
+  static unsigned long lastBaca = 0;
+  if (millis() - lastBaca &gt; 5000) {
+    lastBaca = millis();
+
+    float suhu, kelembaban;
+    if (bacaSensorLanjut(&amp;suhu, &amp;kelembaban)) {
+      Serial.printf("[OK] Suhu: %.1f°C | RH: %.1f%%\n", suhu, kelembaban);
+    }
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>Panduan Kalibrasi Manual</h3>
+      <ol>
+        <li><strong>Siapkan referensi:</strong> Gunakan termometer akurat dan hygrometer kalibrasi. Tempatkan bersama DHT di lokasi yang sama.</li>
+        <li><strong>Rekam pembacaan:</strong> Catat 10-20 pembacaan dari DHT dan referensi pada kondisi stabil.</li>
+        <li><strong>Hitung rata-rata selisih:</strong> offset = (rata-rata referensi) − (rata-rata DHT)</li>
+        <li><strong>Masukkan offset ke kode:</strong> Ubah nilai <code>OFFSET_SUHU</code> dan <code>OFFSET_KELEMBABAN</code>.</li>
+        <li><strong>Uji ulang:</strong> Verifikasi bahwa pembacaan koreksi sesuai referensi dalam toleransi ±0.5°C.</li>
+      </ol>
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Simpan Data         -->
+      <!-- ============================== -->
+      <h2 id="simpan-data">7. Menyimpan Data ke EEPROM/SD Card</h2>
+
+      <p>ESP32 memiliki memori <strong>EEPROM</strong> (Electrically Erasable Programmable Read-Only Memory) virtual sebesar 4096 bytes yang bisa digunakan untuk menyimpan data. Namun untuk logging data sensor dalam jumlah besar, <strong>SD Card</strong> merupakan pilihan yang jauh lebih praktis.</p>
+
+      <h3>Opsi 1: Menyimpan ke EEPROM (Data Terbatas)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — simpan_eeprom.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// =============================================
+// Menyimpan Data Sensor ke EEPROM ESP32
+// BeebaneLabs - https://beebanelabs.pages.dev
+// =============================================
+
+#include "DHT.h"
+#include &lt;EEPROM.h&gt;
+
+#define DHT_PIN   4
+#define DHT_TYPE  DHT11
+
+DHT sensorDHT(DHT_PIN, DHT_TYPE);
+
+// === Struktur Data untuk Disimpan ===
+struct DataSensor {
+  float suhu;
+  float kelembaban;
+  unsigned long timestamp;  // millis() sebagai timestamp
+  bool valid;               // Flag validitas data
+};
+
+// === Konfigurasi Penyimpanan ===
+const int EEPROM_SIZE    = 4096;
+const int ALAMAT_AWAL    = 0;    // Alamat awal penyimpanan
+const int MAX_RECORDS    = 40;   // Max record (4096 / sizeof(DataSensor))
+const int ALAMAT_COUNTER = 4000; // Alamat counter record
+
+int jumlahRecord = 0;
+
+void setup() {
+  Serial.begin(115200);
+  EEPROM.begin(EEPROM_SIZE);
+
+  Serial.println("=== Data Logging ke EEPROM ===");
+  sensorDHT.begin();
+  delay(2000);
+
+  // Baca jumlah record yang tersimpan
+  jumlahRecord = EEPROM.read(ALAMAT_COUNTER);
+  if (jumlahRecord &gt; MAX_RECORDS) {
+    Serial.println("[INFO] EEPROM penuh. Menimpa dari awal.");
+    jumlahRecord = 0;
+  }
+  Serial.printf("Record tersimpan: %d / %d\n", jumlahRecord, MAX_RECORDS);
+}
+
+// === Simpan Data ke EEPROM ===
+void simpanData(float suhu, float kelembaban) {
+  if (jumlahRecord &gt;= MAX_RECORDS) {
+    Serial.println("[WARN] EEPROM penuh! Data baru tidak disimpan.");
+    return;
+  }
+
+  DataSensor data;
+  data.suhu       = suhu;
+  data.kelembaban = kelembaban;
+  data.timestamp  = millis();
+  data.valid      = true;
+
+  // Hitung alamat penyimpanan
+  int alamat = ALAMAT_AWAL + (jumlahRecord * sizeof(DataSensor));
+
+  // Tulis data ke EEPROM
+  EEPROM.put(alamat, data);
+  EEPROM.write(ALAMAT_COUNTER, jumlahRecord + 1);
+  EEPROM.commit();  // Wajib untuk ESP32!
+
+  jumlahRecord++;
+  Serial.printf("[EEPROM] Data #%d disimpan di alamat %d\n", jumlahRecord, alamat);
+}
+
+// === Baca Data dari EEPROM ===
+void bacaSemuaData() {
+  Serial.printf("\n=== Total %d Record di EEPROM ===\n", jumlahRecord);
+  for (int i = 0; i &lt; jumlahRecord; i++) {
+    DataSensor data;
+    int alamat = ALAMAT_AWAL + (i * sizeof(DataSensor));
+    EEPROM.get(alamat, data);
+
+    if (data.valid) {
+      Serial.printf("#%d | %.1f°C | %.1f%% | %lu ms\n",
+                    i + 1, data.suhu, data.kelembaban, data.timestamp);
+    }
+  }
+}
+
+void loop() {
+  static unsigned long lastSimpan = 0;
+
+  if (millis() - lastSimpan &gt; 10000) {  // Simpan setiap 10 detik
+    lastSimpan = millis();
+
+    float suhu = sensorDHT.readTemperature();
+    float kelembaban = sensorDHT.readHumidity();
+
+    if (!isnan(suhu) &amp;&amp; !isnan(kelembaban)) {
+      simpanData(suhu, kelembaban);
+
+      // Setiap 5 record, tampilkan semua data
+      if (jumlahRecord % 5 == 0) {
+        bacaSemuaData();
+      }
+    }
+  }
+}
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Batasan EEPROM ESP32</div>
+        <p>EEPROM ESP32 hanya <strong>4096 bytes</strong>. Setiap <code>DataSensor</code> menempati 12 bytes (2 float + 1 unsigned long + 1 bool), sehingga maksimal sekitar <strong>340 record</strong>. Untuk logging data 10 detik sekali, EEPROM hanya cukup ~56 menit. Untuk logging jangka panjang, gunakan SD Card.</p>
+      </div>
+
+      <h3>Opsi 2: Menyimpan ke SD Card (Data Besar)</h3>
+
+      <div class="wiring-diagram">
+        <div class="wiring-title">🔌 Wiring ESP32 + SD Card Module (SPI)</div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#ef4444"></div><span class="pin-name">ESP32 3.3V</span></div>
+          <div class="wiring-line"></div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#ef4444"></div><span class="pin-name">SD VCC</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#22c55e"></div><span class="pin-name">ESP32 GND</span></div>
+          <div class="wiring-line"></div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#22c55e"></div><span class="pin-name">SD GND</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#3b82f6"></div><span class="pin-name">ESP32 GPIO23</span></div>
+          <div class="wiring-line"></div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#3b82f6"></div><span class="pin-name">SD MOSI</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#a855f7"></div><span class="pin-name">ESP32 GPIO19</span></div>
+          <div class="wiring-line"></div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#a855f7"></div><span class="pin-name">SD MISO</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#eab308"></div><span class="pin-name">ESP32 GPIO18</span></div>
+          <div class="wiring-line"></div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#eab308"></div><span class="pin-name">SD CLK (SCK)</span></div>
+        </div>
+        <div class="wiring-row">
+          <div class="wiring-pin"><div class="pin-dot" style="background:#f97316"></div><span class="pin-name">ESP32 GPIO5</span></div>
+          <div class="wiring-line"></div>
+          <div class="wiring-pin target"><div class="pin-dot" style="background:#f97316"></div><span class="pin-name">SD CS (Chip Select)</span></div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — simpan_sdcard.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// =============================================
+// Menyimpan Data Sensor ke SD Card sebagai CSV
+// BeebaneLabs - https://beebanelabs.pages.dev
+// =============================================
+
+#include "DHT.h"
+#include &lt;SPI.h&gt;
+#include &lt;SD.h&gt;
+
+#define DHT_PIN   4
+#define DHT_TYPE  DHT11
+#define SD_CS_PIN 5   // GPIO5 sebagai Chip Select
+
+DHT sensorDHT(DHT_PIN, DHT_TYPE);
+const char* NAMA_FILE = "/sensor_log.csv";
+
+// === Inisialisasi SD Card ===
+bool mulaiSDCard() {
+  if (!SD.begin(SD_CS_PIN)) {
+    Serial.println("[ERROR] SD Card gagal dimulai!");
+    return false;
+  }
+  Serial.printf("SD Card: Tipe=%d, Kapasitas=%llu bytes\n",
+                SD.cardType(), SD.cardSize());
+  return true;
+}
+
+// === Tulis Header CSV ===
+void tulisHeader() {
+  File file = SD.open(NAMA_FILE, FILE_APPEND);
+  if (file) {
+    // Tulis header hanya jika file baru
+    if (file.size() == 0) {
+      file.println("nomor,suhu_c,kelembaban_persen,heat_index,millis,uptime_detik");
+      Serial.println("[SD] Header CSV ditulis.");
+    }
+    file.close();
+  }
+}
+
+// === Tulis Data Baru ===
+void tulisDataCSV(float suhu, float kelembaban, float heatIndex) {
+  File file = SD.open(NAMA_FILE, FILE_APPEND);
+  if (file) {
+    // Hitung nomor baris berdasarkan ukuran file
+    int nomorBaris = file.size() / 50;  // Estimasi kasar
+
+    // Format CSV: nomor,suhu,kelembaban,heat_index,millis,uptime
+    file.printf("%d,%.2f,%.2f,%.2f,%lu,%lu\n",
+                nomorBaris + 1, suhu, kelembaban, heatIndex,
+                millis(), millis() / 1000);
+    file.close();
+
+    Serial.printf("[SD] Baris #%d ditulis: %.1f°C, %.1f%%\n",
+                  nomorBaris + 1, suhu, kelembaban);
+  } else {
+    Serial.println("[ERROR] Gagal menulis ke SD Card!");
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  sensorDHT.begin();
+
+  Serial.println("=== Data Logging ke SD Card ===");
+  delay(2000);
+
+  if (mulaiSDCard()) {
+    tulisHeader();
+    Serial.println("[OK] SD Card siap untuk logging.");
+  }
+}
+
+void loop() {
+  static unsigned long lastTulis = 0;
+
+  if (millis() - lastTulis &gt; 15000) {  // Tulis setiap 15 detik
+    lastTulis = millis();
+
+    float suhu = sensorDHT.readTemperature();
+    float kelembaban = sensorDHT.readHumidity();
+
+    if (!isnan(suhu) &amp;&amp; !isnan(kelembaban)) {
+      float heatIndex = sensorDHT.computeHeatIndex(suhu, kelembaban, false);
+      tulisDataCSV(suhu, kelembaban, heatIndex);
+    }
+  }
+}
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips SD Card Logging</div>
+        <p>Format SD Card sebagai <strong>FAT32</strong> atau <strong>exFAT</strong> sebelum digunakan. Gunakan file CSV supaya data mudah dibuka di Excel atau Google Sheets. Jangan lupa lepaskan SD Card sebelum mencabutnya dari module untuk menghindari kerusakan data. Kapasitas 16GB SD Card cukup untuk menyimpan data logging bertahun-tahun!</p>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Proyek MQTT + Dash  -->
+      <!-- ============================== -->
+      <h2 id="proyek-mqtt-dashboard">8. Proyek: Sensor + MQTT + Web Dashboard</h2>
+
+      <p>Di bagian ini, kita akan menggabungkan semua materi ke dalam satu proyek utuh: <strong>ESP32 membaca sensor DHT</strong>, mengirim data ke <strong>MQTT broker</strong>, dan data ditampilkan secara real-time di <strong>web dashboard</strong> sederhana yang dibangun dengan HTML/JavaScript.</p>
+
+      <h3>Arsitektur Sistem</h3>
+      <div class="arch-diagram">
+        <div class="arch-title">🏗️ Arsitektur Proyek MQTT + Web Dashboard</div>
+        <div class="arch-flow">
+          <div class="arch-box">
+            <div class="arch-icon">🌡️</div>
+            <div class="arch-label">DHT11 / DHT22</div>
+            <div class="arch-sub">Sensor Suhu</div>
+          </div>
+          <div class="arch-arrow">→ <span>GPIO</span> →</div>
+          <div class="arch-box">
+            <div class="arch-icon">📡</div>
+            <div class="arch-label">ESP32</div>
+            <div class="arch-sub">+ WiFi Module</div>
+          </div>
+          <div class="arch-arrow">→ <span>WiFi</span> →</div>
+          <div class="arch-box">
+            <div class="arch-icon">📬</div>
+            <div class="arch-label">MQTT Broker</div>
+            <div class="arch-sub">Mosquitto · Port 1883</div>
+          </div>
+          <div class="arch-arrow">← <span>WSS</span> ←</div>
+          <div class="arch-box">
+            <div class="arch-icon">🖥️</div>
+            <div class="arch-label">Web Dashboard</div>
+            <div class="arch-sub">HTML + JS · Port 8080</div>
+          </div>
+        </div>
+        <div class="arch-subflow">
+          <div class="arch-box small">
+            <div class="arch-icon">🔄</div>
+            <div class="arch-label">MQTT WebSock Client</div>
+            <div class="arch-sub">Subscribe ke Broker</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Kode ESP32: Publisher MQTT</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">C++ — dht_mqtt_dashboard.ino</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+// =============================================
+// Proyek: DHT Sensor + MQTT + Web Dashboard
+// BeebaneLabs - https://beebanelabs.pages.dev
+// =============================================
+
+#include "WiFi.h"
+#include "PubSubClient.h"
+#include "DHT.h"
+
+// === Konfigurasi WiFi ===
+const char* WIFI_SSID = "NamaWiFiAnda";
+const char* WIFI_PASS = "PasswordWiFi";
+
+// === Konfigurasi MQTT ===
+const char* MQTT_SERVER   = "test.mosquitto.org";
+const int   MQTT_PORT     = 1883;
+const char* TOPIC_DATA    = "iothub/project/dht/data";
+const char* TOPIC_STATUS  = "iothub/project/dht/status";
+const char* CLIENT_ID     = "esp32_dht_dashboard_01";
+
+// === Konfigurasi Sensor ===
+#define DHT_PIN  4
+#define DHT_TYPE DHT11
+#define LED_PIN  2
+
+// === Objek ===
+DHT sensorDHT(DHT_PIN, DHT_TYPE);
+WiFiClient espClient;
+PubSubClient mqtt(espClient);
+
+// === Interval ===
+const unsigned long INTERVAL_KIRIM = 10000;  // 10 detik
+unsigned long lastKirim = 0;
+int msgCount = 0;
+
+// === Koneksi WiFi ===
+void setupWiFi() {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  Serial.print("WiFi: Menghubungkan");
+  int attempt = 0;
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+    if (++attempt &gt; 40) {
+      Serial.println(" GAGAL! Restart...");
+      ESP.restart();
+    }
+  }
+
+  Serial.printf(" OK! IP: %s\n", WiFi.localIP().toString().c_str());
+}
+
+// === Koneksi MQTT ===
+void hubungkanMQTT() {
+  while (!mqtt.connected()) {
+    Serial.print("MQTT: Menghubungkan...");
+    if (mqtt.connect(CLIENT_ID)) {
+      Serial.println(" OK!");
+      mqtt.publish(TOPIC_STATUS, "{\"status\":\"online\"}", true);
+    } else {
+      Serial.printf(" GAGAL (rc=%d). Coba lagi 3s...\n", mqtt.state());
+      delay(3000);
+    }
+  }
+}
+
+// === Kirim Data sebagai JSON ===
+void kirimData() {
+  float suhu       = sensorDHT.readTemperature();
+  float kelembaban = sensorDHT.readHumidity();
+
+  if (isnan(suhu) || isnan(kelembaban)) {
+    Serial.println("[ERROR] Sensor gagal membaca!");
+    return;
+  }
+
+  float heatIndex = sensorDHT.computeHeatIndex(suhu, kelembaban, false);
+
+  // Format JSON
+  char payload[256];
+  snprintf(payload, sizeof(payload),
+    "{"
+    "\"suhu\":%.1f,"
+    "\"kelembaban\":%.1f,"
+    "\"heat_index\":%.1f,"
+    "\"rssi\":%d,"
+    "\"uptime\":%lu,"
+    "\"msg_count\":%d,"
+    "\"timestamp\":%lu"
+    "}",
+    suhu, kelembaban, heatIndex,
+    WiFi.RSSI(),
+    millis() / 1000,
+    msgCount + 1,
+    millis()
+  );
+
+  if (mqtt.publish(TOPIC_DATA, payload)) {
+    msgCount++;
+    Serial.printf("[%d] Suhu: %.1f°C | RH: %.1f%% | HI: %.1f°C\n",
+                  msgCount, suhu, kelembaban, heatIndex);
+    digitalWrite(LED_PIN, HIGH);
+    delay(50);
+    digitalWrite(LED_PIN, LOW);
+  } else {
+    Serial.println("[ERROR] Gagal publish ke MQTT!");
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+
+  Serial.println("╔═══════════════════════════════════╗");
+  Serial.println("║  DHT + MQTT + Dashboard v1.0      ║");
+  Serial.println("║  BeebaneLabs - https://beebanelabs.pages.dev        ║");
+  Serial.println("╚═══════════════════════════════════╝");
+
+  sensorDHT.begin();
+  delay(2000);
+
+  setupWiFi();
+  mqtt.setServer(MQTT_SERVER, MQTT_PORT);
+  mqtt.setBufferSize(512);
+  hubungkanMQTT();
+}
+
+void loop() {
+  if (!mqtt.connected()) {
+    hubungkanMQTT();
+  }
+  mqtt.loop();
+
+  if (millis() - lastKirim &gt;= INTERVAL_KIRIM) {
+    lastKirim = millis();
+    kirimData();
+  }
+}
+</code></pre>
+      </div>
+
+      <h3>Web Dashboard (HTML + JavaScript)</h3>
+      <p>Simpan kode berikut sebagai file <code>dashboard.html</code> dan buka di browser. Dashboard ini menggunakan <strong>MQTT over WebSocket</strong> untuk menerima data real-time dari broker MQTT.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">HTML/JS — dashboard.html</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="id"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;IoT Dashboard - Monitoring Suhu&lt;/title&gt;
+  &lt;script src="https://unpkg.com/mqtt/dist/mqtt.min.js"&gt;&lt;/script&gt;
+  &lt;style&gt;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; }
+    h1 { text-align: center; margin-bottom: 20px; color: #38bdf8; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; max-width: 800px; margin: 0 auto; }
+    .card { background: #1e293b; border-radius: 12px; padding: 24px; text-align: center; border: 1px solid #334155; }
+    .card .label { font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px; }
+    .card .value { font-size: 2.5rem; font-weight: 700; }
+    .card .unit { font-size: 0.9rem; color: #64748b; }
+    .card.suhu .value { color: #f97316; }
+    .card.rh .value { color: #38bdf8; }
+    .card.hi .value { color: #ef4444; }
+    .card.rssi .value { color: #22c55e; font-size: 1.5rem; }
+    #status { text-align: center; margin: 16px 0; font-size: 0.9rem; }
+    #status.connected { color: #22c55e; }
+    #status.disconnected { color: #ef4444; }
+    #log { max-width: 800px; margin: 20px auto; background: #1e293b; border-radius: 8px; padding: 16px; font-family: monospace; font-size: 0.8rem; max-height: 200px; overflow-y: auto; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;🌡️ IoT Dashboard - Real-time Monitoring&lt;/h1&gt;
+  &lt;p id="status" class="disconnected"&gt;🔴 Menunggu koneksi MQTT...&lt;/p&gt;
+
+  &lt;div class="grid"&gt;
+    &lt;div class="card suhu"&gt;
+      &lt;div class="label"&gt;Suhu&lt;/div&gt;
+      &lt;div class="value" id="suhu"&gt;--&lt;/div&gt;
+      &lt;div class="unit"&gt;°C&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="card rh"&gt;
+      &lt;div class="label"&gt;Kelembaban&lt;/div&gt;
+      &lt;div class="value" id="rh"&gt;--&lt;/div&gt;
+      &lt;div class="unit"&gt;%&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="card hi"&gt;
+      &lt;div class="label"&gt;Heat Index&lt;/div&gt;
+      &lt;div class="value" id="hi"&gt;--&lt;/div&gt;
+      &lt;div class="unit"&gt;°C&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="card rssi"&gt;
+      &lt;div class="label"&gt;WiFi Signal&lt;/div&gt;
+      &lt;div class="value" id="rssi"&gt;--&lt;/div&gt;
+      &lt;div class="unit"&gt;dBm&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div id="log"&gt;&lt;div&gt;⏳ Menunggu data...&lt;/div&gt;&lt;/div&gt;
+
+  &lt;script&gt;
+    const broker = "wss://test.mosquitto.org:8081/mqtt";
+    const topic  = "iothub/project/dht/data";
+
+    const client = mqtt.connect(broker);
+    const logEl  = document.getElementById("log");
+
+    client.on("connect", () =&gt; {
+      document.getElementById("status").textContent = "🟢 Terhubung ke MQTT Broker";
+      document.getElementById("status").className = "connected";
+      client.subscribe(topic);
+    });
+
+    client.on("message", (t, msg) =&gt; {
+      const data = JSON.parse(msg.toString());
+      document.getElementById("suhu").textContent = data.suhu.toFixed(1);
+      document.getElementById("rh").textContent   = data.kelembaban.toFixed(1);
+      document.getElementById("hi").textContent    = data.heat_index.toFixed(1);
+      document.getElementById("rssi").textContent  = data.rssi;
+
+      const line = document.createElement("div");
+      line.textContent = `[${new Date().toLocaleTimeString()}] Suhu: ${data.suhu}°C | RH: ${data.kelembaban}%`;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    });
+
+    client.on("error", (err) =&gt; {
+      document.getElementById("status").textContent = "🔴 Error: " + err.message;
+      document.getElementById("status").className = "disconnected";
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">ℹ️ Cara Menjalankan Dashboard</div>
+        <ol>
+          <li>Simpan kode HTML di atas sebagai file <code>dashboard.html</code></li>
+          <li>Upload program ESP32 ke board Anda</li>
+          <li>Buka file <code>dashboard.html</code> di browser (Chrome/Edge/Firefox)</li>
+          <li>Pastikan ESP32 dan komputer terhubung ke internet</li>
+          <li>Dashboard akan menampilkan data suhu secara real-time!</li>
+        </ol>
+      </div>
+
+      <h3>Kustomisasi Lanjutan</h3>
+      <ul>
+        <li><strong>Ganti broker:</strong> Ganti URL WebSocket sesuai broker yang Anda gunakan (HiveMQ, EMQX, dll)</li>
+        <li><strong>Ganti topik:</strong> Ubah variabel <code>topic</code> sesuai konfigurasi di kode ESP32</li>
+        <li><strong>Tambah grafik:</strong> Integrasikan Chart.js atau D3.js untuk visualisasi data historis</li>
+        <li><strong>Tambah kontrol:</strong> Subscribe ke topik perintah untuk mengontrol LED atau aktuator dari dashboard</li>
+      </ul>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut untuk menguji pemahamanmu tentang sensor DHT dan ESP32:</p>
+
+      <div class="quiz-container" id="quiz09">
+
+        <!-- Pertanyaan 1 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Berapa akurasi suhu sensor DHT11?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) ±2°C</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) ±0.5°C</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) ±1°C</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) ±0.1°C</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 2 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Komponen elektronik apa yang WAJIB dipasang antara pin DATA sensor DHT dan VCC agar pembacaan stabil?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Kapasitor 100µF</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) LED indicator</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Transistor NPN</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Resistor pull-up 10kΩ</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 3 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Sensor mana yang memiliki fitur pengukuran tekanan udara (barometrik)?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) DHT11</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) BME280</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) DHT22</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Semua sensor di atas</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 4 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Berapa kapasitas memori EEPROM ESP32 yang tersedia untuk menyimpan data sensor?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) 512 bytes</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) 1024 bytes</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) 4096 bytes</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) 65536 bytes</div>
+          </div>
+        </div>
+
+        <!-- Pertanyaan 5 -->
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Fungsi utama dari <code>computeHeatIndex()</code> pada library DHT adalah...</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Menghitung suhu aktual yang lebih akurat dari sensor</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Menghitung suhu titik embun (dew point)</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Menghitung suhu yang dirasakan tubuh berdasarkan suhu dan kelembaban</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Mengkalibrasi ulang pembacaan sensor secara otomatis</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION             -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="mqtt-protocol.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">Protokol MQTT untuk IoT</span>
+        </a>
+        <a href="raspberry-pi-iot.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Raspberry Pi untuk IoT</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/github-actions-advanced.html" class="related-card">
+          <span class="related-category">DevOps &amp; Cloud</span>
+          <span class="related-title">GitHub Actions Advanced Workflows</span>
+        </a>
+        <a href="/articles/javascript-web-components.html" class="related-card">
+          <span class="related-category">Web Development</span>
+          <span class="related-title">Web Components: Komponen Web Native</span>
+        </a>
+        <a href="/articles/rest-api-versioning.html" class="related-card">
+          <span class="related-category">Protokol</span>
+          <span class="related-title">REST API Versioning Strategies</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial IoT terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->

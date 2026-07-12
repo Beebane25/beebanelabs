@@ -1,0 +1,902 @@
+<div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults"><div class="search-hint">Ketik untuk mencari</div></div>
+    </div>
+  </div>
+
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">DevOps &amp; Cloud</a>
+        <span class="separator">/</span>
+        <span class="current">ArgoCD GitOps</span>
+      </div>
+      <span class="category-tag">DevOps &amp; Cloud</span>
+      <h1>ArgoCD: GitOps for Kubernetes</h1>
+      <span class="access-badge free">TOKEN</span>
+      <p class="article-subtitle">Kuasai ArgoCD untuk GitOps di Kubernetes — Application CRD, sync strategies, RBAC, notifications, ApplicationSet untuk multi-env deployment, dan best practices production</p>
+      <div class="article-meta">
+        <span>📅 29 Juni 2026</span>
+        <span>📖 15 menit baca</span>
+        <span class="difficulty lanjut">Lanjut</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
+
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#gitops">Prinsip GitOps</a></li>
+          <li><a href="#instalasi">Instalasi ArgoCD</a></li>
+          <li><a href="#application-crd">Application CRD</a></li>
+          <li><a href="#sync-strategies">Sync Strategies</a></li>
+          <li><a href="#rbac">RBAC &amp; SSO</a></li>
+          <li><a href="#notifications">Notifications</a></li>
+          <li><a href="#applicationset">ApplicationSet</a></li>
+          <li><a href="#best-practices">Best Practices Production</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- SECTION 1 -->
+      <h2 id="gitops">1. Prinsip GitOps</h2>
+
+      <p><strong>GitOps</strong> adalah paradigma deployment di mana Git repository menjadi <em>single source of truth</strong> untuk infrastruktur dan aplikasi. Perubahan pada sistem dilakukan melalui pull request, dan tool otomatis (seperti ArgoCD) memastikan bahwa state aktual di cluster sesuai dengan yang didefinisikan di Git.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-title">GitOps Workflow dengan ArgoCD</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">
+            <div class="arch-icon">👨‍💻</div>
+            <div class="arch-label">Developer</div>
+            <div class="arch-desc">Push code &amp; update<br>manifest di Git</div>
+          </div>
+          <div class="arch-arrow">→ Push →</div>
+          <div class="arch-box info">
+            <div class="arch-icon">📁</div>
+            <div class="arch-label">Git Repository</div>
+            <div class="arch-desc">Helm charts / Kustomize<br>Single source of truth</div>
+          </div>
+          <div class="arch-arrow">← Poll/Pull →</div>
+          <div class="arch-box purple">
+            <div class="arch-icon">🔄</div>
+            <div class="arch-label">ArgoCD</div>
+            <div class="arch-desc">Compare &amp; Sync<br>Drift detection<br>Self-healing</div>
+          </div>
+          <div class="arch-arrow">→ Apply →</div>
+          <div class="arch-box success">
+            <div class="arch-icon">☸️</div>
+            <div class="arch-label">Kubernetes</div>
+            <div class="arch-desc">Actual state<br>sama dengan<br>desired state</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>1.1 Empat Prinsip GitOps</h3>
+      <ul>
+        <li><strong>Declarative:</strong> Semua config didefinisikan secara deklaratif (YAML/JSON)</li>
+        <li><strong>Versioned &amp; Immutable:</strong> Semua perubahan tercatat di Git history</li>
+        <li><strong>Pulled Automatically:</strong> Agent (ArgoCD) menarik perubahan dari Git, bukan push dari CI</li>
+        <li><strong>Continuously Reconciled:</strong> Agent terus memastikan actual state = desired state</li>
+      </ul>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 2 -->
+      <h2 id="instalasi">2. Instalasi ArgoCD</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Install ArgoCD</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Buat namespace
+kubectl create namespace argocd
+
+# Install ArgoCD menggunakan manifest resmi
+kubectl apply -n argocd \
+  -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Tunggu semua pods ready
+kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
+
+# Cek status pods
+kubectl get pods -n argocd
+
+# Ambil initial admin password
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" | base64 -d
+
+# Install ArgoCD CLI
+curl -sSL -o argocd-linux-amd64 \
+  https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+rm argocd-linux-amd64
+
+# Login via CLI
+argocd login localhost:8080 --username admin --password &lt;password&gt;
+
+# Port-forward untuk akses web UI
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+</code></pre>
+      </div>
+
+      <h3>2.1 Production Installation dengan Helm</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Helm values — argo-cd-values.yaml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# values.yaml untuk production ArgoCD
+global:
+  domain: argocd.example.com
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    tls: true
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+  replicas: 2
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+controller:
+  replicas: 1
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+repoServer:
+  replicas: 2
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+redis-ha:
+  enabled: true
+
+configs:
+  params:
+    server.insecure: false  # HTTPS only
+  cm:
+    url: https://argocd.example.com
+    # Enable status badge
+    statusbadge.enabled: "true"
+</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Terminal — Install via Helm</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Tambahkan ArgoCD Helm repository
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
+
+# Install dengan custom values
+helm install argocd argo/argo-cd \
+  --namespace argocd \
+  --create-namespace \
+  --values argo-cd-values.yaml \
+  --version 7.3.0
+</code></pre>
+      </div>
+
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+
+       ad-slot-wide"></div>
+
+      <!-- SECTION 3 -->
+      <h2 id="application-crd">3. Application CRD</h2>
+
+      <p><strong>Application</strong> adalah Custom Resource Definition (CRD) utama di ArgoCD yang mendefinisikan hubungan antara Git repository dan target cluster/namespace.</p>
+
+      <h3>3.1 Basic Application</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">application.yaml — Kustomize App</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-app
+  namespace: argocd
+  # Finalizer untuk cascade delete
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/my-org/k8s-manifests.git
+    targetRevision: main
+    path: apps/my-app/overlays/production
+    # Kustomize specific
+    kustomize:
+      images:
+        - my-app=ghcr.io/my-org/my-app:v1.2.3
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: my-app
+  syncPolicy:
+    automated:
+      prune: true       # Hapus resource yang tidak ada di Git
+      selfHeal: true     # Revert manual changes
+      allowEmpty: false  # Jangan prune semua resource
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+</code></pre>
+      </div>
+
+      <h3>3.2 Application dengan Helm</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">application-helm.yaml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx-ingress
+  namespace: argocd
+spec:
+  project: infrastructure
+  source:
+    repoURL: https://kubernetes.github.io/ingress-nginx
+    chart: ingress-nginx
+    targetRevision: 4.8.0
+    helm:
+      releaseName: ingress-nginx
+      values: |
+        controller:
+          replicaCount: 3
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          service:
+            type: LoadBalancer
+            annotations:
+              service.beta.kubernetes.io/aws-load-balancer-type: nlb
+          metrics:
+            enabled: true
+        defaultBackend:
+          enabled: true
+      # Values file dari repo
+      valueFiles:
+        - values-production.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ingress-nginx
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+</code></pre>
+      </div>
+
+      <h3>3.3 Multi-Source Application</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">application-multi-source.yaml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Multi-source: Helm chart dari satu repo, values dari repo lain
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-app
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # Source 1: Helm chart
+    - repoURL: https://charts.my-org.com
+      chart: my-app
+      targetRevision: 2.0.0
+      helm:
+        valueFiles:
+          - $values/apps/my-app/values-production.yaml
+    # Source 2: Values dari repo Git
+    - repoURL: https://github.com/my-org/gitops-config.git
+      targetRevision: main
+      ref: values  # Reference name untuk $values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: my-app
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 4 -->
+      <h2 id="sync-strategies">4. Sync Strategies</h2>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Strategy</th>
+            <th>Deskripsi</th>
+            <th>Penggunaan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Manual</code></td><td>Sync hanya saat diminta manual</td><td>Production kritis</td></tr>
+          <tr><td><code>Auto (prune)</code></td><td>Sync otomatis + hapus resource lama</td><td>Staging/Dev</td></tr>
+          <tr><td><code>Auto (selfHeal)</code></td><td>Sync otomatis + revert manual changes</td><td>Enforcing GitOps</td></tr>
+          <tr><td><code>Auto (full)</code></td><td>prune + selfHeal + retry</td><td>Development cepat</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Sync wave dan hooks</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# Sync Waves — urutan sinkronisasi berdasarkan annotation
+# Wave default = 0, semakin tinggi semakin akhir di-sync
+
+# Database harus di-deploy duluan
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: my-app
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"  # Sync duluan
+spec:
+  # ...
+
+---
+# Migration harus setelah database ready
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration
+  namespace: my-app
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"   # Sync kedua
+    argocd.argoproj.io/hook: PreSync    # Jalankan sebelum sync utama
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      containers:
+        - name: migrate
+          image: my-app:latest
+          command: ["./migrate", "up"]
+      restartPolicy: Never
+
+---
+# App deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  namespace: my-app
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"   # Sync terakhir
+spec:
+  # ...
+
+# Sync Hooks yang tersedia:
+# PreSync    — Sebelum apply manifests
+# Sync       — Selama apply (jarang digunakan)
+# PostSync   — Setelah semua manifests berhasil
+# SyncFail   — Saat sync gagal
+# Skip       — Tidak pernah di-apply ArgoCD
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Automated Sync di Production</div>
+        <p>Hindari <code>automated</code> sync untuk production critical apps. Gunakan manual sync dengan approval process. Jika Anda mengaktifkan <code>selfHeal</code> dan seseorang melakukan perubahan manual via kubectl, ArgoCD akan langsung merubahnya kembali. Ini bisa berbahaya jika ada emergency fix yang perlu dilakukan langsung.</p>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 5 -->
+      <h2 id="rbac">5. RBAC &amp; SSO</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">argocd-rbac-cm.yaml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: argocd
+data:
+  # Default policy: read-only
+  policy.default: role:readonly
+
+  # Policy definitions
+  policy.csv: |
+    # Admin — full access
+    p, role:admin, applications, *, */*, allow
+    p, role:admin, clusters, *, *, allow
+    p, role:admin, repositories, *, *, allow
+    p, role:admin, projects, *, *, allow
+
+    # Developer — deploy ke staging, view production
+    p, role:developer, applications, get, staging/*, allow
+    p, role:developer, applications, sync, staging/*, allow
+    p, role:developer, applications, get, production/*, allow
+    p, role:developer, logs, get, staging/*, allow
+
+    # SRE — full access ke semua environment
+    p, role:sre, applications, *, */*, allow
+    p, role:sre, clusters, get, *, allow
+    p, role:sre, logs, get, */*, allow
+
+    # Assign groups dari SSO
+    g, devops-team, role:admin
+    g, backend-team, role:developer
+    g, sre-team, role:sre
+
+  # Scopes — claim yang dibaca dari JWT
+  scopes: '[groups, email]'
+
+---
+# SSO Configuration (OIDC)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+data:
+  url: https://argocd.example.com
+  oidc.config: |
+    name: Google
+    issuer: https://accounts.google.com
+    clientID: $argo-cd-oidc:clientID
+    clientSecret: $argo-cd-oidc:clientSecret
+    requestedScopes:
+      - openid
+      - profile
+      - email
+      - groups
+    requestedIDTokenClaims:
+      groups:
+        essential: true
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 6 -->
+      <h2 id="notifications">6. Notifications</h2>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">argocd-notifications-cm.yaml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+data:
+  # Service configurations
+  service.slack: |
+    token: $slack-token
+    signingSecret: $slack-signing-secret
+
+  service.teams: |
+    recipientUrls:
+      my-channel: $teams-webhook-url
+
+  # Template definitions
+  template.app-sync-succeeded: |
+    message: |
+      ✅ Application {{.app.metadata.name}} sync berhasil!
+      Revision: {{.app.status.sync.revision}}
+      Environment: {{.app.spec.destination.namespace}}
+    slack:
+      attachments: |
+        [{
+          "color": "#18be52",
+          "fields": [{
+            "title": "Repository",
+            "value": "{{.app.spec.source.repoURL}}",
+            "short": true
+          },{
+            "title": "Revision",
+            "value": "{{.app.status.sync.revision}}",
+            "short": true
+          }]
+        }]
+
+  template.app-sync-failed: |
+    message: |
+      ❌ Application {{.app.metadata.name}} sync GAGAL!
+      Error: {{.app.status.operationState.message}}
+    slack:
+      attachments: |
+        [{
+          "color": "#f4c542",
+          "fields": [{
+            "title": "Error",
+            "value": "{{.app.status.operationState.message}}",
+            "short": false
+          }]
+        }]
+
+  # Trigger definitions
+  trigger.on-sync-succeeded: |
+    - when: app.status.operationState.phase in ['Succeeded']
+      send: [app-sync-succeeded]
+
+  trigger.on-sync-failed: |
+    - when: app.status.operationState.phase in ['Error', 'Failed']
+      send: [app-sync-failed]
+
+  trigger.on-health-degraded: |
+    - when: app.status.health.status == 'Degraded'
+      send: [app-sync-failed]
+
+---
+# Aktifkan notifikasi pada Application
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-app
+  namespace: argocd
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: "#deployments"
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: "#alerts"
+    notifications.argoproj.io/subscribe.on-health-degraded.teams: my-channel
+spec:
+  # ... konfigurasi application
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 7 -->
+      <h2 id="applicationset">7. ApplicationSet</h2>
+
+      <p><strong>ApplicationSet</strong> adalah controller yang memungkinkan Anda membuat banyak ArgoCD Application secara dinamis dari satu template. Ini sangat berguna untuk multi-environment dan multi-cluster deployment.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">applicationset-multi-env.yaml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: my-app-multi-env
+  namespace: argocd
+spec:
+  generators:
+    # List generator — define environments secara manual
+    - list:
+        elements:
+          - env: dev
+            cluster: https://dev-cluster.example.com
+            revision: develop
+            autoSync: "true"
+          - env: staging
+            cluster: https://staging-cluster.example.com
+            revision: main
+            autoSync: "true"
+          - env: production
+            cluster: https://prod-cluster.example.com
+            revision: main
+            autoSync: "false"
+  template:
+    metadata:
+      name: 'my-app-{{env}}'
+      annotations:
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: '#deploy-{{env}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/my-org/k8s-manifests.git
+        targetRevision: '{{revision}}'
+        path: apps/my-app/overlays/{{env}}
+      destination:
+        server: '{{cluster}}'
+        namespace: my-app
+      syncPolicy:
+        automated:
+          prune: '{{autoSync}}'
+          selfHeal: '{{autoSync}}'
+        syncOptions:
+          - CreateNamespace=true
+  # Strategy untuk rollout update
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: env
+              operator: In
+              values:
+                - dev
+        - matchExpressions:
+            - key: env
+              operator: In
+              values:
+                - staging
+        - matchExpressions:
+            - key: env
+              operator: In
+              values:
+                - production
+</code></pre>
+      </div>
+
+      <h3>7.1 Git Directory Generator</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">applicationset-git-directory.yaml</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: all-apps
+  namespace: argocd
+spec:
+  generators:
+    # Scan direktori di Git — otomatis buat app
+    - git:
+        repoURL: https://github.com/my-org/gitops.git
+        revision: main
+        directories:
+          - path: apps/*
+          - path: apps/legacy-*  # Exclude pattern
+            exclude: true
+  template:
+    metadata:
+      name: '{{path.basename}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/my-org/gitops.git
+        targetRevision: main
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{path.basename}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 8 -->
+      <h2 id="best-practices">8. Best Practices Production</h2>
+
+      <ul>
+        <li><strong>App of Apps / ApplicationSet:</strong> Gunakan pattern ini untuk mengelola banyak aplikasi dari satu tempat</li>
+        <li><strong>Separate Config Repo:</strong> Pisahkan repo kode aplikasi dengan repo manifest/deployment</li>
+        <li><strong>RBAC Ketat:</strong> Jangan berikan admin access ke semua tim</li>
+        <li><strong>Notifications:</strong> Setup Slack/Teams notifications untuk sync events</li>
+        <li><strong>Resource Limits:</strong> Selalu set resource limits di ArgoCD components</li>
+        <li><strong>Disable Admin User:</strong> Setelah SSO aktif, disable admin user default</li>
+        <li><strong>Monitoring:</strong> Expose ArgoCD metrics ke Prometheus</li>
+      </ul>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Monitoring ArgoCD dengan Prometheus</span>
+          <button class="code-copy" aria-label="Salin kode">Salin</button>
+        </div>
+<pre><code>
+# ArgoCD sudah expose metrics secara default
+# Port-forward untuk melihat metrics:
+kubectl port-forward svc/argocd-metrics -n argocd 8083:8083
+
+# ServiceMonitor untuk Prometheus Operator
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argocd-metrics
+  namespace: argocd
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-metrics
+  endpoints:
+    - port: metrics
+      interval: 30s
+
+# Contoh alert rules
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: argocd-alerts
+  namespace: argocd
+spec:
+  groups:
+    - name: argocd
+      rules:
+        - alert: ArgoAppOutOfSync
+          expr: |
+            argocd_app_info{sync_status="OutOfSync"} == 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "App {{ $labels.name }} out of sync"
+        - alert: ArgoAppDegraded
+          expr: |
+            argocd_app_info{health_status="Degraded"} == 1
+          for: 5m
+          labels:
+            severity: critical
+</code></pre>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <!-- SECTION 9 -->
+      <h2 id="quiz">9. Quiz: Uji Pemahamanmu!</h2>
+      <p>Setelah membaca tutorial di atas, jawablah 5 pertanyaan berikut:</p>
+
+      <div class="quiz-container" id="quiz3">
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 1: Apa fungsi utama <code>selfHeal</code> di ArgoCD sync policy?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="0" data-answer="a">a) Menghapus resource yang tidak ada di Git</div>
+            <div class="quiz-option" data-question="0" data-answer="b">b) Mengembalikan (revert) perubahan manual di cluster agar sesuai kembali dengan yang di Git</div>
+            <div class="quiz-option" data-question="0" data-answer="c">c) Membuat backup otomatis</div>
+            <div class="quiz-option" data-question="0" data-answer="d">d) Meng-update image tag secara otomatis</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 2: Apa perbedaan <code>prune</code> dan <code>selfHeal</code> di ArgoCD?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="1" data-answer="a">a) Keduanya sama</div>
+            <div class="quiz-option" data-question="1" data-answer="b">b) Prune menghapus resource yang dihapus dari Git; selfHeal membatalkan perubahan manual pada resource yang masih ada</div>
+            <div class="quiz-option" data-question="1" data-answer="c">c) Prune hanya untuk Helm, selfHeal untuk Kustomize</div>
+            <div class="quiz-option" data-question="1" data-answer="d">d) Prune bekerja otomatis, selfHeal harus manual</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 3: Apa fungsi ApplicationSet di ArgoCD?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="2" data-answer="a">a) Menggabungkan beberapa cluster menjadi satu</div>
+            <div class="quiz-option" data-question="2" data-answer="b">b) Membuat banyak Application secara dinamis dari satu template dengan generator</div>
+            <div class="quiz-option" data-question="2" data-answer="c">c) Mengatur RBAC untuk semua aplikasi</div>
+            <div class="quiz-option" data-question="2" data-answer="d">d) Monitoring semua aplikasi sekaligus</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 4: Apa yang dimaksud dengan <em>sync wave</em> di ArgoCD?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="3" data-answer="a">a) Frekuensi polling Git repository</div>
+            <div class="quiz-option" data-question="3" data-answer="b">b) Antrian notifikasi yang dikirim ke Slack</div>
+            <div class="quiz-option" data-question="3" data-answer="c">c) Mekanisme untuk mengontrol urutan sinkronisasi resource berdasarkan annotation numerik</div>
+            <div class="quiz-option" data-question="3" data-answer="d">d) Jumlah retry saat sync gagal</div>
+          </div>
+        </div>
+
+        <div class="quiz-question">
+          <h3>Pertanyaan 5: Mengapa disarankan tidak menggunakan automated sync untuk production di ArgoCD?</h3>
+          <div class="quiz-options">
+            <div class="quiz-option" data-question="4" data-answer="a">a) Karena ArgoCD tidak mendukung automated sync untuk production</div>
+            <div class="quiz-option" data-question="4" data-answer="b">b) Karena automated sync bisa langsung deploy perubahan tanpa approval, berisiko menyebabkan downtime</div>
+            <div class="quiz-option" data-question="4" data-answer="c">c) Karena automated sync membutuhkan resource lebih banyak</div>
+            <div class="quiz-option" data-question="4" data-answer="d">d) Karena automated sync hanya untuk Helm charts</div>
+          </div>
+        </div>
+
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <div class="ad-slot ad-slot-wide"></div>
+
+      <div class="article-nav">
+        <a href="gitlab-ci-advanced.html" class="nav-prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">GitLab CI/CD Advanced Pipeline</span>
+        </a>
+        <a href="istio-service-mesh.html" class="nav-next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">Istio Service Mesh</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/cheatsheet-docker-k8s.html" class="related-card">
+          <span class="related-category">DevOps &amp; Cloud</span>
+          <span class="related-title">Cheatsheet Docker & Kubernetes: Command Line, YAML, dan B...</span>
+        </a>
+        <a href="/articles/crossplane-infrastructure.html" class="related-card">
+          <span class="related-category">DevOps &amp; Cloud</span>
+          <span class="related-title">Crossplane: Infrastructure as Code dari Kubernetes</span>
+        </a>
+        <a href="/articles/grafana-stack.html" class="related-card">
+          <span class="related-category">DevOps &amp; Cloud</span>
+          <span class="related-title">Grafana Stack: Mimir + Tempo + Loki</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial DevOps terbaru langsung di inbox kamu.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>

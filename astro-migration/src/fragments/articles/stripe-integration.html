@@ -1,0 +1,1442 @@
+<!-- ========== SEARCH OVERLAY ========== -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="search-close-btn" aria-label="Tutup pencarian">&times;</button>
+    <div class="search-box">
+      <div class="search-input-wrapper">
+        <input type="text" id="searchInput" placeholder="Ketik untuk mencari tutorial..." aria-label="Cari tutorial" autocomplete="off">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-hint">Ketik untuk mencari</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ARTICLE HERO ========== -->
+  <section class="article-hero">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Beranda</a>
+        <span class="separator">/</span>
+        <a href="../index.html#categories">Web Development</a>
+        <span class="separator">/</span>
+        <span class="current">Stripe Payment Integration</span>
+      </div>
+      <span class="category-tag">Web Development</span>
+      <h1>Stripe Payment Integration: Panduan Lengkap</h1>
+      <p class="article-subtitle">Tutorial lengkap integrasi Stripe Payment — Checkout Sessions, Webhooks, Subscriptions, pembayaran satu kali, dan best practices keamanan dengan contoh kode Node.js dan React</p>
+      <div class="article-meta">
+        <span>📅 26 Juni 2026</span>
+        <span>📖 20 menit baca</span>
+        <span class="difficulty menengah">Menengah</span>
+      </div>
+      <div class="article-author">
+        <span class="author-avatar">🐝</span>
+        <div class="author-info">
+          <span class="author-name"><a href="/about.html">Tim BeebaneLabs</a></span>
+          <span class="author-role">Penulis &amp; Kontributor Teknologi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== AD SLOT ========== -->
+  <div class="container">
+    <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+  </div>
+
+  <!-- ========== ARTICLE CONTENT ========== -->
+  <article class="article-content" id="main-content">
+    <div class="container">
+
+      <!-- TABLE OF CONTENTS -->
+      <div class="info-box info">
+        <div class="info-box-title">📋 Daftar Isi</div>
+        <ol>
+          <li><a href="#pengenalan-stripe">Pengenalan Stripe</a></li>
+          <li><a href="#setup">Setup &amp; Instalasi</a></li>
+          <li><a href="#checkout">Checkout Sessions</a></li>
+          <li><a href="#payment-intent">Payment Intents API</a></li>
+          <li><a href="#webhooks">Webhooks: Event Handling</a></li>
+          <li><a href="#subscriptions">Subscription Billing</a></li>
+          <li><a href="#customer-portal">Customer Portal</a></li>
+          <li><a href="#keamanan">Keamanan &amp; Best Practices</a></li>
+          <li><a href="#testing">Testing dengan Stripe CLI</a></li>
+          <li><a href="#quiz">Quiz Pemahaman</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 1: Pengenalan Stripe    -->
+      <!-- ============================== -->
+      <h2 id="pengenalan-stripe">1. Pengenalan Stripe</h2>
+
+      <p><strong>Stripe</strong> adalah platform pemrosesan pembayaran online yang memungkinkan bisnis menerima pembayaran melalui internet. Didirikan pada tahun 2010 oleh Patrick dan John Collison, Stripe telah menjadi salah satu payment gateway paling populer di dunia, digunakan oleh jutaan bisnis dari startup hingga enterprise besar seperti Amazon, Google, dan Shopify.</p>
+
+      <p>Stripe menyediakan API yang elegan dan mudah digunakan, dengan dukungan untuk lebih dari 135 mata uang, berbagai metode pembayaran (kartu kredit/debit, bank transfer, e-wallet), serta fitur lengkap untuk subscription billing, marketplace, dan invoicing.</p>
+
+      <h3>Mengapa Memilih Stripe?</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Keunggulan</th>
+            <th>Penjelasan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>API Developer-Friendly</td><td>REST API yang elegan, dokumentasi luar biasa, SDK untuk berbagai bahasa</td></tr>
+          <tr><td>Checkout Pre-built</td><td>UI checkout siap pakai yang customizable dan responsif</td></tr>
+          <tr><td>135+ Mata Uang</td><td>Dukungan mata uang global untuk bisnis internasional</td></tr>
+          <tr><td>PCI Compliant</td><td>Stripe menangani compliance PCI DSS sehingga Anda tidak perlu</td></tr>
+          <tr><td>Webhooks</td><td>Event-driven notifications untuk memproses pembayaran secara asinkron</td></tr>
+          <tr><td>Subscription Billing</td><td>Fitur lengkap untuk recurring payments, trial periods, dan invoicing</td></tr>
+          <tr><td>Stripe CLI</td><td>Tool command-line untuk testing, forwarding webhooks, dan debugging</td></tr>
+          <tr><td>Fraud Detection</td><td>Stripe Radar menggunakan machine learning untuk mendeteksi fraud</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Arsitektur Integrasi Stripe</h3>
+      <div class="diagram-box diagram-svg">
+  <div class="diagram-label">Diagram: Arsitektur Stripe Payment Flow</div>
+  <div class="diagram-content"><svg class="mermaid-rendered" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 276px;" viewBox="0 0 276 454" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:2.0px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape rect,#mermaid-svg .image-shape rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"/><g class="edgePaths"><path d="M138,62L138,66.167C138,70.333,138,78.667,138,86.333C138,94,138,101,138,104.5L138,108" id="L_N0_N3_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N0_N3_0" data-points="W3sieCI6MTM4LCJ5Ijo2Mn0seyJ4IjoxMzgsInkiOjg3fSx7IngiOjEzOCwieSI6MTEyfV0=" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,166L138,170.167C138,174.333,138,182.667,138,190.333C138,198,138,205,138,208.5L138,212" id="L_N3_N2_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N3_N2_0" data-points="W3sieCI6MTM4LCJ5IjoxNjZ9LHsieCI6MTM4LCJ5IjoxOTF9LHsieCI6MTM4LCJ5IjoyMTZ9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M138,294L138,298.167C138,302.333,138,310.667,138,318.333C138,326,138,333,138,336.5L138,340" id="L_N2_N1_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N2_N1_0" data-points="W3sieCI6MTM4LCJ5IjoyOTR9LHsieCI6MTM4LCJ5IjozMTl9LHsieCI6MTM4LCJ5IjozNDR9XQ==" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_N0_N3_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N3_N2_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N2_N1_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="flowchart-N0-0" transform="translate(138, 35)"><rect class="basic label-container" style="" x="-95.1953125" y="-27" width="190.390625" height="54"/><g class="label" style="" transform="translate(-65.1953125, -12)"><rect/><foreignObject width="130.390625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>CLIENT (Browser)</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N1-1" transform="translate(138, 395)"><rect class="basic label-container" style="" x="-130" y="-51" width="260" height="102"/><g class="label" style="" transform="translate(-100, -36)"><rect/><foreignObject width="200" height="72"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>▼ ▼ ▼ STRIPE API • Payment Intents • Checkout S...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N2-2" transform="translate(138, 255)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Stripe Elements / Stripe Checkout (iframe teris...</p></span></div></foreignObject></g></g><g class="node default  " id="flowchart-N3-3" transform="translate(138, 139)"><rect class="basic label-container" style="" x="-114.0390625" y="-27" width="228.078125" height="54"/><g class="label" style="" transform="translate(-84.0390625, -12)"><rect/><foreignObject width="168.078125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>React/ Next.js Frontend</p></span></div></foreignObject></g></g></g></g></g></svg></div>
+</div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 2: Setup & Instalasi    -->
+      <!-- ============================== -->
+      <h2 id="setup">2. Setup &amp; Instalasi</h2>
+
+      <p>Mari kita mulai dengan menyiapkan lingkungan pengembangan untuk integrasi Stripe. Kita akan menggunakan <strong>Node.js + Express</strong> di backend dan <strong>React</strong> di frontend.</p>
+
+      <h3>Instalasi Dependencies</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Backend: Node.js + Express
+npm init -y
+npm install express stripe cors dotenv
+
+# Frontend: React + Stripe.js
+npm install @stripe/stripe-js @stripe/react-stripe-js
+
+# Stripe CLI untuk testing
+# macOS
+brew install stripe/stripe-cli/stripe-cli
+# Windows (Scoop)
+scoop install stripe
+# Atau download dari https://stripe.com/docs/stripe-cli
+
+# Login ke Stripe
+stripe login
+</code></pre>
+      </div>
+
+      <h3>Environment Variables</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">.env</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Stripe API Keys (dapatkan dari dashboard.stripe.com)
+STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxx
+STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxxxxxxxxxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxx
+
+# Untuk production, gunakan live keys:
+# STRIPE_SECRET_KEY=sk_live_xxxxxxxxxxxxxxxxxxxxxxxx
+# STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxxxxxxxxxxxxx
+
+# Server config
+PORT=3001
+FRONTEND_URL=http://localhost:5173
+</code></pre>
+      </div>
+
+      <div class="info-box warning">
+        <div class="info-box-title">⚠️ Keamanan API Keys</div>
+        <p><strong>SELALU</strong> simpan Secret Key di server-side dan <strong>JANGAN PERNAH</strong> mengeksposnya ke frontend. Hanya Publishable Key yang boleh digunakan di browser. Gunakan environment variables dan <strong>JANGAN</strong> commit file <code>.env</code> ke repository.</p>
+      </div>
+
+      <h3>Stripe Client &amp; Server Initialization</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — server/stripe.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+const app = express();
+
+// Middleware
+app.use(cors({ origin: process.env.FRONTEND_URL }));
+// Webhook endpoint perlu raw body, jadi pasang SEBELUM express.json()
+// app.use(express.json());
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Stripe server berjalan di http://localhost:${PORT}`);
+});
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 3: Checkout Sessions    -->
+      <!-- ============================== -->
+      <h2 id="checkout">3. Checkout Sessions</h2>
+
+      <p><strong>Stripe Checkout</strong> adalah solusi pre-built yang menyediakan halaman checkout siap pakai yang aman, responsif, dan dapat dikustomisasi. Ini adalah cara tercepat dan paling aman untuk menerima pembayaran.</p>
+
+      <h3>Membuat Checkout Session (Backend)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — server/routes/checkout.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>const express = require('express');
+const router = express.Router();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// Endpoint untuk membuat Checkout Session
+router.post('/create-checkout-session', async (req, res) => {
+  try {
+    const { items, customerId } = req.body;
+
+    // Format line items untuk Stripe
+    const lineItems = items.map((item) => ({
+      price_data: {
+        currency: 'idr',
+        product_data: {
+          name: item.nama,
+          description: item.deskripsi,
+          images: [item.gambar],
+        },
+        // Harga dalam satuan terkecil (IDR tanpa desimal)
+        unit_amount: item.harga, // contoh: 150000 = Rp 150.000
+      },
+      quantity: item.jumlah,
+    }));
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: lineItems,
+      mode: 'payment', // 'payment', 'subscription', atau 'setup'
+      customer: customerId || undefined,
+      customer_email: !customerId ? req.body.email : undefined,
+
+      // Redirect URLs setelah pembayaran
+      success_url: `${process.env.FRONTEND_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/checkout/cancel`,
+
+      // Metadata untuk tracking
+      metadata: {
+        orderId: req.body.orderId || 'ORD-' + Date.now(),
+        userId: req.body.userId || '',
+      },
+
+      // Opsi tambahan
+      billing_address_collection: 'required',
+      shipping_address_collection: {
+        allowed_countries: ['ID', 'SG', 'MY', 'TH', 'PH', 'VN'],
+      },
+      phone_number_collection: {
+        enabled: true,
+      },
+
+      // Diskon dan kupon
+      // discounts: [{ coupon: 'DISKON20' }],
+
+      // Tanggal kedaluwarsa session (30 menit)
+      expires_at: Math.floor(Date.now() / 1000) + 1800,
+    });
+
+    res.json({
+      sessionId: session.id,
+      url: session.url, // URL halaman checkout Stripe
+    });
+  } catch (error) {
+    console.error('Error membuat checkout session:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Verifikasi session setelah pembayaran berhasil
+router.get('/verify-session/:sessionId', async (req, res) => {
+  try {
+    const session = await stripe.checkout.sessions.retrieve(
+      req.params.sessionId,
+      {
+        expand: ['line_items', 'customer', 'payment_intent'],
+      }
+    );
+
+    res.json({
+      status: session.payment_status,
+      customerEmail: session.customer_details?.email,
+      amountTotal: session.amount_total,
+      currency: session.currency,
+      metadata: session.metadata,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+module.exports = router;
+</code></pre>
+      </div>
+
+      <h3>Frontend: Redirect ke Checkout</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSX — src/components/CheckoutButton.jsx</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import { useState } from 'react';
+
+function CheckoutButton({ items, userEmail }) {
+  const [loading, setLoading] = useState(false);
+
+  const handleCheckout = async () => {
+    setLoading(true);
+    try {
+      // Kirim request ke backend untuk membuat session
+      const response = await fetch(
+        'http://localhost:3001/api/create-checkout-session',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: items.map((item) => ({
+              nama: item.nama,
+              deskripsi: item.deskripsi,
+              gambar: item.gambar,
+              harga: item.harga,
+              jumlah: item.jumlah,
+            })),
+            email: userEmail,
+            orderId: 'ORD-' + Date.now(),
+          }),
+        }
+      );
+
+      const { url } = await response.json();
+
+      // Redirect ke Stripe Checkout
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Gagal membuat checkout. Coba lagi.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    &lt;button
+      onClick={handleCheckout}
+      disabled={loading || items.length === 0}
+      className="btn-checkout"
+    &gt;
+      {loading ? '⏳ Memproses...' : '🛒 Checkout dengan Stripe'}
+    &lt;/button&gt;
+  );
+}
+
+export default CheckoutButton;
+</code></pre>
+      </div>
+
+      <h3>Halaman Sukses &amp; Verifikasi</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSX — src/pages/CheckoutSuccess.jsx</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+
+function CheckoutSuccess() {
+  const [searchParams] = useSearchParams();
+  const [orderData, setOrderData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const sessionId = searchParams.get('session_id');
+    if (sessionId) {
+      verifyPayment(sessionId);
+    }
+  }, [searchParams]);
+
+  const verifyPayment = async (sessionId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/verify-session/${sessionId}`
+      );
+      const data = await response.json();
+      setOrderData(data);
+    } catch (error) {
+      console.error('Error verifikasi:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return &lt;div className="loading"&gt;Memverifikasi pembayaran...&lt;/div&gt;;
+
+  return (
+    &lt;div className="checkout-success"&gt;
+      &lt;div className="success-icon"&gt;✅&lt;/div&gt;
+      &lt;h1&gt;Pembayaran Berhasil!&lt;/h1&gt;
+
+      {orderData && (
+        &lt;div className="order-details"&gt;
+          &lt;p&gt;📧 Email: {orderData.customerEmail}&lt;/p&gt;
+          &lt;p&gt;💰 Total: Rp {orderData.amountTotal?.toLocaleString('id-ID')}&lt;/p&gt;
+          &lt;p&gt;🆔 Order ID: {orderData.metadata?.orderId}&lt;/p&gt;
+        &lt;/div&gt;
+      )}
+
+      &lt;a href="/" className="btn-primary"&gt;Kembali ke Beranda&lt;/a&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default CheckoutSuccess;
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 4: Payment Intents      -->
+      <!-- ============================== -->
+      <h2 id="payment-intent">4. Payment Intents API</h2>
+
+      <p><strong>Payment Intents API</strong> memberikan kontrol lebih besar atas alur pembayaran dibanding Checkout Sessions. Ini cocok ketika Anda ingin mengkustomisasi tampilan checkout sepenuhnya menggunakan <strong>Stripe Elements</strong>.</p>
+
+      <h3>Backend: Membuat Payment Intent</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — server/routes/payment.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>const express = require('express');
+const router = express.Router();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// Buat Payment Intent
+router.post('/create-payment-intent', async (req, res) => {
+  try {
+    const { amount, currency, metadata } = req.body;
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount), // Pastikan integer
+      currency: currency || 'idr',
+      metadata: metadata || {},
+      automatic_payment_methods: {
+        enabled: true,
+      },
+      // Contoh: potongan biaya platform
+      // application_fee_amount: Math.round(amount * 0.05),
+      // transfer_data: { destination: 'acct_vendor_xxx' },
+    });
+
+    res.json({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Ambil detail Payment Intent
+router.get('/payment-intent/:id', async (req, res) => {
+  try {
+    const pi = await stripe.paymentIntents.retrieve(req.params.id, {
+      expand: ['charges', 'customer'],
+    });
+    res.json({
+      id: pi.id,
+      status: pi.status,
+      amount: pi.amount,
+      currency: pi.currency,
+      created: pi.created,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Refund
+router.post('/refund', async (req, res) => {
+  try {
+    const { paymentIntentId, amount, reason } = req.body;
+
+    const refund = await stripe.refunds.create({
+      payment_intent: paymentIntentId,
+      amount: amount || undefined, // undefined = full refund
+      reason: reason || 'requested_by_customer',
+    });
+
+    res.json({
+      refundId: refund.id,
+      status: refund.status,
+      amount: refund.amount,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+module.exports = router;
+</code></pre>
+      </div>
+
+      <h3>Frontend: Stripe Elements</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JSX — src/components/StripePaymentForm.jsx</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>import { useState, useEffect } from 'react';
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements,
+} from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+// Load Stripe.js (hanya sekali)
+const stripePromise = loadStripe(
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+);
+
+// Komponen form pembayaran internal
+function PaymentForm({ amount, onSuccess, onError }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [clientSecret, setClientSecret] = useState('');
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Minta client secret dari server
+    fetch('http://localhost:3001/api/create-payment-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, currency: 'idr' }),
+    })
+      .then((res) => res.json())
+      .then((data) => setClientSecret(data.clientSecret))
+      .catch((err) => setError('Gagal memulai pembayaran'));
+  }, [amount]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setProcessing(true);
+    setError(null);
+
+    if (!stripe || !elements) return;
+
+    const cardElement = elements.getElement(CardElement);
+
+    // Konfirmasi pembayaran
+    const { error: stripeError, paymentIntent } =
+      await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: e.target.nama.value,
+            email: e.target.email.value,
+          },
+        },
+      });
+
+    if (stripeError) {
+      setError(stripeError.message);
+      setProcessing(false);
+      onError?.(stripeError);
+      return;
+    }
+
+    if (paymentIntent.status === 'succeeded') {
+      setProcessing(false);
+      onSuccess?.(paymentIntent);
+    }
+  };
+
+  const cardElementOptions = {
+    style: {
+      base: {
+        fontSize: '16px',
+        color: '#ffffff',
+        backgroundColor: '#1a1a2e',
+        '::placeholder': { color: '#888' },
+      },
+      invalid: { color: '#ff4444' },
+    },
+    hidePostalCode: true,
+  };
+
+  return (
+    &lt;form onSubmit={handleSubmit} className="payment-form"&gt;
+      &lt;div className="form-group"&gt;
+        &lt;label&gt;Nama Lengkap&lt;/label&gt;
+        &lt;input type="text" name="nama" required /&gt;
+      &lt;/div&gt;
+
+      &lt;div className="form-group"&gt;
+        &lt;label&gt;Email&lt;/label&gt;
+        &lt;input type="email" name="email" required /&gt;
+      &lt;/div&gt;
+
+      &lt;div className="form-group"&gt;
+        &lt;label&gt;Detail Kartu&lt;/label&gt;
+        &lt;div className="card-element-wrapper"&gt;
+          &lt;CardElement options={cardElementOptions} /&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      {error && &lt;p className="error"&gt;{error}&lt;/p&gt;}
+
+      &lt;button type="submit" disabled={!stripe || processing}&gt;
+        {processing
+          ? '⏳ Memproses...'
+          : `💳 Bayar Rp ${amount.toLocaleString('id-ID')}`}
+      &lt;/button&gt;
+    &lt;/form&gt;
+  );
+}
+
+// Wrapper komponen dengan Elements provider
+function StripePaymentForm({ amount, onSuccess, onError }) {
+  return (
+    &lt;Elements stripe={stripePromise}&gt;
+      &lt;PaymentForm amount={amount} onSuccess={onSuccess} onError={onError} /&gt;
+    &lt;/Elements&gt;
+  );
+}
+
+export default StripePaymentForm;
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 5: Webhooks             -->
+      <!-- ============================== -->
+      <h2 id="webhooks">5. Webhooks: Event Handling</h2>
+
+      <p><strong>Webhooks</strong> adalah cara Stripe memberitahu server Anda tentang peristiwa yang terjadi — pembayaran berhasil, refund, langganan diperbarui, dll. Ini sangat penting karena tidak semua operasi bisa diproses secara sinkron di frontend.</p>
+
+      <h3>Mengapa Webhooks Penting?</h3>
+      <ul>
+        <li>User bisa menutup browser setelah pembayaran — webhook memastikan server tetap mendapat notifikasi</li>
+        <li>Beberapa pembayaran butuh waktu (bank transfer, async payment methods)</li>
+        <li>Subscription events (renewal, cancellation) terjadi tanpa interaksi user</li>
+        <li>Menjadi sumber kebenaran (source of truth) untuk status pembayaran</li>
+      </ul>
+
+      <h3>Webhook Events yang Umum</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Keterangan</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>checkout.session.completed</td><td>Checkout selesai</td><td>Buat order, kirim email konfirmasi</td></tr>
+          <tr><td>payment_intent.succeeded</td><td>Pembayaran berhasil</td><td>Update status order</td></tr>
+          <tr><td>payment_intent.payment_failed</td><td>Pembayaran gagal</td><td>Notifikasi ke user</td></tr>
+          <tr><td>invoice.paid</td><td>Invoice subscription dibayar</td><td>Perpanjang langganan</td></tr>
+          <tr><td>invoice.payment_failed</td><td>Pembayaran invoice gagal</td><td>Notifikasi, grace period</td></tr>
+          <tr><td>customer.subscription.created</td><td>Langganan baru dibuat</td><td>Aktifkan fitur premium</td></tr>
+          <tr><td>customer.subscription.deleted</td><td>Langganan dibatalkan</td><td>Nonaktifkan fitur premium</td></tr>
+          <tr><td>charge.refunded</td><td>Refund diproses</td><td>Update order, kirim notifikasi</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Implementasi Webhook Endpoint</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — server/routes/webhooks.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>const express = require('express');
+const router = express.Router();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// PENTING: Webhook endpoint harus menerima raw body
+router.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+
+    // Verifikasi signature webhook
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+    } catch (err) {
+      console.error('⚠️ Webhook signature verification gagal:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    console.log(`📨 Webhook diterima: ${event.type} [${event.id}]`);
+
+    // Handle berbagai event types
+    switch (event.type) {
+      // ============ CHECKOUT EVENTS ============
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        console.log('✅ Checkout selesai:', session.id);
+
+        // Aksi:
+        // 1. Buat order di database
+        // 2. Kirim email konfirmasi
+        // 3. Update inventory
+        await buatOrder({
+          sessionId: session.id,
+          customerId: session.customer,
+          email: session.customer_details.email,
+          amountTotal: session.amount_total,
+          metadata: session.metadata,
+        });
+
+        break;
+      }
+
+      // ============ PAYMENT EVENTS ============
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object;
+        console.log('💰 Pembayaran berhasil:', paymentIntent.id);
+
+        // Update status order di database
+        await updateOrderStatus(paymentIntent.metadata.orderId, 'paid');
+        break;
+      }
+
+      case 'payment_intent.payment_failed': {
+        const failedPI = event.data.object;
+        console.log('❌ Pembayaran gagal:', failedPI.id);
+
+        // Notifikasi ke user, update status
+        await updateOrderStatus(failedPI.metadata.orderId, 'payment_failed');
+        await kirimNotifikasi(
+          failedPI.metadata.userId,
+          'Pembayaran Anda gagal. Silakan coba lagi.'
+        );
+        break;
+      }
+
+      // ============ SUBSCRIPTION EVENTS ============
+      case 'customer.subscription.created': {
+        const subscription = event.data.object;
+        console.log('🔄 Langganan baru:', subscription.id);
+
+        // Aktifkan fitur premium
+        await activateSubscription(
+          subscription.metadata.userId,
+          subscription.id,
+          subscription.items.data[0].price.id
+        );
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object;
+        console.log('🔄 Langganan diperbarui:', subscription.id);
+
+        // Update plan jika berubah
+        await updateSubscription(subscription.id, {
+          status: subscription.status,
+          priceId: subscription.items.data[0].price.id,
+          currentPeriodEnd: subscription.current_period_end,
+        });
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object;
+        console.log('🚫 Langganan dibatalkan:', subscription.id);
+
+        // Nonaktifkan fitur premium
+        await deactivateSubscription(subscription.id);
+        break;
+      }
+
+      // ============ INVOICE EVENTS ============
+      case 'invoice.paid': {
+        const invoice = event.data.object;
+        console.log('📄 Invoice dibayar:', invoice.id);
+
+        // Perpanjang langganan
+        await renewSubscription(invoice.subscription);
+        break;
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object;
+        console.log('📄 Invoice gagal dibayar:', invoice.id);
+
+        // Mulai grace period, kirim email peringatan
+        await startGracePeriod(invoice.subscription);
+        await kirimEmailPeringatan(invoice.customer, 'invoice_failed');
+        break;
+      }
+
+      default:
+        console.log(`ℹ️ Event tidak ditangani: ${event.type}`);
+    }
+
+    // Selalu kembalikan 200 agar Stripe tidak retry
+    res.json({ received: true });
+  }
+);
+
+// Contoh helper functions (implementasikan sesuai database Anda)
+async function buatOrder(data) {
+  console.log('Membuat order:', data.metadata.orderId);
+  // Implementasi: simpan ke database
+}
+
+async function updateOrderStatus(orderId, status) {
+  console.log(`Update order ${orderId}: ${status}`);
+  // Implementasi: update database
+}
+
+async function activateSubscription(userId, subscriptionId, priceId) {
+  console.log(`Aktifkan langganan user ${userId}`);
+  // Implementasi: update database user
+}
+
+async function updateSubscription(subscriptionId, data) {
+  console.log(`Update langganan ${subscriptionId}:`, data);
+}
+
+async function deactivateSubscription(subscriptionId) {
+  console.log(`Nonaktifkan langganan ${subscriptionId}`);
+}
+
+async function renewSubscription(subscriptionId) {
+  console.log(`Perpanjang langganan ${subscriptionId}`);
+}
+
+async function startGracePeriod(subscriptionId) {
+  console.log(`Mulai grace period untuk ${subscriptionId}`);
+}
+
+async function kirimNotifikasi(userId, message) {
+  console.log(`Notifikasi ke ${userId}: ${message}`);
+}
+
+async function kirimEmailPeringatan(customerId, type) {
+  console.log(`Email peringatan ke ${customerId}: ${type}`);
+}
+
+module.exports = router;
+</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Testing Webhooks Lokal</div>
+        <p>Gunakan Stripe CLI untuk menerima webhook di localhost:</p>
+        <p><code>stripe listen --forward-to localhost:3001/api/webhook</code></p>
+        <p>CLI akan memberikan webhook signing secret yang bisa Anda masukkan ke <code>.env</code> sebagai <code>STRIPE_WEBHOOK_SECRET</code>.</p>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 6: Subscriptions        -->
+      <!-- ============================== -->
+      <h2 id="subscriptions">6. Subscription Billing</h2>
+
+      <p>Stripe memungkinkan Anda membuat <strong>recurring payments</strong> (pembayaran berulang) untuk model bisnis berbasis langganan. Anda bisa membuat produk dengan harga bulanan/tahunan, menawarkan trial period, dan mengelola siklus tagihan secara otomatis.</p>
+
+      <h3>Membuat Produk dan Harga</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — server/routes/subscriptions.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>const express = require('express');
+const router = express.Router();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// Buat Checkout Session untuk Subscription
+router.post('/create-subscription', async (req, res) => {
+  try {
+    const { email, priceId, trialDays } = req.body;
+
+    // 1. Buat atau cari customer
+    let customer;
+    const existingCustomers = await stripe.customers.list({
+      email: email,
+      limit: 1,
+    });
+
+    if (existingCustomers.data.length > 0) {
+      customer = existingCustomers.data[0];
+    } else {
+      customer = await stripe.customers.create({
+        email: email,
+        metadata: { source: 'beebane-app' },
+      });
+    }
+
+    // 2. Buat Checkout Session untuk subscription
+    const session = await stripe.checkout.sessions.create({
+      customer: customer.id,
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: priceId, // Harga yang dibuat di Stripe Dashboard
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${process.env.FRONTEND_URL}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/subscription/cancel`,
+
+      // Trial period (opsional)
+      subscription_data: {
+        trial_period_days: trialDays || 7,
+        metadata: {
+          userId: req.body.userId || '',
+          plan: req.body.planName || '',
+        },
+      },
+
+      // Koleksi metode pembayaran untuk retry
+      payment_method_collection: 'always',
+    });
+
+    res.json({
+      sessionId: session.id,
+      url: session.url,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Ubah langganan (upgrade/downgrade)
+router.post('/change-subscription', async (req, res) => {
+  try {
+    const { subscriptionId, newPriceId } = req.body;
+
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+    const updatedSubscription = await stripe.subscriptions.update(
+      subscriptionId,
+      {
+        items: [
+          {
+            id: subscription.items.data[0].id,
+            price: newPriceId,
+          },
+        ],
+        proration_behavior: 'create_prorations', // Hitung selisih harga
+      }
+    );
+
+    res.json({
+      subscriptionId: updatedSubscription.id,
+      status: updatedSubscription.status,
+      currentPeriodEnd: updatedSubscription.current_period_end,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Batalkan langganan
+router.post('/cancel-subscription', async (req, res) => {
+  try {
+    const { subscriptionId, cancelImmediately } = req.body;
+
+    let subscription;
+    if (cancelImmediately) {
+      // Batalkan langsung
+      subscription = await stripe.subscriptions.cancel(subscriptionId);
+    } else {
+      // Batalkan di akhir periode (tetap aktif sampai habis)
+      subscription = await stripe.subscriptions.update(subscriptionId, {
+        cancel_at_period_end: true,
+      });
+    }
+
+    res.json({
+      subscriptionId: subscription.id,
+      status: subscription.status,
+      cancelAt: subscription.cancel_at,
+      canceledAt: subscription.canceled_at,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Dapatkan detail langganan user
+router.get('/subscription/:customerId', async (req, res) => {
+  try {
+    const subscriptions = await stripe.subscriptions.list({
+      customer: req.params.customerId,
+      status: 'active',
+      expand: ['data.default_payment_method', 'data.items.data.price'],
+    });
+
+    if (subscriptions.data.length === 0) {
+      return res.json({ subscription: null });
+    }
+
+    const sub = subscriptions.data[0];
+    res.json({
+      subscription: {
+        id: sub.id,
+        status: sub.status,
+        plan: sub.items.data[0].price.nickname,
+        amount: sub.items.data[0].price.unit_amount,
+        currency: sub.items.data[0].price.currency,
+        interval: sub.items.data[0].price.recurring.interval,
+        currentPeriodStart: sub.current_period_start,
+        currentPeriodEnd: sub.current_period_end,
+        cancelAtPeriodEnd: sub.cancel_at_period_end,
+        trialEnd: sub.trial_end,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+module.exports = router;
+</code></pre>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 7: Customer Portal      -->
+      <!-- ============================== -->
+      <h2 id="customer-portal">7. Customer Portal</h2>
+
+      <p><strong>Stripe Customer Portal</strong> adalah halaman self-service yang bisa Anda berikan kepada pelanggan untuk mengelola langganan mereka — mengganti metode pembayaran, melihat riwayat invoice, mengunduh faktur, dan membatalkan langganan.</p>
+
+      <h3>Membuat Customer Portal Session</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — server/routes/portal.js</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>const express = require('express');
+const router = express.Router();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// Buat Customer Portal Session
+router.post('/create-portal-session', async (req, res) => {
+  try {
+    const { customerId } = req.body;
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${process.env.FRONTEND_URL}/dashboard`,
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+module.exports = router;
+</code></pre>
+      </div>
+
+      <div class="info-box info">
+        <div class="info-box-title">📋 Konfigurasi Customer Portal</div>
+        <p>Customer Portal perlu dikonfigurasi di <strong>Dashboard Stripe</strong> → Settings → Customer Portal. Di sana Anda bisa menentukan:</p>
+        <ul>
+          <li>Apakah pelanggan boleh mengganti plan</li>
+          <li>Apakah pelanggan boleh membatalkan langganan</li>
+          <li>Metode pembayaran yang diperbolehkan</li>
+          <li>Informasi bisnis yang ditampilkan</li>
+        </ul>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 8: Keamanan             -->
+      <!-- ============================== -->
+      <h2 id="keamanan">8. Keamanan &amp; Best Practices</h2>
+
+      <p>Keamanan adalah aspek krusial dalam integrasi pembayaran. Berikut adalah best practices yang harus diikuti:</p>
+
+      <h3>Checklist Keamanan</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Best Practice</th>
+            <th>Prioritas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>API Keys</td><td>Simpan Secret Key di environment variables, JANGAN di client-side</td><td>🔴 Kritis</td></tr>
+          <tr><td>Webhook Signature</td><td>Selalu verifikasi signature webhook dengan constructEvent()</td><td>🔴 Kritis</td></tr>
+          <tr><td>HTTPS</td><td>Gunakan HTTPS di production untuk semua endpoint</td><td>🔴 Kritis</td></tr>
+          <tr><td>Idempotency</td><td>Gunakan idempotency key untuk prevent duplicate charges</td><td>🟡 Penting</td></tr>
+          <tr><td>Input Validation</td><td>Validasi amount dan currency di server-side</td><td>🟡 Penting</td></tr>
+          <tr><td>PCI Compliance</td><td>Gunakan Stripe Elements / Checkout (data kartu tidak melewati server Anda)</td><td>🔴 Kritis</td></tr>
+          <tr><td>Error Handling</td><td>Jangan expose error Stripe ke user secara langsung</td><td>🟡 Penting</td></tr>
+          <tr><td>Logging</td><td>Log semua payment events tapi JANGAN log kartu/kredensial</td><td>🟢 Baik</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Idempotent Requests</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript — Idempotency</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code>// Mencegah double charge jika user klik tombol bayar berkali-kali
+router.post('/create-payment', async (req, res) => {
+  try {
+    // Generate idempotency key dari request (unik per operasi)
+    const idempotencyKey = req.headers['idempotency-key'] || `pay-${Date.now()}`;
+
+    const paymentIntent = await stripe.paymentIntents.create(
+      {
+        amount: req.body.amount,
+        currency: 'idr',
+        metadata: { orderId: req.body.orderId },
+      },
+      {
+        idempotencyKey: idempotencyKey,
+      }
+    );
+
+    res.json({ clientSecret: paymentIntent.client_secret });
+  } catch (error) {
+    // Stripe akan mengembalikan response yang sama jika
+    // idempotency key sudah pernah dipakai
+    res.status(500).json({ error: error.message });
+  }
+});
+</code></pre>
+      </div>
+
+      <!-- ============================== -->
+      <!-- SECTION 9: Testing              -->
+      <!-- ============================== -->
+      <h2 id="testing">9. Testing dengan Stripe CLI</h2>
+
+      <p><strong>Stripe CLI</strong> adalah tool command-line yang sangat berguna untuk development dan testing. Anda bisa melakukan trigger events, forward webhooks ke localhost, dan bahkan membuka Stripe Dashboard dari terminal.</p>
+
+      <h3>Perintah Berguna</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">Bash — Stripe CLI</span>
+          <button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button>
+        </div>
+<pre><code># Login ke Stripe account
+stripe login
+
+# Forward webhook events ke localhost
+stripe listen --forward-to localhost:3001/api/webhook
+
+# Output:
+# > Ready! Your webhook signing secret is whsec_xxxxx
+# (Salin secret ini ke .env Anda)
+
+# Trigger test event
+stripe trigger checkout.session.completed
+stripe trigger payment_intent.succeeded
+stripe trigger payment_intent.payment_failed
+stripe trigger customer.subscription.created
+stripe trigger customer.subscription.deleted
+stripe trigger invoice.paid
+stripe trigger invoice.payment_failed
+
+# Lihat daftar event yang tersedia
+stripe trigger --help
+
+# Buka Stripe Dashboard di browser
+stripe dashboard
+
+# List semua customers
+stripe customers list --limit 5
+
+# List semua payment intents
+stripe payment_intents list --limit 5
+
+# List semua subscriptions
+stripe subscriptions list --limit 5
+
+# Inspect event
+stripe events retrieve evt_xxxxx
+</code></pre>
+      </div>
+
+      <h3>Kartu Uji (Test Cards)</h3>
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Nomor Kartu</th>
+            <th>Hasil</th>
+            <th>Kegunaan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>4242 4242 4242 4242</td><td>✅ Berhasil</td><td>Test pembayaran sukses</td></tr>
+          <tr><td>4000 0025 0000 3155</td><td>🔐 3D Secure</td><td>Test autentikasi 3D Secure</td></tr>
+          <tr><td>4000 0000 0000 0002</td><td>❌ Ditolak</td><td>Test kartu ditolak</td></tr>
+          <tr><td>4000 0000 0000 9995</td><td>❌ Dana kurang</td><td>Test insufficient funds</td></tr>
+          <tr><td>4000 0000 0000 0341</td><td>❌ Fraud</td><td>Test failed (attach to customer)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="info-box tip">
+        <div class="info-box-title">💡 Tips Testing</div>
+        <ul>
+          <li>Gunakan test mode (sk_test_*) selama development</li>
+          <li>Gunakan <code>stripe listen --forward-to</code> untuk webhook lokal</li>
+          <li>Test semua skenario: sukses, gagal, 3D Secure, refund</li>
+          <li>Simulate subscription lifecycle: create → trial → active → renew → cancel</li>
+          <li>Switch ke live mode (sk_live_*) hanya setelah semua teruji</li>
+        </ul>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- SECTION 10: Quiz                -->
+      <!-- ============================== -->
+      <h2 id="quiz">10. Quiz Pemahaman</h2>
+      <p>Uji pemahaman Anda tentang Stripe Payment Integration:</p>
+
+      <div class="quiz-container" id="quizStripe01">
+        <!-- Q1 -->
+        <div class="quiz-question" data-correct="c">
+          <p><strong>1. Key mana yang AMAN digunakan di frontend browser?</strong></p>
+          <div class="quiz-options">
+            <label class="quiz-option" data-value="a">
+              <input type="radio" name="q1"> sk_test_xxxxx
+            </label>
+            <label class="quiz-option" data-value="b">
+              <input type="radio" name="q1"> sk_live_xxxxx
+            </label>
+            <label class="quiz-option" data-value="c">
+              <input type="radio" name="q1"> pk_test_xxxxx
+            </label>
+            <label class="quiz-option" data-value="d">
+              <input type="radio" name="q1"> whsec_xxxxx
+            </label>
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="quiz-question" data-correct="b">
+          <p><strong>2. Mengapa webhook signature verification penting?</strong></p>
+          <div class="quiz-options">
+            <label class="quiz-option" data-value="a">
+              <input type="radio" name="q2"> Membuat webhook lebih cepat
+            </label>
+            <label class="quiz-option" data-value="b">
+              <input type="radio" name="q2"> Memastikan webhook benar-benar dari Stripe dan bukan palsu
+            </label>
+            <label class="quiz-option" data-value="c">
+              <input type="radio" name="q2"> Mengenkripsi data pembayaran
+            </label>
+            <label class="quiz-option" data-value="d">
+              <input type="radio" name="q2"> Menghitung pajak secara otomatis
+            </label>
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="quiz-question" data-correct="a">
+          <p><strong>3. Apa fungsi <code>cancel_at_period_end: true</code>?</strong></p>
+          <div class="quiz-options">
+            <label class="quiz-option" data-value="a">
+              <input type="radio" name="q3"> Membatalkan langganan di akhir periode tagihan saat ini
+            </label>
+            <label class="quiz-option" data-value="b">
+              <input type="radio" name="q3"> Membatalkan langganan secara langsung saat ini juga
+            </label>
+            <label class="quiz-option" data-value="c">
+              <input type="radio" name="q3"> Menghapus customer dari Stripe
+            </label>
+            <label class="quiz-option" data-value="d">
+              <input type="radio" name="q3"> Memberikan diskon di periode berikutnya
+            </label>
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="quiz-question" data-correct="d">
+          <p><strong>4. Mode apa yang digunakan di Checkout Session untuk subscription?</strong></p>
+          <div class="quiz-options">
+            <label class="quiz-option" data-value="a">
+              <input type="radio" name="q4"> 'one-time'
+            </label>
+            <label class="quiz-option" data-value="b">
+              <input type="radio" name="q4"> 'recurring'
+            </label>
+            <label class="quiz-option" data-value="c">
+              <input type="radio" name="q4"> 'setup'
+            </label>
+            <label class="quiz-option" data-value="d">
+              <input type="radio" name="q4"> 'subscription'
+            </label>
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="quiz-question" data-correct="b">
+          <p><strong>5. Command apa untuk forward webhook ke localhost?</strong></p>
+          <div class="quiz-options">
+            <label class="quiz-option" data-value="a">
+              <input type="radio" name="q5"> stripe webhook forward localhost:3001
+            </label>
+            <label class="quiz-option" data-value="b">
+              <input type="radio" name="q5"> stripe listen --forward-to localhost:3001/api/webhook
+            </label>
+            <label class="quiz-option" data-value="c">
+              <input type="radio" name="q5"> stripe trigger --localhost
+            </label>
+            <label class="quiz-option" data-value="d">
+              <input type="radio" name="q5"> stripe connect --local
+            </label>
+          </div>
+        </div>
+
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="submitQuiz('quizStripe01')">Periksa Jawaban</button>
+        <div class="quiz-result"></div>
+      </div>
+
+      <!-- AD SLOT -->
+      <div class="ad-slot ad-slot-wide">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2122797411859663"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    
+
+      <!-- ============================== -->
+      <!-- ARTICLE NAVIGATION              -->
+      <!-- ============================== -->
+      <div class="article-nav">
+        <a href="graphql-apollo.html" class="prev">
+          <span class="nav-label">← Sebelumnya</span>
+          <span class="nav-title">GraphQL dengan Apollo Client</span>
+        </a>
+        <a href="nextauth-basics.html" class="next">
+          <span class="nav-label">Selanjutnya →</span>
+          <span class="nav-title">NextAuth.js: Authentication</span>
+        </a>
+      </div>
+
+    </div>
+  
+    <div class="related-articles">
+      <h3>📚 Artikel Terkait</h3>
+      <div class="related-grid">
+                <a href="/articles/view-transitions-api.html" class="related-card">
+          <span class="related-category">Web Development</span>
+          <span class="related-title">View Transitions API</span>
+        </a>
+        <a href="/articles/prisma-advanced.html" class="related-card">
+          <span class="related-category">Web Development</span>
+          <span class="related-title">Prisma ORM Advanced: Middleware, Extensions & Performance</span>
+        </a>
+        <a href="/articles/javascript-fetch-api.html" class="related-card">
+          <span class="related-category">Web Development</span>
+          <span class="related-title">Fetch API: HTTP Requests Modern di JavaScript</span>
+        </a>
+
+      </div>
+    </div>
+</article>
+
+  <!-- ========== NEWSLETTER ========== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="container">
+      <div class="newsletter-card fade-in">
+        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <p>Subscribe untuk mendapatkan tutorial terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
+        <form class="newsletter-form" onsubmit="handleSubscribe(event)">
+          <input type="email" placeholder="email@kamu.com" required>
+          <button type="submit" class="btn-primary">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
