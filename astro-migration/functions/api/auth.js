@@ -39,10 +39,10 @@ export async function onRequestPost(context) {
   const { request, env } = context;
 
   const SUPABASE_URL = env.SUPABASE_URL || 'https://nbungbznljbiddlwyvbd.supabase.co';
-  const SUPABASE_ANON_KEY = env.SUPABASE_ANON_KEY;
-  const SUPABASE_SERVICE_KEY = env.SUPABASE_SERVICE_KEY;
+  // Try ANON_KEY first, fall back to SERVICE_KEY (both work for auth)
+  const SUPABASE_KEY = env.SUPABASE_ANON_KEY || env.SUPABASE_SERVICE_KEY || '';
 
-  if (!SUPABASE_ANON_KEY) {
+  if (!SUPABASE_KEY) {
     return jsonResponse({
       success: false,
       message: 'Server belum dikonfigurasi. Hubungi admin.',
@@ -65,7 +65,7 @@ export async function onRequestPost(context) {
           return jsonResponse({ success: false, message: 'Email dan password harus diisi' }, 400);
         }
 
-        const loginRes = await supabaseRequest(SUPABASE_URL, SUPABASE_ANON_KEY, '/auth/v1/token?grant_type=password', {
+        const loginRes = await supabaseRequest(SUPABASE_URL, SUPABASE_KEY, '/auth/v1/token?grant_type=password', {
           method: 'POST',
           body: JSON.stringify({ email, password }),
         });
@@ -78,7 +78,7 @@ export async function onRequestPost(context) {
         }
 
         // Get user profile
-        const userRes = await supabaseRequest(SUPABASE_URL, SUPABASE_ANON_KEY, '/auth/v1/user', {
+        const userRes = await supabaseRequest(SUPABASE_URL, SUPABASE_KEY, '/auth/v1/user', {
           headers: { 'Authorization': `Bearer ${loginRes.access_token}` },
         });
 
@@ -103,7 +103,7 @@ export async function onRequestPost(context) {
           return jsonResponse({ success: false, message: 'Password minimal 8 karakter' }, 400);
         }
 
-        const regRes = await supabaseRequest(SUPABASE_URL, SUPABASE_ANON_KEY, '/auth/v1/signup', {
+        const regRes = await supabaseRequest(SUPABASE_URL, SUPABASE_KEY, '/auth/v1/signup', {
           method: 'POST',
           body: JSON.stringify({
             email,
@@ -137,7 +137,7 @@ export async function onRequestPost(context) {
         if (token) {
           // Try to sign out from Supabase (fire-and-forget)
           try {
-            await supabaseRequest(SUPABASE_URL, SUPABASE_ANON_KEY, '/auth/v1/logout', {
+            await supabaseRequest(SUPABASE_URL, SUPABASE_KEY, '/auth/v1/logout', {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${token}` },
             });
@@ -152,7 +152,7 @@ export async function onRequestPost(context) {
           return jsonResponse({ success: false, message: 'No token provided' }, 401);
         }
 
-        const sessionRes = await supabaseRequest(SUPABASE_URL, SUPABASE_ANON_KEY, '/auth/v1/user', {
+        const sessionRes = await supabaseRequest(SUPABASE_URL, SUPABASE_KEY, '/auth/v1/user', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
