@@ -1,4 +1,4 @@
-/* v19.2.0 — Internal links, content freshness, FAQ schema, fuzzy search, reading history, PWA */
+/* v19.3.0 — Internal links, content freshness, FAQ schema, fuzzy search, reading history, PWA */
 // === EARLY CONTENT GATE (runs before DOM renders) ===
 // Prevents "flash of content" on article pages before paywall check
 (function earlyContentGate() {
@@ -2555,7 +2555,7 @@ const ThemeToggle = {
     if (themeMeta) themeMeta.content = document.body.classList.contains('reading-sky-night') ? '#08090a' : '#f0f7f4';
   },
   updateButton() {
-    const btn = document.querySelector('.theme-toggle');
+    const btn = document.querySelector('.theme-toggle-floating') || document.querySelector('.theme-toggle');
     const isNight = document.body.classList.contains('reading-sky-night');
     if (btn) btn.textContent = isNight ? '☀️' : '🌙';
   }
