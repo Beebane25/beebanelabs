@@ -1513,7 +1513,7 @@ const PaywallSystem = {
         btns = '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin:0 8px;">\u{1f464} Login untuk Unlock</button><a href="../pricing.html" class="btn-secondary" style="margin:0 8px;text-decoration:none;">\u{1f4b0} Beli Token</a>';
       }
     }
-    a.innerHTML = '<div style="text-align:center;padding:60px 20px;"><div style="font-size:4rem;margin-bottom:16px;">' + icon + '</div><div style="display:inline-block;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:600;color:#fb923c;margin-bottom:16px;">' + badge + '</div><h2 style="color:var(--text-primary);margin-bottom:8px;">Artikel Terkunci</h2><p style="color:var(--text-muted);max-width:480px;margin:0 auto 24px;line-height:1.6;">' + msg + '</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' + btns + '</div></div>';
+    a.innerHTML = '<div style="text-align:center;padding:60px 20px;"><div style="font-size:4rem;margin-bottom:16px;">' + icon + '</div><div style="display:inline-block;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:600;color:#fb923c;margin-bottom:16px;">' + badge + '</div><h2 style="color:var(--text, #10231F);margin-bottom:8px;">Artikel Terkunci</h2><p style="color:var(--text-muted);max-width:480px;margin:0 auto 24px;line-height:1.6;">' + msg + '</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' + btns + '</div></div>';
   },
 
   // Show login gate for FREE articles (Pemula) that require login
@@ -1526,7 +1526,7 @@ const PaywallSystem = {
     a.innerHTML = '<div style="text-align:center;padding:60px 20px;">'
       + '<div style="font-size:4rem;margin-bottom:16px;">\u{1f4dd}</div>'
       + '<div style="display:inline-block;background:rgba(62,207,142,0.15);border:1px solid rgba(62,207,142,0.3);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:600;color:#3ecf8e;margin-bottom:16px;">\u2728 Artikel Gratis</div>'
-      + '<h2 style="color:var(--text-primary);margin-bottom:8px;">Login untuk Membaca</h2>'
+      + '<h2 style="color:var(--text, #10231F);margin-bottom:8px;">Login untuk Membaca</h2>'
       + '<p style="color:var(--text-muted);max-width:480px;margin:0 auto 24px;line-height:1.6;">Artikel ini <strong>gratis</strong> tapi kamu perlu login dulu untuk membacanya. Buat akun gratis dan dapatkan akses ke semua artikel pemula.</p>'
       + '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">'
       + '<button onclick="AuthSystem.showModal()" class="btn-primary" style="margin:0 8px;">\u{1f464} Login / Daftar</button>'
@@ -2599,7 +2599,7 @@ function injectArticleExtras() {
   const url = encodeURIComponent(window.location.href);
   const title = encodeURIComponent(document.title);
   const shareDiv = document.createElement('div');
-  shareDiv.style.cssText = 'display:flex;align-items:center;gap:12px;padding:24px 0;border-top:1px solid var(--border-subtle);margin-top:32px;';
+  shareDiv.style.cssText = 'display:flex;align-items:center;gap:12px;padding:24px 0;border-top:1px solid var(--panel-border);margin-top:32px;';
   const shareLabel = document.createElement('span');
   shareLabel.style.cssText = 'font-size:0.85rem;color:var(--text-muted);font-weight:600;';
   shareLabel.textContent = 'Bagikan:';
@@ -2625,7 +2625,7 @@ function injectArticleExtras() {
   shareDiv.appendChild(waBtn);
 
   const copyBtn = document.createElement('button');
-  copyBtn.style.cssText = shareBtnStyle + 'background:var(--bg-hover);border-color:var(--border-standard);color:var(--text-secondary);';
+  copyBtn.style.cssText = shareBtnStyle + 'background:var(--panel, rgba(234,244,240,0.5));border-color:var(--panel-border, rgba(255,255,255,0.25));color:var(--text-muted, #3d5450);';
   copyBtn.textContent = '📋 Salin Link';
   copyBtn.addEventListener('click', function() {
     navigator.clipboard.writeText(window.location.href);
@@ -2648,9 +2648,9 @@ function injectArticleExtras() {
   const related = [...sameCat, ...otherCat].slice(0, 3);
   if (related.length) {
     const relSection = document.createElement('div');
-    relSection.style.cssText = 'margin-top:48px;padding-top:32px;border-top:1px solid var(--border-subtle);';
+    relSection.style.cssText = 'margin-top:48px;padding-top:32px;border-top:1px solid var(--panel-border);';
     const relTitle = document.createElement('h3');
-    relTitle.style.cssText = 'font-family:var(--font-heading);font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:20px;';
+    relTitle.style.cssText = 'font-family:var(--font-heading);font-size:1.1rem;font-weight:700;color:var(--text, #10231F);margin-bottom:20px;';
     relTitle.textContent = '📚 Artikel Terkait';
     relSection.appendChild(relTitle);
     const relGrid = document.createElement('div');
@@ -2658,16 +2658,16 @@ function injectArticleExtras() {
     related.forEach(function(a) {
       const link = document.createElement('a');
       link.href = '../articles/' + a.slug + '.html';
-      link.style.cssText = 'display:flex;align-items:center;gap:12px;padding:16px;background:var(--bg-card);border:1px solid var(--border-standard);border-radius:var(--radius-md);text-decoration:none;transition:all 0.2s;';
+      link.style.cssText = 'display:flex;align-items:center;gap:12px;padding:16px;background:var(--panel, rgba(234,244,240,0.82));border:1px solid var(--panel-border, rgba(255,255,255,0.25));border-radius:var(--radius-lg, 18px);text-decoration:none;transition:all 0.2s;';
       link.addEventListener('mouseenter', function() { this.style.borderColor = 'var(--accent, #39D9C4)'; });
-      link.addEventListener('mouseleave', function() { this.style.borderColor = 'var(--border-standard)'; });
+      link.addEventListener('mouseleave', function() { this.style.borderColor = 'var(--panel-border, rgba(255,255,255,0.25))'; });
       const icon = document.createElement('span');
       icon.style.fontSize = '1.5rem';
       icon.textContent = a.icon;
       link.appendChild(icon);
       const info = document.createElement('div');
       const titleDiv = document.createElement('div');
-      titleDiv.style.cssText = 'font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:2px;';
+      titleDiv.style.cssText = 'font-size:0.85rem;font-weight:600;color:var(--text, #10231F);margin-bottom:2px;';
       titleDiv.textContent = a.title;
       info.appendChild(titleDiv);
       const catDiv = document.createElement('div');
