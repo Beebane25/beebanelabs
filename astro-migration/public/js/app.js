@@ -3782,8 +3782,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initContentFreshness();
   initFAQSchema();
   initShootingStars();
-
-
+});
 // === PROFILE PAGE MODULE ===
 (function() {
   'use strict';
