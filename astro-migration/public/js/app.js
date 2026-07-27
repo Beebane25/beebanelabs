@@ -3788,11 +3788,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 (function() {
   'use strict';
 
-  // Wait for page to be ready
-  document.addEventListener('DOMContentLoaded', function() {
-    // Only run on profile page
-    if (!document.getElementById('profileContent')) return;
-
+  // Run immediately — app.js loads with defer so DOM is already ready
+  // Only run on profile page
+  if (document.getElementById('profileContent')) {
     const session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
     const loginReq = document.getElementById('loginRequired');
     const profileContent = document.getElementById('profileContent');
@@ -3800,11 +3798,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!session || !session.user) {
       // Not logged in — show login required
       if (loginReq) loginReq.style.display = 'block';
-      return;
-    }
-
-    // Show profile content
-    if (profileContent) profileContent.style.display = 'block';
+    } else {
+      // Show profile content
+      if (profileContent) profileContent.style.display = 'block';
 
     const user = session.user;
 
@@ -3825,7 +3821,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadProfileStats();
     loadActivityLog();
     loadBookmarks();
-  });
+    }
+  }
 
   // Switch between profile tabs
   window.switchTab = function(tab) {
