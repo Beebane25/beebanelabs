@@ -18,7 +18,7 @@
   if (!hasSession) {
     const style = document.createElement('style');
     style.id = 'early-content-gate';
-    style.textContent = '.article-content{visibility:hidden!important;position:relative}.article-content::before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:var(--bg-primary,#08090a);z-index:1;visibility:visible}';
+    style.textContent = '.article-content{visibility:hidden!important;display:none!important;position:relative}.article-content::before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:var(--bg-primary,#08090a);z-index:1;visibility:visible}';
     (document.head || document.documentElement).appendChild(style);
     
     // Also set a flag for the paywall system to check
