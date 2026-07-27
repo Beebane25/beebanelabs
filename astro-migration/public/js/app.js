@@ -3783,9 +3783,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   initFAQSchema();
   initShootingStars();
 
-  // AdSense lazy-load
+  // AdSense lazy-load + hide empty ad-slots
   (function(){
     var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';
+    // Hide empty ad-slots after a delay
+    setTimeout(function() {
+      var slots = document.querySelectorAll('.ad-slot, .ad-slot-wide');
+      for (var i = 0; i < slots.length; i++) {
+        var ins = slots[i].querySelector('ins.adsbygoogle');
+        if (ins && !ins.hasAttribute('data-adsbygoogle-status')) {
+          slots[i].style.display = 'none';
+        }
+      }
+    }, 3000);
+
     function loadAds(){
       if(window._adsLoaded) return;
       window._adsLoaded=true;
