@@ -197,7 +197,29 @@ const { initialMode = 'day' } = Astro.props;
 
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
-    .rs-sun-core, .rs-sun-glow, .rs-rays { animation: none !important; }
+    .rs-sun-core, .rs-sun-glow, .rs-rays, .rs-cloud { animation: none !important; }
+  }
+
+  /* ===== ANIMATIONS (was missing — caused clouds/sun/rays to be static) ===== */
+  @keyframes cloudDrift {
+    from { transform: translateX(-250px); }
+    to   { transform: translateX(calc(100vw + 250px)); }
+  }
+  @keyframes sunPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.06); opacity: 0.92; }
+  }
+  @keyframes sunGlow {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50%      { transform: scale(1.15); opacity: 0.35; }
+  }
+  @keyframes raysSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes hudPulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
   }
 </style>
 
@@ -356,20 +378,36 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     scene.add(treeGroup);
 
-    /* Fireflies */
-    var FIREFLY_COUNT = 40;
-    var fireflyGeo = new THREE.BufferGeometry();
-    var fPos = new Float32Array(FIREFLY_COUNT*3);
-    var fSeed = new Float32Array(FIREFLY_COUNT);
+    /* Fireflies — glowing sprites instead of square points */
+    var FIREFLY_COUNT = 30;
+    var fireflies = [];
+    var fireflyTexture = makeGlowTexture('#C9F26C');
     for (var fi = 0; fi < FIREFLY_COUNT; fi++) {
-      fPos[fi*3] = (Math.random()-0.5)*100;
-      fPos[fi*3+1] = -2 + Math.random()*8;
-      fPos[fi*3+2] = -35 + Math.random()*30;
-      fSeed[fi] = Math.random()*Math.PI*2;
+      var sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: fireflyTexture,
+        color: 0xC9F26C,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      }));
+      sprite.scale.set(1.8, 1.8, 1);
+      sprite.position.set(
+        (Math.random()-0.5)*100,
+        -2 + Math.random()*8,
+        -35 + Math.random()*30
+      );
+      sprite.userData = {
+        seed: Math.random()*Math.PI*2,
+        baseX: sprite.position.x,
+        baseY: sprite.position.y,
+        speed: 0.4 + Math.random()*0.6,
+        flickerSpeed: 2 + Math.random()*3
+      };
+      scene.add(sprite);
+      fireflies.push(sprite);
     }
-    fireflyGeo.setAttribute('position', new THREE.BufferAttribute(fPos, 3));
-    var fireflyMat = new THREE.PointsMaterial({ color: 0xC9F26C, size: 2.2, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
-    scene.add(new THREE.Points(fireflyGeo, fireflyMat));
+    var fireflyMat = { opacity: 0 }; // dummy for nightFactor control
 
     /* State */
     var timeOfDay = 0.75; // Start night (canvas hidden by CSS)
@@ -426,13 +464,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
       /* Stars & fireflies */
       starMat.opacity = nightFactor * 0.9;
-      fireflyMat.opacity = nightFactor * 0.85;
-      var fAttr = fireflyGeo.attributes.position;
-      for (var i = 0; i < FIREFLY_COUNT; i++) {
-        fPos[i*3] += Math.sin(t*0.6 + fSeed[i]) * 0.02;
-        fPos[i*3+1] += Math.cos(t*0.8 + fSeed[i]) * 0.015;
+      for (var i = 0; i < fireflies.length; i++) {
+        var f = fireflies[i];
+        var ud = f.userData;
+        // Drift movement
+        f.position.x = ud.baseX + Math.sin(t * ud.speed + ud.seed) * 3;
+        f.position.y = ud.baseY + Math.cos(t * ud.speed * 0.7 + ud.seed) * 1.5;
+        // Flicker opacity — simulates firefly blinking
+        var flicker = (Math.sin(t * ud.flickerSpeed + ud.seed) * 0.5 + 0.5);
+        f.material.opacity = nightFactor * 0.85 * flicker;
+        // Pulse size
+        var pulse = 1.2 + flicker * 0.8;
+        f.scale.set(pulse, pulse, 1);
       }
-      fAttr.needsUpdate = true;
 
       /* Camera parallax */
       camera.position.x += (mouseX * 8 - camera.position.x) * 0.03;

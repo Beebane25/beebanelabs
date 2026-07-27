@@ -1151,8 +1151,8 @@ function initShootingStars() {
     var star = document.createElement('span');
     star.className = 'shooting-star';
 
-    // Starting position: upper portion of screen, spread across width
-    var startX = Math.random() * 80 + 10; // 10% to 90% from left
+    // Starting position: upper-left portion of screen
+    var startX = Math.random() * 40;       // 0% to 40% from left
     var startY = Math.random() * 30;       // 0% to 30% from top
     star.style.left = startX + '%';
     star.style.top = startY + '%';
@@ -1161,17 +1161,17 @@ function initShootingStars() {
     var trailLen = Math.random() * 80 + 100; // 100-180px
     star.style.width = trailLen + 'px';
 
-    // Angle: mostly diagonal (-25 to -50 degrees = upper-right to lower-left)
-    // Negative angle = trail points upper-right, head moves lower-left
-    var angle = -(Math.random() * 25 + 25); // -25 to -50 degrees
+    // Angle: upper-left to lower-right (25 to 50 degrees)
+    // Positive angle = trail points upper-left, head moves lower-right
+    var angle = Math.random() * 25 + 25; // 25 to 50 degrees
     star.style.setProperty('--shoot-angle', angle + 'deg');
 
     // Travel distance (how far the star moves)
     var dist = Math.random() * 300 + 400; // 400-700px
     var angleRad = angle * Math.PI / 180;
-    var dx = dist * Math.cos(angleRad); // negative = move left
+    var dx = dist * Math.cos(angleRad); // positive = move right
     var dy = dist * Math.abs(Math.sin(angleRad)); // positive = move down
-    star.style.setProperty('--shoot-dx', (-dx) + 'px');
+    star.style.setProperty('--shoot-dx', dx + 'px');
     star.style.setProperty('--shoot-dy', dy + 'px');
 
     // Speed (0.8-1.8s — fast like real meteors)
