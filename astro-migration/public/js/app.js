@@ -1138,13 +1138,44 @@ function updateReadingHistoryBadges() {
 // Creates real shooting stars with glowing head + fading trail
 // Direction: upper-right → lower-left (like real meteors)
 function initShootingStars() {
-  var isDark = document.body.classList.contains('reading-sky-night');
-  if (!isDark) return;
+  var container = null;
+  var spawnTimer = null;
 
-  // Create container
-  var container = document.createElement('div');
-  container.className = 'shooting-stars';
-  document.body.appendChild(container);
+  function ensureContainer() {
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'shooting-stars';
+      document.body.appendChild(container);
+    }
+  }
+
+  function startSpawning() {
+    if (spawnTimer) return; // already running
+    ensureContainer();
+    spawnLoop();
+  }
+
+  function stopSpawning() {
+    if (spawnTimer) { clearTimeout(spawnTimer); spawnTimer = null; }
+  }
+
+  // Watch for night mode toggle
+  var observer = new MutationObserver(function() {
+    if (document.body.classList.contains('reading-sky-night')) {
+      startSpawning();
+    } else {
+      stopSpawning();
+    }
+  });
+  observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+  // Start immediately if already in night mode
+  if (document.body.classList.contains('reading-sky-night')) {
+    startSpawning();
+  }
+
+  // Create container (kept for spawnLoop reference)
+  ensureContainer();
 
   // Create a single shooting star element
   function createStar() {
@@ -1198,7 +1229,7 @@ function initShootingStars() {
   function spawnLoop() {
     // Only spawn in dark theme
     if (!document.body.classList.contains('reading-sky-night')) {
-      setTimeout(spawnLoop, 5000);
+      spawnTimer = setTimeout(spawnLoop, 5000);
       return;
     }
 
@@ -1212,11 +1243,8 @@ function initShootingStars() {
 
     // Interval between groups (3-8s — natural spacing)
     var delay = Math.random() * 5000 + 3000;
-    setTimeout(spawnLoop, delay);
+    spawnTimer = setTimeout(spawnLoop, delay);
   }
-
-  // Start after a short delay
-  setTimeout(spawnLoop, 2000);
 }
 
 // === CONFIGURATION ===
@@ -2189,7 +2217,7 @@ const AuthSystem = {
         // Not logged in - show only login button (token badge hidden to reduce clutter)
         authContainer.innerHTML = `
           <div style="display:flex;align-items:center;gap:8px;">
-            <button onclick="AuthSystem.showModal()" style="background:var(--accent-primary); border:none; color:#0f0f0f; padding:6px 16px; font-size:0.8rem; border-radius:var(--radius-pill); cursor:pointer; font-weight:600; transition:all 0.15s ease;">Masuk</button>
+            <button onclick="AuthSystem.showModal()" style="background:var(--accent, #39D9C4); border:none; color:#0f0f0f; padding:6px 16px; font-size:0.8rem; border-radius:var(--radius-pill); cursor:pointer; font-weight:600; transition:all 0.15s ease;">Masuk</button>
           </div>
         `;
       }
@@ -2631,7 +2659,7 @@ function injectArticleExtras() {
       const link = document.createElement('a');
       link.href = '../articles/' + a.slug + '.html';
       link.style.cssText = 'display:flex;align-items:center;gap:12px;padding:16px;background:var(--bg-card);border:1px solid var(--border-standard);border-radius:var(--radius-md);text-decoration:none;transition:all 0.2s;';
-      link.addEventListener('mouseenter', function() { this.style.borderColor = 'var(--accent-primary)'; });
+      link.addEventListener('mouseenter', function() { this.style.borderColor = 'var(--accent, #39D9C4)'; });
       link.addEventListener('mouseleave', function() { this.style.borderColor = 'var(--border-standard)'; });
       const icon = document.createElement('span');
       icon.style.fontSize = '1.5rem';
