@@ -1955,9 +1955,9 @@ const AuthSystem = {
               <input type="text" name="website" id="regWebsite" tabindex="-1" autocomplete="off">
             </div>
             <!-- Math CAPTCHA (shown when Turnstile not available) -->
-            <div id="mathCaptchaBox" style="display:none;margin:12px 0;padding:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;">
+            <div id="mathCaptchaBox" style="display:none;margin:12px 0;padding:12px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2); rgba(59,130,246,0.3);border-radius:8px;">
               <label id="captchaQuestion" style="font-size:0.9rem;font-weight:600;color:#60a5fa;"></label>
-              <input type="number" id="captchaAnswer" placeholder="Jawaban" style="margin-top:6px;width:100%;padding:8px;border-radius:6px;border:1px solid #3f3f46;background:#18181b;color:#e4e4e7;">
+              <input type="number" id="captchaAnswer" placeholder="Jawaban" style="margin-top:6px;width:100%;padding:8px;border-radius:6px;border:1px solid var(--panel-border, rgba(255,255,255,0.25));background:#18181b;color:#e4e4e7;">
               <input type="hidden" id="captchaToken" value="">
             </div>
             <!-- Cloudflare Turnstile widget -->
@@ -1968,7 +1968,7 @@ const AuthSystem = {
         </form>
 
         <div class="auth-divider">atau</div>
-        <p style="text-align:center; font-size:0.8rem; color:var(--text-subtle);">
+        <p style="text-align:center; font-size:0.8rem; color:var(--text-muted, #3d5450);">
           Dengan mendaftar, kamu setuju dengan <a href="${getAbsolutePage('terms.html')}">Syarat & Ketentuan</a>
         </p>
       </div>
@@ -2430,7 +2430,7 @@ const TokenDisplay = {
     }
     if (tokens > 0) {
       banner.className = 'view-counter-banner';
-      banner.innerHTML = '<span class="view-text"><strong>Token gratis: ' + tokens + ' tersisa</strong></span><span style="font-size:0.75rem;color:var(--text-subtle);">Token dipakai untuk unlock artikel gratis</span>';
+      banner.innerHTML = '<span class="view-text"><strong>Token gratis: ' + tokens + ' tersisa</strong></span><span style="font-size:0.75rem;color:var(--text-muted, #3d5450);">Token dipakai untuk unlock artikel gratis</span>';
     } else {
       banner.className = 'view-counter-banner limit-reached';
       banner.innerHTML = '<span class="view-text"><strong>Token habis!</strong> Beli token untuk membuka artikel.</span><a href="../pricing.html" class="view-btn" style="text-decoration:none;">Beli Token</a>';
@@ -2671,7 +2671,7 @@ function injectArticleExtras() {
       titleDiv.textContent = a.title;
       info.appendChild(titleDiv);
       const catDiv = document.createElement('div');
-      catDiv.style.cssText = 'font-size:0.7rem;color:var(--text-subtle);text-transform:uppercase;';
+      catDiv.style.cssText = 'font-size:0.7rem;color:var(--text-muted, #3d5450);text-transform:uppercase;';
       catDiv.textContent = a.cat;
       info.appendChild(catDiv);
       link.appendChild(info);
