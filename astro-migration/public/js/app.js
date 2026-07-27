@@ -3783,6 +3783,253 @@ document.addEventListener('DOMContentLoaded', async () => {
   initFAQSchema();
   initShootingStars();
 
+
+// === PROFILE PAGE MODULE ===
+(function() {
+  'use strict';
+
+  // Wait for page to be ready
+  document.addEventListener('DOMContentLoaded', function() {
+    // Only run on profile page
+    if (!document.getElementById('profileContent')) return;
+
+    const session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    const loginReq = document.getElementById('loginRequired');
+    const profileContent = document.getElementById('profileContent');
+
+    if (!session || !session.user) {
+      // Not logged in — show login required
+      if (loginReq) loginReq.style.display = 'block';
+      return;
+    }
+
+    // Show profile content
+    if (profileContent) profileContent.style.display = 'block';
+
+    const user = session.user;
+
+    // Populate user data
+    const avatarEl = document.getElementById('profileAvatar');
+    const nameEl = document.getElementById('profileName');
+    const tokenEl = document.getElementById('profileTokens');
+    const emailEl = document.getElementById('profileEmail');
+    const planEl = document.getElementById('profilePlan');
+
+    if (avatarEl) avatarEl.textContent = (user.name || 'U')[0].toUpperCase();
+    if (nameEl) nameEl.textContent = user.name || 'User';
+    if (tokenEl) tokenEl.textContent = user.tokens || 0;
+    if (emailEl) emailEl.textContent = user.email || '';
+    if (planEl) planEl.textContent = user.plan || 'Free';
+
+    // Load overview stats
+    loadProfileStats();
+    loadActivityLog();
+    loadBookmarks();
+  });
+
+  // Switch between profile tabs
+  window.switchTab = function(tab) {
+    // Hide all tab contents
+    document.querySelectorAll('.profile-tab-content').forEach(function(el) {
+      el.style.display = 'none';
+    });
+    // Remove active from all tab buttons
+    document.querySelectorAll('.profile-tab-btn').forEach(function(el) {
+      el.classList.remove('active');
+    });
+
+    // Show selected tab
+    const tabContent = document.getElementById('tab-' + tab);
+    if (tabContent) tabContent.style.display = 'block';
+
+    // Activate button
+    const btn = document.querySelector('.profile-tab-btn[data-tab="' + tab + '"]');
+    if (btn) btn.classList.add('active');
+  };
+
+  // Load profile stats
+  function loadProfileStats() {
+    const statsEl = document.getElementById('profileStats');
+    if (!statsEl) return;
+
+    const session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    const token = session ? session.token : null;
+
+    if (!token) return;
+
+    fetch('/api/profile', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.stats) {
+        var articlesRead = data.stats.articles_read || 0;
+        var quizzesTaken = data.stats.quizzes_taken || 0;
+        var timeSpent = data.stats.time_spent || 0;
+        statsEl.innerHTML =
+          '<div class="stat-card"><div class="stat-number">' + articlesRead + '</div><div class="stat-label">Artikel Dibaca</div></div>' +
+          '<div class="stat-card"><div class="stat-number">' + quizzesTaken + '</div><div class="stat-label">Quiz Selesai</div></div>' +
+          '<div class="stat-card"><div class="stat-number">' + Math.round(timeSpent / 60) + '</div><div class="stat-label">Menit Belajar</div></div>';
+      }
+    }).catch(function() {
+      statsEl.innerHTML = '<p class="profile-hint-text">Gagal memuat statistik.</p>';
+    });
+  }
+
+  // Load activity log
+  function loadActivityLog() {
+    var list = document.getElementById('activityList');
+    if (!list) return;
+    // Read from localStorage
+    var history = [];
+    try { history = JSON.parse(localStorage.getItem('bb_read_history') || '[]'); } catch(e) {}
+    if (history.length === 0) {
+      list.innerHTML = '<p class="profile-hint-text">Belum ada aktivitas.</p>';
+      return;
+    }
+    var html = '';
+    history.slice(0, 20).forEach(function(item) {
+      html += '<div class="activity-item"><span class="activity-icon">📖</span><div class="activity-text"><strong>' + (item.title || item.slug) + '</strong><small>' + (item.date || '') + '</small></div></div>';
+    });
+    list.innerHTML = html;
+  }
+
+  // Load bookmarks
+  function loadBookmarks() {
+    var list = document.getElementById('bookmarksList');
+    if (!list) return;
+    var bookmarks = [];
+    try { bookmarks = JSON.parse(localStorage.getItem('bb_bookmarks') || '[]'); } catch(e) {}
+    if (bookmarks.length === 0) {
+      list.innerHTML = '<p class="profile-hint-text">Belum ada bookmark. Klik 🔖 pada artikel untuk menyimpan.</p>';
+      return;
+    }
+    var html = '';
+    bookmarks.forEach(function(item) {
+      html += '<a href="/articles/' + item.slug + '.html" class="bookmark-item"><span class="bookmark-icon">🔖</span><span>' + (item.title || item.slug) + '</span></a>';
+    });
+    list.innerHTML = html;
+  }
+
+  // Export user data (GDPR)
+  window.exportUserData = function() {
+    var session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    if (!session) { AuthSystem.showModal(); return; }
+
+    var data = {
+      user: session.user,
+      read_history: JSON.parse(localStorage.getItem('bb_read_history') || '[]'),
+      bookmarks: JSON.parse(localStorage.getItem('bb_bookmarks') || '[]'),
+      export_date: new Date().toISOString()
+    };
+
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'beebanelabs-data-' + new Date().toISOString().split('T')[0] + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Confirm delete account
+  window.confirmDeleteAccount = function() {
+    if (!confirm('Apakah kamu yakin ingin menghapus akun? Tindakan ini tidak dapat dibatalkan.')) return;
+    if (!confirm('SEMUA data akan hilang permanen. Lanjutkan?')) return;
+
+    var session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    if (!session) return;
+
+    fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete_account', token: session.token })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.success) {
+        localStorage.clear();
+        sessionStorage.clear();
+        alert('Akun berhasil dihapus.');
+        window.location.href = '/';
+      } else {
+        alert('Gagal menghapus akun: ' + (data.error || 'Unknown error'));
+      }
+    }).catch(function() {
+      alert('Gagal menghapus akun. Silakan coba lagi.');
+    });
+  };
+
+  // Logout from profile
+  window.handleLogout = function() {
+    if (typeof AuthSystem !== 'undefined' && AuthSystem.logout) {
+      AuthSystem.logout();
+    } else {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/';
+    }
+  };
+
+  // Logout all devices
+  window.logoutAllDevices = function() {
+    var session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    if (!session) return;
+
+    fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'logout_all', token: session.token })
+    }).then(function() {
+      localStorage.clear();
+      sessionStorage.clear();
+      alert('Berhasil logout dari semua perangkat.');
+      window.location.href = '/';
+    }).catch(function() {
+      alert('Gagal logout. Silakan coba lagi.');
+    });
+  };
+
+  // Save newsletter preferences
+  window.saveNewsletterPrefs = function() {
+    var weekly = document.getElementById('newsletterWeekly');
+    var updates = document.getElementById('newsletterUpdates');
+    var prefs = {
+      weekly_digest: weekly ? weekly.checked : false,
+      product_updates: updates ? updates.checked : false,
+      saved_at: new Date().toISOString()
+    };
+    localStorage.setItem('bb_newsletter_prefs', JSON.stringify(prefs));
+
+    // Show toast
+    if (typeof showToast === 'function') {
+      showToast('Preferensi newsletter disimpan!', 'success');
+    } else {
+      alert('Preferensi newsletter disimpan!');
+    }
+  };
+
+  // Download certificate
+  window.downloadCertificate = function() {
+    var session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    if (!session) { AuthSystem.showModal(); return; }
+
+    // Generate simple certificate
+    var name = session.user.name || 'User';
+    var cert = '=== SERTIFIKAT BEEBANELABS ===\n\n' +
+      'Diberikan kepada: ' + name + '\n' +
+      'Tanggal: ' + new Date().toLocaleDateString('id-ID') + '\n\n' +
+      'Telah menyelesaikan pembelajaran di platform BeebaneLabs.\n' +
+      'Portal Tutorial Teknologi & IT Indonesia\n\n' +
+      'https://beebanelabs.pages.dev';
+
+    var blob = new Blob([cert], { type: 'text/plain' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'sertifikat-beebanelabs.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+})();
+
   // AdSense lazy-load + hide empty ad-slots
   (function(){
     var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';
