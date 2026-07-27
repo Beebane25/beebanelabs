@@ -3782,7 +3782,51 @@ document.addEventListener('DOMContentLoaded', async () => {
   initContentFreshness();
   initFAQSchema();
   initShootingStars();
+
+// AdSense lazy-load + hide empty ad-slots
+  (function(){
+    var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';
+    // Hide empty ad-slots after a delay
+    setTimeout(function() {
+      var slots = document.querySelectorAll('.ad-slot, .ad-slot-wide');
+      for (var i = 0; i < slots.length; i++) {
+        var ins = slots[i].querySelector('ins.adsbygoogle');
+        if (ins && !ins.hasAttribute('data-adsbygoogle-status')) {
+          slots[i].style.display = 'none';
+        }
+      }
+    }, 3000);
+
+    function loadAds(){
+      if(window._adsLoaded) return;
+      window._adsLoaded=true;
+      var s=document.createElement('script');
+      s.async=true;s.crossOrigin='anonymous';s.src=src;
+      document.head.appendChild(s);
+      ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+        document.removeEventListener(e,loadAds,{passive:true});
+      });
+    }
+    ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
+      document.addEventListener(e,loadAds,{passive:true,once:true});
+    });
+    setTimeout(loadAds,5000);
+  })();
+
+  // FIX: Sync unlocked articles from server for logged-in users
+  // This must happen AFTER initial render (sync is async, render is sync)
+  // After sync completes, re-render to update lock icons
+  if (typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn()) {
+    await PaywallSystem.syncFromServer();
+     renderGroupedArticles(
+       document.querySelector('.filter-btn.active')?.dataset?.filter || 'all'
+     );
+     updateArticleCardStatus();
+     updateReadingHistoryBadges();
+  }
 });
+
+
 // === PROFILE PAGE MODULE ===
 (function() {
   'use strict';
@@ -4026,48 +4070,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 })();
 
-  // AdSense lazy-load + hide empty ad-slots
-  (function(){
-    var src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2122797411859663';
-    // Hide empty ad-slots after a delay
-    setTimeout(function() {
-      var slots = document.querySelectorAll('.ad-slot, .ad-slot-wide');
-      for (var i = 0; i < slots.length; i++) {
-        var ins = slots[i].querySelector('ins.adsbygoogle');
-        if (ins && !ins.hasAttribute('data-adsbygoogle-status')) {
-          slots[i].style.display = 'none';
-        }
-      }
-    }, 3000);
-
-    function loadAds(){
-      if(window._adsLoaded) return;
-      window._adsLoaded=true;
-      var s=document.createElement('script');
-      s.async=true;s.crossOrigin='anonymous';s.src=src;
-      document.head.appendChild(s);
-      ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
-        document.removeEventListener(e,loadAds,{passive:true});
-      });
-    }
-    ['scroll','mousedown','touchstart','keydown'].forEach(function(e){
-      document.addEventListener(e,loadAds,{passive:true,once:true});
-    });
-    setTimeout(loadAds,5000);
-  })();
-
-  // FIX: Sync unlocked articles from server for logged-in users
-  // This must happen AFTER initial render (sync is async, render is sync)
-  // After sync completes, re-render to update lock icons
-  if (typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn()) {
-    await PaywallSystem.syncFromServer();
-     renderGroupedArticles(
-       document.querySelector('.filter-btn.active')?.dataset?.filter || 'all'
-     );
-     updateArticleCardStatus();
-     updateReadingHistoryBadges();
-  }
-});
 
 // === Web Vitals Performance Tracking ===
 // Tracks LCP, FID, CLS using PerformanceObserver API
