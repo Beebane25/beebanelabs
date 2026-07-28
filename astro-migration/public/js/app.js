@@ -3850,7 +3850,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Populate user data
     const avatarEl = document.getElementById('profileAvatar');
     const nameEl = document.getElementById('profileName');
-    const tokenEl = document.getElementById('profileTokens');
+    const tokenEl = document.getElementById('tokenCount');
     const emailEl = document.getElementById('profileEmail');
     const planEl = document.getElementById('profilePlan');
 
@@ -3858,7 +3858,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (nameEl) nameEl.textContent = user.name || 'User';
     if (tokenEl) tokenEl.textContent = user.tokens || 0;
     if (emailEl) emailEl.textContent = user.email || '';
-    if (planEl) planEl.textContent = user.plan || 'Free';
+    if (planEl) {
+      var planTextEl = document.getElementById('planText');
+      if (planTextEl) planTextEl.textContent = user.plan || 'Free';
+    }
 
     // Load overview stats
     loadProfileStats();
@@ -3870,11 +3873,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Switch between profile tabs
   window.switchTab = function(tab) {
     // Hide all tab contents
-    document.querySelectorAll('.profile-tab-content').forEach(function(el) {
+    document.querySelectorAll('.profile-section').forEach(function(el) {
       el.style.display = 'none';
     });
     // Remove active from all tab buttons
-    document.querySelectorAll('.profile-tab-btn').forEach(function(el) {
+    document.querySelectorAll('.profile-tab').forEach(function(el) {
       el.classList.remove('active');
     });
 
@@ -3883,13 +3886,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (tabContent) tabContent.style.display = 'block';
 
     // Activate button
-    const btn = document.querySelector('.profile-tab-btn[data-tab="' + tab + '"]');
-    if (btn) btn.classList.add('active');
+    document.querySelectorAll('.profile-tab').forEach(function(el) {
+      if (el.getAttribute('onclick') === "switchTab('" + tab + "')") {
+        el.classList.add('active');
+      }
+    });
   };
 
   // Load profile stats
   function loadProfileStats() {
-    const statsEl = document.getElementById('profileStats');
+    const statsEl = document.getElementById('statsContent');
     if (!statsEl) return;
 
     const session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
@@ -3934,7 +3940,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load bookmarks
   function loadBookmarks() {
-    var list = document.getElementById('bookmarksList');
+    var list = document.getElementById('bookmarkList');
     if (!list) return;
     var bookmarks = [];
     try { bookmarks = JSON.parse(localStorage.getItem('bb_bookmarks') || '[]'); } catch(e) {}
@@ -4028,21 +4034,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Save newsletter preferences
   window.saveNewsletterPrefs = function() {
-    var weekly = document.getElementById('newsletterWeekly');
-    var updates = document.getElementById('newsletterUpdates');
-    var prefs = {
-      weekly_digest: weekly ? weekly.checked : false,
-      product_updates: updates ? updates.checked : false,
-      saved_at: new Date().toISOString()
-    };
-    localStorage.setItem('bb_newsletter_prefs', JSON.stringify(prefs));
-
-    // Show toast
-    if (typeof showToast === 'function') {
-      showToast('Preferensi newsletter disimpan!', 'success');
-    } else {
-      alert('Preferensi newsletter disimpan!');
-    }
+    try {
+      var checkboxes = document.querySelectorAll('.newsletter-cat');
+      var categories = [];
+      checkboxes.forEach(function(cb) {
+        if (cb.checked) categories.push(cb.value);
+      });
+      var prefs = {
+        categories: categories,
+        saved_at: new Date().toISOString()
+      };
+      localStorage.setItem('bb_newsletter_prefs', JSON.stringify(prefs));
+      if (typeof Toast !== 'undefined' && Toast.show) {
+        Toast.show('Preferensi newsletter disimpan!', 'success');
+      } else {
+        alert('Preferensi newsletter disimpan!');
+      }
+    } catch(e) {}
   };
 
   // Download certificate
