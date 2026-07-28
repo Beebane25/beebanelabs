@@ -4076,6 +4076,159 @@ document.addEventListener('DOMContentLoaded', async () => {
     URL.revokeObjectURL(url);
   };
 
+  // === PRICING PAGE FUNCTIONS ===
+  window.startPayment = function(plan) {
+    var session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    if (!session || !session.user) { AuthSystem.showModal(); return; }
+    var email = session.user.email;
+
+    if (plan === 'free') {
+      if (typeof Toast !== 'undefined' && Toast.show) Toast.show('Kamu sudah mendapatkan 5 token gratis saat registrasi!', 'info');
+      return;
+    }
+
+    var customInput = document.getElementById('customTokenInput');
+    var customCount = customInput ? parseInt(customInput.value) || 10 : 10;
+
+    var payload = { email: email, plan: plan };
+    if (plan === 'custom') {
+      var pricePerToken = 10000;
+      if (customCount >= 40) pricePerToken = 8000;
+      else if (customCount >= 20) pricePerToken = 9000;
+      payload.plan = 'custom';
+      payload.custom_tokens = customCount;
+      payload.amount = customCount * pricePerToken;
+    }
+
+    fetch('/api/create-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.token && typeof snap !== 'undefined') {
+        snap.pay(data.token, {
+          onSuccess: function() { window.location.href = '/pricing.html?payment=success'; },
+          onPending: function() { window.location.href = '/pricing.html?payment=pending'; },
+          onError: function() { if (typeof Toast !== 'undefined') Toast.show('Pembayaran gagal', 'error'); },
+          onClose: function() {}
+        });
+      } else if (data.redirect_url) {
+        window.location.href = data.redirect_url;
+      } else {
+        if (typeof Toast !== 'undefined') Toast.show(data.error || 'Gagal membuat pembayaran', 'error');
+      }
+    }).catch(function() {
+      if (typeof Toast !== 'undefined') Toast.show('Gagal terhubung ke server', 'error');
+    });
+  };
+
+  window.adjustCustomToken = function(delta) {
+    var input = document.getElementById('customTokenInput');
+    var slider = document.getElementById('customTokenSlider');
+    if (!input) return;
+    var val = parseInt(input.value) || 10;
+    val = Math.max(1, Math.min(50, val + delta));
+    input.value = val;
+    if (slider) slider.value = val;
+    updateCustomPrice();
+  };
+
+  window.updateCustomPrice = function() {
+    var input = document.getElementById('customTokenInput');
+    var priceEl = document.getElementById('customPrice');
+    var discountEl = document.getElementById('customDiscount');
+    if (!input || !priceEl) return;
+    var count = Math.max(1, Math.min(50, parseInt(input.value) || 10));
+    var pricePerToken = 10000;
+    var discount = '';
+    if (count >= 40) { pricePerToken = 8000; discount = 'Diskon 20%!'; }
+    else if (count >= 20) { pricePerToken = 9000; discount = 'Diskon 10%!'; }
+    priceEl.textContent = 'Rp ' + (count * pricePerToken).toLocaleString('id-ID');
+    if (discountEl) discountEl.textContent = discount;
+  };
+
+  window.syncSliderToInput = function() {
+    var slider = document.getElementById('customTokenSlider');
+    var input = document.getElementById('customTokenInput');
+    if (!slider || !input) return;
+    input.value = slider.value;
+    updateCustomPrice();
+  };
+
+  // === CONTACT PAGE FUNCTION ===
+  window.handleContactSubmit = function(e) {
+    e.preventDefault();
+    var form = document.getElementById('contactForm');
+    var successEl = document.getElementById('contactSuccess');
+    var errorEl = document.getElementById('contactError');
+    var btn = document.getElementById('contactSubmitBtn');
+    var honeypot = form ? form.querySelector('input[name="website"]') : null;
+    if (honeypot && honeypot.value) return;
+    var name = document.getElementById('name');
+    var email = document.getElementById('email');
+    var subject = document.getElementById('subject');
+    var message = document.getElementById('message');
+    if (!name || !email || !subject || !message) return;
+    if (btn) { btn.classList.add('btn-loading'); btn.disabled = true; }
+    if (successEl) successEl.style.display = 'none';
+    if (errorEl) errorEl.style.display = 'none';
+    fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'contact', name: name.value, email: email.value, subject: subject.value, message: message.value })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.success) { if (successEl) successEl.style.display = 'block'; if (form) form.reset(); }
+      else { if (errorEl) { errorEl.textContent = data.error || 'Gagal mengirim pesan'; errorEl.style.display = 'block'; } }
+    }).catch(function() {
+      if (errorEl) { errorEl.textContent = 'Gagal terhubung ke server'; errorEl.style.display = 'block'; }
+    }).finally(function() {
+      if (btn) { btn.classList.remove('btn-loading'); btn.disabled = false; }
+    });
+  };
+
+  // === PROFILE SETTINGS FUNCTIONS ===
+  window.updateProfile = function(e) {
+    e.preventDefault();
+    var session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    if (!session) return false;
+    var nameEl = document.getElementById('settingsName');
+    var dobEl = document.getElementById('settingsDob');
+    var roleEl = document.getElementById('settingsRole');
+    fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_profile', token: session.token, name: nameEl ? nameEl.value : '', dob: dobEl ? dobEl.value : '', role: roleEl ? roleEl.value : '' })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.success) {
+        if (typeof Toast !== 'undefined') Toast.show('Profil berhasil diperbarui!', 'success');
+        if (nameEl && session.user) { session.user.name = nameEl.value; AuthSystem.saveSession(session); }
+      } else { if (typeof Toast !== 'undefined') Toast.show(data.error || 'Gagal memperbarui profil', 'error'); }
+    }).catch(function() { if (typeof Toast !== 'undefined') Toast.show('Gagal terhubung ke server', 'error'); });
+    return false;
+  };
+
+  window.changePassword = function(e) {
+    e.preventDefault();
+    var session = (typeof AuthSystem !== 'undefined') ? AuthSystem.getSession() : null;
+    if (!session) return false;
+    var oldPwd = document.getElementById('oldPassword');
+    var newPwd = document.getElementById('newPassword');
+    var confirmPwd = document.getElementById('confirmPassword');
+    if (!oldPwd || !newPwd || !confirmPwd) return false;
+    if (newPwd.value !== confirmPwd.value) { if (typeof Toast !== 'undefined') Toast.show('Password baru tidak cocok', 'error'); return false; }
+    if (newPwd.value.length < 8) { if (typeof Toast !== 'undefined') Toast.show('Password minimal 8 karakter', 'error'); return false; }
+    fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'change_password', token: session.token, old_password: oldPwd.value, new_password: newPwd.value })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.success) { if (typeof Toast !== 'undefined') Toast.show('Password berhasil diubah!', 'success'); oldPwd.value = ''; newPwd.value = ''; confirmPwd.value = ''; }
+      else { if (typeof Toast !== 'undefined') Toast.show(data.error || 'Gagal mengubah password', 'error'); }
+    }).catch(function() { if (typeof Toast !== 'undefined') Toast.show('Gagal terhubung ke server', 'error'); });
+    return false;
+  };
+
+
 })();
 
 
