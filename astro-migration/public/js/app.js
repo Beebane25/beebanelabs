@@ -168,7 +168,7 @@ if (searchInput) {
   function getRecentSearches() {
     try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch { return []; }
   }
-  function saveRecentSearch(q) {
+  window.saveRecentSearch = function(q) {
     try {
       const recent = getRecentSearches().filter(s => s !== q);
       recent.unshift(q);
