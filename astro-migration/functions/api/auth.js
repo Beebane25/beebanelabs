@@ -20,10 +20,10 @@ function getCorsHeaders(origin) {
   };
 }
 
-function jsonResponse(data, status = 200) {
+function jsonResponse(data, status = 200, origin = '') {
   return new Response(JSON.stringify(data), {
     status,
-    headers: getCorsHeaders(_origin),
+    headers: getCorsHeaders(origin),
   });
 }
 
@@ -53,7 +53,7 @@ export async function onRequestPost(context) {
     return jsonResponse({
       success: false,
       message: 'Server belum dikonfigurasi. Hubungi admin.',
-    }, 500);
+    }, 500, _origin);
   }
 
   let body;
@@ -62,19 +62,19 @@ export async function onRequestPost(context) {
 
     // Input type validation (prevent NoSQL injection)
     if (typeof body !== 'object' || body === null || Array.isArray(body)) {
-      return jsonResponse({ success: false, message: 'Input tidak valid' }, 400);
+      return jsonResponse({ success: false, message: 'Input tidak valid' }, 400, _origin);
     }
     if (body.email && typeof body.email !== 'string') {
-      return jsonResponse({ success: false, message: 'Email harus berupa teks' }, 400);
+      return jsonResponse({ success: false, message: 'Email harus berupa teks' }, 400, _origin);
     }
     if (body.password && typeof body.password !== 'string') {
-      return jsonResponse({ success: false, message: 'Password harus berupa teks' }, 400);
+      return jsonResponse({ success: false, message: 'Password harus berupa teks' }, 400, _origin);
     }
     if (body.name && typeof body.name !== 'string') {
-      return jsonResponse({ success: false, message: 'Nama harus berupa teks' }, 400);
+      return jsonResponse({ success: false, message: 'Nama harus berupa teks' }, 400, _origin);
     }
   } catch {
-    return jsonResponse({ success: false, message: 'Invalid request body' }, 400);
+    return jsonResponse({ success: false, message: 'Invalid request body' }, 400, _origin);
   }
 
   const { action, email, password, name } = body;
@@ -83,7 +83,7 @@ export async function onRequestPost(context) {
     switch (action) {
       case 'login': {
         if (!email || !password) {
-          return jsonResponse({ success: false, message: 'Email dan password harus diisi' }, 400);
+          return jsonResponse({ success: false, message: 'Email dan password harus diisi' }, 400, _origin);
         }
 
         const loginRes = await supabaseRequest(SUPABASE_URL, SUPABASE_KEY, '/auth/v1/token?grant_type=password', {
@@ -95,7 +95,7 @@ export async function onRequestPost(context) {
           return jsonResponse({
             success: false,
             message: loginRes.error_description || loginRes.msg || 'Email atau password salah',
-          }, 401);
+          }, 401, _origin);
         }
 
         // Get user profile
@@ -117,11 +117,11 @@ export async function onRequestPost(context) {
 
       case 'register': {
         if (!email || !password || !name) {
-          return jsonResponse({ success: false, message: 'Semua field harus diisi' }, 400);
+          return jsonResponse({ success: false, message: 'Semua field harus diisi' }, 400, _origin);
         }
 
         if (password.length < 8) {
-          return jsonResponse({ success: false, message: 'Password minimal 8 karakter' }, 400);
+          return jsonResponse({ success: false, message: 'Password minimal 8 karakter' }, 400, _origin);
         }
 
         const regRes = await supabaseRequest(SUPABASE_URL, SUPABASE_KEY, '/auth/v1/signup', {
@@ -137,7 +137,7 @@ export async function onRequestPost(context) {
           return jsonResponse({
             success: false,
             message: regRes.error_description || regRes.msg || 'Gagal mendaftar',
-          }, 400);
+          }, 400, _origin);
         }
 
         return jsonResponse({
@@ -164,13 +164,13 @@ export async function onRequestPost(context) {
             });
           } catch {}
         }
-        return jsonResponse({ success: true }, 200, origin);
+        return jsonResponse({ success: true }, 200, origin, _origin);
       }
 
       case 'getSession': {
         const token = body.token;
         if (!token) {
-          return jsonResponse({ success: false, message: 'No token provided' }, 401);
+          return jsonResponse({ success: false, message: 'No token provided' }, 401, _origin);
         }
 
         const sessionRes = await supabaseRequest(SUPABASE_URL, SUPABASE_KEY, '/auth/v1/user', {
@@ -178,7 +178,7 @@ export async function onRequestPost(context) {
         });
 
         if (sessionRes.error) {
-          return jsonResponse({ success: false, message: 'Session expired' }, 401);
+          return jsonResponse({ success: false, message: 'Session expired' }, 401, _origin);
         }
 
         return jsonResponse({
@@ -193,14 +193,14 @@ export async function onRequestPost(context) {
       }
 
       default:
-        return jsonResponse({ success: false, message: 'Invalid action' }, 400);
+        return jsonResponse({ success: false, message: 'Invalid action' }, 400, _origin);
     }
   } catch (err) {
     console.error('Auth error:', err);
     return jsonResponse({
       success: false,
       message: 'Server error. Coba lagi nanti.',
-    }, 500);
+    }, 500, _origin);
   }
 }
 
