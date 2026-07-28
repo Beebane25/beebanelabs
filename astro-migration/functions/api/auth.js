@@ -8,17 +8,22 @@
  *   SUPABASE_SERVICE_KEY = your-service-role-key-here (for admin operations)
  */
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, X-CSRF-Token',
-  'Content-Type': 'application/json',
-};
+const ALLOWED_ORIGINS = ['https://beebanelabs.pages.dev', 'https://beebanelabs.id', 'https://www.beebanelabs.id'];
+
+function getCorsHeaders(origin) {
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-CSRF-Token',
+    'Content-Type': 'application/json',
+  };
+}
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: CORS_HEADERS,
+    headers: getCorsHeaders(_origin),
   });
 }
 
@@ -36,7 +41,9 @@ async function supabaseRequest(url, key, path, options = {}) {
 }
 
 export async function onRequestPost(context) {
+
   const { request, env } = context;
+  const _origin = request.headers.get('origin') || '';
 
   const SUPABASE_URL = env.SUPABASE_URL || 'https://nbungbznljbiddlwyvbd.supabase.co';
   // Try ANON_KEY first, fall back to SERVICE_KEY (both work for auth)
@@ -52,6 +59,20 @@ export async function onRequestPost(context) {
   let body;
   try {
     body = await request.json();
+
+    // Input type validation (prevent NoSQL injection)
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+      return jsonResponse({ success: false, message: 'Input tidak valid' }, 400);
+    }
+    if (body.email && typeof body.email !== 'string') {
+      return jsonResponse({ success: false, message: 'Email harus berupa teks' }, 400);
+    }
+    if (body.password && typeof body.password !== 'string') {
+      return jsonResponse({ success: false, message: 'Password harus berupa teks' }, 400);
+    }
+    if (body.name && typeof body.name !== 'string') {
+      return jsonResponse({ success: false, message: 'Nama harus berupa teks' }, 400);
+    }
   } catch {
     return jsonResponse({ success: false, message: 'Invalid request body' }, 400);
   }
@@ -143,7 +164,7 @@ export async function onRequestPost(context) {
             });
           } catch {}
         }
-        return jsonResponse({ success: true });
+        return jsonResponse({ success: true }, 200, origin);
       }
 
       case 'getSession': {
@@ -183,6 +204,7 @@ export async function onRequestPost(context) {
   }
 }
 
-export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: CORS_HEADERS });
+export async function onRequestOptions(context) {
+  const _origin = context.request.headers.get('origin') || '';
+  return new Response(null, { status: 204, headers: getCorsHeaders(_origin) });
 }
