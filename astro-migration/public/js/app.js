@@ -2688,6 +2688,30 @@ function initTOC() {
   if (!content) return;
   // FIX: Don't generate TOC if article is paywalled (content replaced by lock screen)
   if (content.querySelector('[style*="text-align:center"]') && !content.querySelector('h2:not([style])')) return;
+  // FIX: Don't generate TOC on locked/pending-paywall articles
+  // Race condition: PaywallSystem._checkAndRender is async but initTOC runs sync.
+  // If user is not logged in and article is not free, paywall will replace content.
+  // Check the early-content-gate flag OR paywall eligibility to avoid showing TOC briefly.
+  const isArticlePage = window.location.pathname.includes('/articles/');
+  if (isArticlePage) {
+    const slug = window.location.pathname.split('/').pop().replace('.html', '');
+    const isLoggedIn = typeof AuthSystem !== 'undefined' && AuthSystem.isLoggedIn();
+    const isUnlocked = typeof PaywallSystem !== 'undefined' && PaywallSystem.isUnlocked && PaywallSystem.isUnlocked(slug);
+    // If user can't access content (not logged in AND not unlocked), wait for paywall
+    if (!isLoggedIn && !isUnlocked) {
+      // Wait for paywall to resolve, then generate TOC only if content is still there
+      setTimeout(() => {
+        const stillLocked = content.querySelector('[style*="text-align:center"]') || content.querySelector('h2');
+        if (!stillLocked || stillLocked.textContent.includes('Terkunci') || stillLocked.textContent.includes('Login')) return;
+        _generateTOC(content);
+      }, 2000);
+      return;
+    }
+  }
+  _generateTOC(content);
+}
+
+function _generateTOC(content) {
   const headings = content.querySelectorAll('h2, h3');
   if (headings.length < 2) return;
   // Filter out non-article headings (paywall messages, share buttons, related articles)
