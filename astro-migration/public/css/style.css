@@ -3475,79 +3475,101 @@ body.reading-sky-night .profile-card.danger {
   contain-intrinsic-size: auto 400px;
 }
 
-/* ========== CUSTOM CURSOR — Glassmorphism Dot + Ring ========== */
-/* Hide default cursor, show custom on non-touch devices */
+/* ========== CUSTOM CURSOR — Bee + Honeycomb ========== */
+
+/* Aggressive: hide default cursor on ALL elements (touch excluded) */
 @media (pointer: fine) {
-  body {
-    cursor: none;
-  }
-  a, button, input, textarea, select, [role="button"],
-  .diagram-svg, .article-card, .category-card, .pricing-card,
-  .related-card, .filter-btn, .quiz-option, .copy-btn, pre,
-  .search-input-wrapper input, .cursor-hover {
-    cursor: none;
+  *, *::before, *::after {
+    cursor: none !important;
   }
 }
 
-/* Cursor dot — small, sharp, follows mouse exactly */
+/* Cursor dot — SVG bee, follows mouse exactly */
 .cursor-dot {
   position: fixed;
   top: 0; left: 0;
-  width: 8px; height: 8px;
-  border-radius: 50%;
+  width: 24px; height: 24px;
   pointer-events: none;
   z-index: 99999;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease, transform 0.1s ease;
   will-change: transform;
-  background: var(--cursor-dot, #39D9C4);
-  box-shadow: 0 0 8px var(--cursor-glow, rgba(57,217,196,0.6)),
-              0 0 2px var(--cursor-glow, rgba(57,217,196,0.3));
+  filter: drop-shadow(0 0 6px var(--bee-glow, rgba(245,158,11,0.5)));
 }
 
-/* Cursor ring — larger, frosted glass, follows with lerp delay */
+/* Inline SVG bee via background — no extra HTTP request */
+.cursor-dot::after {
+  content: '';
+  display: block;
+  width: 24px; height: 24px;
+  background: var(--bee-svg, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='11' cy='12' rx='6' ry='4.5' fill='%23F59E0B'/%3E%3Crect x='7' y='9' width='10' height='2' rx='1' fill='%231F1410' opacity='0.5'/%3E%3Crect x='6' y='13' width='9' height='2' rx='1' fill='%231F1410' opacity='0.5'/%3E%3Ccircle cx='16.5' cy='10.5' r='2.5' fill='white' opacity='0.7'/%3E%3Ccircle cx='16.5' cy='14' r='2' fill='white' opacity='0.6'/%3E%3Ccircle cx='5' cy='11.5' r='1.2' fill='%231F1410'/%3E%3C/svg%3E"));
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Cursor ring — hexagon honeycomb, follows with lerp delay */
 .cursor-ring {
   position: fixed;
   top: 0; left: 0;
-  width: 32px; height: 32px;
-  border-radius: 50%;
+  width: 38px; height: 38px;
   pointer-events: none;
   z-index: 99998;
   opacity: 0;
-  transition: opacity 0.2s ease,
-              width 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              height 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+  transition: opacity 0.15s ease,
+              width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
               border-color 0.25s ease,
-              background 0.25s ease;
+              background 0.25s ease,
+              filter 0.25s ease;
   will-change: transform;
-  background: var(--cursor-ring-bg, rgba(255,255,255,0.15));
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  border: 1.5px solid var(--cursor-ring-border, rgba(57,217,196,0.35));
-  box-shadow: 0 0 16px var(--cursor-ring-shadow, rgba(57,217,196,0.12)),
-              inset 0 1px 0 rgba(255,255,255,0.15);
+  /* Hexagon shape via clip-path */
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: var(--honeycomb-bg, rgba(245,158,11,0.08));
+  border: 2px solid var(--honeycomb-border, rgba(245,158,11,0.3));
+  box-shadow: 0 0 20px var(--honeycomb-shadow, rgba(245,158,11,0.1)),
+              inset 0 0 12px rgba(255,255,255,0.05);
+  filter: drop-shadow(0 0 8px var(--bee-glow, rgba(245,158,11,0.15)));
 }
 
-/* Ring hover state — expands and glows */
+/* Honeycomb ring hover — expands + slight rotation (buzz) */
 .cursor-ring.cursor-ring-hover {
-  width: 48px; height: 48px;
-  background: var(--cursor-ring-hover-bg, rgba(57,217,196,0.1));
-  border-color: var(--cursor-ring-hover-border, rgba(57,217,196,0.6));
-  box-shadow: 0 0 24px var(--cursor-glow, rgba(57,217,196,0.25)),
-              inset 0 1px 0 rgba(255,255,255,0.1);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  width: 54px; height: 54px;
+  background: var(--honeycomb-hover-bg, rgba(245,158,11,0.15));
+  border-color: var(--honeycomb-hover-border, rgba(245,158,11,0.6));
+  box-shadow: 0 0 32px var(--honeycomb-hover-shadow, rgba(245,158,11,0.25)),
+              inset 0 0 16px rgba(255,255,255,0.08);
+  filter: drop-shadow(0 0 16px var(--bee-glow, rgba(245,158,11,0.35)));
+  animation: bee-buzz 0.15s ease-out;
 }
 
-/* ===== NIGHT MODE CURSOR ===== */
+/* Bee buzz — quick scale pulse */
+@keyframes bee-buzz {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* ===== DAY MODE — Warm Amber Bee ===== */
+:root {
+  --bee-glow: rgba(245,158,11,0.5);
+  --honeycomb-bg: rgba(245,158,11,0.06);
+  --honeycomb-border: rgba(245,158,11,0.3);
+  --honeycomb-shadow: rgba(245,158,11,0.1);
+  --honeycomb-hover-bg: rgba(245,158,11,0.15);
+  --honeycomb-hover-border: rgba(245,158,11,0.55);
+  --honeycomb-hover-shadow: rgba(245,158,11,0.25);
+}
+
+/* ===== NIGHT MODE — Glowing Neon Bee ===== */
 body.reading-sky-night {
-  --cursor-dot: #39D9C4;
-  --cursor-glow: rgba(57,217,196,0.8);
-  --cursor-ring-bg: rgba(57,217,196,0.06);
-  --cursor-ring-border: rgba(57,217,196,0.45);
-  --cursor-ring-shadow: rgba(57,217,196,0.2);
-  --cursor-ring-hover-bg: rgba(57,217,196,0.12);
-  --cursor-ring-hover-border: rgba(57,217,196,0.7);
+  --bee-glow: rgba(251,191,36,0.7);
+  --honeycomb-bg: rgba(251,191,36,0.1);
+  --honeycomb-border: rgba(251,191,36,0.45);
+  --honeycomb-shadow: rgba(251,191,36,0.2);
+  --honeycomb-hover-bg: rgba(251,191,36,0.2);
+  --honeycomb-hover-border: rgba(251,191,36,0.7);
+  --honeycomb-hover-shadow: rgba(251,191,36,0.4);
 }
 
 /* ========== RELATED ARTICLES SECTION ========== */
@@ -5797,7 +5819,7 @@ body.reading-sky-night .article-featured-image .day-img {
 }
 
 /* ============================================================
-   UI/UX POLISH v27.12 — Custom Cursor
+   UI/UX POLISH v27.13 — Bee Cursor
    ============================================================ */
 
 /* --- Smooth focus states for accessibility --- */

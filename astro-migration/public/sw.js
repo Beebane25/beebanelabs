@@ -4,7 +4,7 @@
    Updated: 2026-07-06
 */
 
-const CACHE_NAME = 'beebanelabs-v16';
+const CACHE_NAME = 'beebanelabs-v17';
 const STATIC_CACHE = 'beebanelabs-static-v6';
 const PAGE_CACHE = 'beebanelabs-pages-v6';
 
@@ -12,7 +12,7 @@ const PAGE_CACHE = 'beebanelabs-pages-v6';
 const PRECACHE_URLS = [
   '/offline.html',
   '/offline',
-  '/css/style.css?v=27.12',
+  '/css/style.css?v=27.13',
   '/js/app.js?v=19.3',
   '/js/security.js?v=1.0',
   '/js/mobile-zoom.js?v=9.2',
