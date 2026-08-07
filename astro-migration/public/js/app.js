@@ -2734,8 +2734,20 @@ function _generateTOC(content) {
   // Wrap article-content in layout grid
   const layout = document.createElement('div');
   layout.className = 'article-layout';
-  content.parentNode.insertBefore(layout, content);
-  layout.appendChild(content);
+  
+  // Safety: ensure we insert OUTSIDE any ad-slot parent
+  let insertParent = content.parentNode;
+  const adSlotAncestor = content.closest('.ad-slot');
+  if (adSlotAncestor) {
+    // Content is inside an ad-slot — climb out to ad-slot's parent
+    insertParent = adSlotAncestor.parentNode;
+    insertParent.insertBefore(layout, adSlotAncestor);
+    layout.appendChild(adSlotAncestor);
+    // Now ad-slot (with content inside) is in the layout
+  } else {
+    insertParent.insertBefore(layout, content);
+    layout.appendChild(content);
+  }
   layout.appendChild(toc);
 
   // Active state on scroll

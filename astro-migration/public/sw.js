@@ -12,8 +12,8 @@ const PAGE_CACHE = 'beebanelabs-pages-v6';
 const PRECACHE_URLS = [
   '/offline.html',
   '/offline',
-  '/css/style.css?v=27.13',
-  '/js/app.js?v=19.3',
+  '/css/style.css?v=27.20',
+  '/js/app.js?v=19.4',
   '/js/security.js?v=1.0',
   '/js/mobile-zoom.js?v=9.2',
   '/manifest.json',
