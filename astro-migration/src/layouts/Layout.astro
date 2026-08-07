@@ -63,7 +63,7 @@ const articleSlug = canonicalUrl.split('/').pop()?.replace('.html', '') || '';
     gtag('js', new Date());
     gtag('config', 'G-J36M9V5K3G', { 'anonymize_ip': true });
   </script>
-  <link rel="preload" href="/css/style.css?v=27.14" as="style">
+  <link rel="preload" href="/css/style.css?v=27.15" as="style">
   <link rel="preload" href="/js/app.js?v=19.3" as="script">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -105,7 +105,7 @@ const articleSlug = canonicalUrl.split('/').pop()?.replace('.html', '') || '';
 
   <link rel="canonical" href={canonicalUrl}>
 
-  <link rel="stylesheet" href="/css/style.css?v=27.14">
+  <link rel="stylesheet" href="/css/style.css?v=27.15">
   <link rel="preload" href="/css/mobile-quick-menu.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/css/mobile-quick-menu.css"></noscript>
 
@@ -455,67 +455,89 @@ const articleSlug = canonicalUrl.split('/').pop()?.replace('.html', '') || '';
 <!-- Custom Cursor Script -->
 <script>
 (function(){
-  if (window.matchMedia('(pointer: coarse)').matches) return; // skip touch devices
+  if (window.matchMedia('(pointer: coarse)').matches) return;
   var dot = document.getElementById('cursorDot');
-  var ring = document.getElementById('cursorRing');
-  if (!dot || !ring) return;
+  if (!dot) return;
 
   var mouseX = 0, mouseY = 0;
-  var ringX = 0, ringY = 0;
-  var isHovering = false;
   var isVisible = false;
+  var lastSpawn = 0;
+  var SPAWN_GAP = 60; // ms between particle spawns
+
+  // Pollen color palette (from CSS vars)
+  var pollenColors = ['#FBBF24','#F59E0B','#FCD34D','#FDE68A'];
 
   document.addEventListener('mousemove', function(e) {
     mouseX = e.clientX;
     mouseY = e.clientY;
     if (!isVisible) {
       dot.style.opacity = '1';
-      ring.style.opacity = '1';
       isVisible = true;
     }
     dot.style.left = (mouseX - 12) + 'px';
     dot.style.top = (mouseY - 12) + 'px';
+
+    // Spawn pollen particles
+    var now = Date.now();
+    if (now - lastSpawn > SPAWN_GAP) {
+      lastSpawn = now;
+      spawnPollen(e.clientX, e.clientY);
+    }
   }, { passive: true });
 
   document.addEventListener('mouseleave', function() {
     dot.style.opacity = '0';
-    ring.style.opacity = '0';
     isVisible = false;
   });
 
   document.addEventListener('mouseenter', function() {
     isVisible = true;
     dot.style.opacity = '1';
-    ring.style.opacity = '1';
   });
 
-  // Hover detection on interactive elements
-  var hoverTargets = 'a, button, input, textarea, select, [role="button"], .cursor-hover, .diagram-svg, .article-card, .category-card, .pricing-card, .related-card, .filter-btn, .quiz-option, .copy-btn, pre, .search-input-wrapper input';
-  
-  document.addEventListener('mouseover', function(e) {
-    var target = e.target.closest(hoverTargets);
-    if (target) { isHovering = true; ring.classList.add('cursor-ring-hover'); }
-  });
-  document.addEventListener('mouseout', function(e) {
-    var target = e.target.closest(hoverTargets);
-    if (target && !e.relatedTarget?.closest(hoverTargets)) {
-      isHovering = false; ring.classList.remove('cursor-ring-hover');
+  function spawnPollen(x, y) {
+    var count = Math.random() < 0.3 ? 2 : 1; // sometimes spawn 2
+    for (var i = 0; i < count; i++) {
+      var p = document.createElement('div');
+      p.className = 'pollen-particle';
+
+      // Random size: 2px to 5px
+      var size = 2 + Math.random() * 3;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+
+      // Random position offset from cursor
+      var ox = (Math.random() - 0.5) * 8;
+      var oy = (Math.random() - 0.5) * 8;
+      p.style.left = (x + ox) + 'px';
+      p.style.top = (y + oy) + 'px';
+
+      // Random color from palette
+      p.style.background = pollenColors[Math.floor(Math.random() * pollenColors.length)];
+
+      // Glow
+      p.style.boxShadow = '0 0 ' + (2 + Math.random() * 4) + 'px ' + p.style.background;
+
+      // Random drift direction and distance
+      var angle = Math.random() * Math.PI * 2;
+      var dist = 20 + Math.random() * 50;
+      var dx = Math.cos(angle) * dist;
+      var dy = Math.sin(angle) * dist - 15; // bias upward
+      p.style.setProperty('--drift-x', dx + 'px');
+      p.style.setProperty('--drift-y', dy + 'px');
+
+      // Random duration: 0.5s to 1.2s
+      var dur = 0.5 + Math.random() * 0.7;
+      p.style.setProperty('--drift-duration', dur + 's');
+
+      document.body.appendChild(p);
+
+      // Cleanup after animation
+      setTimeout(function() {
+        if (p.parentNode) p.parentNode.removeChild(p);
+      }, dur * 1000 + 50);
     }
-  });
-
-  // Smooth ring follow with lerp
-  function animate() {
-    var dx = mouseX - ringX;
-    var dy = mouseY - ringY;
-    ringX += dx * 0.12;
-    ringY += dy * 0.12;
-    ring.style.left = (ringX - 19) + 'px';
-    ring.style.top = (ringY - 19) + 'px';
-    requestAnimationFrame(animate);
   }
-  requestAnimationFrame(animate);
-
-  // Night mode class observer — ring adapts automatically via CSS vars
 })();
 </script>
 
@@ -544,7 +566,6 @@ const articleSlug = canonicalUrl.split('/').pop()?.replace('.html', '') || '';
 
 <!-- CUSTOM CURSOR -->
 <div class="cursor-dot" id="cursorDot"></div>
-<div class="cursor-ring" id="cursorRing"></div>
 
 </body>
 
