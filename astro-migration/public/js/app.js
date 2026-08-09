@@ -1,4 +1,4 @@
-/* v19.4.0 — TOC ad-slot prevention, reading history badges, PWA install prompt */
+/* v19.5.0 — Server-side article gate (CF Functions middleware), cookie auth */
 // === EARLY CONTENT GATE (runs before DOM renders) ===
 // Prevents "flash of content" on article pages before paywall check
 (function earlyContentGate() {
@@ -1435,8 +1435,30 @@ const PaywallSystem = {
   init() {
     const p = window.location.pathname;
     if (!p.includes('/articles/')) return;
+
+    // If server middleware already gated this article, skip client-side gate
+    const serverGated = document.querySelector('meta[name="article:server-gated"]');
+    if (serverGated && serverGated.content === 'true') {
+      const gateStyle = document.getElementById('early-content-gate');
+      if (gateStyle) gateStyle.remove();
+      // Wire up server-rendered unlock buttons
+      this._wireServerUnlockButtons();
+      return;
+    }
+
     const f = p.split('/').pop();
     this._checkAndRender(f);
+  },
+
+  // Wire click handlers for server-rendered gate buttons
+  _wireServerUnlockButtons() {
+    const slug = window.location.pathname.split('/').pop();
+    const unlockBtns = document.querySelectorAll('.server-unlock-btn');
+    unlockBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        PaywallSystem.unlockWithToken(slug);
+      });
+    });
   },
 
   async _checkAndRender(slug) {
@@ -1749,6 +1771,13 @@ const AuthSystem = {
       safe._createdAt = new Date().toISOString();
     }
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(safe));
+    // Set cookie for CF Functions server-side auth check
+    if (data.token) {
+      try {
+        const expires = new Date(Date.now() + 7 * 86400000).toUTCString();
+        document.cookie = 'sb-auth-token=' + data.token + '; path=/; expires=' + expires + '; SameSite=Lax; Secure';
+      } catch(e) {}
+    }
     // Sync unlocked articles from server after login
     if (typeof PaywallSystem !== 'undefined' && PaywallSystem.syncFromServer) {
       setTimeout(() => PaywallSystem.syncFromServer(), 500);
@@ -1782,6 +1811,7 @@ const AuthSystem = {
           // Session expired — clear it silently
           localStorage.removeItem(this.STORAGE_KEY);
           localStorage.removeItem('beebanelabs_access');
+          try { document.cookie = 'sb-auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure'; } catch(e) {}
           // Also invalidate server-side session (fire-and-forget)
           if (session.token) {
             try {
@@ -1824,6 +1854,8 @@ const AuthSystem = {
     }
     localStorage.removeItem(this.STORAGE_KEY);
     localStorage.removeItem('beebanelabs_access');
+    // Clear auth cookie for server middleware
+    try { document.cookie = 'sb-auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure'; } catch(e) {}
     // Clear in-memory cache (NOT localStorage)
     if (typeof PaywallSystem !== 'undefined') {
       PaywallSystem._serverTokens = null;
