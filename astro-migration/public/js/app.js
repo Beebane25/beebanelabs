@@ -1,4 +1,4 @@
-/* v19.3.0 — Internal links, content freshness, FAQ schema, fuzzy search, reading history, PWA */
+/* v19.4.0 — TOC ad-slot prevention, reading history badges, PWA install prompt */
 // === EARLY CONTENT GATE (runs before DOM renders) ===
 // Prevents "flash of content" on article pages before paywall check
 (function earlyContentGate() {
