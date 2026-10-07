@@ -119,7 +119,7 @@ export async function onRequestPost(context) {
     try {
       users = await supabaseQuery(
         SUPABASE_URL, SUPABASE_KEY, 'users',
-        `?email=eq.${encodeURIComponent(email.toLowerCase())}&select=id,email,name,plan,tokens,is_active,created_at`
+        `?email=eq.${encodeURIComponent(email.toLowerCase())}&select=id,email,name,is_active,created_at`
       );
     } catch (e) {
       console.error('Supabase users query failed:', e.message);
@@ -134,7 +134,7 @@ export async function onRequestPost(context) {
       try {
         users = await supabaseQuery(
           SUPABASE_URL, SUPABASE_KEY, 'users',
-          `?email=eq.${encodeURIComponent(legacyEncodedEmail)}&select=id,email,name,plan,tokens,is_active,created_at`
+          `?email=eq.${encodeURIComponent(legacyEncodedEmail)}&select=id,email,name,is_active,created_at`
         );
         // If found with legacy encoding, migrate to plaintext
         if (users && users.length > 0) {
@@ -180,7 +180,6 @@ export async function onRequestPost(context) {
     } else {
       // New user - create account
       isNewUser = true;
-      const INITIAL_TOKENS = 5;
 
       try {
         const newUsers = await supabaseQuery(
@@ -189,8 +188,6 @@ export async function onRequestPost(context) {
             email: email.toLowerCase(),
             name: name || email.split('@')[0],
             password_hash: 'google_oauth',  // No password for Google users
-            plan: 'free',
-            tokens: INITIAL_TOKENS,
             created_at: new Date().toISOString()
           }
         );
@@ -234,8 +231,6 @@ export async function onRequestPost(context) {
           email: email.toLowerCase(),
           name: name || user.name || email.split('@')[0],
           avatar: avatar || '',
-          plan: user.plan || 'free',
-          tokens: user.tokens || 5,
           auth_provider: 'google',
           created_at: user.created_at
         },

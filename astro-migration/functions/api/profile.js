@@ -254,7 +254,7 @@ export async function onRequestPost(context) {
       // Gather all user data in parallel
       const [users, bookmarks, progress, achievements, unlocked, quizResults, activity, loginHistory] = await Promise.all([
         // User profile
-        supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}&select=id,email,name,plan,tokens,dob,created_at,last_login,auth_provider`)
+        supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}&select=id,email,name,plan,dob,created_at,last_login,auth_provider`)
           .catch(() => []),
         // Bookmarks from preferences
         getPref(SUPABASE_URL, SUPABASE_KEY, userId, 'bookmarks').catch(() => []),

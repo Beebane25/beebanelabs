@@ -234,7 +234,7 @@ export async function onRequestPost(context) {
       // Create user
       const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', '', 'POST', {
         email, name, password_hash: `${saltHex}:${hashHex}`,
-        plan: 'free', is_active: true, tokens: 5, created_at: new Date().toISOString()
+        is_active: true, created_at: new Date().toISOString()
       });
 
       if (users && users.length > 0) {
@@ -247,7 +247,7 @@ export async function onRequestPost(context) {
         // Record successful registration for IP tracking
         await recordAttempt(SUPABASE_URL, SUPABASE_KEY, ip, 'register_success');
         await recordAttempt(SUPABASE_URL, SUPABASE_KEY, ip, 'register');
-        return cors(200, { success: true, message: 'Registrasi berhasil!', token: tokenHex, user: { id: users[0].id, email, name, plan: 'free', tokens: 5, auth_provider: 'local' } }, origin);
+        return cors(200, { success: true, message: 'Registrasi berhasil!', token: tokenHex, user: { id: users[0].id, email, name, auth_provider: 'local' } }, origin);
       }
       return cors(500, { error: 'Gagal membuat akun' }, origin);
     }
@@ -270,7 +270,7 @@ export async function onRequestPost(context) {
       }
 
       const encodedEmail = encodeURIComponent(email);
-      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${encodedEmail}&select=id,email,name,password_hash,plan,tokens,is_active,created_at`);
+      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?email=eq.${encodedEmail}&select=id,email,name,password_hash,is_active,created_at`);
       if (!users || users.length === 0) {
         await recordAttempt(SUPABASE_URL, SUPABASE_KEY, ip, 'login');
         return cors(401, { error: 'Email atau password salah' }, origin);
@@ -307,7 +307,7 @@ export async function onRequestPost(context) {
         last_login: new Date().toISOString()
       });
 
-      return cors(200, { success: true, message: 'Login berhasil!', token: tokenHex, user: { id: user.id, email, name: user.name, plan: user.plan, tokens: user.tokens, auth_provider: 'local', created_at: user.created_at } }, origin);
+      return cors(200, { success: true, message: 'Login berhasil!', token: tokenHex, user: { id: user.id, email, name: user.name, auth_provider: 'local', created_at: user.created_at } }, origin);
     }
 
     // === LOGOUT ===
@@ -331,7 +331,7 @@ export async function onRequestPost(context) {
       if (new Date(sessions[0].expires_at) < new Date()) return cors(200, { access: false, plan: 'free', reason: 'expired' }, origin);
 
       const encodedUserId = encodeURIComponent(sessions[0].user_id);
-      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}&select=email,plan,is_active`);
+      const users = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}&select=email,is_active`);
       if (!users || users.length === 0 || !users[0].is_active) return cors(200, { access: false, plan: 'free' }, origin);
 
       return cors(200, { access: true, plan: users[0].plan }, origin);
@@ -435,7 +435,7 @@ export async function onRequestPost(context) {
       const result = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}`, 'PATCH', updates);
 
       // Return updated user data
-      const updatedUsers = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}&select=id,email,name,plan,tokens,dob,created_at`);
+      const updatedUsers = await supabaseQuery(SUPABASE_URL, SUPABASE_KEY, 'users', `?id=eq.${encodedUserId}&select=id,email,name,dob,created_at`);
       const updatedUser = updatedUsers && updatedUsers[0] ? updatedUsers[0] : {};
 
       return cors(200, {
@@ -445,8 +445,6 @@ export async function onRequestPost(context) {
           id: updatedUser.id,
           email: updatedUser.email,
           name: updatedUser.name,
-          plan: updatedUser.plan,
-          tokens: updatedUser.tokens,
           dob: updatedUser.dob,
           created_at: updatedUser.created_at
         }
