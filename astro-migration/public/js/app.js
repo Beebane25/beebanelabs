@@ -1,4 +1,4 @@
-/* v20.0.0 — All tutorials freely accessible */
+/* v20.1.0 — All tutorials freely accessible */
 /* ============================================
    BeebaneLabs - Main JavaScript
    ============================================ */
@@ -3275,7 +3275,7 @@ articles = ALL_ARTICLES.map(a => ({
 }));
 
 function renderArticleCard(a) {
-  return '<a href="articles/' + a.slug + '.html" class="article-card' + '"><div class="thumbnail"><div class="thumbnail-bg cyan">' + a.icon + '</div>' + '</div><div class="content"><div class="meta"><span class="category-tag">' + a.cat + '</span><span class="access-badge ' + 'free' + '">' + a.access + '</span><span class="date">' + a.date + '</span></div><h3>' + a.title + '</h3><p>' + a.desc + '</p><div class="footer"><span class="read-time">📖 ' + a.time + ' menit baca</span><span class="difficulty ' + a.diff + '">' + a.diff.charAt(0).toUpperCase() + a.diff.slice(1) + '</span></div></div></a>';
+  return '<a href="articles/' + a.slug + '.html" class="article-card' + '"><div class="thumbnail"><img class="article-card-image" src="/images/articles/' + a.slug + '-day-thumb.webp?v=20261007b" alt="" loading="lazy" decoding="async" width="600" height="315"></div><div class="content"><div class="meta"><span class="category-tag">' + a.cat + '</span><span class="access-badge ' + 'free' + '">' + a.access + '</span><span class="date">' + a.date + '</span></div><h3>' + a.title + '</h3><p>' + a.desc + '</p><div class="footer"><span class="read-time">📖 ' + a.time + ' menit baca</span><span class="difficulty ' + a.diff + '">' + a.diff.charAt(0).toUpperCase() + a.diff.slice(1) + '</span></div></div></a>';
 }
 
 function renderGroupedArticles(filter) {
