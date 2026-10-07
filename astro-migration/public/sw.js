@@ -1,19 +1,19 @@
-/* BeebaneLabs Service Worker v19.0
+/* BeebaneLabs Service Worker v20.1
    Cache-first for static assets, stale-while-revalidate for pages,
    network-first for API calls.
-   Updated: 2026-07-06
+   Updated: 2026-10-07
 */
 
-const CACHE_NAME = 'beebanelabs-v17';
-const STATIC_CACHE = 'beebanelabs-static-v6';
-const PAGE_CACHE = 'beebanelabs-pages-v6';
+const CACHE_NAME = 'beebanelabs-v20.1';
+const STATIC_CACHE = 'beebanelabs-static-v8';
+const PAGE_CACHE = 'beebanelabs-pages-v8';
 
 // Static assets to pre-cache on install
 const PRECACHE_URLS = [
   '/offline.html',
   '/offline',
-  '/css/style.css?v=27.20',
-  '/js/app.js?v=19.4',
+  '/css/style.css?v=27.22',
+  '/js/app.js?v=19.6',
   '/js/security.js?v=1.0',
   '/js/mobile-zoom.js?v=9.2',
   '/manifest.json',

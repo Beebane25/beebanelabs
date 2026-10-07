@@ -1,4 +1,4 @@
-</div>
+
   <section class="article-hero">
     <div class="container">
       <div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Database</a><span class="separator">/</span><span class="current">Redis Streams</span></div>
@@ -14,12 +14,12 @@
   </section>
       <div class="article-featured-image">
         <img src="/images/articles/redis-streams.webp" class="night-img"
-             alt="Artikel: Redis Streams" 
+             alt="Ilustrasi tutorial: Redis Streams untuk Event Sourcing" 
              loading="lazy" 
              width="1200" height="630"
              fetchpriority="low">
         <img src="/images/articles/redis-streams-day.webp" class="day-img"
-             alt="Artikel: Redis Streams" 
+             alt="Ilustrasi tutorial: Redis Streams untuk Event Sourcing" 
              loading="lazy" 
              width="1200" height="630"
              fetchpriority="low">
@@ -27,7 +27,7 @@
 
   <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
 
-  <article class="article-content" id="main-content">
+  <article class="article-content" id="article-body">
     <div class="container">
       <div class="info-box info">
         <div class="info-box-title">📋 Daftar Isi</div>
@@ -80,7 +80,7 @@
         </div>
       </div>
 
-      <h3>1.1 Keunggulan Redis Streams</h3>
+      <h3 id="1-1-keunggulan-redis-streams">1.1 Keunggulan Redis Streams</h3>
       <ul>
         <li><strong>Persistent:</strong> Event tersimpan di Redis dan bisa di-replay</li>
         <li><strong>Consumer Groups:</strong> Multiple consumers dengan load balancing otomatis</li>
@@ -98,7 +98,7 @@
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Redis CLI — XADD Commands</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 # XADD: menambahkan event ke stream
@@ -127,14 +127,14 @@ XRANGE orders - + COUNT 5  # 5 entries pertama
 </code></pre>
       </div>
 
-      <h3>2.1 Struktur ID Streams</h3>
+      <h3 id="2-1-struktur-id-streams">2.1 Struktur ID Streams</h3>
 
       <p>Setiap entry di Redis Stream memiliki ID dalam format <code>&lt;millisecondsTimestamp&gt;-&lt;sequence&gt;</code>. Sequence di-increment jika ada multiple entries dalam milidetik yang sama, memastikan setiap ID unik.</p>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Python — Producer dengan redis-py</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 import redis
@@ -193,7 +193,7 @@ for i in range(100):
         </div>
       </div>
 
-       ad-slot-wide"></div>
+      <div class="ad-slot ad-slot-wide"></div>
 
       <!-- SECTION 3 -->
       <h2 id="xread">3. XREAD — Membaca Events</h2>
@@ -201,7 +201,7 @@ for i in range(100):
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Redis CLI — XREAD Commands</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 # XREAD: membaca events dari stream
@@ -230,7 +230,7 @@ XREVRANGE orders + - COUNT 5
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Python — Consumer Blocking Read</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 import redis
@@ -268,7 +268,7 @@ def consume_events_simple(stream, last_id='$'):
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Redis CLI — Consumer Group Commands</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 # Membuat consumer group
@@ -282,9 +282,9 @@ XGROUP CREATE orders notifications-group $
 XGROUP CREATE orders analytics-group 0 MKSTREAM
 
 # Membaca sebagai anggota consumer group
-# XREADGROUP GROUP group_name consumer_name [COUNT n] [BLOCK ms] STREAMS stream >
-# > = ambil events BARU yang belum didistribusikan ke consumer lain
-XREADGROUP GROUP order-processors worker-1 COUNT 5 BLOCK 2000 STREAMS orders >
+# XREADGROUP GROUP group_name consumer_name [COUNT n] [BLOCK ms] STREAMS stream &gt;
+# &gt; = ambil events BARU yang belum didistribusikan ke consumer lain
+XREADGROUP GROUP order-processors worker-1 COUNT 5 BLOCK 2000 STREAMS orders &gt;
 
 # Membaca ulang pending entries (yang belum di-ACK)
 XREADGROUP GROUP order-processors worker-1 COUNT 5 STREAMS orders 0
@@ -305,7 +305,7 @@ XINFO STREAM orders
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Python — Producer-Consumer dengan Consumer Group</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 import redis
@@ -344,7 +344,7 @@ def consumer(consumer_name):
             results = r.xreadgroup(
                 GROUPNAME=GROUP,
                 consumername=consumer_name,
-                streams={STREAM: '>'},
+                streams={STREAM: '&gt;'},
                 count=1,
                 block=5000
             )
@@ -395,7 +395,7 @@ def process_order(data):
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Redis CLI — Pending Entries Management</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 # XPENDING: melihat entries yang belum di-ACK
@@ -408,11 +408,11 @@ XPENDING orders order-processors - + 10
 XPENDING orders order-processors - + 10 worker-1
 
 # XCLAIM: mengambil alih pending entries dari consumer yang stalled
-# Claim entries yang idle > 60 detik (60000 ms)
+# Claim entries yang idle &gt; 60 detik (60000 ms)
 XCLAIM orders order-processors worker-2 60000 1688012345678-0 1688012345679-0
 
 # XAUTOCLAIM: auto-claim entries yang stalled
-# Ambil entries yang idle > 30 detik
+# Ambil entries yang idle &gt; 30 detik
 XAUTOCLAIM orders order-processors worker-2 30000 0-0 COUNT 10
 
 # XCLAIM with JUSTID (hanya mendapatkan ID, tanpa data)
@@ -430,7 +430,7 @@ XTRIM orders MINID ~ 1688000000000-0
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Python — Dead Letter Queue Pattern</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 import redis
@@ -464,7 +464,7 @@ def claim_and_process_stalled(consumer_name, idle_ms=60000, max_retries=3):
                 min=message_id, max=message_id, count=1
             )
 
-            if pending_info and pending_info[0]['times_delivered'] >= max_retries:
+            if pending_info and pending_info[0]['times_delivered'] &gt;= max_retries:
                 # Sudah terlalu banyak retry → pindahkan ke DLQ
                 r.xadd(DLQ, {
                     'original_id': message_id,
@@ -493,7 +493,7 @@ def claim_and_process_stalled(consumer_name, idle_ms=60000, max_retries=3):
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Redis CLI — Stream Info &amp; Management</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 # XINFO STREAM: informasi lengkap tentang stream
@@ -544,12 +544,12 @@ XGROUP DESTROY orders order-processors
       <!-- SECTION 7 -->
       <h2 id="event-sourcing">7. Event Sourcing Patterns</h2>
 
-      <h3>7.1 CQRS (Command Query Responsibility Segregation)</h3>
+      <h3 id="7-1-cqrs-command-query-responsibility-segregation">7.1 CQRS (Command Query Responsibility Segregation)</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Python — CQRS dengan Redis Streams</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 import redis
@@ -658,7 +658,7 @@ class OrderProjection:
 
       <div class="quiz-container" id="quiz8">
         <div class="quiz-question">
-          <h3>Pertanyaan 1: Apa perbedaan utama antara Redis Pub/Sub dan Redis Streams?</h3>
+          <h3 id="pertanyaan-1-apa-perbedaan-utama-antara-redis-pub-sub-dan-redis-streams">Pertanyaan 1: Apa perbedaan utama antara Redis Pub/Sub dan Redis Streams?</h3>
           <div class="quiz-options">
             <div class="quiz-option" data-question="0" data-answer="a">a) Tidak ada perbedaan</div>
             <div class="quiz-option" data-question="0" data-answer="b">b) Streams lebih lambat</div>
@@ -667,7 +667,7 @@ class OrderProjection:
           </div>
         </div>
         <div class="quiz-question">
-          <h3>Pertanyaan 2: Apa fungsi dari XACK?</h3>
+          <h3 id="pertanyaan-2-apa-fungsi-dari-xack">Pertanyaan 2: Apa fungsi dari XACK?</h3>
           <div class="quiz-options">
             <div class="quiz-option" data-question="1" data-answer="a">a) Menambahkan event ke stream</div>
             <div class="quiz-option" data-question="1" data-answer="b">b) Mengkonfirmasi bahwa event telah diproses</div>
@@ -676,7 +676,7 @@ class OrderProjection:
           </div>
         </div>
         <div class="quiz-question">
-          <h3>Pertanyaan 3: Apa itu Pending Entries List (PEL)?</h3>
+          <h3 id="pertanyaan-3-apa-itu-pending-entries-list-pel">Pertanyaan 3: Apa itu Pending Entries List (PEL)?</h3>
           <div class="quiz-options">
             <div class="quiz-option" data-question="2" data-answer="a">a) Daftar events yang sudah diproses</div>
             <div class="quiz-option" data-question="2" data-answer="b">b) Daftar events yang dibaca tapi belum di-ACK</div>
@@ -685,7 +685,7 @@ class OrderProjection:
           </div>
         </div>
         <div class="quiz-question">
-          <h3>Pertanyaan 4: Apa fungsi XCLAIM?</h3>
+          <h3 id="pertanyaan-4-apa-fungsi-xclaim">Pertanyaan 4: Apa fungsi XCLAIM?</h3>
           <div class="quiz-options">
             <div class="quiz-option" data-question="3" data-answer="a">a) Menghapus events yang stalled</div>
             <div class="quiz-option" data-question="3" data-answer="b">b) Mengambil alih pending entries dari consumer lain yang stalled</div>
@@ -694,7 +694,7 @@ class OrderProjection:
           </div>
         </div>
         <div class="quiz-question">
-          <h3>Pertanyaan 5: Mengapa MAXLEN penting saat menggunakan XADD?</h3>
+          <h3 id="pertanyaan-5-mengapa-maxlen-penting-saat-menggunakan-xadd">Pertanyaan 5: Mengapa MAXLEN penting saat menggunakan XADD?</h3>
           <div class="quiz-options">
             <div class="quiz-option" data-question="4" data-answer="a">a) Untuk mempercepat write performance</div>
             <div class="quiz-option" data-question="4" data-answer="b">b) Untuk menghindari stream tumbuh tak terbatas dan menghabiskan memory</div>
@@ -702,7 +702,7 @@ class OrderProjection:
             <div class="quiz-option" data-question="4" data-answer="d">d) Untuk mengurutkan events</div>
           </div>
         </div>
-        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis" type="button">📝 Periksa Jawaban</button>
         <div class="quiz-result"></div>
       </div>
 
@@ -721,7 +721,7 @@ class OrderProjection:
     </div>
   
     <div class="related-articles">
-      <h3>📚 Artikel Terkait</h3>
+      <h3 id="artikel-terkait">📚 Artikel Terkait</h3>
       <div class="related-grid">
                 <a href="/articles/database-design.html" class="related-card">
           <span class="related-category">Database</span>
@@ -743,10 +743,10 @@ class OrderProjection:
   <section class="newsletter-section" id="newsletter">
     <div class="container">
       <div class="newsletter-card fade-in">
-        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <h2 id="dapatkan-tutorial-terbaru">📬 Dapatkan Tutorial Terbaru</h2>
         <p>Subscribe untuk mendapatkan tutorial Database terbaru langsung di inbox kamu.</p>
         <form class="newsletter-form" onsubmit="handleSubscribe(event)">
-          <input type="email" placeholder="email@kamu.com" required>
+          <input type="email" aria-label="Alamat email" placeholder="email@kamu.com" required>
           <button type="submit" class="btn-primary">Subscribe</button>
         </form>
       </div>

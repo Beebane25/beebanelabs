@@ -44,6 +44,9 @@ function debounce(fn, delay) {
   };
 }
 
+// Shared safe DOM helper for pages that do not render every profile panel.
+function byId(id) { return document.getElementById(id); }
+
 // === Navbar Scroll Effect + Back to Top ===
 const navbar = document.getElementById('navbar');
 const backToTop = document.getElementById('backToTop');
@@ -105,6 +108,9 @@ function closeSearch() {
 
 if (searchTrigger) {
   searchTrigger.addEventListener('click', openSearch);
+  searchTrigger.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSearch(); }
+  });
 }
 
 if (searchOverlay) {
@@ -217,15 +223,18 @@ if (searchInput) {
       return;
     }
 
-    searchResults.innerHTML = filtered.map((a, i) => `
-      <a href="${a.url}" class="search-result-item" data-index="${i}" onclick="saveRecentSearch('${query.replace(/'/g,"\\'")}')">
-        <span class="icon">${a.icon}</span>
-        <div class="text">
-          <h4>${a.title}</h4>
-          <p>${a.category} — ${a.desc}</p>
-        </div>
-      </a>
-    `).join('');
+    searchResults.replaceChildren(...filtered.map((a, i) => {
+      const link = document.createElement('a');
+      link.href = a.url;
+      link.className = 'search-result-item';
+      link.dataset.index = String(i);
+      link.innerHTML = '<span class="icon" aria-hidden="true"></span><div class="text"><h4></h4><p></p></div>';
+      link.querySelector('.icon').textContent = a.icon || '📄';
+      link.querySelector('h4').textContent = a.title;
+      link.querySelector('p').textContent = `${a.category} — ${a.desc}`;
+      link.addEventListener('click', () => saveRecentSearch(query));
+      return link;
+    }));
     searchFocusIndex = -1;
   }
 

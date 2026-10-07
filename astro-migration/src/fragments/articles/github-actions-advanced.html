@@ -29,12 +29,12 @@
   </section>
       <div class="article-featured-image">
         <img src="/images/articles/github-actions-advanced.webp" class="night-img"
-             alt="Artikel: Github Actions Advanced" 
+             alt="Ilustrasi tutorial: GitHub Actions Advanced Workflows" 
              loading="lazy" 
              width="1200" height="630"
              fetchpriority="low">
         <img src="/images/articles/github-actions-advanced-day.webp" class="day-img"
-             alt="Artikel: Github Actions Advanced" 
+             alt="Ilustrasi tutorial: GitHub Actions Advanced Workflows" 
              loading="lazy" 
              width="1200" height="630"
              fetchpriority="low">
@@ -50,11 +50,11 @@
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    
+    </div>
   </div>
 
   <!-- ========== ARTICLE CONTENT ========== -->
-  <article class="article-content" id="main-content">
+  <article class="article-content" id="article-body">
     <div class="container">
 
       <!-- TABLE OF CONTENTS -->
@@ -109,13 +109,13 @@
         </div>
       </div>
 
-      <h3>1.1 Struktur Workflow File</h3>
+      <h3 id="1-1-struktur-workflow-file">1.1 Struktur Workflow File</h3>
       <p>Setiap workflow didefinisikan dalam file YAML yang berada di direktori <code>.github/workflows/</code>. Berikut adalah struktur lengkap workflow tingkat lanjut:</p>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">.github/workflows/advanced-ci.yml</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 # Workflow tingkat lanjut dengan semua fitur utama
@@ -184,9 +184,9 @@ jobs:
         run: |
           CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
           if echo "$CHANGED_FILES" | grep -q "^src/"; then
-            echo "deploy=true" >> $GITHUB_OUTPUT
+            echo "deploy=true" &gt;&gt; $GITHUB_OUTPUT
           else
-            echo "deploy=false" >> $GITHUB_OUTPUT
+            echo "deploy=false" &gt;&gt; $GITHUB_OUTPUT
           fi
 </code></pre>
       </div>
@@ -204,7 +204,7 @@ jobs:
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    
+    </div>
 
       <!-- ============================== -->
       <!-- SECTION 2: Matrix Builds        -->
@@ -213,12 +213,12 @@ jobs:
 
       <p><strong>Matrix builds</strong> memungkinkan Anda menjalankan job yang sama dengan kombinasi parameter yang berbeda secara paralel. Ini sangat berguna untuk testing di multiple OS, versi bahasa, atau konfigurasi yang berbeda.</p>
 
-      <h3>2.1 Basic Matrix Configuration</h3>
+      <h3 id="2-1-basic-matrix-configuration">2.1 Basic Matrix Configuration</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">.github/workflows/matrix-basic.yml</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 name: Matrix Build - Basic
@@ -270,13 +270,13 @@ jobs:
 </code></pre>
       </div>
 
-      <h3>2.2 Dynamic Matrix dari JSON</h3>
+      <h3 id="2-2-dynamic-matrix-dari-json">2.2 Dynamic Matrix dari JSON</h3>
       <p>Anda bisa membuat matrix secara dinamis dari output job sebelumnya — sangat berguna untuk skenario di mana konfigurasi matrix ditentukan oleh kode atau config file:</p>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">.github/workflows/dynamic-matrix.yml</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 name: Dynamic Matrix Build
@@ -297,15 +297,15 @@ jobs:
         run: |
           # Baca matrix dari file JSON di repository
           MATRIX=$(cat .github/matrix-config.json)
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "matrix=$MATRIX" &gt;&gt; $GITHUB_OUTPUT
 
           # Alternatif: generate matrix dinamis
           # Berdasarkan perubahan file
           CHANGED=$(git diff --name-only HEAD~1 HEAD | \
             grep -oP 'services/\K[^/]+' | sort -u)
           SERVICES=$(echo "$CHANGED" | jq -R -s -c \
-            'split("\n") | map(select(length > 0))')
-          echo "services=$SERVICES" >> $GITHUB_OUTPUT
+            'split("\n") | map(select(length &gt; 0))')
+          echo "services=$SERVICES" &gt;&gt; $GITHUB_OUTPUT
 
   # Job kedua: gunakan matrix
   build:
@@ -344,12 +344,12 @@ jobs:
 </code></pre>
       </div>
 
-      <h3>2.3 Matrix dengan Output dan Summary</h3>
+      <h3 id="2-3-matrix-dengan-output-dan-summary">2.3 Matrix dengan Output dan Summary</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">.github/workflows/matrix-summary.yml</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 name: Matrix with Job Summary
@@ -378,21 +378,21 @@ jobs:
         id: test
         run: |
           python -m pytest --junitxml=results.xml \
-            --tb=short -q 2>&1 | tee test-output.txt
-          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+            --tb=short -q 2&gt;&amp;1 | tee test-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" &gt;&gt; $GITHUB_OUTPUT
 
       - name: Generate Job Summary
         if: always()
         run: |
-          echo "## Test Results: ${{ matrix.os }} Python ${{ matrix.python-version }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Results: ${{ matrix.os }} Python ${{ matrix.python-version }}" &gt;&gt; $GITHUB_STEP_SUMMARY
+          echo "" &gt;&gt; $GITHUB_STEP_SUMMARY
           if [ "${{ steps.test.outputs.exit_code }}" == "0" ]; then
-            echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+            echo "✅ All tests passed" &gt;&gt; $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Some tests failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            cat test-output.txt | tail -20 >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "❌ Some tests failed" &gt;&gt; $GITHUB_STEP_SUMMARY
+            echo '```' &gt;&gt; $GITHUB_STEP_SUMMARY
+            cat test-output.txt | tail -20 &gt;&gt; $GITHUB_STEP_SUMMARY
+            echo '```' &gt;&gt; $GITHUB_STEP_SUMMARY
           fi
 
       - name: Upload test results
@@ -418,7 +418,7 @@ jobs:
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    
+    </div>
 
       <!-- ============================== -->
       <!-- SECTION 3: Reusable Workflows   -->
@@ -427,12 +427,12 @@ jobs:
 
       <p><strong>Reusable workflows</strong> memungkinkan Anda mendefinisikan workflow sekali dan memanggilnya dari banyak repository atau workflow. Ini mengurangi duplikasi dan memudahkan maintenance pipeline CI/CD di seluruh organisasi.</p>
 
-      <h3>3.1 Membuat Reusable Workflow</h3>
+      <h3 id="3-1-membuat-reusable-workflow">3.1 Membuat Reusable Workflow</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">.github/workflows/reusable-build.yml (di repo shared)</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 # Reusable workflow untuk build &amp; test
@@ -521,9 +521,9 @@ jobs:
           if [ -f coverage/coverage-summary.json ]; then
             PERCENT=$(cat coverage/coverage-summary.json | \
               jq '.total.lines.pct')
-            echo "percent=$PERCENT" >> $GITHUB_OUTPUT
+            echo "percent=$PERCENT" &gt;&gt; $GITHUB_OUTPUT
           else
-            echo "percent=0" >> $GITHUB_OUTPUT
+            echo "percent=0" &gt;&gt; $GITHUB_OUTPUT
           fi
 
       - name: Run E2E tests
@@ -548,12 +548,12 @@ jobs:
 </code></pre>
       </div>
 
-      <h3>3.2 Memanggil Reusable Workflow</h3>
+      <h3 id="3-2-memanggil-reusable-workflow">3.2 Memanggil Reusable Workflow</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">.github/workflows/ci.yml (di repo utama)</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 name: CI Pipeline
@@ -591,13 +591,13 @@ jobs:
 </code></pre>
       </div>
 
-      <h3>3.3 Reusable Workflow Nesting</h3>
+      <h3 id="3-3-reusable-workflow-nesting">3.3 Reusable Workflow Nesting</h3>
       <p>Reusable workflow bisa memanggil reusable workflow lain (nesting), hingga maksimal 4 level kedalaman. Ini memungkinkan Anda membangun hierarki workflow yang terstruktur:</p>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Nesting pattern</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 # Level 0: Caller workflow (di setiap repo)
@@ -642,7 +642,7 @@ jobs:
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    
+    </div>
 
       <!-- ============================== -->
       <!-- SECTION 4: Composite Actions    -->
@@ -651,12 +651,12 @@ jobs:
 
       <p><strong>Composite actions</strong> memungkinkan Anda menggabungkan beberapa langkah (steps) menjadi satu action yang reusable. Berbeda dengan reusable workflows yang berupa file YAML di level workflow, composite actions berupa file <code>action.yml</code> yang bisa dipanggil sebagai satu step.</p>
 
-      <h3>4.1 Membuat Composite Action</h3>
+      <h3 id="4-1-membuat-composite-action">4.1 Membuat Composite Action</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">.github/actions/setup-project/action.yml</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 # Composite action untuk setup project lengkap
@@ -724,7 +724,7 @@ runs:
     - name: Setup environment
       shell: bash
       run: |
-        if [ -f .env.example ] && [ ! -f .env ]; then
+        if [ -f .env.example ] &amp;&amp; [ ! -f .env ]; then
           cp .env.example .env
           echo "Created .env from .env.example"
         fi
@@ -736,18 +736,18 @@ runs:
         echo "Node.js: $(node --version)"
         echo "npm: $(npm --version)"
         if [ "${{ inputs.install-java }}" == "true" ]; then
-          echo "Java: $(java --version 2>&1 | head -1)"
+          echo "Java: $(java --version 2&gt;&amp;1 | head -1)"
         fi
         echo "✅ Project setup complete"
 </code></pre>
       </div>
 
-      <h3>4.2 Composite Action untuk Docker</h3>
+      <h3 id="4-2-composite-action-untuk-docker">4.2 Composite Action untuk Docker</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">.github/actions/docker-build-push/action.yml</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 name: 'Docker Build &amp; Push'
@@ -853,7 +853,7 @@ runs:
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    
+    </div>
 
       <!-- ============================== -->
       <!-- SECTION 5: Caching              -->
@@ -862,12 +862,12 @@ runs:
 
       <p>Caching yang tepat dapat mempercepat workflow hingga <strong>50-80%</strong>. GitHub Actions menyediakan <code>actions/cache</code> dan caching built-in pada beberapa setup actions.</p>
 
-      <h3>5.1 Built-in Cache pada Setup Actions</h3>
+      <h3 id="5-1-built-in-cache-pada-setup-actions">5.1 Built-in Cache pada Setup Actions</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Built-in caching examples</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 # Node.js — cache npm/yarn/pnpm otomatis
@@ -898,12 +898,12 @@ runs:
 </code></pre>
       </div>
 
-      <h3>5.2 Advanced Cache dengan actions/cache</h3>
+      <h3 id="5-2-advanced-cache-dengan-actions-cache">5.2 Advanced Cache dengan actions/cache</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Advanced caching strategies</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 # Cache untuk Docker layer
@@ -976,7 +976,7 @@ runs:
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    
+    </div>
 
       <!-- ============================== -->
       <!-- SECTION 6: Concurrency          -->
@@ -985,12 +985,12 @@ runs:
 
       <p><strong>Concurrency</strong> memungkinkan Anda mengontrol bagaimana workflow yang berjalan bersamaan saling berinteraksi. Ini sangat penting untuk mencegah duplikasi deployment dan menghemat resource.</p>
 
-      <h3>6.1 Concurrency Groups</h3>
+      <h3 id="6-1-concurrency-groups">6.1 Concurrency Groups</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Concurrency patterns</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 # Pattern 1: Cancel in-progress run untuk branch yang sama
@@ -1031,12 +1031,12 @@ jobs:
 </code></pre>
       </div>
 
-      <h3>6.2 Environment Protection Rules</h3>
+      <h3 id="6-2-environment-protection-rules">6.2 Environment Protection Rules</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">.github/workflows/deploy.yml</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 name: Deploy with Environment Protection
@@ -1064,7 +1064,7 @@ jobs:
           echo "Deploying to ${{ inputs.environment }}"
           # Gunakan environment secrets
           echo "API_KEY=${{ secrets.API_KEY }}"
-          echo "url=https://${{ inputs.environment }}.example.com" >> $GITHUB_OUTPUT
+          echo "url=https://${{ inputs.environment }}.example.com" &gt;&gt; $GITHUB_OUTPUT
 
       # Wait timer — tunggu N menit sebelum proceed
       # (dikonfigurasi di GitHub Environment settings)
@@ -1082,19 +1082,19 @@ jobs:
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    
+    </div>
 
       <!-- ============================== -->
       <!-- SECTION 7: Advanced Patterns    -->
       <!-- ============================== -->
       <h2 id="advanced-patterns">7. Advanced Patterns &amp; Best Practices</h2>
 
-      <h3>7.1 Conditional Deploy dengan Path Filtering</h3>
+      <h3 id="7-1-conditional-deploy-dengan-path-filtering">7.1 Conditional Deploy dengan Path Filtering</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">.github/workflows/monorepo-ci.yml</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 name: Monorepo CI/CD
@@ -1154,12 +1154,12 @@ jobs:
 </code></pre>
       </div>
 
-      <h3>7.2 OIDC Authentication (Tanpa Long-lived Secrets)</h3>
+      <h3 id="7-2-oidc-authentication-tanpa-long-lived-secrets">7.2 OIDC Authentication (Tanpa Long-lived Secrets)</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">.github/workflows/deploy-aws-oidc.yml</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 name: Deploy to AWS with OIDC
@@ -1200,12 +1200,12 @@ jobs:
 </code></pre>
       </div>
 
-      <h3>7.3 Artifact Upload/Download antar Jobs</h3>
+      <h3 id="7-3-artifact-upload-download-antar-jobs">7.3 Artifact Upload/Download antar Jobs</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">Artifact patterns</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 jobs:
@@ -1213,7 +1213,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci && npm run build
+      - run: npm ci &amp;&amp; npm run build
 
       # Upload artifact dengan multiple files
       - name: Upload build artifacts
@@ -1254,19 +1254,19 @@ jobs:
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    
+    </div>
 
       <!-- ============================== -->
       <!-- SECTION 8: Security             -->
       <!-- ============================== -->
       <h2 id="security">8. Security &amp; Secrets Management</h2>
 
-      <h3>8.1 Secrets Scanning &amp; Prevention</h3>
+      <h3 id="8-1-secrets-scanning-prevention">8.1 Secrets Scanning &amp; Prevention</h3>
 
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">.github/workflows/security.yml</span>
-          <button class="code-copy" aria-label="Salin kode">Salin</button>
+          <button class="code-copy" aria-label="Salin kode" type="button">Salin</button>
         </div>
 <pre><code>
 name: Security Scanning
@@ -1305,7 +1305,7 @@ jobs:
       - name: Run Semgrep
         uses: semgrep/semgrep-action@v1
         with:
-          config: >-
+          config: &gt;-
             p/owasp-top-ten
             p/security-audit
             p/secrets
@@ -1332,7 +1332,7 @@ jobs:
 </code></pre>
       </div>
 
-      <h3>8.2 Best Practices Summary</h3>
+      <h3 id="8-2-best-practices-summary">8.2 Best Practices Summary</h3>
 
       <table class="spec-table">
         <thead>
@@ -1360,7 +1360,7 @@ jobs:
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    
+    </div>
 
       <!-- ============================== -->
       <!-- SECTION 9: Quiz                 -->
@@ -1372,7 +1372,7 @@ jobs:
 
         <!-- Pertanyaan 1 -->
         <div class="quiz-question">
-          <h3>Pertanyaan 1: Apa fungsi utama dari <code>concurrency</code> di GitHub Actions?</h3>
+          <h3 id="pertanyaan-1-apa-fungsi-utama-dari-concurrency-di-github-actions">Pertanyaan 1: Apa fungsi utama dari <code>concurrency</code> di GitHub Actions?</h3>
           <div class="quiz-options">
             <div class="quiz-option" data-question="0" data-answer="a">a) Meningkatkan kecepatan eksekusi workflow</div>
             <div class="quiz-option" data-question="0" data-answer="b">b) Mengontrol bagaimana workflow yang berjalan bersamaan saling berinteraksi, misalnya membatalkan run sebelumnya</div>
@@ -1383,7 +1383,7 @@ jobs:
 
         <!-- Pertanyaan 2 -->
         <div class="quiz-question">
-          <h3>Pertanyaan 2: Apa perbedaan antara <code>reusable workflow</code> dan <code>composite action</code>?</h3>
+          <h3 id="pertanyaan-2-apa-perbedaan-antara-reusable-workflow-dan-composite-action">Pertanyaan 2: Apa perbedaan antara <code>reusable workflow</code> dan <code>composite action</code>?</h3>
           <div class="quiz-options">
             <div class="quiz-option" data-question="1" data-answer="a">a) Tidak ada perbedaan, keduanya sama</div>
             <div class="quiz-option" data-question="1" data-answer="b">b) Reusable workflow adalah file workflow lengkap yang dipanggil dengan <code>uses</code>, sedangkan composite action adalah kumpulan steps yang digabung menjadi satu action</div>
@@ -1394,7 +1394,7 @@ jobs:
 
         <!-- Pertanyaan 3 -->
         <div class="quiz-question">
-          <h3>Pertanyaan 3: Mengapa menggunakan <code>restore-keys</code> pada cache lebih baik daripada hanya <code>key</code>?</h3>
+          <h3 id="pertanyaan-3-mengapa-menggunakan-restore-keys-pada-cache-lebih-baik-dari">Pertanyaan 3: Mengapa menggunakan <code>restore-keys</code> pada cache lebih baik daripada hanya <code>key</code>?</h3>
           <div class="quiz-options">
             <div class="quiz-option" data-question="2" data-answer="a">a) Karena <code>restore-keys</code> lebih cepat</div>
             <div class="quiz-option" data-question="2" data-answer="b">b) Karena <code>restore-keys</code> memungkinkan fallback ke cache terdekat jika exact match tidak ditemukan, menghemat waktu install</div>
@@ -1405,7 +1405,7 @@ jobs:
 
         <!-- Pertanyaan 4 -->
         <div class="quiz-question">
-          <h3>Pertanyaan 4: Apa keuntungan menggunakan OIDC dibandingkan long-lived AWS credentials di GitHub Actions?</h3>
+          <h3 id="pertanyaan-4-apa-keuntungan-menggunakan-oidc-dibandingkan-long-lived-aws">Pertanyaan 4: Apa keuntungan menggunakan OIDC dibandingkan long-lived AWS credentials di GitHub Actions?</h3>
           <div class="quiz-options">
             <div class="quiz-option" data-question="3" data-answer="a">a) OIDC lebih cepat dari credentials biasa</div>
             <div class="quiz-option" data-question="3" data-answer="b">b) OIDC menggunakan token berjangka pendek yang otomatis di-generate, sehingga tidak perlu menyimpan credentials di secrets</div>
@@ -1416,7 +1416,7 @@ jobs:
 
         <!-- Pertanyaan 5 -->
         <div class="quiz-question">
-          <h3>Pertanyaan 5: Apa fungsi <code>fail-fast: false</code> pada matrix strategy?</h3>
+          <h3 id="pertanyaan-5-apa-fungsi-fail-fast-false-pada-matrix-strategy">Pertanyaan 5: Apa fungsi <code>fail-fast: false</code> pada matrix strategy?</h3>
           <div class="quiz-options">
             <div class="quiz-option" data-question="4" data-answer="a">a) Membuat semua job gagal sekaligus</div>
             <div class="quiz-option" data-question="4" data-answer="b">b) Menghentikan semua job lain jika satu job gagal</div>
@@ -1425,7 +1425,7 @@ jobs:
           </div>
         </div>
 
-        <button class="quiz-btn" aria-label="Periksa jawaban kuis">📝 Periksa Jawaban</button>
+        <button class="quiz-btn" aria-label="Periksa jawaban kuis" type="button">📝 Periksa Jawaban</button>
         <div class="quiz-result"></div>
       </div>
 
@@ -1437,7 +1437,7 @@ jobs:
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    
+    </div>
 
       <!-- ============================== -->
       <!-- ARTICLE NAVIGATION             -->
@@ -1456,7 +1456,7 @@ jobs:
     </div>
   
     <div class="related-articles">
-      <h3>📚 Artikel Terkait</h3>
+      <h3 id="artikel-terkait">📚 Artikel Terkait</h3>
       <div class="related-grid">
                 <a href="/articles/opentofu-iac.html" class="related-card">
           <span class="related-category">DevOps &amp; Cloud</span>
@@ -1479,10 +1479,10 @@ jobs:
   <section class="newsletter-section" id="newsletter">
     <div class="container">
       <div class="newsletter-card fade-in">
-        <h2>📬 Dapatkan Tutorial Terbaru</h2>
+        <h2 id="dapatkan-tutorial-terbaru">📬 Dapatkan Tutorial Terbaru</h2>
         <p>Subscribe untuk mendapatkan tutorial DevOps terbaru langsung di inbox kamu. Gratis, tanpa spam.</p>
         <form class="newsletter-form" onsubmit="handleSubscribe(event)">
-          <input type="email" placeholder="email@kamu.com" required>
+          <input type="email" aria-label="Alamat email" placeholder="email@kamu.com" required>
           <button type="submit" class="btn-primary">Subscribe</button>
         </form>
       </div>

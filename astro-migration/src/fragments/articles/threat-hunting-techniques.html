@@ -1,4 +1,4 @@
-</div>
+
   <section class="article-hero"><div class="container"><div class="breadcrumb"><a href="../index.html">Beranda</a><span class="separator">/</span><a href="../index.html#categories">Keamanan</a><span class="separator">/</span><span class="current">Threat Hunting Techniques</span></div><span class="category-tag">Keamanan</span><h1>Threat Hunting Techniques</h1><p class="article-subtitle">Panduan lengkap threat hunting — hypothesis-driven approach, MITRE ATT&CK, IOC/IOA hunting, behavioral analytics, dan hunting program</p><div class="article-meta"><span>📅 15 Juni 2026</span><span>📖 16 menit baca</span><span class="difficulty lanjut">Lanjut</span></div>
       <div class="article-author">
         <span class="author-avatar">🐝</span>
@@ -9,19 +9,19 @@
       </div></div></section>
       <div class="article-featured-image">
         <img src="/images/articles/threat-hunting-techniques.webp" class="night-img"
-             alt="Artikel: Threat Hunting Techniques" 
+             alt="Ilustrasi tutorial: Threat Hunting Techniques" 
              loading="lazy" 
              width="1200" height="630"
              fetchpriority="low">
         <img src="/images/articles/threat-hunting-techniques-day.webp" class="day-img"
-             alt="Artikel: Threat Hunting Techniques" 
+             alt="Ilustrasi tutorial: Threat Hunting Techniques" 
              loading="lazy" 
              width="1200" height="630"
              fetchpriority="low">
       </div>
 
   <div class="container"><div class="ad-slot ad-slot-wide"></div></div>
-  <article class="article-content" id="main-content"><div class="container">
+  <article class="article-content" id="article-body"><div class="container">
     <div class="info-box info"><div class="info-box-title">📋 Daftar Isi</div><ol>
       <li><a href="#pengenalan">Pengenalan</a></li>
       <li><a href="#hypothesis">Hypothesis-Driven</a></li>
@@ -47,7 +47,7 @@
 
       <h2 id="hypothesis">2. Hypothesis-Driven Hunting</h2>
       <p>Pendekatan dimulai dengan hipotesis tentang bagaimana attacker beroperasi, lalu mengumpulkan data untuk membuktikan atau menyanggah.</p>
-      <div class="code-block"><div class="code-header"><span class="code-lang">Template — Hunting Hypothesis</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Template — Hunting Hypothesis</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)" type="button">Salin</button></div>
 <pre><code># =============================================
 +# Threat Hunting Hypothesis Template
 +# =============================================
@@ -66,7 +66,7 @@
 +index=windows (EventCode=7045 AND Image="*PSEXESVC*")
 +  OR (EventCode=4624 AND Logon_Type=3)
 +| stats count by ComputerName, Account_Name, IpAddress
-+| where count > 3
++| where count &gt; 3
 
 +# HYPOTHESIS 2: DNS Tunneling for Exfiltration
 +# ------------------------------------------------
@@ -75,10 +75,10 @@
 +# Query:
 +index=dns
 +| eval query_len=len(query)
-+| where query_len > 50
++| where query_len &gt; 50
 +| stats count avg(query_len) as avg_len
 +  by dest
-+| where count > 100 AND avg_len > 50</code></pre>
++| where count &gt; 100 AND avg_len &gt; 50</code></pre>
       </div>
 
       <h2 id="mitre">3. MITRE ATT&CK Mapping</h2>
@@ -96,7 +96,7 @@
 
       <h2 id="ioc">4. IOC-Based Hunting</h2>
       <p>IOC hunting mencari artifact spesifik yang terkait serangan — IP, domain, file hash, atau registry key.</p>
-      <div class="code-block"><div class="code-header"><span class="code-lang">Splunk — IOC Hunting</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Splunk — IOC Hunting</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)" type="button">Salin</button></div>
 <pre><code># =============================================
 +# IOC Hunting Queries
 +# =============================================
@@ -128,7 +128,7 @@
 
       <h2 id="behavioral">5. Behavioral Analytics</h2>
       <p>Mencari anomali perilaku yang menyimpang dari baseline, mengindikasikan kompromi tanpa IOC yang diketahui.</p>
-      <div class="code-block"><div class="code-header"><span class="code-lang">Splunk — Behavioral Hunting</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Splunk — Behavioral Hunting</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)" type="button">Salin</button></div>
 <pre><code># =============================================
 +# Behavioral Analytics Hunting
 +# =============================================
@@ -140,14 +140,14 @@
 +        latest(_time) as last,
 +        values(Country) as countries
 +  by user
-+| where mvcount(countries) > 1
++| where mvcount(countries) &gt; 1
 +| eval time_diff = last - first
-+| where time_diff < 3600
++| where time_diff &lt; 3600
 
 +# 2. Unusual process tree
 +index=sysmon EventCode=1
 +| stats values(ParentImage) as parents by Image
-+| where mvcount(parents) > 1
++| where mvcount(parents) &gt; 1
 +| where match(Image, "cmd|powershell|wscript")
 
 +# 3. Beaconing detection
@@ -156,13 +156,13 @@
 +| stats count by _time, dest_domain
 +| eventstats avg(count) as avg_count,
 +    stdev(count) as std_count by dest_domain
-+| where count > avg_count + (3 * std_count)</code></pre>
++| where count &gt; avg_count + (3 * std_count)</code></pre>
       </div>
 
       <h2 id="techniques">6. Hunting Techniques</h2>
-      <h3>Stacking (Frequency Analysis)</h3>
+      <h3 id="stacking-frequency-analysis">Stacking (Frequency Analysis)</h3>
       <p>Menemukan anomali dengan menghitung frekuensi kemunculan. Nilai yang sangat jarang layak diperiksa.</p>
-      <div class="code-block"><div class="code-header"><span class="code-lang">Splunk — Stacking</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Splunk — Stacking</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)" type="button">Salin</button></div>
 <pre><code># =============================================
 +# Stacking Analysis
 +# =============================================
@@ -173,7 +173,7 @@
 
 +# Rare parent-child combinations
 +index=sysmon EventCode=1
-+| eval combo=ParentImage." -> ".Image
++| eval combo=ParentImage." -&gt; ".Image
 +| rare limit=20 combo
 
 +# Rare user-agent strings
@@ -203,9 +203,9 @@
         <tr><td><strong>HM4</strong></td><td>Leading</td><td>ML-assisted, automated, continuous</td></tr>
       </tbody></table>
 
-      <h3>Hunting with YARA Rules</h3>
+      <h3 id="hunting-with-yara-rules">Hunting with YARA Rules</h3>
       <p>YARA adalah pattern matching tool yang sangat powerful untuk mengidentifikasi dan mengkategorikan malware samples. Dalam threat hunting, YARA digunakan untuk scanning endpoint dan memory.</p>
-      <div class="code-block"><div class="code-header"><span class="code-lang">YARA — Threat Hunting Rules</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+      <div class="code-block"><div class="code-header"><span class="code-lang">YARA — Threat Hunting Rules</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)" type="button">Salin</button></div>
 <pre><code># =============================================
 +# YARA Rules untuk Threat Hunting
 +# =============================================
@@ -254,9 +254,9 @@
 +#       WHERE yara(file=FullPath, rules=yara_rules)</code></pre>
       </div>
 
-      <h3>Memory Forensics for Hunting</h3>
+      <h3 id="memory-forensics-for-hunting">Memory Forensics for Hunting</h3>
       <p>Memory forensik sangat penting untuk threat hunting karena banyak malware yang hanya hidup di memory (fileless malware). Tool seperti Volatility memungkinkan analisis memory dump.</p>
-      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Memory Forensics</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Bash — Memory Forensics</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)" type="button">Salin</button></div>
 <pre><code># =============================================
 +# Memory Forensics untuk Threat Hunting
 +# =============================================
@@ -300,9 +300,9 @@
 +  --yara-rules hunting_rules.yar</code></pre>
       </div>
 
-      <h3>Network-Based Hunting</h3>
+      <h3 id="network-based-hunting">Network-Based Hunting</h3>
       <p>Network traffic analysis mengungkap komunikasi C2, data exfiltration, dan lateral movement yang mungkin tidak terlihat di endpoint logs.</p>
-      <div class="code-block"><div class="code-header"><span class="code-lang">Zeek — Network Hunting Scripts</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
+      <div class="code-block"><div class="code-header"><span class="code-lang">Zeek — Network Hunting Scripts</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)" type="button">Salin</button></div>
 <pre><code># =============================================
 +# Network Hunting dengan Zeek (Bro)
 +# =============================================
@@ -320,7 +320,7 @@
 +#     };
 +# }
 +# event dns_request(c: connection, msg: dns_msg, query: string) {
-+#     if (|query| > 50) {
++#     if (|query| &gt; 50) {
 +#         NOTICE([
 +#             $note=Long_DNS_Query,
 +#             $conn=c,
@@ -347,16 +347,16 @@
       </div>
 
 
-+      <h3>Hunting Playbooks</h3>
++      <h3 id="hunting-playbooks">Hunting Playbooks</h3>
 +      <p>Hunting playbook mendokumentasikan prosedur berburu yang dapat direplikasi. Setiap playbook terdiri dari hipotesis, data sources, queries, dan triage criteria.</p>
-+      <div class="code-block"><div class="code-header"><span class="code-lang">Template — Hunting Playbook</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
++      <div class="code-block"><div class="code-header"><span class="code-lang">Template — Hunting Playbook</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)" type="button">Salin</button></div>
 +<pre><code># =============================================
 +# Hunting Playbook: Credential Dumping
 +# =============================================
 
 +# PLAYBOOK ID: HP-001
 +# TITLE: LSASS Memory Access Detection
-+# ATT&CK: T1003.001 (OS Credential Dumping)
++# ATT&amp;CK: T1003.001 (OS Credential Dumping)
 +# PRIORITY: High
 +# ESTIMATED TIME: 2-4 hours
 
@@ -410,9 +410,9 @@
 +#    compromised credentials</code></pre>
 +      </div>
 +
-+      <h3>Automating Hunts with Jupyter Notebooks</h3>
++      <h3 id="automating-hunts-with-jupyter-notebooks">Automating Hunts with Jupyter Notebooks</h3>
 +      <p>Jupyter Notebooks sangat baik untuk threat hunting karena mendukung iteraktif data analysis, visualisasi, dan dokumentasi dalam satu file.</p>
-+      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Jupyter Hunting Notebook</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)">Salin</button></div>
++      <div class="code-block"><div class="code-header"><span class="code-lang">Python — Jupyter Hunting Notebook</span><button class="code-copy" aria-label="Salin kode" onclick="copyToClipboard(this)" type="button">Salin</button></div>
 +<pre><code># =============================================
 +# Threat Hunting Jupyter Notebook
 +# =============================================
@@ -468,7 +468,7 @@
 +rare.head(20)</code></pre>
 +      </div>
 +
-+      <h3>Hunting Metrics &amp; Reporting</h3>
++      <h3 id="hunting-metrics-reporting">Hunting Metrics &amp; Reporting</h3>
 +      <table class="net-table"><thead><tr><th>Metric</th><th>Description</th><th>Target</th></tr></thead><tbody>
 +        <tr><td><strong>Hunts/month</strong></td><td>Jumlah hunting yang dilakukan</td><td>&gt;= 4 per bulan</td></tr>
 +        <tr><td><strong>True positive rate</strong></td><td>% hunts yang menemukan ancaman nyata</td><td>&gt;= 20%</td></tr>
@@ -514,10 +514,10 @@
           <label><input type="radio" name="q5" value="2"> HM3</label>
           <label><input type="radio" name="q5" value="3"> HM4</label>
         </div>
-        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)">Periksa Jawaban</button>
+        <button class="quiz-submit" aria-label="Periksa jawaban kuis" onclick="checkQuiz(this)" type="button">Periksa Jawaban</button>
         <div class="quiz-result"></div>
       </div>
-      <h3>Rangkuman</h3>
+      <h3 id="rangkuman">Rangkuman</h3>
       <div class="info-box info"><div class="info-box-title">📝 Poin Penting</div><ul>
         <li><strong>Proaktif</strong> — Mengasumsikan attacker sudah di dalam, tidak menunggu alert</li>
         <li><strong>Hypothesis</strong> — Pendekatan dimulai dari hipotesis tentang TTP attacker</li>
@@ -527,7 +527,7 @@
       </ul></div>
   </div>
     <div class="related-articles">
-      <h3>📚 Artikel Terkait</h3>
+      <h3 id="artikel-terkait">📚 Artikel Terkait</h3>
       <div class="related-grid">
                 <a href="/articles/cryptography-developer.html" class="related-card">
           <span class="related-category">Keamanan</span>
